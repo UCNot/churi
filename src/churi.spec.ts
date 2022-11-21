@@ -163,7 +163,7 @@ describe('Churi', () => {
 
   describe('href', () => {
     it('is the one of URL when authority present', () => {
-      const href = 'http://user:password@host:2345/path#hash';
+      const href = 'http://user:password@host:2345/path?query#hash';
       const uri = new Churi(href);
 
       expect(uri.href).toBe(href);
@@ -171,12 +171,12 @@ describe('Churi', () => {
       expect(uri.toURL().href).toBe(href);
     });
     it('differs from URL when authority absent', () => {
-      const href = 'route:user:password@host:2345/path#hash';
+      const href = 'route:user:password@host:2345/path?query#hash';
       const uri = new Churi(href);
 
       expect(uri.href).toBe(href);
       expect(String(uri)).toBe(href);
-      expect(uri.toURL().href).toBe('route:///user:password@host:2345/path#hash');
+      expect(uri.toURL().href).toBe('route:///user:password@host:2345/path?query#hash');
     });
   });
 });
