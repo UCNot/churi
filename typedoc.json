@@ -1,0 +1,9 @@
+{
+  "entryPoints": ["src/mod.ts"],
+  "excludePrivate": true,
+  "name": "Charged URI",
+  "out": "./target/typedoc",
+  "compilerOptions": {
+    "module": 7 /* ES2022 */
+  }
+}

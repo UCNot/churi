@@ -1,0 +1,8 @@
+{
+  "extends": "@run-z/project-config/tsconfig.lib.json",
+  "compilerOptions": {
+    "lib": ["DOM", "ES2022"],
+    "outDir": "target/js"
+  },
+  "include": ["src/**/*"]
+}
