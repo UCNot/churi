@@ -11,9 +11,9 @@
 [npm-url]: https://www.npmjs.com/package/@hatsy/churi
 [build-status-img]: https://github.com/hatsyjs/churi/workflows/Build/badge.svg
 [build-status-link]: https://github.com/hatsyjs/churi/actions?query=workflow:Build
-[quality-img]: https://app.codacy.com/project/badge/Grade/7b713de99b284eb1960b7b3ad9abf730
+[quality-img]: https://app.codacy.com/project/badge/Grade/e0cde60880cf434f8e46f63334d86b1e
 [quality-link]: https://www.codacy.com/gh/hatsyjs/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=hatsyjs/churi&utm_campaign=Badge_Grade
-[coverage-img]: https://app.codacy.com/project/badge/Coverage/7b713de99b284eb1960b7b3ad9abf730
+[coverage-img]: https://app.codacy.com/project/badge/Coverage/e0cde60880cf434f8e46f63334d86b1e
 [coverage-link]: https://www.codacy.com/gh/hatsyjs/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=hatsyjs/churi&utm_campaign=Badge_Coverage
 [github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
 [github-url]: https://github.com/hatsyjs/churi
