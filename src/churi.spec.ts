@@ -43,6 +43,14 @@ describe('Churi', () => {
       expect(uri.origin).toBe(url.origin);
     });
     it('is defined when present', () => {
+      const uri = new Churi('route://user@host/path');
+
+      expect(uri.host).toBe('host');
+      expect(uri.hostname).toBe('host');
+      expect(uri.port).toBe('');
+      expect(uri.origin).toBe(uri.toURL().origin);
+    });
+    it('is defined when present in http URL', () => {
       const uri = new Churi('http://host/path');
 
       expect(uri.host).toBe('host');
@@ -51,13 +59,12 @@ describe('Churi', () => {
       expect(uri.origin).toBe('http://host');
     });
     it('is defined when empty', () => {
-      const url = new URL('file:///path/to/file');
-      const uri = new Churi(url.href);
+      const uri = new Churi('file:///path/to/file');
 
       expect(uri.host).toBe('');
       expect(uri.hostname).toBe('');
       expect(uri.port).toBe('');
-      expect(uri.origin).toBe(url.origin);
+      expect(uri.origin).toBe(uri.toURL().origin);
     });
     it('is defined with empty port', () => {
       const uri = new Churi('http://host:/path');
@@ -170,13 +177,39 @@ describe('Churi', () => {
       expect(String(uri)).toBe(href);
       expect(uri.toURL().href).toBe(href);
     });
-    it('differs from URL when authority absent', () => {
+    it('is the one of URL when authority absent', () => {
       const href = 'route:user:password@host:2345/path?query#hash';
       const uri = new Churi(href);
 
       expect(uri.href).toBe(href);
       expect(String(uri)).toBe(href);
-      expect(uri.toURL().href).toBe('route:///user:password@host:2345/path?query#hash');
+      expect(uri.toURL().href).toBe(href);
+    });
+    it('is the one of URL when non-empty authority added automatically', () => {
+      const href = 'http:user:password@host:2345/path?query#hash';
+      const httpHref = 'http://user:password@host:2345/path?query#hash';
+      const uri = new Churi(href);
+
+      expect(uri.href).toBe(httpHref);
+      expect(uri.toURL().href).toBe(httpHref);
+    });
+    it('is the one of URL when empty authority added automatically', () => {
+      const href = 'file:user:password@host:2345/path?query#hash';
+      const fileHref = 'file:///user:password@host:2345/path?query#hash';
+      const uri = new Churi(href);
+
+      expect(uri.href).toBe(fileHref);
+      expect(uri.toURL().href).toBe(fileHref);
+    });
+  });
+
+  describe('data:', () => {
+    it('represented as data URL', () => {
+      const href = 'data:,Hello%2C%20World%21';
+      const uri = new Churi(href);
+
+      expect(uri.href).toBe(href);
+      expect(uri.toURL().href).toBe(href);
     });
   });
 });
