@@ -1,4 +1,4 @@
-export class Churi {
+export class ChURI {
 
   readonly #url: URL;
   #schema?: string;
