@@ -23,6 +23,9 @@
     "types": "./dist/churi.d.ts",
     "default": "./dist/churi.js"
   },
+  "dependencies": {
+    "@proc7ts/primitives": "4.0.0-pre.3"
+  },
   "devDependencies": {
     "@jest/globals": "^29.3.1",
     "@run-z/eslint-config": "^3.3.0",

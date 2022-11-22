@@ -150,6 +150,30 @@ describe('ChURI', () => {
     });
   });
 
+  describe('searchParams', () => {
+    it('is empty when absent', () => {
+      const uri = new ChURI('route:path');
+
+      expect([...uri.searchParams]).toEqual([]);
+      expect(String(uri.searchParams)).toBe('');
+    });
+    it('is empty when empty', () => {
+      const uri = new ChURI('route:?');
+
+      expect([...uri.searchParams]).toEqual([]);
+      expect(String(uri.searchParams)).toBe('');
+    });
+    it('contains search parameters when present', () => {
+      const uri = new ChURI('route:?test&foo=bar');
+
+      expect([...uri.searchParams]).toEqual([
+        ['test', ''],
+        ['foo', 'bar'],
+      ]);
+      expect(String(uri.searchParams)).toBe('test=&foo=bar');
+    });
+  });
+
   describe('hash', () => {
     it('is empty when absent', () => {
       const uri = new ChURI('route:path');
