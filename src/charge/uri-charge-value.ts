@@ -1,5 +1,8 @@
-export type URIChargeValue = bigint | boolean | number | string | URIChargeObject;
+export type URIChargeValue = URIChargeValue.Simple | URIChargeValue.Object;
 
-export interface URIChargeObject {
-  [key: string]: URIChargeValue;
+export namespace URIChargeValue {
+  export type Simple = bigint | boolean | number | string;
+  export interface Object {
+    [key: string]: URIChargeValue | URIChargeValue[];
+  }
 }

@@ -74,10 +74,39 @@ describe('parseURICharge', () => {
       suffix: '',
     });
   });
-  it('recognizes empty property name', () => {
-    expect(parseURICharge('foo(1)(bar)').charge).toEqual({
-      foo: 1,
-      '': 'bar',
+  it('recognizes multiple property values', () => {
+    expect(parseURICharge('foo(1)(bar)(+)').charge).toEqual({
+      foo: [1, 'bar', true],
+    });
+  });
+  it('concatenates multiple property values', () => {
+    expect(parseURICharge('foo(1)foo(bar)foo(+)').charge).toEqual({
+      foo: [1, 'bar', true],
+    });
+  });
+  it('merges multiple objects', () => {
+    expect(parseURICharge('foo(bar(baz(1)))foo(bar(baz()))foo(bar(baz(+)))').charge).toEqual({
+      foo: { bar: { baz: [1, '', true] } },
+    });
+  });
+  it('concatenates value and object', () => {
+    expect(parseURICharge('foo(bar(test))(bar(baz(1)test(+)))').charge).toEqual({
+      foo: { bar: ['test', { baz: 1, test: true }] },
+    });
+  });
+  it('concatenates multiple values and object', () => {
+    expect(parseURICharge('foo(bar(test)(test2))(bar(baz(1)test(+)))').charge).toEqual({
+      foo: { bar: ['test', 'test2', { baz: 1, test: true }] },
+    });
+  });
+  it('concatenates object and value', () => {
+    expect(parseURICharge('foo(bar(baz(1)))foo(bar(test))').charge).toEqual({
+      foo: { bar: [{ baz: 1 }, 'test'] },
+    });
+  });
+  it('merges trailing objects', () => {
+    expect(parseURICharge('foo(bar(1))(bar(baz(1)))(bar(baz(2)test(+)))').charge).toEqual({
+      foo: { bar: [1, { baz: [1, 2], test: true }] },
     });
   });
   it('stops simple value parsing at closing parent', () => {
@@ -88,6 +117,18 @@ describe('parseURICharge', () => {
   });
   it('stops object suffix parsing at closing parent', () => {
     expect(parseURICharge('foo(bar)baz)')).toEqual({ charge: { foo: 'bar', baz: '' }, end: 11 });
+  });
+  it('stops object parsing at the end of input', () => {
+    expect(parseURICharge('foo(13')).toEqual({
+      charge: { foo: 13 },
+      end: 6,
+    });
+  });
+  it('stops object parsing at closing parent', () => {
+    expect(parseURICharge('foo(13))')).toEqual({
+      charge: { foo: 13 },
+      end: 7,
+    });
   });
   it('stops property value parsing at the end of input', () => {
     expect(parseURICharge('foo(1)bar(2)baz(13')).toEqual({

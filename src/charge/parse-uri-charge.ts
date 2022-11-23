@@ -1,6 +1,6 @@
 import { asis } from '@proc7ts/primitives';
 import { URIChargeConsumer } from './uri-charge-consumer.js';
-import { URIChargeObject } from './uri-charge-value.js';
+import { URIChargeValue } from './uri-charge-value.js';
 import { DefaultURIChargeVisitor, URIChargeVisitor } from './uri-charge-visitor.js';
 
 export function parseURICharge<T>(
@@ -18,25 +18,23 @@ export function parseURICharge<T>(
 
   if (keyEnd < 0) {
     return {
-      charge: parser.visitString(input),
+      charge: parser.visitString(decodeURIComponent(input)),
       end: input.length,
     };
   }
 
-  const encodedKey = input.slice(0, keyEnd);
+  const key = decodeURIComponent(input.slice(0, keyEnd));
 
   if (input[keyEnd] === ')') {
     return {
-      charge: parser.visitString(encodedKey),
+      charge: parser.visitString(key),
       end: keyEnd,
     };
   }
 
   const firstValueOffset = keyEnd + 1;
   const [consumer, endCharge] = parser.visitObject();
-  const end =
-    firstValueOffset
-    + parseURIChargeObject(decodeURIComponent(encodedKey), input.slice(firstValueOffset), consumer);
+  const end = firstValueOffset + parseURIChargeObject(key, input.slice(firstValueOffset), consumer);
 
   return {
     end,
@@ -44,7 +42,7 @@ export function parseURICharge<T>(
   };
 }
 
-export interface URIChargeParseResult<T = string | URIChargeObject> {
+export interface URIChargeParseResult<T = string | URIChargeValue.Object> {
   readonly charge: T;
   readonly end: number;
 }
@@ -74,7 +72,9 @@ function parseURIChargeObject(
   }
 
   // Parse the rest of the object properties.
-  return firstValueEnd + parseURIChargeProperties(firstValueInput.slice(firstValueEnd), consumer);
+  return (
+    firstValueEnd + parseURIChargeProperties(key, firstValueInput.slice(firstValueEnd), consumer)
+  );
 }
 
 function parseURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): number {
@@ -104,7 +104,7 @@ function parseURIChargeValue(key: string, input: string, consumer: URIChargeCons
   );
 }
 
-function parseURIChargeProperties(input: string, consumer: URIChargeConsumer): number {
+function parseURIChargeProperties(key: string, input: string, consumer: URIChargeConsumer): number {
   let offset = 0;
 
   for (;;) {
@@ -116,10 +116,15 @@ function parseURIChargeProperties(input: string, consumer: URIChargeConsumer): n
       return offset + input.length;
     }
 
-    const key = keyEnd ? decodeURIComponent(input.slice(0, keyEnd)) : '';
+    let nextKey = '';
+
+    if (keyEnd) {
+      // Key changed.
+      key = nextKey = decodeURIComponent(input.slice(0, keyEnd));
+    }
 
     if (input[keyEnd] === ')') {
-      consumer.endObject(key);
+      consumer.endObject(nextKey);
 
       return offset + keyEnd;
     }
@@ -226,23 +231,19 @@ function decodeNumericURICharge(
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
-  const firstChar = input[offset];
+  const secondChar = input[offset + 1];
 
-  if (firstChar === '0') {
-    const secondChar = input[offset + 1];
+  switch (secondChar) {
+    case 'n':
+      consumer.addBigInt(
+        key,
+        input.length < offset + 3 ? 0n : sign(BigInt(input.slice(offset + 2))),
+      );
 
-    switch (secondChar) {
-      case 'n':
-        consumer.addBigInt(
-          key,
-          input.length < offset + 3 ? 0n : sign(BigInt(input.slice(offset + 2))),
-        );
+      return;
+    default:
+      consumer.addNumber(key, input.length < offset + 3 ? 0 : sign(Number(input.slice(offset))));
 
-        return;
-      default:
-        consumer.addNumber(key, input.length < offset + 3 ? 0 : sign(Number(input.slice(offset))));
-    }
+      return;
   }
-
-  return consumer.addNumber(key, input.length < offset + 3 ? 0 : sign(Number(input.slice(offset))));
 }
