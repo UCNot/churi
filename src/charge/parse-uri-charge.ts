@@ -1,23 +1,24 @@
 import { asis } from '@proc7ts/primitives';
-import { URIChargeParser$Default } from './uri-charge-parser.impl.js';
-import { URIChargeParser } from './uri-charge-parser.js';
+import { URIChargeConsumer } from './uri-charge-consumer.js';
+import { URIChargeObject } from './uri-charge-value.js';
+import { DefaultURIChargeVisitor, URIChargeVisitor } from './uri-charge-visitor.js';
 
 export function parseURICharge<T>(
   input: string,
-  parser: URIChargeParser<T>,
-): URIChargeParser.Result<T>;
+  parser: URIChargeVisitor<T>,
+): URIChargeParseResult<T>;
 
-export function parseURICharge(input: string): URIChargeParser.Result;
+export function parseURICharge(input: string): URIChargeParseResult;
 
 export function parseURICharge<T>(
   input: string,
-  parser: URIChargeParser<T> = new URIChargeParser$Default() as URIChargeParser<unknown> as URIChargeParser<T>,
-): URIChargeParser.Result<T> {
+  parser: URIChargeVisitor<T> = new DefaultURIChargeVisitor() as URIChargeVisitor<unknown> as URIChargeVisitor<T>,
+): URIChargeParseResult<T> {
   const keyEnd = input.search(PARENT_PATTERN);
 
   if (keyEnd < 0) {
     return {
-      charge: parser.parseString(input),
+      charge: parser.visitString(input),
       end: input.length,
     };
   }
@@ -26,13 +27,13 @@ export function parseURICharge<T>(
 
   if (input[keyEnd] === ')') {
     return {
-      charge: parser.parseString(encodedKey),
+      charge: parser.visitString(encodedKey),
       end: keyEnd,
     };
   }
 
   const firstValueOffset = keyEnd + 1;
-  const [consumer, endCharge] = parser.parseObject();
+  const [consumer, endCharge] = parser.visitObject();
   const end =
     firstValueOffset
     + parseURIChargeObject(decodeURIComponent(encodedKey), input.slice(firstValueOffset), consumer);
@@ -43,12 +44,17 @@ export function parseURICharge<T>(
   };
 }
 
+export interface URIChargeParseResult<T = string | URIChargeObject> {
+  readonly charge: T;
+  readonly end: number;
+}
+
 const PARENT_PATTERN = /[()]/;
 
 function parseURIChargeObject(
   key: string,
   firstValueInput: string,
-  consumer: URIChargeParser.Consumer,
+  consumer: URIChargeConsumer,
 ): number {
   // Opening parent.
   // Start nested object and parse first property.
@@ -71,11 +77,7 @@ function parseURIChargeObject(
   return firstValueEnd + parseURIChargeProperties(firstValueInput.slice(firstValueEnd), consumer);
 }
 
-function parseURIChargeValue(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): number {
+function parseURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): number {
   const valueEnd = input.search(PARENT_PATTERN);
 
   if (valueEnd < 0) {
@@ -102,7 +104,7 @@ function parseURIChargeValue(
   );
 }
 
-function parseURIChargeProperties(input: string, consumer: URIChargeParser.Consumer): number {
+function parseURIChargeProperties(input: string, consumer: URIChargeConsumer): number {
   let offset = 0;
 
   for (;;) {
@@ -138,11 +140,7 @@ function parseURIChargeProperties(input: string, consumer: URIChargeParser.Consu
   }
 }
 
-function decodeURIChargeValue(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodeURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): void {
   if (!input) {
     // Empty value
     consumer.addString(key, '');
@@ -160,7 +158,7 @@ function decodeURIChargeValue(
 }
 
 const URI_CHARGE_DECODERS: {
-  [firstChar: string]: (key: string, input: string, consumer: URIChargeParser.Consumer) => void;
+  [firstChar: string]: (key: string, input: string, consumer: URIChargeConsumer) => void;
 } = {
   '-': decodeMinusSignedURICharge,
   '+': decodePlusSignedURICharge,
@@ -177,43 +175,23 @@ const URI_CHARGE_DECODERS: {
   "'": decodeQuotedURICharge,
 };
 
-function decodeMinusSignedURICharge(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodeMinusSignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   decodeSignedURICharge(key, input, consumer, false, negate);
 }
 
-function decodePlusSignedURICharge(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodePlusSignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   decodeSignedURICharge(key, input, consumer, true, asis);
 }
 
-function decodeNumberURICharge(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodeNumberURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   return consumer.addNumber(key, Number(input));
 }
 
-function decodeQuotedURICharge(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodeQuotedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   return consumer.addString(key, decodeURIComponent(input.slice(1)));
 }
 
-function decodeUnsignedURICharge(
-  key: string,
-  input: string,
-  consumer: URIChargeParser.Consumer,
-): void {
+function decodeUnsignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   decodeNumericURICharge(key, input, consumer, 0, asis);
 }
 
@@ -224,7 +202,7 @@ function negate<T extends number | bigint>(value: T): T {
 function decodeSignedURICharge(
   key: string,
   input: string,
-  consumer: URIChargeParser.Consumer,
+  consumer: URIChargeConsumer,
   flag: boolean,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
@@ -244,7 +222,7 @@ function decodeSignedURICharge(
 function decodeNumericURICharge(
   key: string,
   input: string,
-  consumer: URIChargeParser.Consumer,
+  consumer: URIChargeConsumer,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
