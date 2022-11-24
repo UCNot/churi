@@ -1,24 +1,31 @@
 import { asis } from '@proc7ts/primitives';
 import { URIChargeConsumer } from './uri-charge-consumer.js';
-import { URIChargeValue } from './uri-charge-value.js';
+import { URIChargeParser } from './uri-charge-parser.js';
+
 import { DefaultURIChargeVisitor, URIChargeVisitor } from './uri-charge-visitor.js';
 
 export function parseURICharge<T>(
   input: string,
-  parser: URIChargeVisitor<T>,
-): URIChargeParseResult<T>;
+  parser: URIChargeParser<T>,
+): URIChargeParser.Result<T>;
 
-export function parseURICharge(input: string): URIChargeParseResult;
+export function parseURICharge(
+  input: string,
+  parser?: URIChargeParser.WithoutVisitor,
+): URIChargeParser.Result;
 
 export function parseURICharge<T>(
   input: string,
-  parser: URIChargeVisitor<T> = new DefaultURIChargeVisitor() as URIChargeVisitor<unknown> as URIChargeVisitor<T>,
-): URIChargeParseResult<T> {
+  parser: URIChargeParser<T> = {},
+): URIChargeParser.Result<T> {
+  const {
+    visitor = new DefaultURIChargeVisitor() as URIChargeVisitor<unknown> as URIChargeVisitor<T>,
+  } = parser;
   const keyEnd = input.search(PARENT_PATTERN);
 
   if (keyEnd < 0) {
     return {
-      charge: parser.visitString(decodeURIComponent(input)),
+      charge: visitor.visitString(decodeURIComponent(input)),
       end: input.length,
     };
   }
@@ -27,24 +34,19 @@ export function parseURICharge<T>(
 
   if (input[keyEnd] === ')') {
     return {
-      charge: parser.visitString(key),
+      charge: visitor.visitString(key),
       end: keyEnd,
     };
   }
 
   const firstValueOffset = keyEnd + 1;
-  const [consumer, endCharge] = parser.visitObject();
+  const [consumer, endCharge] = visitor.visitObject();
   const end = firstValueOffset + parseURIChargeObject(key, input.slice(firstValueOffset), consumer);
 
   return {
     end,
     charge: endCharge(),
   };
-}
-
-export interface URIChargeParseResult<T = string | URIChargeValue.Object> {
-  readonly charge: T;
-  readonly end: number;
 }
 
 const PARENT_PATTERN = /[()]/;
