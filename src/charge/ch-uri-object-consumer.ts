@@ -1,30 +1,33 @@
+import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIPrimitive } from './ch-uri-value.js';
 
 export abstract class ChURIObjectConsumer {
 
-  addBigInt(key: string, value: bigint, append: boolean): void {
-    this.addPrimitive(key, value, append);
+  addBigInt(key: string, value: bigint): void {
+    this.addPrimitive(key, value);
   }
 
-  addBoolean(key: string, value: boolean, append: boolean): void {
-    this.addPrimitive(key, value, append);
+  addBoolean(key: string, value: boolean): void {
+    this.addPrimitive(key, value);
   }
 
-  addNumber(key: string, value: number, append: boolean): void {
-    this.addPrimitive(key, value, append);
+  addNumber(key: string, value: number): void {
+    this.addPrimitive(key, value);
   }
 
-  addString(key: string, value: string, append: boolean): void {
-    this.addPrimitive(key, value, append);
+  addString(key: string, value: string): void {
+    this.addPrimitive(key, value);
   }
 
   addSuffix(suffix: string): void {
-    this.addBoolean(suffix, true, false);
+    this.addBoolean(suffix, true);
   }
 
-  abstract addPrimitive(key: string, value: ChURIPrimitive, append: boolean): void;
+  abstract addPrimitive(key: string, value: ChURIPrimitive): void;
 
-  abstract startObject(key: string, append: boolean): ChURIObjectConsumer;
+  abstract startObject(key: string): ChURIObjectConsumer;
+
+  abstract startArray(key: string): ChURIArrayConsumer;
 
   endObject(): void {
     // Do nothing.

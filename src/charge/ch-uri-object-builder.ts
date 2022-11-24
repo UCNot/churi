@@ -1,11 +1,13 @@
 import { isArray } from '@proc7ts/primitives';
+import { ChURIArrayBuilder } from './ch-uri-array-builder.js';
+import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIObject, ChURIPrimitive } from './ch-uri-value.js';
+import { ChURIArray, ChURIObject, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 import { URIChargeVisitor } from './uri-charge-visitor.js';
 
 export class ChURIObjectBuilder extends ChURIObjectConsumer {
 
-  static get visitor(): URIChargeVisitor<string | ChURIObject> {
+  static get visitor(): URIChargeVisitor<string | ChURIObject | ChURIArray> {
     return ChURIObjectVisitor$instance;
   }
 
@@ -20,64 +22,66 @@ export class ChURIObjectBuilder extends ChURIObjectConsumer {
     return this.#object;
   }
 
-  override addPrimitive(key: string, value: ChURIPrimitive, append: boolean): void {
-    if (append) {
-      const prevValue = this.#object[key];
-
-      if (prevValue == null) {
-        // Never called by parser.
-        this.#object[key] = [value];
-      } else if (isArray(prevValue)) {
-        prevValue.push(value);
-      } else {
-        this.#object[key] = [prevValue, value];
-      }
-    } else {
-      this.#object[key] = value;
-    }
+  override addPrimitive(key: string, value: ChURIPrimitive): void {
+    this.addValue(key, value);
   }
 
-  override startObject(key: string, append: boolean): ChURIObjectConsumer {
-    return new (this.constructor as typeof ChURIObjectBuilder)(this.addObject(key, append));
+  override startObject(key: string): ChURIObjectConsumer {
+    return new (this.constructor as typeof ChURIObjectBuilder)(this.addObject(key));
   }
 
-  addObject(key: string, append: boolean): ChURIObject {
+  addObject(key: string): ChURIObject {
     const prevValue = this.#object[key];
     let object: ChURIObject;
 
-    if (append) {
-      if (prevValue == null) {
-        // Never called by parser.
-        this.#object[key] = [(object = {})];
-      } else if (isArray(prevValue)) {
-        object = {};
-        prevValue.push(object);
-      } else {
-        object = {};
-        this.#object[key] = [prevValue, object];
-      }
-    } else if (typeof prevValue === 'object' && !isArray(prevValue)) {
+    if (typeof prevValue === 'object' && !isArray(prevValue)) {
       object = prevValue;
     } else {
-      this.#object[key] = object = {};
+      this.addValue(key, (object = {}));
     }
 
     return object;
   }
 
+  override startArray(key: string): ChURIArrayConsumer {
+    return new ChURIArrayBuilder(this.addArray(key));
+  }
+
+  addArray(key: string): ChURIArray {
+    const prevValue = this.#object[key];
+    let array: ChURIArray;
+
+    if (isArray(prevValue)) {
+      array = prevValue;
+    } else {
+      this.addValue(key, (array = prevValue != null ? [prevValue] : []));
+    }
+
+    return array;
+  }
+
+  addValue(key: string, value: ChURIValue): void {
+    this.#object[key] = value;
+  }
+
 }
 
-class ChURIObjectVisitor implements URIChargeVisitor<string | ChURIObject> {
+class ChURIObjectVisitor implements URIChargeVisitor<string | ChURIObject | ChURIArray> {
 
   visitString(value: string): string | ChURIObject {
     return value;
   }
 
   visitObject(): [ChURIObjectConsumer, () => ChURIObject] {
-    const consumer = new ChURIObjectBuilder();
-    const { object } = consumer;
+    const builder = new ChURIObjectBuilder();
 
-    return [consumer, () => object];
+    return [builder, () => builder.object];
+  }
+
+  visitArray(): [ChURIArrayConsumer, () => ChURIArray] {
+    const builder = new ChURIArrayBuilder();
+
+    return [builder, () => builder.array];
   }
 
 }
