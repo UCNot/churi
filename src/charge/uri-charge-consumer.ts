@@ -1,17 +1,7 @@
 import { isArray } from '@proc7ts/primitives';
 import { URIChargeValue } from './uri-charge-value.js';
 
-export interface URIChargeConsumer {
-  addBigInt(key: string, value: bigint): void;
-  addBoolean(key: string, value: boolean): void;
-  addNumber(key: string, value: number): void;
-  addString(key: string, value: string): void;
-  addSuffix(suffix: string): void;
-  startObject(key: string): URIChargeConsumer;
-  endObject(): void;
-}
-
-export abstract class AbstractURIChargeConsumer implements URIChargeConsumer {
+export abstract class URIChargeConsumer {
 
   addBigInt(key: string, value: bigint): void {
     this.addSimple(key, value);
@@ -33,7 +23,7 @@ export abstract class AbstractURIChargeConsumer implements URIChargeConsumer {
     this.addBoolean(suffix, true);
   }
 
-  abstract addSimple(key: string, value: bigint | boolean | number | string): void;
+  abstract addSimple(key: string, value: URIChargeValue.Simple): void;
 
   abstract startObject(key: string): URIChargeConsumer;
 
@@ -43,7 +33,7 @@ export abstract class AbstractURIChargeConsumer implements URIChargeConsumer {
 
 }
 
-export class DefaultURIChargeConsumer extends AbstractURIChargeConsumer {
+export class DefaultURIChargeConsumer extends URIChargeConsumer {
 
   readonly #object: URIChargeValue.Object;
 
@@ -56,7 +46,7 @@ export class DefaultURIChargeConsumer extends AbstractURIChargeConsumer {
     return this.#object;
   }
 
-  override addSimple(key: string, value: bigint | boolean | number | string): void {
+  override addSimple(key: string, value: URIChargeValue.Simple): void {
     const prevValue = this.#object[key];
 
     if (prevValue == null) {
