@@ -1,4 +1,4 @@
-import { URIChargeValue } from './uri-charge-value.js';
+import { ChURIObject } from './ch-uri-value.js';
 import { URIChargeVisitor } from './uri-charge-visitor.js';
 
 export type URIChargeParser<T> = URIChargeParser.WithVisitor<T> | URIChargeParser.WithoutVisitor;
@@ -13,7 +13,7 @@ export namespace URIChargeParser {
   export interface WithoutVisitor extends Options<never> {
     readonly visitor?: undefined;
   }
-  export interface Result<T = string | URIChargeValue.Object> {
+  export interface Result<T = string | ChURIObject> {
     readonly charge: T;
     readonly end: number;
   }

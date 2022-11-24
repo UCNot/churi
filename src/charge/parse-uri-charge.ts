@@ -1,8 +1,8 @@
 import { asis } from '@proc7ts/primitives';
+import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { URIChargeConsumer } from './uri-charge-consumer.js';
 import { URIChargeParser } from './uri-charge-parser.js';
-
-import { DefaultURIChargeVisitor, URIChargeVisitor } from './uri-charge-visitor.js';
+import { URIChargeVisitor } from './uri-charge-visitor.js';
 
 export function parseURICharge<T>(
   input: string,
@@ -19,7 +19,7 @@ export function parseURICharge<T>(
   parser: URIChargeParser<T> = {},
 ): URIChargeParser.Result<T> {
   const {
-    visitor = new DefaultURIChargeVisitor() as URIChargeVisitor<unknown> as URIChargeVisitor<T>,
+    visitor = ChURIObjectBuilder.visitor as URIChargeVisitor<unknown> as URIChargeVisitor<T>,
   } = parser;
   const keyEnd = input.search(PARENT_PATTERN);
 

@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { DefaultURIChargeConsumer } from './uri-charge-consumer.js';
+import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 
-describe('DefaultURIChargeConsumer', () => {
-  let consumer: DefaultURIChargeConsumer;
+describe('ChURIObjectBuilder', () => {
+  let consumer: ChURIObjectBuilder;
 
   beforeEach(() => {
-    consumer = new DefaultURIChargeConsumer();
+    consumer = new ChURIObjectBuilder();
   });
 
   describe('addSimple', () => {
     it('creates new array', () => {
-      consumer.addSimple('test', 1, true);
+      consumer.addPrimitive('test', 1, true);
 
       expect(consumer.object).toEqual({ test: [1] });
     });
