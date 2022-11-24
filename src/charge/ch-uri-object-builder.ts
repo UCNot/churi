@@ -1,9 +1,9 @@
 import { isArray } from '@proc7ts/primitives';
+import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIObject, ChURIPrimitive } from './ch-uri-value.js';
-import { URIChargeConsumer } from './uri-charge-consumer.js';
 import { URIChargeVisitor } from './uri-charge-visitor.js';
 
-export class ChURIObjectBuilder extends URIChargeConsumer {
+export class ChURIObjectBuilder extends ChURIObjectConsumer {
 
   static get visitor(): URIChargeVisitor<string | ChURIObject> {
     return ChURIObjectVisitor$instance;
@@ -37,7 +37,7 @@ export class ChURIObjectBuilder extends URIChargeConsumer {
     }
   }
 
-  override startObject(key: string, append: boolean): URIChargeConsumer {
+  override startObject(key: string, append: boolean): ChURIObjectConsumer {
     return new (this.constructor as typeof ChURIObjectBuilder)(this.addObject(key, append));
   }
 
@@ -73,7 +73,7 @@ class ChURIObjectVisitor implements URIChargeVisitor<string | ChURIObject> {
     return value;
   }
 
-  visitObject(): [URIChargeConsumer, () => ChURIObject] {
+  visitObject(): [ChURIObjectConsumer, () => ChURIObject] {
     const consumer = new ChURIObjectBuilder();
     const { object } = consumer;
 

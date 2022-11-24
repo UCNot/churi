@@ -1,6 +1,6 @@
 import { asis } from '@proc7ts/primitives';
 import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
-import { URIChargeConsumer } from './uri-charge-consumer.js';
+import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeVisitor } from './uri-charge-visitor.js';
 
@@ -54,7 +54,7 @@ const PARENT_PATTERN = /[()]/;
 function parseURIChargeObject(
   key: string,
   firstValueInput: string,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): number {
   // Opening parent.
   // Start nested object and parse first property.
@@ -83,7 +83,7 @@ function parseURIChargeValue(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): number {
   const valueEnd = input.search(PARENT_PATTERN);
 
@@ -114,7 +114,7 @@ function parseURIChargeValue(
 function parseURIChargeProperties(
   key: string,
   input: string /* never empty */,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): number {
   let offset = 0;
 
@@ -163,7 +163,7 @@ function decodeURIChargeValue(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): void {
   if (!input) {
     // Empty corresponds to `true`.
@@ -186,7 +186,7 @@ const URI_CHARGE_DECODERS: {
     key: string,
     input: string,
     append: boolean,
-    consumer: URIChargeConsumer,
+    consumer: ChURIObjectConsumer,
   ) => void;
 } = {
   '-': decodeMinusSignedURICharge,
@@ -207,7 +207,7 @@ function decodeMinusSignedURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): void {
   decodeSignedURICharge(key, input, append, consumer, false, negate);
 }
@@ -216,7 +216,7 @@ function decodeNumberURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): void {
   return consumer.addNumber(key, Number(input), append);
 }
@@ -225,7 +225,7 @@ function decodeQuotedURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): void {
   return consumer.addString(key, decodeURIComponent(input.slice(1)), append);
 }
@@ -234,7 +234,7 @@ function decodeUnsignedURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
 ): void {
   decodeNumericURICharge(key, input, append, consumer, 0, asis);
 }
@@ -247,7 +247,7 @@ function decodeSignedURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
   flag: boolean,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
@@ -268,7 +268,7 @@ function decodeNumericURICharge(
   key: string,
   input: string,
   append: boolean,
-  consumer: URIChargeConsumer,
+  consumer: ChURIObjectConsumer,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {

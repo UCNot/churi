@@ -1,6 +1,6 @@
 import { ChURIPrimitive } from './ch-uri-value.js';
 
-export abstract class URIChargeConsumer {
+export abstract class ChURIObjectConsumer {
 
   addBigInt(key: string, value: bigint, append: boolean): void {
     this.addPrimitive(key, value, append);
@@ -24,7 +24,7 @@ export abstract class URIChargeConsumer {
 
   abstract addPrimitive(key: string, value: ChURIPrimitive, append: boolean): void;
 
-  abstract startObject(key: string, append: boolean): URIChargeConsumer;
+  abstract startObject(key: string, append: boolean): ChURIObjectConsumer;
 
   endObject(): void {
     // Do nothing.
