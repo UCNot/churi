@@ -6,8 +6,9 @@ export interface URIChargeConsumer {
   addBoolean(key: string, value: boolean): void;
   addNumber(key: string, value: number): void;
   addString(key: string, value: string): void;
+  addSuffix(suffix: string): void;
   startObject(key: string): URIChargeConsumer;
-  endObject(suffix: string): void;
+  endObject(): void;
 }
 
 export class DefaultURIChargeConsumer implements URIChargeConsumer {
@@ -36,6 +37,10 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
 
   addString(key: string, value: string): void {
     this.addSimple(key, value);
+  }
+
+  addSuffix(suffix: string): void {
+    this.addBoolean(suffix, true);
   }
 
   startObject(key: string): URIChargeConsumer {
@@ -79,10 +84,8 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
     return object;
   }
 
-  endObject(suffix: string): void {
-    if (suffix) {
-      this.addSimple(suffix, true);
-    }
+  endObject(): void {
+    // Do nothing.
   }
 
 }

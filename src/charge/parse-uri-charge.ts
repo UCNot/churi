@@ -60,13 +60,13 @@ function parseURIChargeObject(
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
-    consumer.endObject('');
+    consumer.endObject();
 
     return firstValueInput.length;
   }
   if (firstValueInput[firstValueEnd] === ')') {
     // No more fields.
-    consumer.endObject('');
+    consumer.endObject();
 
     return firstValueEnd;
   }
@@ -104,27 +104,34 @@ function parseURIChargeValue(key: string, input: string, consumer: URIChargeCons
   );
 }
 
-function parseURIChargeProperties(key: string, input: string, consumer: URIChargeConsumer): number {
+function parseURIChargeProperties(
+  key: string,
+  input: string /* never empty */,
+  consumer: URIChargeConsumer,
+): number {
   let offset = 0;
 
   for (;;) {
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      consumer.endObject(decodeURIComponent(input));
+      consumer.addSuffix(decodeURIComponent(input));
+      consumer.endObject();
 
       return offset + input.length;
     }
 
-    let nextKey = '';
-
     if (keyEnd) {
-      // Key changed.
-      key = nextKey = decodeURIComponent(input.slice(0, keyEnd));
+      // New key specified explicitly.
+      // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
+      key = decodeURIComponent(input.slice(0, keyEnd));
     }
 
     if (input[keyEnd] === ')') {
-      consumer.endObject(nextKey);
+      if (keyEnd) {
+        consumer.addSuffix(key);
+      }
+      consumer.endObject();
 
       return offset + keyEnd;
     }
@@ -135,7 +142,7 @@ function parseURIChargeProperties(key: string, input: string, consumer: URICharg
     const nextKeyStart = parseURIChargeValue(key, input, consumer) + 1;
 
     if (nextKeyStart >= input.length) {
-      consumer.endObject('');
+      consumer.endObject();
 
       return offset + input.length;
     }
