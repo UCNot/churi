@@ -3,29 +3,29 @@ import { URIChargeValue } from './uri-charge-value.js';
 
 export abstract class URIChargeConsumer {
 
-  addBigInt(key: string, value: bigint): void {
-    this.addSimple(key, value);
+  addBigInt(key: string, value: bigint, append: boolean): void {
+    this.addSimple(key, value, append);
   }
 
-  addBoolean(key: string, value: boolean): void {
-    this.addSimple(key, value);
+  addBoolean(key: string, value: boolean, append: boolean): void {
+    this.addSimple(key, value, append);
   }
 
-  addNumber(key: string, value: number): void {
-    this.addSimple(key, value);
+  addNumber(key: string, value: number, append: boolean): void {
+    this.addSimple(key, value, append);
   }
 
-  addString(key: string, value: string): void {
-    this.addSimple(key, value);
+  addString(key: string, value: string, append: boolean): void {
+    this.addSimple(key, value, append);
   }
 
   addSuffix(suffix: string): void {
-    this.addBoolean(suffix, true);
+    this.addBoolean(suffix, true, false);
   }
 
-  abstract addSimple(key: string, value: URIChargeValue.Simple): void;
+  abstract addSimple(key: string, value: URIChargeValue.Simple, append: boolean): void;
 
-  abstract startObject(key: string): URIChargeConsumer;
+  abstract startObject(key: string, append: boolean): URIChargeConsumer;
 
   endObject(): void {
     // Do nothing.
@@ -46,42 +46,46 @@ export class DefaultURIChargeConsumer extends URIChargeConsumer {
     return this.#object;
   }
 
-  override addSimple(key: string, value: URIChargeValue.Simple): void {
-    const prevValue = this.#object[key];
+  override addSimple(key: string, value: URIChargeValue.Simple, append: boolean): void {
+    if (append) {
+      const prevValue = this.#object[key];
 
-    if (prevValue == null) {
-      this.#object[key] = value;
-    } else if (isArray(prevValue)) {
-      prevValue.push(value);
+      if (prevValue == null) {
+        // Never called by parser.
+        this.#object[key] = [value];
+      } else if (isArray(prevValue)) {
+        prevValue.push(value);
+      } else {
+        this.#object[key] = [prevValue, value];
+      }
     } else {
-      this.#object[key] = [prevValue, value];
+      this.#object[key] = value;
     }
   }
 
-  override startObject(key: string): URIChargeConsumer {
-    return new (this.constructor as typeof DefaultURIChargeConsumer)(this.addObject(key));
+  override startObject(key: string, append: boolean): URIChargeConsumer {
+    return new (this.constructor as typeof DefaultURIChargeConsumer)(this.addObject(key, append));
   }
 
-  addObject(key: string): URIChargeValue.Object {
+  addObject(key: string, append: boolean): URIChargeValue.Object {
     const prevValue = this.#object[key];
     let object: URIChargeValue.Object;
 
-    if (prevValue == null) {
-      this.#object[key] = object = {};
-    } else if (isArray(prevValue)) {
-      const lastElement = prevValue[prevValue.length - 1];
-
-      if (typeof lastElement === 'object') {
-        object = lastElement;
-      } else {
+    if (append) {
+      if (prevValue == null) {
+        // Never called by parser.
+        this.#object[key] = [(object = {})];
+      } else if (isArray(prevValue)) {
         object = {};
         prevValue.push(object);
+      } else {
+        object = {};
+        this.#object[key] = [prevValue, object];
       }
-    } else if (typeof prevValue === 'object') {
+    } else if (typeof prevValue === 'object' && !isArray(prevValue)) {
       object = prevValue;
     } else {
-      object = {};
-      this.#object[key] = [prevValue, object];
+      this.#object[key] = object = {};
     }
 
     return object;

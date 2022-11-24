@@ -56,7 +56,7 @@ function parseURIChargeObject(
 ): number {
   // Opening parent.
   // Start nested object and parse first property.
-  const firstValueEnd = parseURIChargeValue(key, firstValueInput, consumer) + 1; // After closing parent.
+  const firstValueEnd = parseURIChargeValue(key, firstValueInput, false, consumer) + 1; // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
@@ -77,18 +77,23 @@ function parseURIChargeObject(
   );
 }
 
-function parseURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): number {
+function parseURIChargeValue(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): number {
   const valueEnd = input.search(PARENT_PATTERN);
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    decodeURIChargeValue(key, input, consumer);
+    decodeURIChargeValue(key, input, append, consumer);
 
     return input.length;
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
-    decodeURIChargeValue(key, input.slice(0, valueEnd), consumer);
+    decodeURIChargeValue(key, input.slice(0, valueEnd), append, consumer);
 
     return valueEnd;
   }
@@ -100,7 +105,7 @@ function parseURIChargeValue(key: string, input: string, consumer: URIChargeCons
 
   return (
     firstValueOffset
-    + parseURIChargeObject(firstKey, input.slice(firstValueOffset), consumer.startObject(key))
+    + parseURIChargeObject(firstKey, input.slice(firstValueOffset), consumer.startObject(key, append))
   );
 }
 
@@ -139,7 +144,7 @@ function parseURIChargeProperties(
     input = input.slice(keyEnd + 1);
     offset += keyEnd + 1;
 
-    const nextKeyStart = parseURIChargeValue(key, input, consumer) + 1;
+    const nextKeyStart = parseURIChargeValue(key, input, !keyEnd, consumer) + 1;
 
     if (nextKeyStart >= input.length) {
       consumer.endObject();
@@ -152,10 +157,15 @@ function parseURIChargeProperties(
   }
 }
 
-function decodeURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): void {
+function decodeURIChargeValue(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): void {
   if (!input) {
     // Empty corresponds to `true`.
-    consumer.addBoolean(key, true);
+    consumer.addBoolean(key, true, append);
 
     return;
   }
@@ -163,14 +173,19 @@ function decodeURIChargeValue(key: string, input: string, consumer: URIChargeCon
   const decoder = URI_CHARGE_DECODERS[input[0]];
 
   if (decoder) {
-    decoder(key, input, consumer);
+    decoder(key, input, append, consumer);
   } else {
-    consumer.addString(key, decodeURIComponent(input));
+    consumer.addString(key, decodeURIComponent(input), append);
   }
 }
 
 const URI_CHARGE_DECODERS: {
-  [firstChar: string]: (key: string, input: string, consumer: URIChargeConsumer) => void;
+  [firstChar: string]: (
+    key: string,
+    input: string,
+    append: boolean,
+    consumer: URIChargeConsumer,
+  ) => void;
 } = {
   '-': decodeMinusSignedURICharge,
   0: decodeUnsignedURICharge,
@@ -186,20 +201,40 @@ const URI_CHARGE_DECODERS: {
   "'": decodeQuotedURICharge,
 };
 
-function decodeMinusSignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
-  decodeSignedURICharge(key, input, consumer, false, negate);
+function decodeMinusSignedURICharge(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): void {
+  decodeSignedURICharge(key, input, append, consumer, false, negate);
 }
 
-function decodeNumberURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
-  return consumer.addNumber(key, Number(input));
+function decodeNumberURICharge(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): void {
+  return consumer.addNumber(key, Number(input), append);
 }
 
-function decodeQuotedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
-  return consumer.addString(key, decodeURIComponent(input.slice(1)));
+function decodeQuotedURICharge(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): void {
+  return consumer.addString(key, decodeURIComponent(input.slice(1)), append);
 }
 
-function decodeUnsignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
-  decodeNumericURICharge(key, input, consumer, 0, asis);
+function decodeUnsignedURICharge(
+  key: string,
+  input: string,
+  append: boolean,
+  consumer: URIChargeConsumer,
+): void {
+  decodeNumericURICharge(key, input, append, consumer, 0, asis);
 }
 
 function negate<T extends number | bigint>(value: T): T {
@@ -209,19 +244,20 @@ function negate<T extends number | bigint>(value: T): T {
 function decodeSignedURICharge(
   key: string,
   input: string,
+  append: boolean,
   consumer: URIChargeConsumer,
   flag: boolean,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
   if (input.length === 1) {
-    consumer.addBoolean(key, flag);
+    consumer.addBoolean(key, flag, append);
   } else {
     const secondChar = input[1];
 
     if (secondChar >= '0' && secondChar <= '9') {
-      decodeNumericURICharge(key, input, consumer, 1, sign);
+      decodeNumericURICharge(key, input, append, consumer, 1, sign);
     } else {
-      consumer.addString(key, decodeURIComponent(input));
+      consumer.addString(key, decodeURIComponent(input), append);
     }
   }
 }
@@ -229,6 +265,7 @@ function decodeSignedURICharge(
 function decodeNumericURICharge(
   key: string,
   input: string,
+  append: boolean,
   consumer: URIChargeConsumer,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
@@ -240,11 +277,16 @@ function decodeNumericURICharge(
       consumer.addBigInt(
         key,
         sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
+        append,
       );
 
       return;
     default:
-      consumer.addNumber(key, sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))));
+      consumer.addNumber(
+        key,
+        sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))),
+        append,
+      );
 
       return;
   }

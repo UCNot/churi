@@ -73,34 +73,35 @@ describe('parseURICharge', () => {
       foo: [1, 'bar', true],
     });
   });
-  it('concatenates multiple property values', () => {
+  it('overrides property value', () => {
     expect(parseURICharge('foo(1)foo(bar)foo').charge).toEqual({
-      foo: [1, 'bar', true],
+      foo: true,
     });
   });
-  it('merges multiple objects', () => {
-    expect(parseURICharge("foo(bar(baz(1)))foo(bar(baz(')))foo(bar(baz()))").charge).toEqual({
-      foo: { bar: { baz: [1, '', true] } },
+  it('merges objects', () => {
+    expect(parseURICharge('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge).toEqual({
+      foo: { bar: { baz: 2, test: true } },
     });
   });
-  it('concatenates value and object', () => {
-    expect(parseURICharge('foo(bar(test))(bar(baz(1)test))').charge).toEqual({
-      foo: { bar: ['test', { baz: 1, test: true }] },
+  it('replaces value with object', () => {
+    expect(parseURICharge('foo(bar(test))foo(bar(baz(1)test))').charge).toEqual({
+      foo: { bar: { baz: 1, test: true } },
     });
   });
-  it('concatenates multiple values and object', () => {
-    expect(parseURICharge('foo(bar(test)(test2))(bar(baz(1)test()))').charge).toEqual({
-      foo: { bar: ['test', 'test2', { baz: 1, test: true }] },
+  it('concatenates objects', () => {
+    expect(
+      parseURICharge('foo(bar(test)(test2))(bar(baz(1)test()))(bar(baz(2)test(-)))').charge,
+    ).toEqual({
+      foo: [
+        { bar: ['test', 'test2'] },
+        { bar: { baz: 1, test: true } },
+        { bar: { baz: 2, test: false } },
+      ],
     });
   });
   it('concatenates object and value', () => {
-    expect(parseURICharge('foo(bar(baz(1)))foo(bar(test))').charge).toEqual({
+    expect(parseURICharge('foo(bar(baz(1))(test))').charge).toEqual({
       foo: { bar: [{ baz: 1 }, 'test'] },
-    });
-  });
-  it('merges trailing objects', () => {
-    expect(parseURICharge('foo(bar(1))(bar(baz(1)))(bar(baz(2)test(-)))').charge).toEqual({
-      foo: { bar: [1, { baz: [1, 2], test: false }] },
     });
   });
   it('stops simple value parsing at closing parent', () => {
