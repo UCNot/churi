@@ -147,8 +147,8 @@ function parseURIChargeProperties(key: string, input: string, consumer: URICharg
 
 function decodeURIChargeValue(key: string, input: string, consumer: URIChargeConsumer): void {
   if (!input) {
-    // Empty value
-    consumer.addString(key, '');
+    // Empty corresponds to `true`.
+    consumer.addBoolean(key, true);
 
     return;
   }
@@ -166,7 +166,6 @@ const URI_CHARGE_DECODERS: {
   [firstChar: string]: (key: string, input: string, consumer: URIChargeConsumer) => void;
 } = {
   '-': decodeMinusSignedURICharge,
-  '+': decodePlusSignedURICharge,
   0: decodeUnsignedURICharge,
   1: decodeNumberURICharge,
   2: decodeNumberURICharge,
@@ -182,10 +181,6 @@ const URI_CHARGE_DECODERS: {
 
 function decodeMinusSignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
   decodeSignedURICharge(key, input, consumer, false, negate);
-}
-
-function decodePlusSignedURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
-  decodeSignedURICharge(key, input, consumer, true, asis);
 }
 
 function decodeNumberURICharge(key: string, input: string, consumer: URIChargeConsumer): void {
@@ -237,12 +232,12 @@ function decodeNumericURICharge(
     case 'n':
       consumer.addBigInt(
         key,
-        input.length < offset + 3 ? 0n : sign(BigInt(input.slice(offset + 2))),
+        sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
       );
 
       return;
     default:
-      consumer.addNumber(key, input.length < offset + 3 ? 0 : sign(Number(input.slice(offset))));
+      consumer.addNumber(key, sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))));
 
       return;
   }

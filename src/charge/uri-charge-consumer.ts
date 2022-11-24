@@ -81,7 +81,7 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
 
   endObject(suffix: string): void {
     if (suffix) {
-      this.#object[suffix] = '';
+      this.addSimple(suffix, true);
     }
   }
 
