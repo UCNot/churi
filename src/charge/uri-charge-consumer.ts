@@ -11,17 +11,7 @@ export interface URIChargeConsumer {
   endObject(): void;
 }
 
-export class DefaultURIChargeConsumer implements URIChargeConsumer {
-
-  readonly #object: URIChargeValue.Object;
-
-  constructor(object: URIChargeValue.Object = {}) {
-    this.#object = object;
-  }
-
-  get object(): URIChargeValue.Object {
-    return this.#object;
-  }
+export abstract class AbstractURIChargeConsumer implements URIChargeConsumer {
 
   addBigInt(key: string, value: bigint): void {
     this.addSimple(key, value);
@@ -43,11 +33,30 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
     this.addBoolean(suffix, true);
   }
 
-  startObject(key: string): URIChargeConsumer {
-    return new (this.constructor as typeof DefaultURIChargeConsumer)(this.addObject(key));
+  abstract addSimple(key: string, value: bigint | boolean | number | string): void;
+
+  abstract startObject(key: string): URIChargeConsumer;
+
+  endObject(): void {
+    // Do nothing.
   }
 
-  addSimple(key: string, value: bigint | boolean | number | string): void {
+}
+
+export class DefaultURIChargeConsumer extends AbstractURIChargeConsumer {
+
+  readonly #object: URIChargeValue.Object;
+
+  constructor(object: URIChargeValue.Object = {}) {
+    super();
+    this.#object = object;
+  }
+
+  get object(): URIChargeValue.Object {
+    return this.#object;
+  }
+
+  override addSimple(key: string, value: bigint | boolean | number | string): void {
     const prevValue = this.#object[key];
 
     if (prevValue == null) {
@@ -57,6 +66,10 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
     } else {
       this.#object[key] = [prevValue, value];
     }
+  }
+
+  override startObject(key: string): URIChargeConsumer {
+    return new (this.constructor as typeof DefaultURIChargeConsumer)(this.addObject(key));
   }
 
   addObject(key: string): URIChargeValue.Object {
@@ -82,10 +95,6 @@ export class DefaultURIChargeConsumer implements URIChargeConsumer {
     }
 
     return object;
-  }
-
-  endObject(): void {
-    // Do nothing.
   }
 
 }
