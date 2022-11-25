@@ -1,8 +1,9 @@
 import { asis } from '@proc7ts/primitives';
+import { ChURIArrayBuilder } from './ch-uri-array-builder.js';
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIValue } from './ch-uri-value.js';
+import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
 import { URIChargeVisitor } from './uri-charge-visitor.js';
 
 let URIChargeParser$default: URIChargeParser | undefined;
@@ -32,7 +33,7 @@ export class URIChargeParser<out T = ChURIValue> {
   );
 
   constructor(options?: URIChargeParser.Options<T>) {
-    this.#visitor = options?.visitor ?? (ChURIObjectBuilder.visitor as URIChargeVisitor<T>);
+    this.#visitor = options?.visitor ?? (ChURIObjectVisitor$instance as URIChargeVisitor<T>);
   }
 
   parse(input: string): URIChargeParser.Result<T> {
@@ -56,7 +57,7 @@ export class URIChargeParser<out T = ChURIValue> {
     if (keyEnd) {
       // Object charge.
       const firstValueOffset = keyEnd + 1;
-      const [consumer, endCharge] = this.#visitor.visitObject();
+      const consumer = this.#visitor.visitObject();
       const end =
         firstValueOffset
         + parseURIChargeObject(
@@ -66,17 +67,17 @@ export class URIChargeParser<out T = ChURIValue> {
 
       return {
         end,
-        charge: endCharge(),
+        charge: consumer.endObject(),
       };
     }
 
     // Array charge.
-    const [consumer, endCharge] = this.#visitor.visitArray();
+    const consumer = this.#visitor.visitArray();
     const end = 1 + parseURIChargeArray({ consumer }, input.slice(1));
 
     return {
       end,
-      charge: endCharge(),
+      charge: consumer.endArray(),
     };
   }
 
@@ -101,6 +102,24 @@ export namespace URIChargeParser {
   }
 }
 
+class ChURIObjectVisitor implements URIChargeVisitor<ChURIValue> {
+
+  visitString(value: string): string {
+    return value;
+  }
+
+  visitObject(): ChURIObjectConsumer<ChURIObject> {
+    return new ChURIObjectBuilder();
+  }
+
+  visitArray(): ChURIArrayConsumer<ChURIArray> {
+    return new ChURIArrayBuilder();
+  }
+
+}
+
+const ChURIObjectVisitor$instance = /*#__PURE__*/ new ChURIObjectVisitor();
+
 const PARENT_PATTERN = /[()]/;
 
 function parseURIChargeObject(to: URIChargeTarget$Property, firstValueInput: string): number {
@@ -110,14 +129,9 @@ function parseURIChargeObject(to: URIChargeTarget$Property, firstValueInput: str
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
-    to.consumer.endObject();
-
     return firstValueInput.length;
   }
   if (firstValueInput[firstValueEnd] === ')') {
-    // No more fields.
-    to.consumer.endObject();
-
     return firstValueEnd;
   }
 
@@ -138,7 +152,6 @@ function parseURIChargeProperties(
     if (keyEnd < 0) {
       toArray?.consumer.endArray();
       consumer.addSuffix(decodeURIComponent(input));
-      consumer.endObject();
 
       return offset + input.length;
     }
@@ -159,7 +172,6 @@ function parseURIChargeProperties(
       if (keyEnd) {
         consumer.addSuffix(key);
       }
-      consumer.endObject();
 
       return offset + keyEnd;
     }
@@ -175,7 +187,6 @@ function parseURIChargeProperties(
 
     if (nextKeyStart >= input.length) {
       toArray?.consumer.endArray();
-      consumer.endObject();
 
       return offset + input.length;
     }
@@ -192,14 +203,10 @@ function parseURIChargeArray(to: URIChargeTarget$Array, firstValueInput: string)
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
-    to.consumer.endArray();
-
     return firstValueInput.length;
   }
   if (firstValueInput[firstValueEnd] === ')') {
     // No more fields.
-    to.consumer.endArray();
-
     return firstValueEnd;
   }
 
@@ -225,8 +232,6 @@ function parseURIChargeElements(
       suffixConsumer.addSuffix(decodeURIComponent(input));
       suffixConsumer.endObject();
 
-      consumer.endArray();
-
       return offset + input.length;
     }
 
@@ -237,20 +242,17 @@ function parseURIChargeElements(
       const key = decodeURIComponent(input.slice(0, keyEnd));
       const firstValueOffset = keyEnd + 1;
       const objectConsumer = consumer.startObject();
-
-      const result =
+      const objectEnd =
         offset
         + firstValueOffset
         + parseURIChargeObject({ key, consumer: objectConsumer }, input.slice(firstValueOffset));
 
-      consumer.endArray();
+      objectConsumer.endObject();
 
-      return result;
+      return objectEnd;
     }
 
     if (input[keyEnd] === ')') {
-      consumer.endArray();
-
       return offset + keyEnd;
     }
 
@@ -260,8 +262,6 @@ function parseURIChargeElements(
     const nextKeyStart = parseURIChargeValue(to, input) + 1;
 
     if (nextKeyStart >= input.length) {
-      consumer.endArray();
-
       return offset + input.length;
     }
 
@@ -293,28 +293,36 @@ function parseURIChargeValue(to: URIChargeTarget, input: string): number {
     // Start nested object and parse first property.
     const firstKey = decodeURIComponent(input.slice(0, valueEnd));
     const firstValueOffset = valueEnd + 1;
-
-    return (
+    const objectConsumer = key != null ? consumer.startObject(key) : consumer.startObject();
+    const objectEnd =
       firstValueOffset
       + parseURIChargeObject(
         {
           key: firstKey,
-          consumer: key != null ? consumer.startObject(key) : consumer.startObject(),
+          consumer: objectConsumer,
         },
         input.slice(firstValueOffset),
-      )
-    );
+      );
+
+    objectConsumer.endObject();
+
+    return objectEnd;
   }
 
   // Empty key. Start nested array and parse first element.
-  return (
+
+  const arrayConsumer = key != null ? consumer.startArray(key) : consumer.startArray();
+  const arrayEnd =
     parseURIChargeArray(
       {
-        consumer: key != null ? consumer.startArray(key) : consumer.startArray(),
+        consumer: arrayConsumer,
       },
       input.slice(1),
-    ) + 1
-  );
+    ) + 1;
+
+  arrayConsumer.endArray();
+
+  return arrayEnd;
 }
 
 function decodeURIChargeValue(to: URIChargeTarget, input: string): void {

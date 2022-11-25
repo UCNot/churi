@@ -3,13 +3,8 @@ import { ChURIArrayBuilder } from './ch-uri-array-builder.js';
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIArray, ChURIObject, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
-import { URIChargeVisitor } from './uri-charge-visitor.js';
 
-export class ChURIObjectBuilder extends ChURIObjectConsumer {
-
-  static get visitor(): URIChargeVisitor<string | ChURIObject | ChURIArray> {
-    return ChURIObjectVisitor$instance;
-  }
+export class ChURIObjectBuilder extends ChURIObjectConsumer<ChURIObject> {
 
   readonly #object: ChURIObject;
 
@@ -64,26 +59,8 @@ export class ChURIObjectBuilder extends ChURIObjectConsumer {
     this.#object[key] = value;
   }
 
-}
-
-class ChURIObjectVisitor implements URIChargeVisitor<string | ChURIObject | ChURIArray> {
-
-  visitString(value: string): string | ChURIObject {
-    return value;
-  }
-
-  visitObject(): [ChURIObjectConsumer, () => ChURIObject] {
-    const builder = new ChURIObjectBuilder();
-
-    return [builder, () => builder.object];
-  }
-
-  visitArray(): [ChURIArrayConsumer, () => ChURIArray] {
-    const builder = new ChURIArrayBuilder();
-
-    return [builder, () => builder.array];
+  override endObject(): ChURIObject {
+    return this.object;
   }
 
 }
-
-const ChURIObjectVisitor$instance = /*#__PURE__*/ new ChURIObjectVisitor();

@@ -3,7 +3,7 @@ import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
 
-export class ChURIArrayBuilder extends ChURIArrayConsumer {
+export class ChURIArrayBuilder extends ChURIArrayConsumer<ChURIArray> {
 
   readonly #array: ChURIArray;
 
@@ -42,6 +42,10 @@ export class ChURIArrayBuilder extends ChURIArrayConsumer {
 
   override addValue(value: ChURIValue): void {
     this.#array.push(value);
+  }
+
+  override endArray(): ChURIArray {
+    return this.array;
   }
 
 }

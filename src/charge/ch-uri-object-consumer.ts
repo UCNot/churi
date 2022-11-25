@@ -1,7 +1,7 @@
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIPrimitive } from './ch-uri-value.js';
 
-export abstract class ChURIObjectConsumer {
+export abstract class ChURIObjectConsumer<out T = unknown> {
 
   addBigInt(key: string, value: bigint): void {
     this.addPrimitive(key, value);
@@ -29,8 +29,6 @@ export abstract class ChURIObjectConsumer {
 
   abstract startArray(key: string): ChURIArrayConsumer;
 
-  endObject(): void {
-    // Do nothing.
-  }
+  abstract endObject(): T;
 
 }

@@ -1,7 +1,7 @@
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIValue } from './ch-uri-value.js';
 
-export abstract class ChURIArrayConsumer {
+export abstract class ChURIArrayConsumer<out T = unknown> {
 
   addBigInt(value: bigint): void {
     this.addValue(value);
@@ -25,8 +25,6 @@ export abstract class ChURIArrayConsumer {
 
   abstract addValue(value: ChURIValue): void;
 
-  endArray(): void {
-    // Do nothing.
-  }
+  abstract endArray(): T;
 
 }
