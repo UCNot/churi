@@ -4,7 +4,7 @@ import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
-import { URIChargeVisitor } from './uri-charge-visitor.js';
+import { URIChargeConsumer } from './uri-charge-consumer.js';
 
 let URIChargeParser$default: URIChargeParser | undefined;
 
@@ -16,24 +16,24 @@ export class URIChargeParser<out T = ChURIValue> {
 
   static get<T>(options: URIChargeParser.Options<T>): URIChargeParser<T>;
 
-  static get(options?: URIChargeParser.Options.WithoutVisitor): URIChargeParser;
+  static get(options?: URIChargeParser.Options.WithoutConsumer): URIChargeParser;
 
   static get<T>(options?: URIChargeParser.Options<T>): URIChargeParser<T> {
     return options
-      ? new URIChargeParser(options as URIChargeParser.Options.WithVisitor<T>)
+      ? new URIChargeParser(options as URIChargeParser.Options.WithConsumer<T>)
       : (URIChargeParser.default as URIChargeParser<T>);
   }
 
-  readonly #visitor: URIChargeVisitor<T>;
+  readonly #consumer: URIChargeConsumer<T>;
 
   constructor(
     ...options: ChURIValue extends T
       ? [URIChargeParser.Options<T>?]
-      : [URIChargeParser.Options.WithVisitor<T>]
+      : [URIChargeParser.Options.WithConsumer<T>]
   );
 
   constructor(options?: URIChargeParser.Options<T>) {
-    this.#visitor = options?.visitor ?? (ChURIObjectVisitor$instance as URIChargeVisitor<T>);
+    this.#consumer = options?.consumer ?? (URIChargeValueBuilder$instance as URIChargeConsumer<T>);
   }
 
   parse(input: string): URIChargeParser.Result<T> {
@@ -41,7 +41,7 @@ export class URIChargeParser<out T = ChURIValue> {
 
     if (keyEnd < 0) {
       return {
-        charge: this.#visitor.visitString(decodeURIComponent(input)),
+        charge: this.#consumer.setString(decodeURIComponent(input)),
         end: input.length,
       };
     }
@@ -49,7 +49,7 @@ export class URIChargeParser<out T = ChURIValue> {
     if (input[keyEnd] === ')') {
       // String charge.
       return {
-        charge: this.#visitor.visitString(decodeURIComponent(input.slice(0, keyEnd))),
+        charge: this.#consumer.setString(decodeURIComponent(input.slice(0, keyEnd))),
         end: keyEnd,
       };
     }
@@ -57,7 +57,7 @@ export class URIChargeParser<out T = ChURIValue> {
     if (keyEnd) {
       // Object charge.
       const firstValueOffset = keyEnd + 1;
-      const consumer = this.#visitor.visitObject();
+      const consumer = this.#consumer.startObject();
       const end =
         firstValueOffset
         + parseURIChargeObject(
@@ -72,7 +72,7 @@ export class URIChargeParser<out T = ChURIValue> {
     }
 
     // Array charge.
-    const consumer = this.#visitor.visitArray();
+    const consumer = this.#consumer.startArray();
     const end = 1 + parseURIChargeArray({ consumer }, input.slice(1));
 
     return {
@@ -84,16 +84,16 @@ export class URIChargeParser<out T = ChURIValue> {
 }
 
 export namespace URIChargeParser {
-  export type Options<T> = Options.WithVisitor<T> | Options.WithoutVisitor;
+  export type Options<T> = Options.WithConsumer<T> | Options.WithoutConsumer;
   export namespace Options {
     export interface Base<T> {
-      readonly visitor?: URIChargeVisitor<T> | undefined;
+      readonly consumer?: URIChargeConsumer<T> | undefined;
     }
-    export interface WithVisitor<T> extends Base<T> {
-      readonly visitor: URIChargeVisitor<T>;
+    export interface WithConsumer<T> extends Base<T> {
+      readonly consumer: URIChargeConsumer<T>;
     }
-    export interface WithoutVisitor extends Base<never> {
-      readonly visitor?: undefined;
+    export interface WithoutConsumer extends Base<never> {
+      readonly consumer?: undefined;
     }
   }
   export interface Result<out T = ChURIValue> {
@@ -102,23 +102,23 @@ export namespace URIChargeParser {
   }
 }
 
-class ChURIObjectVisitor implements URIChargeVisitor<ChURIValue> {
+class URIChargeValueBuilder implements URIChargeConsumer<ChURIValue> {
 
-  visitString(value: string): string {
+  setString(value: string): string {
     return value;
   }
 
-  visitObject(): ChURIObjectConsumer<ChURIObject> {
+  startObject(): ChURIObjectConsumer<ChURIObject> {
     return new ChURIObjectBuilder();
   }
 
-  visitArray(): ChURIArrayConsumer<ChURIArray> {
+  startArray(): ChURIArrayConsumer<ChURIArray> {
     return new ChURIArrayBuilder();
   }
 
 }
 
-const ChURIObjectVisitor$instance = /*#__PURE__*/ new ChURIObjectVisitor();
+const URIChargeValueBuilder$instance = /*#__PURE__*/ new URIChargeValueBuilder();
 
 const PARENT_PATTERN = /[()]/;
 
