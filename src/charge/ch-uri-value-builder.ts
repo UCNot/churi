@@ -5,7 +5,7 @@ import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIValue } from './ch-uri-value.js';
 
-export class ChURIValueBuilder<in out TValue = unknown> extends ChURIValueConsumer<
+export class ChURIValueBuilder<in out TValue = never> extends ChURIValueConsumer<
   TValue,
   ChURIValue<TValue>
 > {

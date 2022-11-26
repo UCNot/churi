@@ -39,8 +39,7 @@ export class URIChargeParser<
   );
 
   constructor(options?: URIChargeParser.Options<TValue, TCharge>) {
-    this.#consumer =
-      options?.consumer ?? (ChURIValueBuilder$instance as ChURIValueConsumer<TValue, TCharge>);
+    this.#consumer = options?.consumer ?? ChURIValueBuilder$instance;
   }
 
   parse(input: string): URIChargeParser.Result<TCharge> {
@@ -109,7 +108,7 @@ export namespace URIChargeParser {
   }
 }
 
-const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder();
+const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder<any>();
 
 const PARENT_PATTERN = /[()]/;
 
