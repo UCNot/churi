@@ -37,11 +37,11 @@ describe('parseURICharge', () => {
     expect(parseURICharge('(-0n)').charge).toEqual([0n]);
   });
   it('recognizes boolean property', () => {
-    expect(parseURICharge('foo()').charge).toEqual({ foo: true });
+    expect(parseURICharge('foo(!)').charge).toEqual({ foo: true });
     expect(parseURICharge('foo(-)').charge).toEqual({ foo: false });
   });
   it('recognizes boolean element', () => {
-    expect(parseURICharge('()').charge).toEqual([true]);
+    expect(parseURICharge('(!)').charge).toEqual([true]);
     expect(parseURICharge('(-)').charge).toEqual([false]);
   });
   it('recognizes number property', () => {
@@ -85,6 +85,9 @@ describe('parseURICharge', () => {
   });
   it('recognizes string property prefixed with "-"', () => {
     expect(parseURICharge('foo(-bar)').charge).toEqual({ foo: '-bar' });
+  });
+  it('recognizes string property prefixed with "!"', () => {
+    expect(parseURICharge('foo(!bar)').charge).toEqual({ foo: '!bar' });
   });
   it('recognizes percent-encoded string property', () => {
     expect(parseURICharge('foo(%27bar%27)').charge).toEqual({ foo: "'bar'" });

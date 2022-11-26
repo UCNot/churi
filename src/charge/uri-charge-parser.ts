@@ -343,6 +343,7 @@ function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
 const URI_CHARGE_DECODERS: {
   [firstChar: string]: (to: URIChargeTarget, input: string) => void;
 } = {
+  '!': decodeExclamationPrefixedURICharge,
   '-': decodeMinusSignedURICharge,
   0: decodeUnsignedURICharge,
   1: decodeNumberURICharge,
@@ -356,6 +357,14 @@ const URI_CHARGE_DECODERS: {
   9: decodeNumberURICharge,
   "'": decodeQuotedURICharge,
 };
+
+function decodeExclamationPrefixedURICharge(to: URIChargeTarget, input: string): void {
+  if (input.length === 1) {
+    addBooleanURICharge(to, true);
+  } else {
+    decodeStringURICharge(to, input);
+  }
+}
 
 function decodeMinusSignedURICharge(to: URIChargeTarget, input: string): void {
   if (input.length === 1) {
