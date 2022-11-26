@@ -210,7 +210,7 @@ function parseURIChargeArray(to: URIChargeTarget$Array, firstValueInput: string)
     return firstValueEnd;
   }
 
-  // Parse the rest of the object properties.
+  // Parse the rest of array elements.
   return firstValueEnd + parseURIChargeElements(to, firstValueInput.slice(firstValueEnd));
 }
 
@@ -252,12 +252,12 @@ function parseURIChargeElements(
       return objectEnd;
     }
 
-    if (input[keyEnd] === ')') {
-      return offset + keyEnd;
+    if (input[0] === ')') {
+      return offset;
     }
 
-    input = input.slice(keyEnd + 1);
-    offset += keyEnd + 1;
+    input = input.slice(1);
+    ++offset;
 
     const nextKeyStart = parseURIChargeValue(to, input) + 1;
 
