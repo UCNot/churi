@@ -50,6 +50,12 @@ describe('parseURICharge', () => {
   it('recognizes empty object element', () => {
     expect(parseURICharge('()').charge).toEqual([{}]);
   });
+  it('recognizes empty array property', () => {
+    expect(parseURICharge('foo(--)').charge).toEqual({ foo: [] });
+  });
+  it('recognizes empty array element', () => {
+    expect(parseURICharge('(--)').charge).toEqual([[]]);
+  });
   it('recognizes number property', () => {
     expect(parseURICharge('foo(123E-2)').charge).toEqual({ foo: 123e-2 });
     expect(parseURICharge('foo(-123E-2)').charge).toEqual({ foo: -123e-2 });

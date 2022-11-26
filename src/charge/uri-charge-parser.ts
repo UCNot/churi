@@ -328,7 +328,7 @@ function parseURIChargeValue(to: URIChargeTarget, input: string): number {
 function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
   if (!input) {
     // Empty string treated as empty object.
-    addEmptyObjectURICharge(to);
+    decodeEmptyObjectURICharge(to);
   } else {
     const decoder = URI_CHARGE_DECODERS[input[0]];
 
@@ -338,12 +338,6 @@ function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
       decodeStringURICharge(to, input);
     }
   }
-}
-
-function addEmptyObjectURICharge({ key, consumer }: URIChargeTarget): void {
-  const objectConsumer = key != null ? consumer.startObject(key) : consumer.startObject();
-
-  objectConsumer.endObject();
 }
 
 const URI_CHARGE_DECODERS: {
@@ -366,7 +360,7 @@ const URI_CHARGE_DECODERS: {
 
 function decodeExclamationPrefixedURICharge(to: URIChargeTarget, input: string): void {
   if (input.length === 1) {
-    addBooleanURICharge(to, true);
+    decodeBooleanURICharge(to, true);
   } else {
     decodeStringURICharge(to, input);
   }
@@ -374,7 +368,9 @@ function decodeExclamationPrefixedURICharge(to: URIChargeTarget, input: string):
 
 function decodeMinusSignedURICharge(to: URIChargeTarget, input: string): void {
   if (input.length === 1) {
-    addBooleanURICharge(to, false);
+    decodeBooleanURICharge(to, false);
+  } else if (input === '--') {
+    decodeEmptyArrayURICharge(to);
   } else {
     const secondChar = input[1];
 
@@ -384,6 +380,18 @@ function decodeMinusSignedURICharge(to: URIChargeTarget, input: string): void {
       decodeStringURICharge(to, input);
     }
   }
+}
+
+function decodeEmptyObjectURICharge({ key, consumer }: URIChargeTarget): void {
+  const objectConsumer = key != null ? consumer.startObject(key) : consumer.startObject();
+
+  objectConsumer.endObject();
+}
+
+function decodeEmptyArrayURICharge({ key, consumer }: URIChargeTarget): void {
+  const arrayConsumer = key != null ? consumer.startArray(key) : consumer.startArray();
+
+  arrayConsumer.endArray();
 }
 
 function decodeNumberURICharge({ key, consumer }: URIChargeTarget, input: string): void {
@@ -416,7 +424,7 @@ function decodeStringURICharge({ key, consumer }: URIChargeTarget, input: string
   }
 }
 
-function addBooleanURICharge({ key, consumer }: URIChargeTarget, value: boolean): void {
+function decodeBooleanURICharge({ key, consumer }: URIChargeTarget, value: boolean): void {
   if (key != null) {
     consumer.addBoolean(key, value);
   } else {
