@@ -18,11 +18,11 @@ describe('parseURICharge', () => {
     expect(parseURICharge('(123)(456)foo(test)bar(1)tail').charge).toEqual([
       123,
       456,
-      { foo: 'test', bar: 1, tail: true },
+      { foo: 'test', bar: 1, tail: {} },
     ]);
   });
   it('treats top-level array suffix as trailing object element', () => {
-    expect(parseURICharge('(123)(456)foo').charge).toEqual([123, 456, { foo: true }]);
+    expect(parseURICharge('(123)(456)foo').charge).toEqual([123, 456, { foo: {} }]);
   });
   it('recognizes bigint property', () => {
     expect(parseURICharge('foo(0n13)').charge).toEqual({ foo: 13n });
@@ -43,6 +43,12 @@ describe('parseURICharge', () => {
   it('recognizes boolean element', () => {
     expect(parseURICharge('(!)').charge).toEqual([true]);
     expect(parseURICharge('(-)').charge).toEqual([false]);
+  });
+  it('recognizes empty object property', () => {
+    expect(parseURICharge('foo()').charge).toEqual({ foo: {} });
+  });
+  it('recognizes empty object element', () => {
+    expect(parseURICharge('()').charge).toEqual([{}]);
   });
   it('recognizes number property', () => {
     expect(parseURICharge('foo(123E-2)').charge).toEqual({ foo: 123e-2 });
@@ -105,22 +111,37 @@ describe('parseURICharge', () => {
     expect(parseURICharge('foo(1)bar(test)baz()suffix').charge).toEqual({
       foo: 1,
       bar: 'test',
-      baz: true,
-      suffix: true,
+      baz: {},
+      suffix: {},
     });
   });
   it('recognizes array property', () => {
     expect(parseURICharge('foo(1)(bar)()').charge).toEqual({
-      foo: [1, 'bar', true],
+      foo: [1, 'bar', {}],
+    });
+  });
+  it('recognizes array property with leading empty object', () => {
+    expect(parseURICharge('foo()(1)').charge).toEqual({
+      foo: [{}, 1],
     });
   });
   it('recognizes array value', () => {
     expect(parseURICharge('foo((1)(bar)())').charge).toEqual({
-      foo: [1, 'bar', true],
+      foo: [1, 'bar', {}],
+    });
+  });
+  it('recognizes array value with single element', () => {
+    expect(parseURICharge('foo((1))').charge).toEqual({
+      foo: [1],
+    });
+  });
+  it('recognizes array value with single empty object element', () => {
+    expect(parseURICharge('foo(())').charge).toEqual({
+      foo: [{}],
     });
   });
   it('recognizes nested array property', () => {
-    expect(parseURICharge('foo(((1)(bar)())((2)(baz)(-)))').charge).toEqual({
+    expect(parseURICharge('foo(((1)(bar)(!))((2)(baz)(-)))').charge).toEqual({
       foo: [
         [1, 'bar', true],
         [2, 'baz', false],
@@ -135,22 +156,22 @@ describe('parseURICharge', () => {
   });
   it('overrides property value', () => {
     expect(parseURICharge('foo(1)foo(bar)foo').charge).toEqual({
-      foo: true,
+      foo: {},
     });
   });
   it('treats suffix as object property', () => {
     expect(parseURICharge('foo(bar(baz)test))').charge).toEqual({
-      foo: { bar: 'baz', test: true },
+      foo: { bar: 'baz', test: {} },
     });
   });
   it('treats suffix after array as object property', () => {
     expect(parseURICharge('foo(bar(1)(2)test))').charge).toEqual({
-      foo: { bar: [1, 2], test: true },
+      foo: { bar: [1, 2], test: {} },
     });
   });
   it('treats suffix after array value as trailing object', () => {
     expect(parseURICharge('foo(bar((1)(2)test)))').charge).toEqual({
-      foo: { bar: [1, 2, { test: true }] },
+      foo: { bar: [1, 2, { test: {} }] },
     });
   });
   it('treats property after array value as trailing object', () => {
@@ -160,7 +181,7 @@ describe('parseURICharge', () => {
   });
   it('merges objects', () => {
     expect(parseURICharge('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge).toEqual({
-      foo: { bar: { baz: 2, test: true } },
+      foo: { bar: { baz: 2, test: {} } },
     });
   });
   it('concatenates array values', () => {
@@ -175,12 +196,12 @@ describe('parseURICharge', () => {
   });
   it('replaces value with object', () => {
     expect(parseURICharge('foo(bar(test))foo(bar(baz(1)test))').charge).toEqual({
-      foo: { bar: { baz: 1, test: true } },
+      foo: { bar: { baz: 1, test: {} } },
     });
   });
   it('concatenates objects', () => {
     expect(
-      parseURICharge('foo(bar(test)(test2))(bar(baz(1)test()))(bar(baz(2)test(-)))').charge,
+      parseURICharge('foo(bar(test)(test2))(bar(baz(1)test(!)))(bar(baz(2)test(-)))').charge,
     ).toEqual({
       foo: [
         { bar: ['test', 'test2'] },
@@ -204,7 +225,7 @@ describe('parseURICharge', () => {
     expect(parseURICharge('foo(bar))')).toEqual({ charge: { foo: 'bar' }, end: 8 });
   });
   it('stops object suffix parsing at closing parent', () => {
-    expect(parseURICharge('foo(bar)baz)')).toEqual({ charge: { foo: 'bar', baz: true }, end: 11 });
+    expect(parseURICharge('foo(bar)baz)')).toEqual({ charge: { foo: 'bar', baz: {} }, end: 11 });
   });
   it('stops object parsing at the end of input', () => {
     expect(parseURICharge('foo(13')).toEqual({
@@ -232,13 +253,13 @@ describe('parseURICharge', () => {
   });
   it('stops empty property value parsing at the end of input', () => {
     expect(parseURICharge('foo(1)bar(2)baz(')).toEqual({
-      charge: { foo: 1, bar: 2, baz: true },
+      charge: { foo: 1, bar: 2, baz: {} },
       end: 16,
     });
   });
   it('stops nested empty property value parsing at the end of input', () => {
     expect(parseURICharge('foo(bar(baz(')).toEqual({
-      charge: { foo: { bar: { baz: true } } },
+      charge: { foo: { bar: { baz: {} } } },
       end: 12,
     });
   });

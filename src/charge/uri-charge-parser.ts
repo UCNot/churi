@@ -327,8 +327,8 @@ function parseURIChargeValue(to: URIChargeTarget, input: string): number {
 
 function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
   if (!input) {
-    // Empty corresponds to `true`.
-    addBooleanURICharge(to, true);
+    // Empty string treated as empty object.
+    addEmptyObjectURICharge(to);
   } else {
     const decoder = URI_CHARGE_DECODERS[input[0]];
 
@@ -338,6 +338,12 @@ function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
       decodeStringURICharge(to, input);
     }
   }
+}
+
+function addEmptyObjectURICharge({ key, consumer }: URIChargeTarget): void {
+  const objectConsumer = key != null ? consumer.startObject(key) : consumer.startObject();
+
+  objectConsumer.endObject();
 }
 
 const URI_CHARGE_DECODERS: {

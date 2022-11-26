@@ -20,7 +20,7 @@ export abstract class ChURIObjectConsumer<out T = unknown> {
   }
 
   addSuffix(suffix: string): void {
-    this.addBoolean(suffix, true);
+    this.startObject(suffix).endObject();
   }
 
   abstract addPrimitive(key: string, value: ChURIPrimitive): void;
