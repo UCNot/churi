@@ -1,30 +1,14 @@
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIValue } from './ch-uri-value.js';
 
-export abstract class ChURIArrayConsumer<out T = unknown> {
+export abstract class ChURIArrayConsumer<in out TValue = never, out TCharge = unknown> {
 
-  addBigInt(value: bigint): void {
-    this.addValue(value);
-  }
+  abstract add(value: ChURIValue<TValue>, type: string): void;
 
-  addBoolean(value: boolean): void {
-    this.addValue(value);
-  }
+  abstract startObject(): ChURIObjectConsumer<TValue>;
 
-  addNumber(value: number): void {
-    this.addValue(value);
-  }
+  abstract startArray(): ChURIArrayConsumer<TValue>;
 
-  addString(value: string): void {
-    this.addValue(value);
-  }
-
-  abstract startObject(): ChURIObjectConsumer;
-
-  abstract startArray(): ChURIArrayConsumer;
-
-  abstract addValue(value: ChURIValue): void;
-
-  abstract endArray(): T;
+  abstract endArray(): TCharge;
 
 }

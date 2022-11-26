@@ -1,9 +1,13 @@
-export type ChURIValue = ChURIPrimitive | ChURIObject | ChURIArray;
+export type ChURIValue<TValue = never> =
+  | TValue
+  | ChURIPrimitive
+  | ChURIObject<TValue>
+  | ChURIArray<TValue>;
 
 export type ChURIPrimitive = bigint | boolean | number | string;
 
-export type ChURIArray = ChURIValue[];
+export type ChURIArray<TValue = never> = ChURIValue<TValue>[];
 
-export interface ChURIObject {
-  [key: string]: ChURIValue | undefined;
+export interface ChURIObject<TValue = never> {
+  [key: string]: ChURIValue<TValue> | undefined;
 }

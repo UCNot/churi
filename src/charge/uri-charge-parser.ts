@@ -1,47 +1,54 @@
 import { asis } from '@proc7ts/primitives';
-import { ChURIArrayBuilder } from './ch-uri-array-builder.js';
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
-import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
-import { URIChargeConsumer } from './uri-charge-consumer.js';
+import { ChURIValueBuilder } from './ch-uri-value-builder.js';
+import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
+import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
 let URIChargeParser$default: URIChargeParser | undefined;
 
-export class URIChargeParser<out T = ChURIValue> {
+export class URIChargeParser<
+  in out TValue extends ChURIPrimitive = ChURIPrimitive,
+  out TCharge = ChURIValue,
+> {
 
   static get default(): URIChargeParser {
     return (URIChargeParser$default ??= new URIChargeParser());
   }
 
-  static get<T>(options: URIChargeParser.Options<T>): URIChargeParser<T>;
+  static get<TValue extends ChURIPrimitive, TCharge>(
+    options: URIChargeParser.Options<TValue, TCharge>,
+  ): URIChargeParser<ChURIPrimitive, TCharge>;
 
-  static get(options?: URIChargeParser.Options.WithoutConsumer): URIChargeParser;
+  static get(options?: URIChargeParser.Options.Default): URIChargeParser;
 
-  static get<T>(options?: URIChargeParser.Options<T>): URIChargeParser<T> {
+  static get<TValue extends ChURIPrimitive, TCharge>(
+    options?: URIChargeParser.Options<TValue, TCharge>,
+  ): URIChargeParser<TValue, TCharge> {
     return options
-      ? new URIChargeParser(options as URIChargeParser.Options.WithConsumer<T>)
-      : (URIChargeParser.default as URIChargeParser<T>);
+      ? new URIChargeParser(options as URIChargeParser.Options.WithConsumer<TValue, TCharge>)
+      : (URIChargeParser.default as URIChargeParser<any, TCharge>);
   }
 
-  readonly #consumer: URIChargeConsumer<T>;
+  readonly #consumer: ChURIValueConsumer<TValue, TCharge>;
 
   constructor(
-    ...options: ChURIValue extends T
-      ? [URIChargeParser.Options<T>?]
-      : [URIChargeParser.Options.WithConsumer<T>]
+    ...options: ChURIValue extends TCharge
+      ? [URIChargeParser.Options<TValue, TCharge>?]
+      : [URIChargeParser.Options.WithConsumer<TValue, TCharge>]
   );
 
-  constructor(options?: URIChargeParser.Options<T>) {
-    this.#consumer = options?.consumer ?? (URIChargeValueBuilder$instance as URIChargeConsumer<T>);
+  constructor(options?: URIChargeParser.Options<TValue, TCharge>) {
+    this.#consumer =
+      options?.consumer ?? (ChURIValueBuilder$instance as ChURIValueConsumer<TValue, TCharge>);
   }
 
-  parse(input: string): URIChargeParser.Result<T> {
+  parse(input: string): URIChargeParser.Result<TCharge> {
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
       return {
-        charge: this.#consumer.setString(decodeURIComponent(input)),
+        charge: this.#consumer.set(decodeURIComponent(input), 'string'),
         end: input.length,
       };
     }
@@ -49,7 +56,7 @@ export class URIChargeParser<out T = ChURIValue> {
     if (input[keyEnd] === ')') {
       // String charge.
       return {
-        charge: this.#consumer.setString(decodeURIComponent(input.slice(0, keyEnd))),
+        charge: this.#consumer.set(decodeURIComponent(input.slice(0, keyEnd)), 'string'),
         end: keyEnd,
       };
     }
@@ -84,45 +91,32 @@ export class URIChargeParser<out T = ChURIValue> {
 }
 
 export namespace URIChargeParser {
-  export type Options<T> = Options.WithConsumer<T> | Options.WithoutConsumer;
+  export type Options<TValue, TCharge> = Options.WithConsumer<TValue, TCharge> | Options.Default;
   export namespace Options {
-    export interface Base<T> {
-      readonly consumer?: URIChargeConsumer<T> | undefined;
+    export interface Base<in out TValue, out TCharge> {
+      readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
     }
-    export interface WithConsumer<T> extends Base<T> {
-      readonly consumer: URIChargeConsumer<T>;
+    export interface WithConsumer<in out TValue, TCharge> extends Base<TValue, TCharge> {
+      readonly consumer: ChURIValueConsumer<TValue, TCharge>;
     }
-    export interface WithoutConsumer extends Base<never> {
+    export interface Default extends Base<never, never> {
       readonly consumer?: undefined;
     }
   }
-  export interface Result<out T = ChURIValue> {
-    readonly charge: T;
+  export interface Result<out TCharge = ChURIValue> {
+    readonly charge: TCharge;
     readonly end: number;
   }
 }
 
-class URIChargeValueBuilder implements URIChargeConsumer<ChURIValue> {
-
-  setString(value: string): string {
-    return value;
-  }
-
-  startObject(): ChURIObjectConsumer<ChURIObject> {
-    return new ChURIObjectBuilder();
-  }
-
-  startArray(): ChURIArrayConsumer<ChURIArray> {
-    return new ChURIArrayBuilder();
-  }
-
-}
-
-const URIChargeValueBuilder$instance = /*#__PURE__*/ new URIChargeValueBuilder();
+const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder();
 
 const PARENT_PATTERN = /[()]/;
 
-function parseURIChargeObject(to: URIChargeTarget$Property, firstValueInput: string): number {
+function parseURIChargeObject<TValue>(
+  to: URIChargeTarget$Property<TValue>,
+  firstValueInput: string,
+): number {
   // Opening parent after key.
   // Parse first property value.
   const firstValueEnd = parseURIChargeValue(to, firstValueInput) + 1; // After closing parent.
@@ -139,11 +133,11 @@ function parseURIChargeObject(to: URIChargeTarget$Property, firstValueInput: str
   return firstValueEnd + parseURIChargeProperties(to, firstValueInput.slice(firstValueEnd));
 }
 
-function parseURIChargeProperties(
-  { key, consumer }: URIChargeTarget$Property,
+function parseURIChargeProperties<TValue>(
+  { key, consumer }: URIChargeTarget$Property<TValue>,
   input: string /* never empty */,
 ): number {
-  let toArray: URIChargeTarget$Array | undefined;
+  let toArray: URIChargeTarget$Array<TValue> | undefined;
   let offset = 0;
 
   for (;;) {
@@ -196,7 +190,10 @@ function parseURIChargeProperties(
   }
 }
 
-function parseURIChargeArray(to: URIChargeTarget$Array, firstValueInput: string): number {
+function parseURIChargeArray<TValue>(
+  to: URIChargeTarget$Array<TValue>,
+  firstValueInput: string,
+): number {
   // Opening parent without preceding key.
   // Parse first element value.
   const firstValueEnd = parseURIChargeValue(to, firstValueInput) + 1; // After closing parent.
@@ -214,8 +211,8 @@ function parseURIChargeArray(to: URIChargeTarget$Array, firstValueInput: string)
   return firstValueEnd + parseURIChargeElements(to, firstValueInput.slice(firstValueEnd));
 }
 
-function parseURIChargeElements(
-  to: URIChargeTarget$Array,
+function parseURIChargeElements<TValue>(
+  to: URIChargeTarget$Array<TValue>,
   input: string /* never empty */,
 ): number {
   const { consumer } = to;
@@ -270,7 +267,7 @@ function parseURIChargeElements(
   }
 }
 
-function parseURIChargeValue(to: URIChargeTarget, input: string): number {
+function parseURIChargeValue<TValue>(to: URIChargeTarget<TValue>, input: string): number {
   const valueEnd = input.search(PARENT_PATTERN);
 
   if (valueEnd < 0) {
@@ -325,7 +322,7 @@ function parseURIChargeValue(to: URIChargeTarget, input: string): number {
   return arrayEnd;
 }
 
-function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
+function decodeURIChargeValue<TValue>(to: URIChargeTarget<TValue>, input: string): void {
   if (!input) {
     // Empty string treated as empty object.
     decodeEmptyObjectURICharge(to);
@@ -341,7 +338,7 @@ function decodeURIChargeValue(to: URIChargeTarget, input: string): void {
 }
 
 const URI_CHARGE_DECODERS: {
-  [firstChar: string]: (to: URIChargeTarget, input: string) => void;
+  [firstChar: string]: <TValue>(to: URIChargeTarget<TValue>, input: string) => void;
 } = {
   '!': decodeExclamationPrefixedURICharge,
   '-': decodeMinusSignedURICharge,
@@ -358,7 +355,10 @@ const URI_CHARGE_DECODERS: {
   "'": decodeQuotedURICharge,
 };
 
-function decodeExclamationPrefixedURICharge(to: URIChargeTarget, input: string): void {
+function decodeExclamationPrefixedURICharge<TValue>(
+  to: URIChargeTarget<TValue>,
+  input: string,
+): void {
   if (input.length === 1) {
     decodeBooleanURICharge(to, true);
   } else {
@@ -366,7 +366,7 @@ function decodeExclamationPrefixedURICharge(to: URIChargeTarget, input: string):
   }
 }
 
-function decodeMinusSignedURICharge(to: URIChargeTarget, input: string): void {
+function decodeMinusSignedURICharge<TValue>(to: URIChargeTarget<TValue>, input: string): void {
   if (input.length === 1) {
     decodeBooleanURICharge(to, false);
   } else if (input === '--') {
@@ -382,57 +382,69 @@ function decodeMinusSignedURICharge(to: URIChargeTarget, input: string): void {
   }
 }
 
-function decodeEmptyObjectURICharge({ key, consumer }: URIChargeTarget): void {
+function decodeEmptyObjectURICharge<TValue>({ key, consumer }: URIChargeTarget<TValue>): void {
   const objectConsumer = key != null ? consumer.startObject(key) : consumer.startObject();
 
   objectConsumer.endObject();
 }
 
-function decodeEmptyArrayURICharge({ key, consumer }: URIChargeTarget): void {
+function decodeEmptyArrayURICharge<TValue>({ key, consumer }: URIChargeTarget<TValue>): void {
   const arrayConsumer = key != null ? consumer.startArray(key) : consumer.startArray();
 
   arrayConsumer.endArray();
 }
 
-function decodeNumberURICharge({ key, consumer }: URIChargeTarget, input: string): void {
+function decodeNumberURICharge<TValue>(
+  { key, consumer }: URIChargeTarget<TValue>,
+  input: string,
+): void {
   const value = Number(input);
 
   if (key != null) {
-    consumer.addNumber(key, value);
+    consumer.put(key, value, 'number');
   } else {
-    consumer.addNumber(value);
+    consumer.add(value, 'number');
   }
 }
 
-function decodeQuotedURICharge({ key, consumer }: URIChargeTarget, input: string): void {
+function decodeQuotedURICharge<TValue>(
+  { key, consumer }: URIChargeTarget<TValue>,
+  input: string,
+): void {
   const value = decodeURIComponent(input.slice(1));
 
   if (key != null) {
-    consumer.addString(key, value);
+    consumer.put(key, value, 'string');
   } else {
-    consumer.addString(value);
+    consumer.add(value, 'string');
   }
 }
 
-function decodeStringURICharge({ key, consumer }: URIChargeTarget, input: string): void {
+function decodeStringURICharge<TValue>(
+  { key, consumer }: URIChargeTarget<TValue>,
+  input: string,
+): void {
   const value = decodeURIComponent(input);
 
   if (key != null) {
-    consumer.addString(key, value);
+    consumer.put(key, value, 'string');
   } else {
-    consumer.addString(value);
+    consumer.add(value, 'string');
   }
 }
 
-function decodeBooleanURICharge({ key, consumer }: URIChargeTarget, value: boolean): void {
+function decodeBooleanURICharge<TValue>(
+  { key, consumer }: URIChargeTarget<TValue>,
+  value: boolean,
+): void {
   if (key != null) {
-    consumer.addBoolean(key, value);
+    consumer.put(key, value, 'boolean');
   } else {
-    consumer.addBoolean(value);
+    consumer.add(value, 'boolean');
   }
 }
 
-function decodeUnsignedURICharge(to: URIChargeTarget, input: string): void {
+function decodeUnsignedURICharge<TValue>(to: URIChargeTarget<TValue>, input: string): void {
   decodeNumericURICharge(to, input, 0, asis);
 }
 
@@ -440,8 +452,8 @@ function negate<T extends number | bigint>(value: T): T {
   return -value as T;
 }
 
-function decodeNumericURICharge(
-  { key, consumer }: URIChargeTarget,
+function decodeNumericURICharge<TValue>(
+  { key, consumer }: URIChargeTarget<TValue>,
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
@@ -450,29 +462,29 @@ function decodeNumericURICharge(
     const value = sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2)));
 
     if (key != null) {
-      consumer.addBigInt(key, value);
+      consumer.put(key, value, 'bigint');
     } else {
-      consumer.addBigInt(value);
+      consumer.add(value, 'bigint');
     }
   } else {
     const value = sign(input.length < offset + 3 ? 0 : Number(input.slice(offset)));
 
     if (key != null) {
-      consumer.addNumber(key, value);
+      consumer.put(key, value, 'number');
     } else {
-      consumer.addNumber(value);
+      consumer.add(value, 'number');
     }
   }
 }
 
-type URIChargeTarget = URIChargeTarget$Property | URIChargeTarget$Array;
+type URIChargeTarget<TValue> = URIChargeTarget$Property<TValue> | URIChargeTarget$Array<TValue>;
 
-interface URIChargeTarget$Property {
+interface URIChargeTarget$Property<TValue> {
   readonly key: string;
-  readonly consumer: ChURIObjectConsumer;
+  readonly consumer: ChURIObjectConsumer<TValue>;
 }
 
-interface URIChargeTarget$Array {
+interface URIChargeTarget$Array<TValue> {
   readonly key?: undefined;
-  readonly consumer: ChURIArrayConsumer;
+  readonly consumer: ChURIArrayConsumer<TValue>;
 }

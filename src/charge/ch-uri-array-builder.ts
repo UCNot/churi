@@ -3,48 +3,51 @@ import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
 
-export class ChURIArrayBuilder extends ChURIArrayConsumer<ChURIArray> {
+export class ChURIArrayBuilder<in out TValue = never> extends ChURIArrayConsumer<
+  TValue,
+  ChURIArray<TValue>
+> {
 
-  readonly #array: ChURIArray;
+  readonly #array: ChURIArray<TValue>;
 
-  constructor(array: ChURIArray = []) {
+  constructor(array: ChURIArray<TValue> = []) {
     super();
     this.#array = array;
   }
 
-  get array(): ChURIArray {
+  get array(): ChURIArray<TValue> {
     return this.#array;
   }
 
-  override startObject(): ChURIObjectConsumer {
+  override add(value: ChURIValue<TValue>, _type: string): void {
+    this.#array.push(value);
+  }
+
+  override startObject(): ChURIObjectConsumer<TValue> {
     return new ChURIObjectBuilder(this.addObject());
   }
 
-  addObject(): ChURIObject {
+  addObject(): ChURIObject<TValue> {
     const object = {};
 
-    this.addValue(object);
+    this.add(object, 'object');
 
     return object;
   }
 
-  override startArray(): ChURIArrayConsumer {
-    return new (this.constructor as typeof ChURIArrayBuilder)(this.addArray());
+  override startArray(): ChURIArrayConsumer<TValue> {
+    return new (this.constructor as typeof ChURIArrayBuilder<TValue>)(this.addArray());
   }
 
-  addArray(): ChURIArray {
-    const array: ChURIArray = [];
+  addArray(): ChURIArray<TValue> {
+    const array: ChURIArray<TValue> = [];
 
-    this.addValue(array);
+    this.add(array, 'array');
 
     return array;
   }
 
-  override addValue(value: ChURIValue): void {
-    this.#array.push(value);
-  }
-
-  override endArray(): ChURIArray {
+  override endArray(): ChURIArray<TValue> {
     return this.array;
   }
 
