@@ -2,11 +2,29 @@ import { describe, expect, it } from '@jest/globals';
 import { parseURICharge } from './parse-uri-charge.js';
 
 describe('parseURICharge', () => {
-  it('recognizes simple string', () => {
+  it('recognizes top-level string', () => {
     expect(parseURICharge('Hello,%20World!').charge).toBe('Hello, World!');
   });
-  it('recognizes simple number as string', () => {
-    expect(parseURICharge('123').charge).toBe('123');
+  it('recognizes top-level quoted string', () => {
+    expect(parseURICharge("'foo")).toEqual({
+      charge: 'foo',
+      end: 4,
+    });
+  });
+  it('recognizes top-level empty string', () => {
+    expect(parseURICharge('')).toEqual({
+      charge: '',
+      end: 0,
+    });
+  });
+  it('recognizes top-level quoted empty string', () => {
+    expect(parseURICharge("'")).toEqual({
+      charge: '',
+      end: 1,
+    });
+  });
+  it('recognizes top-level number', () => {
+    expect(parseURICharge('123').charge).toBe(123);
   });
   it('recognizes top-level array with one element', () => {
     expect(parseURICharge('(123)').charge).toEqual([123]);

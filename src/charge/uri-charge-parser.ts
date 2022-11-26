@@ -2,7 +2,7 @@ import { asis } from '@proc7ts/primitives';
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
 import { ChURIValueBuilder } from './ch-uri-value-builder.js';
-import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
+import { ChURIValueConsumer, ProxyChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
 let URIChargeParser$default: URIChargeParser | undefined;
@@ -43,48 +43,20 @@ export class URIChargeParser<
   }
 
   parse(input: string): URIChargeParser.Result<TCharge> {
-    const keyEnd = input.search(PARENT_PATTERN);
+    let charge!: TCharge;
+    const to = new ChURIValueTarget(this.#consumer).recharge(newCharge => (charge = newCharge));
+    let end: number;
 
-    if (keyEnd < 0) {
-      return {
-        charge: this.#consumer.set(decodeURIComponent(input), 'string'),
-        end: input.length,
-      };
+    if (!input) {
+      to.set('', 'string');
+      end = 0;
+    } else {
+      end = parseURIChargeValue(to, input);
     }
-
-    if (input[keyEnd] === ')') {
-      // String charge.
-      return {
-        charge: this.#consumer.set(decodeURIComponent(input.slice(0, keyEnd)), 'string'),
-        end: keyEnd,
-      };
-    }
-
-    if (keyEnd) {
-      // Object charge.
-      const firstValueOffset = keyEnd + 1;
-      const objectConsumer = this.#consumer.startObject();
-      const end =
-        firstValueOffset
-        + parseURIChargeObject(
-          decodeURIComponent(input.slice(0, keyEnd)),
-          objectConsumer,
-          input.slice(firstValueOffset),
-        );
-
-      return {
-        end,
-        charge: objectConsumer.endObject(),
-      };
-    }
-
-    // Array charge.
-    const arrayConsumer = this.#consumer.startArray();
-    const end = 1 + parseURIChargeArray(arrayConsumer, input.slice(1));
 
     return {
+      charge,
       end,
-      charge: arrayConsumer.endArray(),
     };
   }
 
@@ -404,6 +376,10 @@ function decodeNumericURICharge<TValue>(
 
 type ChURITarget<TValue> = ChURIValueConsumer<TValue>;
 
+class ChURIValueTarget<TValue, TCharge>
+  extends ProxyChURIValueConsumer<TValue, TCharge>
+  implements ChURITarget<TValue> {}
+
 class ChURIPropertyTarget<TValue>
   extends ChURIValueConsumer<TValue>
   implements ChURITarget<TValue> {
@@ -421,7 +397,7 @@ class ChURIPropertyTarget<TValue>
     return new ChURIPropertyTarget(key, this.#consumer);
   }
 
-  set(value: ChURIValue<TValue>, type: string): void {
+  override set(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.put(this.#key, value, type);
   }
 
@@ -429,11 +405,11 @@ class ChURIPropertyTarget<TValue>
     this.#consumer.addSuffix(this.#key);
   }
 
-  startObject(): ChURIObjectConsumer<TValue> {
+  override startObject(): ChURIObjectConsumer<TValue> {
     return this.#consumer.startObject(this.#key);
   }
 
-  startArray(): ChURIArrayConsumer<TValue> {
+  override startArray(): ChURIArrayConsumer<TValue> {
     return this.#consumer.startArray(this.#key);
   }
 
@@ -448,15 +424,15 @@ class ChURIElementTarget<TValue> extends ChURIValueConsumer<TValue> implements C
     this.#consumer = consumer;
   }
 
-  set(value: ChURIValue<TValue>, type: string): void {
+  override set(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.add(value, type);
   }
 
-  startObject(): ChURIObjectConsumer<TValue> {
+  override startObject(): ChURIObjectConsumer<TValue> {
     return this.#consumer.startObject();
   }
 
-  startArray(): ChURIArrayConsumer<TValue> {
+  override startArray(): ChURIArrayConsumer<TValue> {
     return this.#consumer.startArray();
   }
 
