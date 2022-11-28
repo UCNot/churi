@@ -14,7 +14,7 @@ export function parseURICharge<TValue, TCharge>(
   input: string,
   options?: URIChargeParser.Options<TValue, TCharge>,
 ): URIChargeParser.Result<TCharge> {
-  return URIChargeParser.get(options as URIChargeParser.Options.WithConsumer<any, TCharge>).parse(
+  return URIChargeParser.get(options as URIChargeParser.Options.DefaultFormat<any, TCharge>).parse(
     input,
   );
 }

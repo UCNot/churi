@@ -24,18 +24,18 @@ export function parseURIChargeValue<TValue, TCharge>(
     // Start nested object and parse first property.
     const firstKey = decodeURIComponent(input.slice(0, valueEnd));
     const firstValueOffset = valueEnd + 1;
-    const objectConsumer = to.startObject();
+    const objectConsumer = to.consumer.startObject();
     const objectEnd =
       firstValueOffset
-      + parseURIChargeObject(firstKey, objectConsumer, input.slice(firstValueOffset));
+      + parseURIChargeObject(to, firstKey, objectConsumer, input.slice(firstValueOffset));
 
     return { charge: objectConsumer.endObject(), end: objectEnd };
   }
 
   // Empty key. Start nested array and parse first element.
 
-  const arrayConsumer = to.startArray();
-  const arrayEnd = parseURIChargeArray(arrayConsumer, input.slice(1)) + 1;
+  const arrayConsumer = to.consumer.startArray();
+  const arrayEnd = parseURIChargeArray(to, arrayConsumer, input.slice(1)) + 1;
 
   return { charge: arrayConsumer.endArray(), end: arrayEnd };
 }
@@ -43,11 +43,12 @@ export function parseURIChargeValue<TValue, TCharge>(
 const PARENT_PATTERN = /[()]/;
 
 function parseURIChargeObject<TValue>(
+  parent: URIChargeTarget<TValue>,
   key: string,
   consumer: ChURIObjectConsumer<TValue>,
   firstValueInput: string,
 ): number {
-  const to = new ChURIPropertyTarget(key, consumer);
+  const to = new ChURIPropertyTarget(parent, key, consumer);
 
   // Opening parent after key.
   // Parse first property value.
@@ -103,7 +104,7 @@ function parseURIChargeProperties<TValue>(
     }
     if (!keyEnd && !toArray) {
       // Convert property to array if not converted yet, and continue appending to it.
-      toArray = new ChURIElementTarget(to.startArray());
+      toArray = new ChURIElementTarget(to, to.startArray());
     }
 
     input = input.slice(keyEnd + 1);
@@ -123,10 +124,11 @@ function parseURIChargeProperties<TValue>(
 }
 
 function parseURIChargeArray<TValue>(
+  parent: URIChargeTarget<TValue>,
   consumer: ChURIArrayConsumer<TValue>,
   firstValueInput: string,
 ): number {
-  const to = new ChURIElementTarget(consumer);
+  const to = new ChURIElementTarget(parent, consumer);
 
   // Opening parent without preceding key.
   // Parse first element value.
@@ -175,7 +177,7 @@ function parseURIChargeElements<TValue>(
       const objectEnd =
         offset
         + firstValueOffset
-        + parseURIChargeObject(key, objectConsumer, input.slice(firstValueOffset));
+        + parseURIChargeObject(to, key, objectConsumer, input.slice(firstValueOffset));
 
       objectConsumer.endObject();
 

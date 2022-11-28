@@ -7,7 +7,7 @@ export function decodeURIChargeValue<TValue, TCharge>(
 ): TCharge {
   if (!input) {
     // Empty string treated as empty object.
-    return to.startObject().endObject();
+    return to.consumer.startObject().endObject();
   }
 
   const decoder = URI_CHARGE_DECODERS[input[0]];
@@ -45,10 +45,10 @@ function decodeExclamationPrefixedURICharge<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.set(true, 'boolean');
+    return to.consumer.set(true, 'boolean');
   }
 
-  return decodeStringURICharge(to, input);
+  return to.formatParser.addEntity(to, input);
 }
 
 function decodeMinusSignedURICharge<TValue, TCharge>(
@@ -56,10 +56,10 @@ function decodeMinusSignedURICharge<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.set(false, 'boolean');
+    return to.consumer.set(false, 'boolean');
   }
   if (input === '--') {
-    return to.startArray().endArray();
+    return to.consumer.startArray().endArray();
   }
 
   const secondChar = input[1];
@@ -72,24 +72,24 @@ function decodeMinusSignedURICharge<TValue, TCharge>(
 }
 
 function decodeNumberURICharge<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
+  { consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return to.set(Number(input), 'number');
+  return consumer.set(Number(input), 'number');
 }
 
 function decodeQuotedURICharge<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
+  { consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return to.set(decodeURIComponent(input.slice(1)), 'string');
+  return consumer.set(decodeURIComponent(input.slice(1)), 'string');
 }
 
 function decodeStringURICharge<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
+  { consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return to.set(decodeURIComponent(input), 'string');
+  return consumer.set(decodeURIComponent(input), 'string');
 }
 
 function decodeUnsignedURICharge<TValue, TCharge>(
@@ -104,14 +104,17 @@ function negate<T extends number | bigint>(value: T): T {
 }
 
 function decodeNumericURICharge<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
+  { consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): TCharge {
   if (input[offset + 1] === 'n') {
-    return to.set(sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))), 'bigint');
+    return consumer.set(
+      sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
+      'bigint',
+    );
   }
 
-  return to.set(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
+  return consumer.set(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
 }
