@@ -7,9 +7,13 @@ export interface URIChargeDecoder {
 }
 
 export const defaultURIChargeDecoder = {
-  decodeKey: decodeURIComponent,
+  decodeKey: decodeURIChargeKey,
   decodeValue: decodeURIChargeValue,
 };
+
+function decodeURIChargeKey(rawKey: string): string {
+  return decodeURIComponent(rawKey.startsWith("'") ? rawKey.slice(1) : rawKey);
+}
 
 function decodeURIChargeValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,

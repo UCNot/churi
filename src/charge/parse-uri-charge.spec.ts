@@ -194,6 +194,12 @@ describe('parseURICharge', () => {
     it('recognized with percent-encoded property name', () => {
       expect(parseURICharge('%27foo%27(13)').charge).toEqual({ "'foo'": 13 });
     });
+    it('recognized with quoted name', () => {
+      expect(parseURICharge("'foo'(13)").charge).toEqual({ "foo'": 13 });
+    });
+    it('recognized with empty name', () => {
+      expect(parseURICharge("'(13)").charge).toEqual({ '': 13 });
+    });
     it('recognized after preceding one', () => {
       expect(parseURICharge('foo(1)bar(test)baz()suffix').charge).toEqual({
         foo: 1,
