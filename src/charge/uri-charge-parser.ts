@@ -5,22 +5,19 @@ import { parseURIChargeValue } from './impl/parse-uri-charge-value.js';
 
 let URIChargeParser$default: URIChargeParser | undefined;
 
-export class URIChargeParser<
-  in out TValue extends ChURIPrimitive = ChURIPrimitive,
-  out TCharge = ChURIValue,
-> {
+export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue> {
 
   static get default(): URIChargeParser {
     return (URIChargeParser$default ??= new URIChargeParser());
   }
 
-  static get<TValue extends ChURIPrimitive, TCharge>(
+  static get<TValue, TCharge>(
     options: URIChargeParser.Options<TValue, TCharge>,
   ): URIChargeParser<ChURIPrimitive, TCharge>;
 
   static get(options?: URIChargeParser.Options.Default): URIChargeParser;
 
-  static get<TValue extends ChURIPrimitive, TCharge>(
+  static get<TValue, TCharge>(
     options?: URIChargeParser.Options<TValue, TCharge>,
   ): URIChargeParser<TValue, TCharge> {
     return options
@@ -60,7 +57,7 @@ export namespace URIChargeParser {
     export interface WithConsumer<in out TValue, TCharge> extends Base<TValue, TCharge> {
       readonly consumer: ChURIValueConsumer<TValue, TCharge>;
     }
-    export interface Default extends Base<never, never> {
+    export interface Default extends Base<ChURIPrimitive, ChURIValue> {
       readonly consumer?: undefined;
     }
   }

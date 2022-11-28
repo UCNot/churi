@@ -2,9 +2,9 @@ import { isArray } from '@proc7ts/primitives';
 import { ChURIArrayBuilder } from './ch-uri-array-builder.js';
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
+import { ChURIArray, ChURIObject, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
-export class ChURIObjectBuilder<in out TValue = never> extends ChURIObjectConsumer<
+export class ChURIObjectBuilder<in out TValue = ChURIPrimitive> extends ChURIObjectConsumer<
   TValue,
   ChURIObject<TValue>
 > {

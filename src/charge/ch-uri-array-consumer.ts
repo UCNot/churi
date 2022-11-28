@@ -1,7 +1,7 @@
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIValue } from './ch-uri-value.js';
+import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
-export abstract class ChURIArrayConsumer<in out TValue = never, out TCharge = unknown> {
+export abstract class ChURIArrayConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
 
   abstract add(value: ChURIValue<TValue>, type: string): void;
 

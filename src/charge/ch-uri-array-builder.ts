@@ -1,9 +1,9 @@
 import { ChURIArrayConsumer } from './ch-uri-array-consumer.js';
 import { ChURIObjectBuilder } from './ch-uri-object-builder.js';
 import { ChURIObjectConsumer } from './ch-uri-object-consumer.js';
-import { ChURIArray, ChURIObject, ChURIValue } from './ch-uri-value.js';
+import { ChURIArray, ChURIObject, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
-export class ChURIArrayBuilder<in out TValue = never> extends ChURIArrayConsumer<
+export class ChURIArrayBuilder<in out TValue = ChURIPrimitive> extends ChURIArrayConsumer<
   TValue,
   ChURIArray<TValue>
 > {
