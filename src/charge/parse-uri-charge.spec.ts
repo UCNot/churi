@@ -2,25 +2,6 @@ import { describe, expect, it } from '@jest/globals';
 import { parseURICharge } from './parse-uri-charge.js';
 
 describe('parseURICharge', () => {
-  describe('top-level value', () => {
-    it('recognizes array with one element', () => {
-      expect(parseURICharge('(123)').charge).toEqual([123]);
-    });
-    it('recognizes array with multiple elements', () => {
-      expect(parseURICharge('(123)(456)').charge).toEqual([123, 456]);
-    });
-    it('recognizes trailing object of array', () => {
-      expect(parseURICharge('(123)(456)foo(test)bar(1)tail').charge).toEqual([
-        123,
-        456,
-        { foo: 'test', bar: 1, tail: {} },
-      ]);
-    });
-    it('treats array suffix as trailing object element', () => {
-      expect(parseURICharge('(123)(456)foo').charge).toEqual([123, 456, { foo: {} }]);
-    });
-  });
-
   describe('bigint value', () => {
     it('recognized as object property', () => {
       expect(parseURICharge('foo(0n13)').charge).toEqual({ foo: 13n });
@@ -159,6 +140,12 @@ describe('parseURICharge', () => {
   });
 
   describe('array value', () => {
+    it('recognized as top-level value with one element', () => {
+      expect(parseURICharge('(123)').charge).toEqual([123]);
+    });
+    it('recognized as top-level value', () => {
+      expect(parseURICharge('(123)(456)').charge).toEqual([123, 456]);
+    });
     it('recognized as object property', () => {
       expect(parseURICharge('foo(1)(bar)()').charge).toEqual({
         foo: [1, 'bar', {}],
@@ -226,6 +213,13 @@ describe('parseURICharge', () => {
         foo: {},
       });
     });
+    it('treated as trailing object of top-level array', () => {
+      expect(parseURICharge('(123)(456)foo(test)bar(1)tail').charge).toEqual([
+        123,
+        456,
+        { foo: 'test', bar: 1, tail: {} },
+      ]);
+    });
     it('treated as trailing object after array value', () => {
       expect(parseURICharge('foo(bar((1)(2)test(3))))').charge).toEqual({
         foo: { bar: [1, 2, { test: 3 }] },
@@ -234,6 +228,9 @@ describe('parseURICharge', () => {
   });
 
   describe('object suffix', () => {
+    it('treated as trailing object element of top-level array', () => {
+      expect(parseURICharge('(123)(456)foo').charge).toEqual([123, 456, { foo: {} }]);
+    });
     it('treated as object property after another property', () => {
       expect(parseURICharge('foo(bar(baz)test))').charge).toEqual({
         foo: { bar: 'baz', test: {} },

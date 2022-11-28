@@ -1,7 +1,17 @@
 import { asis } from '@proc7ts/primitives';
 import { URIChargeTarget } from './uri-charge-target.js';
 
-export function decodeURIChargeValue<TValue, TCharge>(
+export interface URIChargeDecoder {
+  decodeKey(rawKey: string): string;
+  decodeValue<TValue, TCharge>(to: URIChargeTarget<TValue, TCharge>, input: string): TCharge;
+}
+
+export const defaultURIChargeDecoder = {
+  decodeKey: decodeURIComponent,
+  decodeValue: decodeURIChargeValue,
+};
+
+function decodeURIChargeValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {

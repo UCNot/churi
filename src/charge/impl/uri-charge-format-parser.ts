@@ -21,12 +21,12 @@ export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
     }
   }
 
-  addEntity({ consumer }: URIChargeTarget<TValue, TCharge>, rawKey: string): TCharge {
+  addEntity({ decoder, consumer }: URIChargeTarget<TValue, TCharge>, rawKey: string): TCharge {
     const entity = this.#entities.get(rawKey);
 
     return entity
       ? entity(consumer, rawKey)
-      : consumer.set(decodeURIComponent(rawKey), 'unrecognized-entity');
+      : consumer.set(decoder.decodeKey(rawKey), 'unrecognized-entity');
   }
 
 }

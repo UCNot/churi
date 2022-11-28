@@ -1,7 +1,6 @@
 import { ChURIArrayConsumer } from '../ch-uri-array-consumer.js';
 import { ChURIObjectConsumer } from '../ch-uri-object-consumer.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
-import { decodeURIChargeValue } from './decode-uri-charge-value.js';
 import { ChURIElementTarget, ChURIPropertyTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseURIChargeValue<TValue, TCharge>(
@@ -12,17 +11,17 @@ export function parseURIChargeValue<TValue, TCharge>(
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    return { charge: decodeURIChargeValue(to, input), end: input.length };
+    return { charge: to.decode(input), end: input.length };
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
-    return { charge: decodeURIChargeValue(to, input.slice(0, valueEnd)), end: valueEnd };
+    return { charge: to.decode(input.slice(0, valueEnd)), end: valueEnd };
   }
 
   // Opening parent.
   if (valueEnd) {
     // Start nested object and parse first property.
-    const firstKey = decodeURIComponent(input.slice(0, valueEnd));
+    const firstKey = to.decoder.decodeKey(input.slice(0, valueEnd));
     const firstValueOffset = valueEnd + 1;
     const objectConsumer = to.consumer.startObject();
     const objectEnd =
@@ -78,7 +77,7 @@ function parseURIChargeProperties<TValue>(
 
     if (keyEnd < 0) {
       toArray?.endArray();
-      to.forKey(decodeURIComponent(input)).addSuffix();
+      to.forKey(to.decoder.decodeKey(input)).addSuffix();
 
       return offset + input.length;
     }
@@ -86,7 +85,7 @@ function parseURIChargeProperties<TValue>(
     if (keyEnd) {
       // New key specified explicitly.
       // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
-      to = to.forKey(decodeURIComponent(input.slice(0, keyEnd)));
+      to = to.forKey(to.decoder.decodeKey(input.slice(0, keyEnd)));
       if (toArray) {
         // End preceding array.
         toArray.endArray();
@@ -161,7 +160,7 @@ function parseURIChargeElements<TValue>(
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
       const suffixConsumer = to.startObject();
 
-      suffixConsumer.addSuffix(decodeURIComponent(input));
+      suffixConsumer.addSuffix(to.decoder.decodeKey(input));
       suffixConsumer.endObject();
 
       return offset + input.length;
@@ -171,7 +170,7 @@ function parseURIChargeElements<TValue>(
       // New key specified explicitly.
       // Add trailing object element and pass the rest of the input there.
       // Thus, `(value1)key(value2)` is the same as `(value1)(key(value2))`.
-      const key = decodeURIComponent(input.slice(0, keyEnd));
+      const key = to.decoder.decodeKey(input.slice(0, keyEnd));
       const firstValueOffset = keyEnd + 1;
       const objectConsumer = to.startObject();
       const objectEnd =

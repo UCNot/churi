@@ -2,6 +2,7 @@ import { ChURIValueBuilder } from './ch-uri-value-builder.js';
 import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 import { parseURIChargeValue } from './impl/parse-uri-charge-value.js';
+import { defaultURIChargeDecoder } from './impl/uri-charge-decoder.js';
 import { URIChargeFormatParser } from './impl/uri-charge-format-parser.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
 import { URIChargeFormat } from './uri-charge-format.js';
@@ -41,9 +42,13 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURI
   );
 
   constructor(options?: URIChargeParser.Options<TValue, TCharge>) {
+    const decoder = defaultURIChargeDecoder;
+
     this.#to = {
       consumer: options?.consumer ?? ChURIValueBuilder$instance,
+      decoder,
       formatParser: new URIChargeFormatParser(options?.format),
+      decode: input => decoder.decodeValue(this.#to, input),
     };
   }
 
