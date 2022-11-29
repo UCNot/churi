@@ -1,19 +1,35 @@
-import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
+import { ChURIArrayConsumer, ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive } from './ch-uri-value.js';
 
 export interface URIChargeFormat<in out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly entities?:
     | {
-        readonly [rawKey: string]: URIChargeFormat.Entity<TValue, TCharge>;
+        readonly [rawEntity: string]: URIChargeEntity<TValue, TCharge>;
+      }
+    | undefined;
+  readonly directives?:
+    | {
+        readonly [rawName: string]: URIChargeDirective<TValue, TCharge>;
       }
     | undefined;
 }
 
-export namespace URIChargeFormat {
-  export type Entity<in out TValue = ChURIPrimitive, out TCharge = unknown> = <
-    TResult extends TCharge,
-  >(
-    consumer: ChURIValueConsumer<TValue, TResult>,
-    rawKey: string,
-  ) => TCharge;
+export type URIChargeEntity<in out TValue = ChURIPrimitive, out TCharge = unknown> = <
+  TResult extends TCharge,
+>(
+  context: URIChargeContext<TValue, TResult>,
+  rawEntity: string,
+) => TCharge;
+
+export type URIChargeDirective<in out TValue = ChURIPrimitive, out TCharge = unknown> = <
+  TResult extends TCharge,
+>(
+  context: URIChargeContext<TValue, TResult>,
+  rawName: string,
+) => ChURIArrayConsumer<TValue, TResult>;
+
+export interface URIChargeContext<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+  readonly consumer: ChURIValueConsumer<TValue, TCharge>;
+
+  decode(input: string): TCharge;
 }

@@ -19,15 +19,7 @@ export function parseURIChargeValue<TValue, TCharge>(
 
   // Opening parent.
   if (valueEnd) {
-    // Start nested object and parse first property.
-    const firstKey = to.decoder.decodeKey(input.slice(0, valueEnd));
-    const firstValueOffset = valueEnd + 1;
-    const objectConsumer = to.consumer.startObject();
-    const objectEnd =
-      firstValueOffset
-      + parseURIChargeObject(to, firstKey, objectConsumer, input.slice(firstValueOffset));
-
-    return { charge: objectConsumer.endObject(), end: objectEnd };
+    return parseURIChargeObjectOrDirective(to, input.slice(0, valueEnd), input);
   }
 
   // Empty key. Start nested array and parse first element.
@@ -40,15 +32,44 @@ export function parseURIChargeValue<TValue, TCharge>(
 
 const PARENT_PATTERN = /[()]/;
 
+function parseURIChargeObjectOrDirective<TValue, TCharge>(
+  to: URIChargeTarget<TValue, TCharge>,
+  rawKey: string,
+  input: string,
+): URIChargeParser.Result<TCharge> {
+  const firstValueOffset = rawKey.length + 1;
+  const firstValueInput = input.slice(firstValueOffset);
+
+  if (rawKey.startsWith('!')) {
+    // Handle directive.
+    const directiveConsumer = to.formatParser.startDirective(to, rawKey);
+    const directiveEnd =
+      firstValueOffset + parseURIChargeArray(to, directiveConsumer, firstValueInput);
+
+    directiveConsumer.endArray();
+
+    return { charge: directiveConsumer.endArray(), end: directiveEnd };
+  }
+
+  // Start nested object and parse first property.
+  const firstKey = to.decoder.decodeKey(rawKey);
+  const objectConsumer = to.consumer.startObject();
+  const objectEnd =
+    firstValueOffset + parseURIChargeObject(to, firstKey, objectConsumer, firstValueInput);
+
+  return { charge: objectConsumer.endObject(), end: objectEnd };
+}
+
 function parseURIChargeObject<TValue>(
   parent: URIChargeTarget<TValue>,
   key: string,
   consumer: ChURIObjectConsumer<TValue>,
   firstValueInput: string,
 ): number {
+  // Opening parent after key.
+
   const to = new ChURIPropertyTarget(parent, key, consumer);
 
-  // Opening parent after key.
   // Parse first property value.
   const firstValueEnd = parseURIChargeValue(to, firstValueInput).end + 1; // After closing parent.
 
@@ -169,17 +190,7 @@ function parseURIChargeElements<TValue>(
       // New key specified explicitly.
       // Add trailing object element and pass the rest of the input there.
       // Thus, `(value1)key(value2)` is the same as `(value1)(key(value2))`.
-      const key = to.decoder.decodeKey(input.slice(0, keyEnd));
-      const firstValueOffset = keyEnd + 1;
-      const objectConsumer = to.startObject();
-      const objectEnd =
-        offset
-        + firstValueOffset
-        + parseURIChargeObject(to, key, objectConsumer, input.slice(firstValueOffset));
-
-      objectConsumer.endObject();
-
-      return objectEnd;
+      return offset + parseURIChargeObjectOrDirective(to, input.slice(0, keyEnd), input).end;
     }
 
     if (input[0] === ')') {

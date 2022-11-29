@@ -106,14 +106,14 @@ describe('parseURICharge', () => {
     });
   });
 
-  describe('entity', () => {
-    it('treated as string when unrecognized at top-level', () => {
+  describe('unknown entity', () => {
+    it('treated as string at top level', () => {
       expect(parseURICharge('!bar%20baz').charge).toBe('!bar baz');
     });
-    it('treated as string when unrecognized inside object property', () => {
+    it('treated as string within object property', () => {
       expect(parseURICharge('foo(!bar%20baz)').charge).toEqual({ foo: '!bar baz' });
     });
-    it('treated as string when unrecognized inside array element', () => {
+    it('treated as string within array element', () => {
       expect(parseURICharge('(!bar%20baz)').charge).toEqual(['!bar baz']);
     });
   });
@@ -260,6 +260,20 @@ describe('parseURICharge', () => {
       expect(parseURICharge('foo(bar((1)(2)test)))').charge).toEqual({
         foo: { bar: [1, 2, { test: {} }] },
       });
+    });
+  });
+
+  describe('unknown directive', () => {
+    it('treated as top-level object', () => {
+      expect(parseURICharge('!bar%20baz(foo)test').charge).toEqual({
+        '!bar baz': ['foo', { test: {} }],
+      });
+    });
+    it('treated as object within object property', () => {
+      expect(parseURICharge('foo(!bar%20baz())').charge).toEqual({ foo: { '!bar baz': [{}] } });
+    });
+    it('treated as object within array element', () => {
+      expect(parseURICharge('(!bar%20baz())').charge).toEqual([{ '!bar baz': [{}] }]);
     });
   });
 
