@@ -30,6 +30,4 @@ export type URIChargeDirective<in out TValue = ChURIPrimitive, out TCharge = unk
 
 export interface URIChargeContext<in out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-
-  decode(input: string): TCharge;
 }

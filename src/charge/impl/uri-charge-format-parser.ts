@@ -75,10 +75,6 @@ class URIChargeContext$<in out TValue, out TCharge> implements URIChargeContext<
     return this.#to.consumer;
   }
 
-  decode(input: string): TCharge {
-    return this.#to.decode(input);
-  }
-
 }
 
 class ChURIUnrecognizedDirectiveConsumer<in out TValue, out TCharge> extends ChURIArrayConsumer<

@@ -46,8 +46,6 @@ function parseURIChargeObjectOrDirective<TValue, TCharge>(
     const directiveEnd =
       firstValueOffset + parseURIChargeArray(to, directiveConsumer, firstValueInput);
 
-    directiveConsumer.endArray();
-
     return { charge: directiveConsumer.endArray(), end: directiveEnd };
   }
 

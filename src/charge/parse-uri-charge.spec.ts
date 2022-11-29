@@ -265,8 +265,8 @@ describe('parseURICharge', () => {
 
   describe('unknown directive', () => {
     it('treated as top-level object', () => {
-      expect(parseURICharge('!bar%20baz(foo)test').charge).toEqual({
-        '!bar baz': ['foo', { test: {} }],
+      expect(parseURICharge('!bar%20baz(foo)((1))test').charge).toEqual({
+        '!bar baz': ['foo', [1], { test: {} }],
       });
     });
     it('treated as object within object property', () => {
