@@ -3,11 +3,19 @@ import { URIChargeTarget } from './uri-charge-target.js';
 
 export interface URIChargeDecoder {
   decodeKey(rawKey: string): string;
+  decodeString(rawString: string): string;
   decodeValue<TValue, TCharge>(to: URIChargeTarget<TValue, TCharge>, input: string): TCharge;
 }
 
-export const defaultURIChargeDecoder = {
+export const defaultURIChargeDecoder: URIChargeDecoder = {
   decodeKey: decodeURIChargeKey,
+  decodeString: decodeURIComponent,
+  decodeValue: decodeURIChargeValue,
+};
+
+export const directiveURIChargeDecoder: URIChargeDecoder = {
+  decodeKey: asis,
+  decodeString: asis,
   decodeValue: decodeURIChargeValue,
 };
 
@@ -93,17 +101,17 @@ function decodeNumberURICharge<TValue, TCharge>(
 }
 
 function decodeQuotedURICharge<TValue, TCharge>(
-  { consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return consumer.set(decodeURIComponent(input.slice(1)), 'string');
+  return consumer.set(decoder.decodeString(input.slice(1)), 'string');
 }
 
 function decodeStringURICharge<TValue, TCharge>(
-  { consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return consumer.set(decodeURIComponent(input), 'string');
+  return consumer.set(decoder.decodeString(input), 'string');
 }
 
 function decodeUnsignedURICharge<TValue, TCharge>(

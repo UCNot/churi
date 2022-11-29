@@ -1,6 +1,8 @@
-import { ChURIArrayConsumer } from '../ch-uri-array-consumer.js';
-import { ChURIObjectConsumer } from '../ch-uri-object-consumer.js';
-import { ChURIValueConsumer } from '../ch-uri-value-consumer.js';
+import {
+  ChURIArrayConsumer,
+  ChURIObjectConsumer,
+  ChURIValueConsumer,
+} from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
 import { URIChargeDecoder } from './uri-charge-decoder.js';
 import { URIChargeFormatParser } from './uri-charge-format-parser.js';
@@ -59,10 +61,6 @@ export class ChURIPropertyTarget<TValue>
     this.#consumer.put(this.#key, value, type);
   }
 
-  override setEntity(entity: string): void {
-    this.#consumer.putEntity(this.#key, entity);
-  }
-
   addSuffix(): void {
     this.#consumer.addSuffix(this.#key);
   }
@@ -110,10 +108,6 @@ export class ChURIElementTarget<TValue>
 
   override set(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.add(value, type);
-  }
-
-  override setEntity(entity: string): void {
-    this.#consumer.addEntity(entity);
   }
 
   override startObject(): ChURIObjectConsumer<TValue> {

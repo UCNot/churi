@@ -1,5 +1,4 @@
-import { ChURIArrayConsumer } from '../ch-uri-array-consumer.js';
-import { ChURIObjectConsumer } from '../ch-uri-object-consumer.js';
+import { ChURIArrayConsumer, ChURIObjectConsumer } from '../ch-uri-value-consumer.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
 import { ChURIElementTarget, ChURIPropertyTarget, URIChargeTarget } from './uri-charge-target.js';
 
