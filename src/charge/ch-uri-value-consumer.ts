@@ -6,6 +6,10 @@ export abstract class ChURIValueConsumer<in out TValue = ChURIPrimitive, out TCh
 
   abstract set(value: ChURIValue<TValue>, type: string): TCharge;
 
+  setEntity(entity: string): TCharge {
+    return this.set(decodeURIComponent(entity), 'unrecognized-entity');
+  }
+
   abstract startObject(): ChURIObjectConsumer<TValue, TCharge>;
 
   abstract startArray(): ChURIArrayConsumer<TValue, TCharge>;

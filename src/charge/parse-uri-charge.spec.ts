@@ -101,11 +101,20 @@ describe('parseURICharge', () => {
     it('recognized when prefixed with "-"', () => {
       expect(parseURICharge('foo(-bar)').charge).toEqual({ foo: '-bar' });
     });
-    it('recognized when prefixed with "!"', () => {
-      expect(parseURICharge('foo(!bar)').charge).toEqual({ foo: '!bar' });
-    });
     it('recognizes when percent-encoded', () => {
       expect(parseURICharge('foo(%27bar%27)').charge).toEqual({ foo: "'bar'" });
+    });
+  });
+
+  describe('entity', () => {
+    it('treated as string when unrecognized at top-level', () => {
+      expect(parseURICharge('!bar%20baz').charge).toBe('!bar baz');
+    });
+    it('treated as string when unrecognized inside object property', () => {
+      expect(parseURICharge('foo(!bar%20baz)').charge).toEqual({ foo: '!bar baz' });
+    });
+    it('treated as string when unrecognized inside array element', () => {
+      expect(parseURICharge('(!bar%20baz)').charge).toEqual(['!bar baz']);
     });
   });
 

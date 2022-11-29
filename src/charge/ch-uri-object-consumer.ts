@@ -5,6 +5,10 @@ export abstract class ChURIObjectConsumer<in out TValue = ChURIPrimitive, out TC
 
   abstract put(key: string, value: ChURIValue<TValue>, type: string): void;
 
+  putEntity(key: string, entity: string): void {
+    this.put(key, decodeURIComponent(entity), 'unrecognized-entity');
+  }
+
   abstract startObject(key: string): ChURIObjectConsumer<TValue>;
 
   abstract startArray(key: string): ChURIArrayConsumer<TValue>;
