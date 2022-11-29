@@ -1,33 +1,14 @@
 import { ChURIValueBuilder } from './ch-uri-value-builder.js';
 import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
+import { PredefinedURIChargeFormats } from './formats/predefined.uri-charge-formats.js';
 import { parseURIChargeValue } from './impl/parse-uri-charge-value.js';
 import { defaultURIChargeDecoder } from './impl/uri-charge-decoder.js';
 import { URIChargeFormatParser } from './impl/uri-charge-format-parser.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
 import { URIChargeFormat } from './uri-charge-format.js';
 
-let URIChargeParser$default: URIChargeParser | undefined;
-
-export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue> {
-
-  static get default(): URIChargeParser {
-    return (URIChargeParser$default ??= new URIChargeParser());
-  }
-
-  static get<TValue, TCharge>(
-    options: URIChargeParser.Options<TValue, TCharge>,
-  ): URIChargeParser<ChURIPrimitive, TCharge>;
-
-  static get(options?: URIChargeParser.Options.Default): URIChargeParser;
-
-  static get<TValue, TCharge>(
-    options?: URIChargeParser.Options<TValue, TCharge>,
-  ): URIChargeParser<TValue, TCharge> {
-    return options
-      ? new URIChargeParser(options as URIChargeParser.Options<any, any>)
-      : (URIChargeParser.default as URIChargeParser<any, TCharge>);
-  }
+export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue<TValue>> {
 
   readonly #to: URIChargeTarget<TValue, TCharge>;
 
@@ -67,29 +48,19 @@ export namespace URIChargeParser {
   export namespace Options {
     export interface Base<in out TValue, out TCharge> {
       readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
-      readonly format?:
-        | URIChargeFormat<TValue, TCharge>
-        | readonly URIChargeFormat<TValue, TCharge>[]
-        | undefined;
+      readonly format?: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined;
     }
     export interface Custom<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-      readonly format:
-        | URIChargeFormat<TValue, TCharge>
-        | readonly URIChargeFormat<TValue, TCharge>[];
+      readonly format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[];
     }
     export interface DefaultFormat<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-      readonly format?:
-        | URIChargeFormat<TValue, TCharge>
-        | readonly URIChargeFormat<TValue, TCharge>[]
-        | undefined;
+      readonly format?: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined;
     }
     export interface DefaultConsumer<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
-      readonly format:
-        | URIChargeFormat<TValue, TCharge>
-        | readonly URIChargeFormat<TValue, TCharge>[];
+      readonly format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[];
     }
     export interface Default extends Base<ChURIPrimitive, ChURIValue> {
       readonly consumer?: undefined;
@@ -103,3 +74,23 @@ export namespace URIChargeParser {
 }
 
 const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder<any>();
+
+let URIChargeParser$default: URIChargeParser | undefined;
+
+export function createURIChargeParser<TValue, TCharge>(
+  options: URIChargeParser.Options<TValue, TCharge>,
+): URIChargeParser<ChURIPrimitive, TCharge>;
+
+export function createURIChargeParser(options?: URIChargeParser.Options.Default): URIChargeParser;
+
+export function createURIChargeParser<TValue, TCharge>(
+  options?: URIChargeParser.Options<TValue, TCharge>,
+): URIChargeParser<TValue, TCharge> {
+  if (options) {
+    return new URIChargeParser(options as URIChargeParser.Options<any, any>);
+  }
+
+  return (URIChargeParser$default ??= new URIChargeParser({
+    format: PredefinedURIChargeFormats,
+  })) as URIChargeParser<any, TCharge>;
+}

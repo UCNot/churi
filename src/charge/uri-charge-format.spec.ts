@@ -17,9 +17,9 @@ describe('URIChargeFormat', () => {
       parser = new URIChargeParser<ChURIPrimitive | TestValue, ChURIValue | TestValue>({
         format: {
           entities: {
-            ['!test']<T extends ChURIValue | TestValue>({
+            ['!test']<TCharge>({
               consumer,
-            }: URIChargeContext<ChURIPrimitive | TestValue, T>): T {
+            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): TCharge {
               return consumer.set({ [test__symbol]: 'test value' }, 'test');
             },
           },
@@ -51,11 +51,11 @@ describe('URIChargeFormat', () => {
       parser = new URIChargeParser<ChURIPrimitive | TestValue, ChURIValue | TestValue>({
         format: {
           directives: {
-            ['!test']<T extends ChURIValue | TestValue>({
+            ['!test']<TCharge>({
               consumer,
-            }: URIChargeContext<ChURIPrimitive | TestValue, T>): ChURIArrayConsumer<
+            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): ChURIArrayConsumer<
               ChURIPrimitive | TestValue,
-              T
+              TCharge
             > {
               return new TestDirectiveConsumer(consumer);
             },
@@ -87,7 +87,7 @@ describe('URIChargeFormat', () => {
     [test__symbol]: unknown;
   }
 
-  class TestDirectiveConsumer<TCharge extends ChURIValue | TestValue> extends ChURIArrayConsumer<
+  class TestDirectiveConsumer<TCharge> extends ChURIArrayConsumer<
     ChURIPrimitive | TestValue,
     TCharge
   > {

@@ -15,15 +15,10 @@ import { URIChargeTarget } from './uri-charge-target.js';
 
 export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
 
-  readonly #entities = new Map<string, URIChargeEntity<TValue, TCharge>>();
-  readonly #directives = new Map<string, URIChargeDirective<TValue, TCharge>>();
+  readonly #entities = new Map<string, URIChargeEntity<TValue>>();
+  readonly #directives = new Map<string, URIChargeDirective<TValue>>();
 
-  constructor(
-    format:
-      | URIChargeFormat<TValue, TCharge>
-      | readonly URIChargeFormat<TValue, TCharge>[]
-      | undefined,
-  ) {
+  constructor(format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined) {
     const formats = asArray(format);
 
     for (const { entities } of formats) {

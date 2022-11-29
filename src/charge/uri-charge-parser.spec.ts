@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import { URIChargeParser } from './uri-charge-parser.js';
+import { createURIChargeParser } from './uri-charge-parser.js';
 
-describe('URIChargeParser', () => {
+describe('createURIChargeParser', () => {
   describe('get', () => {
     it('returns default instance without options', () => {
-      expect(URIChargeParser.get()).toBe(URIChargeParser.default);
+      expect(createURIChargeParser()).toBe(createURIChargeParser());
     });
     it('returns new instance with options', () => {
-      expect(URIChargeParser.get({})).not.toBe(URIChargeParser.default);
+      expect(createURIChargeParser({})).not.toBe(createURIChargeParser());
     });
   });
 });

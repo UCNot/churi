@@ -1,4 +1,4 @@
-import { URIChargeParser } from './uri-charge-parser.js';
+import { createURIChargeParser, URIChargeParser } from './uri-charge-parser.js';
 
 export function parseURICharge<TValue, TCharge>(
   input: string,
@@ -14,7 +14,7 @@ export function parseURICharge<TValue, TCharge>(
   input: string,
   options?: URIChargeParser.Options<TValue, TCharge>,
 ): URIChargeParser.Result<TCharge> {
-  return URIChargeParser.get(options as URIChargeParser.Options.DefaultFormat<any, TCharge>).parse(
-    input,
-  );
+  return createURIChargeParser(
+    options as URIChargeParser.Options.DefaultFormat<TValue, TCharge>,
+  ).parse(input);
 }
