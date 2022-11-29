@@ -42,13 +42,13 @@ describe('parseURICharge', () => {
 
   describe('empty array value', () => {
     it('recognized as top-level value', () => {
-      expect(parseURICharge('--')).toEqual({ charge: [], end: 2 });
+      expect(parseURICharge('!!')).toEqual({ charge: [], end: 2 });
     });
     it('recognized as object property', () => {
-      expect(parseURICharge('foo(--)').charge).toEqual({ foo: [] });
+      expect(parseURICharge('foo(!!)').charge).toEqual({ foo: [] });
     });
     it('recognized as array element', () => {
-      expect(parseURICharge('(--)').charge).toEqual([[]]);
+      expect(parseURICharge('(!!)').charge).toEqual([[]]);
     });
   });
 

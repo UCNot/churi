@@ -69,6 +69,9 @@ function decodeExclamationPrefixedURICharge<TValue, TCharge>(
   if (input.length === 1) {
     return to.consumer.set(true, 'boolean');
   }
+  if (input === '!!') {
+    return to.consumer.startArray().endArray();
+  }
 
   return to.formatParser.addEntity(to, input);
 }
@@ -79,9 +82,6 @@ function decodeMinusSignedURICharge<TValue, TCharge>(
 ): TCharge {
   if (input.length === 1) {
     return to.consumer.set(false, 'boolean');
-  }
-  if (input === '--') {
-    return to.consumer.startArray().endArray();
   }
 
   const secondChar = input[1];
