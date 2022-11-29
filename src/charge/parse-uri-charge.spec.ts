@@ -52,6 +52,18 @@ describe('parseURICharge', () => {
     });
   });
 
+  describe('null value', () => {
+    it('recognized as top-level value', () => {
+      expect(parseURICharge('--')).toEqual({ charge: null, end: 2 });
+    });
+    it('recognized as object property', () => {
+      expect(parseURICharge('foo(--)').charge).toEqual({ foo: null });
+    });
+    it('recognized as array element', () => {
+      expect(parseURICharge('(--)').charge).toEqual([null]);
+    });
+  });
+
   describe('decimal number value', () => {
     it('recognized as top-level value', () => {
       expect(parseURICharge('123E-2')).toEqual({ charge: 123e-2, end: 6 });

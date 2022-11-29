@@ -83,6 +83,9 @@ function decodeMinusSignedURICharge<TValue, TCharge>(
   if (input.length === 1) {
     return to.consumer.set(false, 'boolean');
   }
+  if (input === '--') {
+    return to.consumer.set(null, 'null');
+  }
 
   const secondChar = input[1];
 

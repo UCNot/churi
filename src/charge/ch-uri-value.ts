@@ -4,7 +4,7 @@ export type ChURIValue<TValue = ChURIPrimitive> =
   | ChURIObject<TValue>
   | ChURIArray<TValue>;
 
-export type ChURIPrimitive = bigint | boolean | number | string;
+export type ChURIPrimitive = bigint | boolean | number | string | null;
 
 export type ChURIArray<TValue = ChURIPrimitive> = ChURIValue<TValue>[];
 
