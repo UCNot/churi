@@ -10,7 +10,7 @@ export type ChURIPrimitive = bigint | boolean | number | string | null;
 
 export type ChURIList<TValue = ChURIPrimitive> = ChURIValue<TValue>[];
 
-export interface ChURIMap<TValue = ChURIPrimitive> {
+export interface ChURIMap<in out TValue = ChURIPrimitive> {
   [key: string]: ChURIValue<TValue> | undefined;
 }
 
@@ -44,7 +44,7 @@ export class ChURIEntity {
 
 }
 
-export class ChURIDirective<TValue = ChURIPrimitive> {
+export class ChURIDirective<in out TValue = ChURIPrimitive> {
 
   #rawName: string;
   #value: ChURIValue<TValue>;

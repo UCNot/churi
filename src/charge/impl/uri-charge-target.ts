@@ -8,7 +8,7 @@ import { ChURIPrimitive } from '../ch-uri-value.js';
 import { ChURIExtParser } from './ch-uri-ext-parser.js';
 import { ChURIValueDecoder } from './ch-uri-value-decoder.js';
 
-export interface URIChargeTarget<in out TValue, out TCharge = unknown> {
+export interface URIChargeTarget<in TValue, out TCharge = unknown> {
   readonly decoder: ChURIValueDecoder;
   readonly consumer: ChURIValueConsumer<TValue, TCharge>;
   readonly ext: ChURIExtParser<TValue, TCharge>;

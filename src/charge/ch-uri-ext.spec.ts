@@ -111,15 +111,15 @@ describe('ChURIExt', () => {
     }
 
     startMap(): ChURIMapConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIMapBuilder(undefined, map => this.add(map));
+      return new ChURIMapBuilder<ChURIPrimitive | TestValue>(undefined, map => this.add(map));
     }
 
     startList(): ChURIListConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIListBuilder(undefined, list => this.add(list));
+      return new ChURIListBuilder<ChURIPrimitive | TestValue>(undefined, list => this.add(list));
     }
 
     startDirective(rawName: string): ChURIDirectiveConsumer<ChURIPrimitive | TestValue, unknown> {
-      return new ChURIDirectiveBuilder(rawName, directive => this.add(directive));
+      return new ChURIDirectiveBuilder<ChURIPrimitive | TestValue>(rawName, directive => this.add(directive));
     }
 
     endDirective(): TCharge {

@@ -1,6 +1,6 @@
 import { ChURIPrimitive } from './ch-uri-value.js';
 
-export interface ChURIValueConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIValueConsumer<in TValue = ChURIPrimitive, out TCharge = unknown> {
   set(value: ChURIPrimitive | TValue, type: string): TCharge;
 
   setEntity(rawEntity: string): TCharge;
@@ -12,7 +12,7 @@ export interface ChURIValueConsumer<in out TValue = ChURIPrimitive, out TCharge 
   startDirective(rawName: string): ChURIDirectiveConsumer<TValue, TCharge>;
 }
 
-export interface ChURIMapConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIMapConsumer<in TValue = ChURIPrimitive, out TCharge = unknown> {
   put(key: string, value: ChURIPrimitive | TValue, type: string): void;
 
   putEntity(key: string, rawEntity: string): void;
@@ -28,7 +28,7 @@ export interface ChURIMapConsumer<in out TValue = ChURIPrimitive, out TCharge = 
   endMap(): TCharge;
 }
 
-export interface ChURIListConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIListConsumer<in TValue = ChURIPrimitive, out TCharge = unknown> {
   add(value: ChURIPrimitive | TValue, type: string): void;
 
   addEntity(rawEntity: string): void;
@@ -42,7 +42,7 @@ export interface ChURIListConsumer<in out TValue = ChURIPrimitive, out TCharge =
   endList(): TCharge;
 }
 
-export interface ChURIDirectiveConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIDirectiveConsumer<in TValue = ChURIPrimitive, out TCharge = unknown> {
   add(value: ChURIPrimitive | TValue, type: string): void;
 
   addEntity(rawEntity: string): void;

@@ -8,7 +8,7 @@ import { defaultChURIValueDecoder } from './impl/ch-uri-value-decoder.js';
 import { parseChURIValue } from './impl/parse-ch-uri-value.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
 
-export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue<TValue>> {
+export class URIChargeParser<in TValue = ChURIPrimitive, out TCharge = ChURIValue<TValue>> {
 
   readonly #to: URIChargeTarget<TValue, TCharge>;
 
@@ -46,7 +46,7 @@ export namespace URIChargeParser {
     | Options.DefaultExt<TValue, TCharge>
     | Options.Default;
   export namespace Options {
-    export interface Base<in out TValue, out TCharge> {
+    export interface Base<in TValue, out TCharge> {
       readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
       readonly ext?: ChURIExt<TValue> | readonly ChURIExt<TValue>[] | undefined;
     }
