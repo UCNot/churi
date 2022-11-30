@@ -4,7 +4,7 @@ import {
   ChURIMapConsumer,
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
-import { ChURIValue } from '../ch-uri-value.js';
+import { ChURIPrimitive } from '../ch-uri-value.js';
 import { ChURIExtParser } from './ch-uri-ext-parser.js';
 import { ChURIValueDecoder } from './ch-uri-value-decoder.js';
 
@@ -55,7 +55,7 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     return new ChURIMapEntryTarget(this, key, this.#consumer);
   }
 
-  set(value: ChURIValue<TValue>, type: string): void {
+  set(value: ChURIPrimitive | TValue, type: string): void {
     this.#consumer.put(this.#key, value, type);
   }
 
@@ -110,7 +110,7 @@ abstract class ChURIItemTarget<
     return this.#decoder.decodeValue(this, input);
   }
 
-  set(value: ChURIValue<TValue>, type: string): void {
+  set(value: ChURIPrimitive | TValue, type: string): void {
     this.itemConsumer.add(value, type);
   }
 
