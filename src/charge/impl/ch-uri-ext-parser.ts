@@ -6,6 +6,7 @@ import {
   ChURIExtHandlerContext,
 } from '../ch-uri-ext.js';
 import {
+  ChURIDirectiveConsumer,
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
@@ -48,7 +49,7 @@ export class ChURIExtParser<in out TValue, out TCharge = unknown> {
   startDirective(
     to: URIChargeTarget<TValue, TCharge>,
     rawName: string,
-  ): ChURIListConsumer<TValue, TCharge> {
+  ): ChURIDirectiveConsumer<TValue, TCharge> {
     const directive = this.#directives.get(rawName);
 
     return directive
@@ -74,7 +75,7 @@ class ChURIExtParserContext<in out TValue, out TCharge>
 }
 
 class UnrecognizedChURIDirectiveConsumer<in out TValue, out TCharge>
-  implements ChURIListConsumer<TValue, TCharge> {
+  implements ChURIDirectiveConsumer<TValue, TCharge> {
 
   readonly #hostConsumer: ChURIMapConsumer<TValue, TCharge>;
   readonly #consumer: ChURIListConsumer<TValue>;
@@ -96,7 +97,7 @@ class UnrecognizedChURIDirectiveConsumer<in out TValue, out TCharge>
     return this.#consumer.startList();
   }
 
-  endList(): TCharge {
+  endDirective(): TCharge {
     this.#consumer.endList();
 
     return this.#hostConsumer.endMap();

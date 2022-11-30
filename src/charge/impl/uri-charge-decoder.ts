@@ -13,12 +13,6 @@ export const defaultURIChargeDecoder: URIChargeDecoder = {
   decodeValue: decodeURIChargeValue,
 };
 
-export const directiveURIChargeDecoder: URIChargeDecoder = {
-  decodeKey: asis,
-  decodeString: asis,
-  decodeValue: decodeURIChargeValue,
-};
-
 function decodeURIChargeKey(rawKey: string): string {
   return decodeURIComponent(rawKey.startsWith("'") ? rawKey.slice(1) : rawKey);
 }

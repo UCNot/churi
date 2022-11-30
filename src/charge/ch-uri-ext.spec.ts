@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from '@jest/globals';
 import { ChURIExtHandlerContext } from './ch-uri-ext.js';
 import { ChURIListBuilder, ChURIMapBuilder } from './ch-uri-value-builder.js';
 import {
+  ChURIDirectiveConsumer,
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
@@ -53,7 +54,7 @@ describe('ChURIExt', () => {
           directives: {
             ['!test']<TCharge>({
               consumer,
-            }: ChURIExtHandlerContext<ChURIPrimitive | TestValue, TCharge>): ChURIListConsumer<
+            }: ChURIExtHandlerContext<ChURIPrimitive | TestValue, TCharge>): ChURIDirectiveConsumer<
               ChURIPrimitive | TestValue,
               TCharge
             > {
@@ -88,7 +89,7 @@ describe('ChURIExt', () => {
   }
 
   class TestDirectiveConsumer<TCharge>
-    implements ChURIListConsumer<ChURIPrimitive | TestValue, TCharge> {
+    implements ChURIDirectiveConsumer<ChURIPrimitive | TestValue, TCharge> {
 
     readonly #consumer: ChURIValueConsumer<ChURIPrimitive | TestValue, TCharge>;
     #value: unknown;
@@ -109,7 +110,7 @@ describe('ChURIExt', () => {
       return new ChURIListBuilder();
     }
 
-    endList(): TCharge {
+    endDirective(): TCharge {
       return this.#consumer.set({ [test__symbol]: this.#value }, 'test');
     }
 

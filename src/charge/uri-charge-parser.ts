@@ -4,7 +4,7 @@ import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 import { PredefinedChURIExt } from './ext/predefined.ch-uri-ext.js';
 import { ChURIExtParser } from './impl/ch-uri-ext-parser.js';
-import { parseURIChargeValue } from './impl/parse-uri-charge-value.js';
+import { parseChURIValue } from './impl/parse-ch-uri-value.js';
 import { defaultURIChargeDecoder } from './impl/uri-charge-decoder.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
 
@@ -34,7 +34,7 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURI
   }
 
   parse(input: string): URIChargeParser.Result<TCharge> {
-    return parseURIChargeValue(this.#to, input);
+    return parseChURIValue(this.#to, input);
   }
 
 }

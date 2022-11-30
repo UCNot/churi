@@ -29,3 +29,13 @@ export interface ChURIListConsumer<in out TValue = ChURIPrimitive, out TCharge =
 
   endList(): TCharge;
 }
+
+export interface ChURIDirectiveConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+  add(value: ChURIValue<TValue>, type: string): void;
+
+  startMap(): ChURIMapConsumer<TValue>;
+
+  startList(): ChURIListConsumer<TValue>;
+
+  endDirective(): TCharge;
+}

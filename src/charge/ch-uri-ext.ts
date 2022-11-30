@@ -1,4 +1,4 @@
-import { ChURIListConsumer, ChURIValueConsumer } from './ch-uri-value-consumer.js';
+import { ChURIDirectiveConsumer, ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive } from './ch-uri-value.js';
 
 export interface ChURIExt<in out TValue = ChURIPrimitive> {
@@ -22,7 +22,7 @@ export type ChURIEntityHandler<in out TValue = ChURIPrimitive> = <TCharge>(
 export type ChURIDirectiveHandler<in out TValue = ChURIPrimitive> = <TCharge>(
   context: ChURIExtHandlerContext<TValue, TCharge>,
   rawName: string,
-) => ChURIListConsumer<TValue, TCharge>;
+) => ChURIDirectiveConsumer<TValue, TCharge>;
 
 export interface ChURIExtHandlerContext<in out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly consumer: ChURIValueConsumer<TValue, TCharge>;

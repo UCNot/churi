@@ -1,4 +1,5 @@
 import {
+  ChURIDirectiveConsumer,
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
@@ -114,6 +115,48 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
 
   endList(): void {
     this.#consumer.endList();
+  }
+
+}
+
+export class ChURIDirectiveArgsTarget<TValue> implements URIChargeTarget<TValue> {
+
+  readonly #consumer: ChURIDirectiveConsumer<TValue>;
+  readonly #decoder: URIChargeDecoder;
+  readonly #ext: ChURIExtParser<TValue, unknown>;
+
+  constructor(parent: URIChargeTarget<TValue>, consumer: ChURIDirectiveConsumer<TValue>) {
+    this.#consumer = consumer;
+    this.#decoder = parent.decoder;
+    this.#ext = parent.ext;
+  }
+
+  get consumer(): ChURIValueConsumer<TValue> {
+    return this;
+  }
+
+  get decoder(): URIChargeDecoder {
+    return this.#decoder;
+  }
+
+  get ext(): ChURIExtParser<TValue> {
+    return this.#ext;
+  }
+
+  decode(input: string): unknown {
+    return this.#decoder.decodeValue(this, input);
+  }
+
+  set(value: ChURIValue<TValue>, type: string): void {
+    this.#consumer.add(value, type);
+  }
+
+  startMap(): ChURIMapConsumer<TValue> {
+    return this.#consumer.startMap();
+  }
+
+  startList(): ChURIListConsumer<TValue> {
+    return this.#consumer.startList();
   }
 
 }
