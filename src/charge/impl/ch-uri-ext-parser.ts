@@ -11,7 +11,7 @@ import {
   ChURIMapConsumer,
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
-import { ChURIValue } from '../ch-uri-value.js';
+import { ChURIEntity, ChURIValue } from '../ch-uri-value.js';
 import { URIChargeTarget } from './uri-charge-target.js';
 
 export class ChURIExtParser<in out TValue, out TCharge = unknown> {
@@ -43,7 +43,7 @@ export class ChURIExtParser<in out TValue, out TCharge = unknown> {
 
     return entity
       ? entity(new ChURIExtParserContext(to), rawEntity)
-      : to.consumer.set(decodeURIComponent(rawEntity), 'unknown-entity');
+      : to.consumer.set(new ChURIEntity(rawEntity), 'entity');
   }
 
   startDirective(

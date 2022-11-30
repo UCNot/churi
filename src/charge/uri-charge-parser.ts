@@ -4,8 +4,8 @@ import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 import { PredefinedChURIExt } from './ext/predefined.ch-uri-ext.js';
 import { ChURIExtParser } from './impl/ch-uri-ext-parser.js';
+import { defaultChURIValueDecoder } from './impl/ch-uri-value-decoder.js';
 import { parseChURIValue } from './impl/parse-ch-uri-value.js';
-import { defaultURIChargeDecoder } from './impl/uri-charge-decoder.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
 
 export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue<TValue>> {
@@ -23,7 +23,7 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURI
   );
 
   constructor(options?: URIChargeParser.Options<TValue, TCharge>) {
-    const decoder = defaultURIChargeDecoder;
+    const decoder = defaultChURIValueDecoder;
 
     this.#to = {
       consumer: options?.consumer ?? ChURIValueBuilder$instance,

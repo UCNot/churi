@@ -6,10 +6,10 @@ import {
 } from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
 import { ChURIExtParser } from './ch-uri-ext-parser.js';
-import { URIChargeDecoder } from './uri-charge-decoder.js';
+import { ChURIValueDecoder } from './ch-uri-value-decoder.js';
 
 export interface URIChargeTarget<in out TValue, out TCharge = unknown> {
-  readonly decoder: URIChargeDecoder;
+  readonly decoder: ChURIValueDecoder;
   readonly consumer: ChURIValueConsumer<TValue, TCharge>;
   readonly ext: ChURIExtParser<TValue, TCharge>;
 
@@ -20,14 +20,14 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
 
   readonly #key: string;
   readonly #consumer: ChURIMapConsumer<TValue>;
-  readonly #decoder: URIChargeDecoder;
+  readonly #decoder: ChURIValueDecoder;
   readonly #ext: ChURIExtParser<TValue>;
 
   constructor(
     parent: URIChargeTarget<TValue>,
     key: string,
     consumer: ChURIMapConsumer<TValue>,
-    decoder: URIChargeDecoder = parent.decoder,
+    decoder: ChURIValueDecoder = parent.decoder,
   ) {
     this.#key = key;
     this.#consumer = consumer;
@@ -35,7 +35,7 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     this.#ext = parent.ext;
   }
 
-  get decoder(): URIChargeDecoder {
+  get decoder(): ChURIValueDecoder {
     return this.#decoder;
   }
 
@@ -76,7 +76,7 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
 export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
 
   readonly #consumer: ChURIListConsumer<TValue>;
-  readonly #decoder: URIChargeDecoder;
+  readonly #decoder: ChURIValueDecoder;
   readonly #ext: ChURIExtParser<TValue, unknown>;
 
   constructor(parent: URIChargeTarget<TValue>, consumer: ChURIListConsumer<TValue>) {
@@ -89,7 +89,7 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
     return this;
   }
 
-  get decoder(): URIChargeDecoder {
+  get decoder(): ChURIValueDecoder {
     return this.#decoder;
   }
 
@@ -122,7 +122,7 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
 export class ChURIDirectiveArgsTarget<TValue> implements URIChargeTarget<TValue> {
 
   readonly #consumer: ChURIDirectiveConsumer<TValue>;
-  readonly #decoder: URIChargeDecoder;
+  readonly #decoder: ChURIValueDecoder;
   readonly #ext: ChURIExtParser<TValue, unknown>;
 
   constructor(parent: URIChargeTarget<TValue>, consumer: ChURIDirectiveConsumer<TValue>) {
@@ -135,7 +135,7 @@ export class ChURIDirectiveArgsTarget<TValue> implements URIChargeTarget<TValue>
     return this;
   }
 
-  get decoder(): URIChargeDecoder {
+  get decoder(): ChURIValueDecoder {
     return this.#decoder;
   }
 

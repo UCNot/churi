@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { ChURIEntity } from './ch-uri-value.js';
 import { parseURICharge } from './parse-uri-charge.js';
 
 describe('parseURICharge', () => {
@@ -119,14 +120,16 @@ describe('parseURICharge', () => {
   });
 
   describe('unknown entity', () => {
-    it('treated as string at top level', () => {
-      expect(parseURICharge('!bar%20baz').charge).toBe('!bar baz');
+    it('recognized at top level', () => {
+      expect(parseURICharge('!bar%20baz').charge).toEqual(new ChURIEntity('!bar%20baz'));
     });
-    it('treated as string within map', () => {
-      expect(parseURICharge('foo(!bar%20baz)').charge).toEqual({ foo: '!bar baz' });
+    it('recognized as map entry value', () => {
+      expect(parseURICharge('foo(!bar%20baz)').charge).toEqual({
+        foo: new ChURIEntity('!bar%20baz'),
+      });
     });
-    it('treated as string within list', () => {
-      expect(parseURICharge('(!bar%20baz)').charge).toEqual(['!bar baz']);
+    it('recognized as list item value', () => {
+      expect(parseURICharge('(!bar%20baz)').charge).toEqual([new ChURIEntity('!bar%20baz')]);
     });
   });
 
