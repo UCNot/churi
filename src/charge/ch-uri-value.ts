@@ -3,7 +3,8 @@ export type ChURIValue<TValue = ChURIPrimitive> =
   | ChURIPrimitive
   | ChURIEntity
   | ChURIMap<TValue>
-  | ChURIList<TValue>;
+  | ChURIList<TValue>
+  | ChURIDirective<TValue>;
 
 export type ChURIPrimitive = bigint | boolean | number | string | null;
 
@@ -25,6 +26,10 @@ export class ChURIEntity {
     return this.#raw;
   }
 
+  get [Symbol.toStringTag](): string {
+    return 'ChURIEntity';
+  }
+
   [Symbol.toPrimitive](): string {
     return this.#raw;
   }
@@ -35,6 +40,30 @@ export class ChURIEntity {
 
   toString(): string {
     return this.#raw;
+  }
+
+}
+
+export class ChURIDirective<TValue = ChURIPrimitive> {
+
+  #rawName: string;
+  #value: ChURIValue<TValue>;
+
+  constructor(rawName: string, value: ChURIValue<TValue> = {}) {
+    this.#rawName = rawName;
+    this.#value = value;
+  }
+
+  get rawName(): string {
+    return this.#rawName;
+  }
+
+  get value(): ChURIValue<TValue> {
+    return this.#value;
+  }
+
+  get [Symbol.toStringTag](): string {
+    return 'ChURIDirective';
   }
 
 }

@@ -1,13 +1,17 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { ChURIExtHandlerContext } from './ch-uri-ext.js';
-import { ChURIListBuilder, ChURIMapBuilder } from './ch-uri-value-builder.js';
+import {
+  ChURIDirectiveBuilder,
+  ChURIListBuilder,
+  ChURIMapBuilder,
+} from './ch-uri-value-builder.js';
 import {
   ChURIDirectiveConsumer,
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
 } from './ch-uri-value-consumer.js';
-import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
+import { ChURIEntity, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 describe('ChURIExt', () => {
@@ -102,12 +106,20 @@ describe('ChURIExt', () => {
       this.#value = value;
     }
 
+    addEntity(rawEntity: string): void {
+      this.add(new ChURIEntity(rawEntity));
+    }
+
     startMap(): ChURIMapConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIMapBuilder();
+      return new ChURIMapBuilder(undefined, map => this.add(map));
     }
 
     startList(): ChURIListConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIListBuilder();
+      return new ChURIListBuilder(undefined, list => this.add(list));
+    }
+
+    startDirective(rawName: string): ChURIDirectiveConsumer<ChURIPrimitive | TestValue, unknown> {
+      return new ChURIDirectiveBuilder(rawName, directive => this.add(directive));
     }
 
     endDirective(): TCharge {

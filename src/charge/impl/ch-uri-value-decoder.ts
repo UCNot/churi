@@ -91,21 +91,21 @@ function decodeMinusSignedChURIValue<TValue, TCharge>(
 }
 
 function decodeNumberChURIValue<TValue, TCharge>(
-  { consumer }: URIChargeTarget<TValue, TCharge>,
+  { consumer: consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
   return consumer.set(Number(input), 'number');
 }
 
 function decodeQuotedChURIValue<TValue, TCharge>(
-  { decoder, consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, consumer: consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
   return consumer.set(decoder.decodeString(input.slice(1)), 'string');
 }
 
 function decodeStringChURIValue<TValue, TCharge>(
-  { decoder, consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, consumer: consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
   return consumer.set(decoder.decodeString(input), 'string');
@@ -123,7 +123,7 @@ function negate<T extends number | bigint>(value: T): T {
 }
 
 function decodeNumericChURIValue<TValue, TCharge>(
-  { consumer }: URIChargeTarget<TValue, TCharge>,
+  { consumer: consumer }: URIChargeTarget<TValue, TCharge>,
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,

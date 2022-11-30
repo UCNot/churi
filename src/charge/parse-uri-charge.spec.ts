@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIEntity } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity } from './ch-uri-value.js';
 import { parseURICharge } from './parse-uri-charge.js';
 
 describe('parseURICharge', () => {
@@ -279,16 +279,28 @@ describe('parseURICharge', () => {
   });
 
   describe('unknown directive', () => {
-    it('treated as top-level map', () => {
-      expect(parseURICharge('!bar%20baz(foo)((1))test').charge).toEqual({
-        '!bar baz': ['foo', [1], { test: {} }],
-      });
+    it('recognized as top-level value', () => {
+      const { rawName, value } = parseURICharge('!bar%20baz(foo)((1))test')
+        .charge as ChURIDirective;
+
+      expect(rawName).toBe('!bar%20baz');
+      expect(value).toEqual(['foo', [1], { test: {} }]);
     });
-    it('treated as map within map', () => {
-      expect(parseURICharge('foo(!bar%20baz())').charge).toEqual({ foo: { '!bar baz': [{}] } });
+    it('recognized as map entry value', () => {
+      const {
+        foo: { rawName, value },
+      } = parseURICharge('foo(!bar%20baz(1))').charge as {
+        foo: ChURIDirective;
+      };
+
+      expect(rawName).toBe('!bar%20baz');
+      expect(value).toBe(1);
     });
-    it('treated as map within list', () => {
-      expect(parseURICharge('(!bar%20baz())').charge).toEqual([{ '!bar baz': [{}] }]);
+    it('recognized as list item value', () => {
+      const [{ rawName, value }] = parseURICharge('(!bar%20baz())').charge as [ChURIDirective];
+
+      expect(rawName).toBe('!bar%20baz');
+      expect(value).toEqual({});
     });
   });
 

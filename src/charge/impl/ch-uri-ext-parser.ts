@@ -5,13 +5,7 @@ import {
   ChURIExt,
   ChURIExtHandlerContext,
 } from '../ch-uri-ext.js';
-import {
-  ChURIDirectiveConsumer,
-  ChURIListConsumer,
-  ChURIMapConsumer,
-  ChURIValueConsumer,
-} from '../ch-uri-value-consumer.js';
-import { ChURIEntity, ChURIValue } from '../ch-uri-value.js';
+import { ChURIDirectiveConsumer, ChURIValueConsumer } from '../ch-uri-value-consumer.js';
 import { URIChargeTarget } from './uri-charge-target.js';
 
 export class ChURIExtParser<in out TValue, out TCharge = unknown> {
@@ -43,7 +37,7 @@ export class ChURIExtParser<in out TValue, out TCharge = unknown> {
 
     return entity
       ? entity(new ChURIExtParserContext(to), rawEntity)
-      : to.consumer.set(new ChURIEntity(rawEntity), 'entity');
+      : to.consumer.setEntity(rawEntity);
   }
 
   startDirective(
@@ -54,7 +48,7 @@ export class ChURIExtParser<in out TValue, out TCharge = unknown> {
 
     return directive
       ? directive(new ChURIExtParserContext(to), rawName)
-      : new UnrecognizedChURIDirectiveConsumer(to, rawName);
+      : to.consumer.startDirective(rawName);
   }
 
 }
@@ -70,37 +64,6 @@ class ChURIExtParserContext<in out TValue, out TCharge>
 
   get consumer(): ChURIValueConsumer<TValue, TCharge> {
     return this.#to.consumer;
-  }
-
-}
-
-class UnrecognizedChURIDirectiveConsumer<in out TValue, out TCharge>
-  implements ChURIDirectiveConsumer<TValue, TCharge> {
-
-  readonly #hostConsumer: ChURIMapConsumer<TValue, TCharge>;
-  readonly #consumer: ChURIListConsumer<TValue>;
-
-  constructor(to: URIChargeTarget<TValue, TCharge>, rawName: string) {
-    this.#hostConsumer = to.consumer.startMap();
-    this.#consumer = this.#hostConsumer.startList(to.decoder.decodeKey(rawName));
-  }
-
-  add(value: ChURIValue<TValue>, type: string): void {
-    this.#consumer.add(value, type);
-  }
-
-  startMap(): ChURIMapConsumer<TValue> {
-    return this.#consumer.startMap();
-  }
-
-  startList(): ChURIListConsumer<TValue> {
-    return this.#consumer.startList();
-  }
-
-  endDirective(): TCharge {
-    this.#consumer.endList();
-
-    return this.#hostConsumer.endMap();
   }
 
 }

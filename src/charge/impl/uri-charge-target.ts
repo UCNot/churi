@@ -59,6 +59,10 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     this.#consumer.put(this.#key, value, type);
   }
 
+  setEntity(rawEntity: string): void {
+    this.#consumer.putEntity(this.#key, rawEntity);
+  }
+
   addSuffix(): void {
     this.#consumer.addSuffix(this.#key);
   }
@@ -71,21 +75,26 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     return this.#consumer.startList(this.#key);
   }
 
+  startDirective(rawName: string): ChURIDirectiveConsumer<TValue> {
+    return this.#consumer.startDirective(this.#key, rawName);
+  }
+
 }
 
-export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
+abstract class ChURIItemTarget<
+  TValue,
+  TConsumer extends ChURIListConsumer<TValue> | ChURIDirectiveConsumer<TValue>,
+> implements URIChargeTarget<TValue> {
 
-  readonly #consumer: ChURIListConsumer<TValue>;
   readonly #decoder: ChURIValueDecoder;
   readonly #ext: ChURIExtParser<TValue, unknown>;
 
-  constructor(parent: URIChargeTarget<TValue>, consumer: ChURIListConsumer<TValue>) {
-    this.#consumer = consumer;
+  constructor(parent: URIChargeTarget<TValue>, protected readonly itemConsumer: TConsumer) {
     this.#decoder = parent.decoder;
     this.#ext = parent.ext;
   }
 
-  get consumer(): ChURIValueConsumer<TValue> {
+  get consumer(): this {
     return this;
   }
 
@@ -102,61 +111,39 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
   }
 
   set(value: ChURIValue<TValue>, type: string): void {
-    this.#consumer.add(value, type);
+    this.itemConsumer.add(value, type);
+  }
+
+  setEntity(rawEntity: string): void {
+    this.itemConsumer.addEntity(rawEntity);
   }
 
   startMap(): ChURIMapConsumer<TValue> {
-    return this.#consumer.startMap();
+    return this.itemConsumer.startMap();
   }
 
   startList(): ChURIListConsumer<TValue> {
-    return this.#consumer.startList();
+    return this.itemConsumer.startList();
   }
+
+  startDirective(rawName: string): ChURIDirectiveConsumer<TValue> {
+    return this.itemConsumer.startDirective(rawName);
+  }
+
+}
+
+export class ChURIListItemTarget<TValue> extends ChURIItemTarget<
+  TValue,
+  ChURIListConsumer<TValue>
+> {
 
   endList(): void {
-    this.#consumer.endList();
+    this.itemConsumer.endList();
   }
 
 }
 
-export class ChURIDirectiveArgsTarget<TValue> implements URIChargeTarget<TValue> {
-
-  readonly #consumer: ChURIDirectiveConsumer<TValue>;
-  readonly #decoder: ChURIValueDecoder;
-  readonly #ext: ChURIExtParser<TValue, unknown>;
-
-  constructor(parent: URIChargeTarget<TValue>, consumer: ChURIDirectiveConsumer<TValue>) {
-    this.#consumer = consumer;
-    this.#decoder = parent.decoder;
-    this.#ext = parent.ext;
-  }
-
-  get consumer(): ChURIValueConsumer<TValue> {
-    return this;
-  }
-
-  get decoder(): ChURIValueDecoder {
-    return this.#decoder;
-  }
-
-  get ext(): ChURIExtParser<TValue> {
-    return this.#ext;
-  }
-
-  decode(input: string): unknown {
-    return this.#decoder.decodeValue(this, input);
-  }
-
-  set(value: ChURIValue<TValue>, type: string): void {
-    this.#consumer.add(value, type);
-  }
-
-  startMap(): ChURIMapConsumer<TValue> {
-    return this.#consumer.startMap();
-  }
-
-  startList(): ChURIListConsumer<TValue> {
-    return this.#consumer.startList();
-  }
-
-}
+export class ChURIDirectiveArgsTarget<TValue> extends ChURIItemTarget<
+  TValue,
+  ChURIDirectiveConsumer<TValue>
+> {}

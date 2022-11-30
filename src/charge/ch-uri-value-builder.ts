@@ -1,10 +1,18 @@
-import { isArray } from '@proc7ts/primitives';
+import { isArray, noop } from '@proc7ts/primitives';
 import {
+  ChURIDirectiveConsumer,
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
 } from './ch-uri-value-consumer.js';
-import { ChURIList, ChURIMap, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
+import {
+  ChURIDirective,
+  ChURIEntity,
+  ChURIList,
+  ChURIMap,
+  ChURIPrimitive,
+  ChURIValue,
+} from './ch-uri-value.js';
 
 export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
   implements ChURIValueConsumer<TValue, ChURIValue<TValue>> {
@@ -13,12 +21,32 @@ export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
     return value;
   }
 
+  setEntity(rawEntity: string): ChURIValue<TValue> {
+    return this.set(new ChURIEntity(rawEntity), 'entity');
+  }
+
   startMap(): ChURIMapConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIMapBuilder<TValue>();
+    return new ChURIMapBuilder<TValue>(undefined, map => this.setMap(map));
+  }
+
+  setMap(map: ChURIMap<TValue>): ChURIValue<TValue> {
+    return this.set(map, 'map');
   }
 
   startList(): ChURIListConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIListBuilder<TValue>();
+    return new ChURIListBuilder<TValue>(undefined, list => this.setList(list));
+  }
+
+  setList(list: ChURIList<TValue>): ChURIValue<TValue> {
+    return this.set(list, 'list');
+  }
+
+  startDirective(rawName: string): ChURIDirectiveConsumer<TValue, ChURIValue<TValue>> {
+    return new ChURIDirectiveBuilder(rawName, directive => this.setDirective(directive));
+  }
+
+  setDirective(directive: ChURIDirective<TValue>): ChURIValue<TValue> {
+    return this.set(directive, 'directive');
   }
 
 }
@@ -27,21 +55,23 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
   implements ChURIMapConsumer<TValue, ChURIMap<TValue>> {
 
   readonly #map: ChURIMap<TValue>;
+  readonly #endMap: (map: ChURIMap<TValue>) => void;
 
-  constructor(map: ChURIMap<TValue> = {}) {
+  constructor(map: ChURIMap<TValue> = {}, endMap: (map: ChURIMap<TValue>) => void = noop) {
     this.#map = map;
-  }
-
-  get map(): ChURIMap<TValue> {
-    return this.#map;
+    this.#endMap = endMap;
   }
 
   put(key: string, value: ChURIValue<TValue>, _type: string): void {
     this.#map[key] = value;
   }
 
+  putEntity(key: string, rawEntity: string): void {
+    this.put(key, new ChURIEntity(rawEntity), 'entry');
+  }
+
   startMap(key: string): ChURIMapConsumer<TValue> {
-    return new (this.constructor as typeof ChURIMapBuilder<TValue>)(this.addMap(key));
+    return new ChURIMapBuilder(this.addMap(key));
   }
 
   addSuffix(suffix: string): void {
@@ -78,55 +108,162 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
     return list;
   }
 
+  startDirective(key: string, rawName: string): ChURIDirectiveConsumer<TValue> {
+    return new ChURIDirectiveBuilder(rawName, directive => this.putDirective(key, directive));
+  }
+
+  putDirective(key: string, directive: ChURIDirective<TValue>): void {
+    this.put(key, directive, 'directive');
+  }
+
   endMap(): ChURIMap<TValue> {
-    return this.map;
+    this.#endMap(this.#map);
+
+    return this.#map;
+  }
+
+}
+
+export abstract class ChURIItemsBuilder<in out TValue = ChURIPrimitive> {
+
+  abstract add(value: ChURIValue<TValue>, _type: string): void;
+
+  addEntity(rawEntity: string): void {
+    this.add(new ChURIEntity(rawEntity), 'entity');
+  }
+
+  startMap(): ChURIMapConsumer<TValue> {
+    return new ChURIMapBuilder<TValue>(undefined, map => this.addMap(map));
+  }
+
+  addMap(map: ChURIMap<TValue>): void {
+    this.add(map, 'map');
+  }
+
+  startList(): ChURIListConsumer<TValue> {
+    return new ChURIListBuilder(undefined, list => this.addList(list));
+  }
+
+  addList(list: ChURIList<TValue>): void {
+    this.add(list, 'list');
+  }
+
+  startDirective(rawName: string): ChURIDirectiveBuilder<TValue> {
+    return new ChURIDirectiveBuilder(rawName, directive => this.addDirective(directive));
+  }
+
+  addDirective(directive: ChURIDirective<TValue>): void {
+    this.add(directive, 'directive');
   }
 
 }
 
 export class ChURIListBuilder<in out TValue = ChURIPrimitive>
+  extends ChURIItemsBuilder<TValue>
   implements ChURIListConsumer<TValue, ChURIList<TValue>> {
 
   readonly #list: ChURIList<TValue>;
+  readonly #endList: (list: ChURIList<TValue>) => void;
 
-  constructor(list: ChURIList<TValue> = []) {
+  constructor(list: ChURIList<TValue> = [], endList: (list: ChURIList<TValue>) => void = noop) {
+    super();
     this.#list = list;
-  }
-
-  get list(): ChURIList<TValue> {
-    return this.#list;
+    this.#endList = endList;
   }
 
   add(value: ChURIValue<TValue>, _type: string): void {
     this.#list.push(value);
   }
 
-  startMap(): ChURIMapConsumer<TValue> {
-    return new ChURIMapBuilder(this.addMap());
-  }
-
-  addMap(): ChURIMap<TValue> {
-    const map = {};
-
-    this.add(map, 'map');
-
-    return map;
-  }
-
-  startList(): ChURIListConsumer<TValue> {
-    return new (this.constructor as typeof ChURIListBuilder<TValue>)(this.addList());
-  }
-
-  addList(): ChURIList<TValue> {
-    const list: ChURIList<TValue> = [];
-
-    this.add(list, 'list');
-
-    return list;
-  }
-
   endList(): ChURIList<TValue> {
-    return this.list;
+    this.#endList(this.#list);
+
+    return this.#list;
+  }
+
+}
+
+export class ChURIDirectiveBuilder<in out TValue = ChURIPrimitive>
+  extends ChURIItemsBuilder<TValue>
+  implements ChURIDirectiveConsumer<TValue, ChURIDirective<TValue>> {
+
+  readonly #rawName: string;
+  readonly #endDirective: (directive: ChURIDirective<TValue>) => void;
+  #value: ChURIDirective$Value<TValue> = ChURIDirective$none;
+
+  constructor(rawName: string, endDirective: (directive: ChURIDirective<TValue>) => void = noop) {
+    super();
+    this.#rawName = rawName;
+    this.#endDirective = endDirective;
+  }
+
+  add(value: ChURIValue<TValue>, _type: string): void {
+    this.#value = this.#value.add(value);
+  }
+
+  endDirective(): ChURIDirective<TValue> {
+    const directive = this.#value.toDirective(this.#rawName);
+
+    this.#endDirective(directive);
+
+    return directive;
+  }
+
+}
+
+interface ChURIDirective$Value<TValue> {
+  add(value: ChURIValue<TValue>): ChURIDirective$Value<TValue>;
+  toDirective(rawName: string): ChURIDirective<TValue>;
+}
+
+class ChURIDirective$None<TValue> implements ChURIDirective$Value<TValue> {
+
+  add(value: ChURIValue<TValue>): ChURIDirective$Single<TValue> {
+    return new ChURIDirective$Single(value);
+  }
+
+  toDirective(rawName: string): ChURIDirective<TValue> {
+    return new ChURIDirective(rawName);
+  }
+
+}
+
+const ChURIDirective$none: ChURIDirective$Value<any> = /*#__PURE__*/ new ChURIDirective$None();
+
+class ChURIDirective$Single<TValue> implements ChURIDirective$Value<TValue> {
+
+  readonly #value: ChURIValue<TValue>;
+
+  constructor(value: ChURIValue<TValue>) {
+    this.#value = value;
+  }
+
+  add(value: ChURIValue<TValue>): ChURIDirective$List<TValue> {
+    return new ChURIDirective$List([this.#value, value]);
+  }
+
+  toDirective(rawName: string): ChURIDirective<TValue> {
+    return new ChURIDirective(rawName, this.#value);
+  }
+
+}
+
+class ChURIDirective$List<TValue> implements ChURIDirective$Value<TValue> {
+
+  readonly #list: ChURIList<TValue>;
+
+  constructor(list: ChURIList<TValue>) {
+    this.#list = list;
+  }
+
+  add(value: ChURIValue<TValue>): this {
+    this.#list.push(value);
+
+    return this;
+  }
+
+  toDirective(rawName: string): ChURIDirective<TValue> {
+    return new ChURIDirective(rawName, this.#list);
   }
 
 }
