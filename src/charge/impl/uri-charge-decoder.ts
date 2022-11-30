@@ -28,8 +28,8 @@ function decodeURIChargeValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (!input) {
-    // Empty string treated as empty object.
-    return to.consumer.startObject().endObject();
+    // Empty string treated as empty map.
+    return to.consumer.startMap().endMap();
   }
 
   const decoder = URI_CHARGE_DECODERS[input[0]];
@@ -70,7 +70,7 @@ function decodeExclamationPrefixedURICharge<TValue, TCharge>(
     return to.consumer.set(true, 'boolean');
   }
   if (input === '!!') {
-    return to.consumer.startArray().endArray();
+    return to.consumer.startList().endList();
   }
 
   return to.formatParser.addEntity(to, input);

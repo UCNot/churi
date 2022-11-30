@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { ChURIArrayBuilder, ChURIObjectBuilder } from './ch-uri-value-builder.js';
+import { ChURIListBuilder, ChURIMapBuilder } from './ch-uri-value-builder.js';
 import {
-  ChURIArrayConsumer,
-  ChURIObjectConsumer,
+  ChURIListConsumer,
+  ChURIMapConsumer,
   ChURIValueConsumer,
 } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
@@ -30,13 +30,13 @@ describe('URIChargeFormat', () => {
     it('recognized at top level', () => {
       expect(parser.parse('!test')).toEqual({ charge: { [test__symbol]: 'test value' }, end: 5 });
     });
-    it('recognized as object property value', () => {
+    it('recognized as map entry value', () => {
       expect(parser.parse('foo(!test)')).toEqual({
         charge: { foo: { [test__symbol]: 'test value' } },
         end: 10,
       });
     });
-    it('recognized as array element value', () => {
+    it('recognized as list item value', () => {
       expect(parser.parse('(!test)')).toEqual({
         charge: [{ [test__symbol]: 'test value' }],
         end: 7,
@@ -53,7 +53,7 @@ describe('URIChargeFormat', () => {
           directives: {
             ['!test']<TCharge>({
               consumer,
-            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): ChURIArrayConsumer<
+            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): ChURIListConsumer<
               ChURIPrimitive | TestValue,
               TCharge
             > {
@@ -67,13 +67,13 @@ describe('URIChargeFormat', () => {
     it('recognized at top level', () => {
       expect(parser.parse("!test('foo)")).toEqual({ charge: { [test__symbol]: 'foo' }, end: 11 });
     });
-    it('recognized as object property value', () => {
+    it('recognized as map entry value', () => {
       expect(parser.parse('foo(!test(bar))')).toEqual({
         charge: { foo: { [test__symbol]: 'bar' } },
         end: 15,
       });
     });
-    it('recognized as array element value', () => {
+    it('recognized as list item value', () => {
       expect(parser.parse('(!test(bar)(baz))')).toEqual({
         charge: [{ [test__symbol]: 'baz' }],
         end: 17,
@@ -87,32 +87,29 @@ describe('URIChargeFormat', () => {
     [test__symbol]: unknown;
   }
 
-  class TestDirectiveConsumer<TCharge> extends ChURIArrayConsumer<
-    ChURIPrimitive | TestValue,
-    TCharge
-  > {
+  class TestDirectiveConsumer<TCharge>
+    implements ChURIListConsumer<ChURIPrimitive | TestValue, TCharge> {
 
     readonly #consumer: ChURIValueConsumer<ChURIPrimitive | TestValue, TCharge>;
     #value: unknown;
 
     constructor(consumer: ChURIValueConsumer<ChURIPrimitive | TestValue, TCharge>) {
-      super();
       this.#consumer = consumer;
     }
 
-    override add(value: ChURIValue<ChURIPrimitive | TestValue>): void {
+    add(value: ChURIValue<ChURIPrimitive | TestValue>): void {
       this.#value = value;
     }
 
-    override startObject(): ChURIObjectConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIObjectBuilder();
+    startMap(): ChURIMapConsumer<ChURIPrimitive | TestValue> {
+      return new ChURIMapBuilder();
     }
 
-    override startArray(): ChURIArrayConsumer<ChURIPrimitive | TestValue> {
-      return new ChURIArrayBuilder();
+    startList(): ChURIListConsumer<ChURIPrimitive | TestValue> {
+      return new ChURIListBuilder();
     }
 
-    override endArray(): TCharge {
+    endList(): TCharge {
       return this.#consumer.set({ [test__symbol]: this.#value }, 'test');
     }
 

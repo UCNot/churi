@@ -1,39 +1,31 @@
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
-export abstract class ChURIValueConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIValueConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+  set(value: ChURIValue<TValue>, type: string): TCharge;
 
-  abstract set(value: ChURIValue<TValue>, type: string): TCharge;
+  startMap(): ChURIMapConsumer<TValue, TCharge>;
 
-  abstract startObject(): ChURIObjectConsumer<TValue, TCharge>;
-
-  abstract startArray(): ChURIArrayConsumer<TValue, TCharge>;
-
+  startList(): ChURIListConsumer<TValue, TCharge>;
 }
 
-export abstract class ChURIObjectConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIMapConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+  put(key: string, value: ChURIValue<TValue>, type: string): void;
 
-  abstract put(key: string, value: ChURIValue<TValue>, type: string): void;
+  startMap(key: string): ChURIMapConsumer<TValue>;
 
-  abstract startObject(key: string): ChURIObjectConsumer<TValue>;
+  startList(key: string): ChURIListConsumer<TValue>;
 
-  abstract startArray(key: string): ChURIArrayConsumer<TValue>;
+  addSuffix(suffix: string): void;
 
-  addSuffix(suffix: string): void {
-    this.startObject(suffix).endObject();
-  }
-
-  abstract endObject(): TCharge;
-
+  endMap(): TCharge;
 }
 
-export abstract class ChURIArrayConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface ChURIListConsumer<in out TValue = ChURIPrimitive, out TCharge = unknown> {
+  add(value: ChURIValue<TValue>, type: string): void;
 
-  abstract add(value: ChURIValue<TValue>, type: string): void;
+  startMap(): ChURIMapConsumer<TValue>;
 
-  abstract startObject(): ChURIObjectConsumer<TValue>;
+  startList(): ChURIListConsumer<TValue>;
 
-  abstract startArray(): ChURIArrayConsumer<TValue>;
-
-  abstract endArray(): TCharge;
-
+  endList(): TCharge;
 }

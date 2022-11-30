@@ -1,7 +1,7 @@
 import { asArray } from '@proc7ts/primitives';
 import {
-  ChURIArrayConsumer,
-  ChURIObjectConsumer,
+  ChURIListConsumer,
+  ChURIMapConsumer,
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
@@ -48,7 +48,7 @@ export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
   startDirective(
     to: URIChargeTarget<TValue, TCharge>,
     rawName: string,
-  ): ChURIArrayConsumer<TValue, TCharge> {
+  ): ChURIListConsumer<TValue, TCharge> {
     const directive = this.#directives.get(rawName);
 
     return directive
@@ -72,36 +72,33 @@ class URIChargeContext$<in out TValue, out TCharge> implements URIChargeContext<
 
 }
 
-class ChURIUnrecognizedDirectiveConsumer<in out TValue, out TCharge> extends ChURIArrayConsumer<
-  TValue,
-  TCharge
-> {
+class ChURIUnrecognizedDirectiveConsumer<in out TValue, out TCharge>
+  implements ChURIListConsumer<TValue, TCharge> {
 
-  readonly #hostConsumer: ChURIObjectConsumer<TValue, TCharge>;
-  readonly #consumer: ChURIArrayConsumer<TValue>;
+  readonly #hostConsumer: ChURIMapConsumer<TValue, TCharge>;
+  readonly #consumer: ChURIListConsumer<TValue>;
 
   constructor(to: URIChargeTarget<TValue, TCharge>, rawName: string) {
-    super();
-    this.#hostConsumer = to.consumer.startObject();
-    this.#consumer = this.#hostConsumer.startArray(to.decoder.decodeKey(rawName));
+    this.#hostConsumer = to.consumer.startMap();
+    this.#consumer = this.#hostConsumer.startList(to.decoder.decodeKey(rawName));
   }
 
-  override add(value: ChURIValue<TValue>, type: string): void {
+  add(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.add(value, type);
   }
 
-  override startObject(): ChURIObjectConsumer<TValue> {
-    return this.#consumer.startObject();
+  startMap(): ChURIMapConsumer<TValue> {
+    return this.#consumer.startMap();
   }
 
-  override startArray(): ChURIArrayConsumer<TValue> {
-    return this.#consumer.startArray();
+  startList(): ChURIListConsumer<TValue> {
+    return this.#consumer.startList();
   }
 
-  override endArray(): TCharge {
-    this.#consumer.endArray();
+  endList(): TCharge {
+    this.#consumer.endList();
 
-    return this.#hostConsumer.endObject();
+    return this.#hostConsumer.endMap();
   }
 
 }

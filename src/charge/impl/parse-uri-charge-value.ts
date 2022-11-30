@@ -1,6 +1,6 @@
-import { ChURIArrayConsumer, ChURIObjectConsumer } from '../ch-uri-value-consumer.js';
+import { ChURIListConsumer, ChURIMapConsumer } from '../ch-uri-value-consumer.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
-import { ChURIElementTarget, ChURIPropertyTarget, URIChargeTarget } from './uri-charge-target.js';
+import { ChURIListItemTarget, ChURIMapEntryTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseURIChargeValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
@@ -19,20 +19,20 @@ export function parseURIChargeValue<TValue, TCharge>(
 
   // Opening parent.
   if (valueEnd) {
-    return parseURIChargeObjectOrDirective(to, input.slice(0, valueEnd), input);
+    return parseURIChargeMapOrDirective(to, input.slice(0, valueEnd), input);
   }
 
-  // Empty key. Start nested array and parse first element.
+  // Empty key. Start nested list and parse first item.
 
-  const arrayConsumer = to.consumer.startArray();
-  const arrayEnd = parseURIChargeArray(to, arrayConsumer, input.slice(1)) + 1;
+  const listConsumer = to.consumer.startList();
+  const listEnd = parseURIChargeList(to, listConsumer, input.slice(1)) + 1;
 
-  return { charge: arrayConsumer.endArray(), end: arrayEnd };
+  return { charge: listConsumer.endList(), end: listEnd };
 }
 
 const PARENT_PATTERN = /[()]/;
 
-function parseURIChargeObjectOrDirective<TValue, TCharge>(
+function parseURIChargeMapOrDirective<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
   rawKey: string,
   input: string,
@@ -44,31 +44,30 @@ function parseURIChargeObjectOrDirective<TValue, TCharge>(
     // Handle directive.
     const directiveConsumer = to.formatParser.startDirective(to, rawKey);
     const directiveEnd =
-      firstValueOffset + parseURIChargeArray(to, directiveConsumer, firstValueInput);
+      firstValueOffset + parseURIChargeList(to, directiveConsumer, firstValueInput);
 
-    return { charge: directiveConsumer.endArray(), end: directiveEnd };
+    return { charge: directiveConsumer.endList(), end: directiveEnd };
   }
 
-  // Start nested object and parse first property.
+  // Start nested map and parse first entry.
   const firstKey = to.decoder.decodeKey(rawKey);
-  const objectConsumer = to.consumer.startObject();
-  const objectEnd =
-    firstValueOffset + parseURIChargeObject(to, firstKey, objectConsumer, firstValueInput);
+  const mapConsumer = to.consumer.startMap();
+  const mapEnd = firstValueOffset + parseURIChargeMap(to, firstKey, mapConsumer, firstValueInput);
 
-  return { charge: objectConsumer.endObject(), end: objectEnd };
+  return { charge: mapConsumer.endMap(), end: mapEnd };
 }
 
-function parseURIChargeObject<TValue>(
+function parseURIChargeMap<TValue>(
   parent: URIChargeTarget<TValue>,
   key: string,
-  consumer: ChURIObjectConsumer<TValue>,
+  consumer: ChURIMapConsumer<TValue>,
   firstValueInput: string,
 ): number {
   // Opening parent after key.
 
-  const to = new ChURIPropertyTarget(parent, key, consumer);
+  const to = new ChURIMapEntryTarget(parent, key, consumer);
 
-  // Parse first property value.
+  // Parse first entry value.
   const firstValueEnd = parseURIChargeValue(to, firstValueInput).end + 1; // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
@@ -79,22 +78,22 @@ function parseURIChargeObject<TValue>(
     return firstValueEnd;
   }
 
-  // Parse the rest of the object properties.
-  return firstValueEnd + parseURIChargeProperties(to, firstValueInput.slice(firstValueEnd));
+  // Parse the rest of the map entries.
+  return firstValueEnd + parseURIChargeMapEntries(to, firstValueInput.slice(firstValueEnd));
 }
 
-function parseURIChargeProperties<TValue>(
-  to: ChURIPropertyTarget<TValue>,
+function parseURIChargeMapEntries<TValue>(
+  to: ChURIMapEntryTarget<TValue>,
   input: string /* never empty */,
 ): number {
-  let toArray: ChURIElementTarget<TValue> | undefined;
+  let toList: ChURIListItemTarget<TValue> | undefined;
   let offset = 0;
 
   for (;;) {
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      toArray?.endArray();
+      toList?.endList();
       to.forKey(to.decoder.decodeKey(input)).addSuffix();
 
       return offset + input.length;
@@ -104,33 +103,33 @@ function parseURIChargeProperties<TValue>(
       // New key specified explicitly.
       // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
       to = to.forKey(to.decoder.decodeKey(input.slice(0, keyEnd)));
-      if (toArray) {
-        // End preceding array.
-        toArray.endArray();
-        toArray = undefined;
+      if (toList) {
+        // End the list value of preceding entry.
+        toList.endList();
+        toList = undefined;
       }
     }
 
     if (input[keyEnd] === ')') {
-      toArray?.endArray();
+      toList?.endList();
       if (keyEnd) {
         to.addSuffix();
       }
 
       return offset + keyEnd;
     }
-    if (!keyEnd && !toArray) {
-      // Convert property to array if not converted yet, and continue appending to it.
-      toArray = new ChURIElementTarget(to, to.startArray());
+    if (!keyEnd && !toList) {
+      // Convert entry value to list if not converted yet, and continue appending to it.
+      toList = new ChURIListItemTarget(to, to.startList());
     }
 
     input = input.slice(keyEnd + 1);
     offset += keyEnd + 1;
 
-    const nextKeyStart = parseURIChargeValue(toArray ?? to, input).end + 1;
+    const nextKeyStart = parseURIChargeValue(toList ?? to, input).end + 1;
 
     if (nextKeyStart >= input.length) {
-      toArray?.endArray();
+      toList?.endList();
 
       return offset + input.length;
     }
@@ -140,15 +139,15 @@ function parseURIChargeProperties<TValue>(
   }
 }
 
-function parseURIChargeArray<TValue>(
+function parseURIChargeList<TValue>(
   parent: URIChargeTarget<TValue>,
-  consumer: ChURIArrayConsumer<TValue>,
+  consumer: ChURIListConsumer<TValue>,
   firstValueInput: string,
 ): number {
-  const to = new ChURIElementTarget(parent, consumer);
+  const to = new ChURIListItemTarget(parent, consumer);
 
   // Opening parent without preceding key.
-  // Parse first element value.
+  // Parse first item value.
   const firstValueEnd = parseURIChargeValue(to, firstValueInput).end + 1; // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
@@ -160,12 +159,12 @@ function parseURIChargeArray<TValue>(
     return firstValueEnd;
   }
 
-  // Parse the rest of array elements.
-  return firstValueEnd + parseURIChargeElements(to, firstValueInput.slice(firstValueEnd));
+  // Parse the rest of list items.
+  return firstValueEnd + parseURIChargeListItems(to, firstValueInput.slice(firstValueEnd));
 }
 
-function parseURIChargeElements<TValue>(
-  to: ChURIElementTarget<TValue>,
+function parseURIChargeListItems<TValue>(
+  to: ChURIListItemTarget<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;
@@ -174,21 +173,21 @@ function parseURIChargeElements<TValue>(
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      // Suffix treated as trailing object element with suffix.
+      // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
-      const suffixConsumer = to.startObject();
+      const suffixConsumer = to.startMap();
 
       suffixConsumer.addSuffix(to.decoder.decodeKey(input));
-      suffixConsumer.endObject();
+      suffixConsumer.endMap();
 
       return offset + input.length;
     }
 
     if (keyEnd) {
       // New key specified explicitly.
-      // Add trailing object element and pass the rest of the input there.
+      // Add map to trailing item and pass the rest of the input to added map.
       // Thus, `(value1)key(value2)` is the same as `(value1)(key(value2))`.
-      return offset + parseURIChargeObjectOrDirective(to, input.slice(0, keyEnd), input).end;
+      return offset + parseURIChargeMapOrDirective(to, input.slice(0, keyEnd), input).end;
     }
 
     if (input[0] === ')') {

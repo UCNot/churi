@@ -1,136 +1,132 @@
 import { isArray } from '@proc7ts/primitives';
 import {
-  ChURIArrayConsumer,
-  ChURIObjectConsumer,
+  ChURIListConsumer,
+  ChURIMapConsumer,
   ChURIValueConsumer,
 } from './ch-uri-value-consumer.js';
-import { ChURIArray, ChURIObject, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
+import { ChURIList, ChURIMap, ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
 
-export class ChURIValueBuilder<in out TValue = ChURIPrimitive> extends ChURIValueConsumer<
-  TValue,
-  ChURIValue<TValue>
-> {
+export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
+  implements ChURIValueConsumer<TValue, ChURIValue<TValue>> {
 
-  override set(value: ChURIValue<TValue>, _type: string): ChURIValue<TValue> {
+  set(value: ChURIValue<TValue>, _type: string): ChURIValue<TValue> {
     return value;
   }
 
-  override startObject(): ChURIObjectConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIObjectBuilder<TValue>();
+  startMap(): ChURIMapConsumer<TValue, ChURIValue<TValue>> {
+    return new ChURIMapBuilder<TValue>();
   }
 
-  override startArray(): ChURIArrayConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIArrayBuilder<TValue>();
+  startList(): ChURIListConsumer<TValue, ChURIValue<TValue>> {
+    return new ChURIListBuilder<TValue>();
   }
 
 }
 
-export class ChURIObjectBuilder<in out TValue = ChURIPrimitive> extends ChURIObjectConsumer<
-  TValue,
-  ChURIObject<TValue>
-> {
+export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
+  implements ChURIMapConsumer<TValue, ChURIMap<TValue>> {
 
-  readonly #object: ChURIObject<TValue>;
+  readonly #map: ChURIMap<TValue>;
 
-  constructor(object: ChURIObject<TValue> = {}) {
-    super();
-    this.#object = object;
+  constructor(map: ChURIMap<TValue> = {}) {
+    this.#map = map;
   }
 
-  get object(): ChURIObject<TValue> {
-    return this.#object;
+  get map(): ChURIMap<TValue> {
+    return this.#map;
   }
 
-  override put(key: string, value: ChURIValue<TValue>, _type: string): void {
-    this.#object[key] = value;
+  put(key: string, value: ChURIValue<TValue>, _type: string): void {
+    this.#map[key] = value;
   }
 
-  override startObject(key: string): ChURIObjectConsumer<TValue> {
-    return new (this.constructor as typeof ChURIObjectBuilder<TValue>)(this.addObject(key));
+  startMap(key: string): ChURIMapConsumer<TValue> {
+    return new (this.constructor as typeof ChURIMapBuilder<TValue>)(this.addMap(key));
   }
 
-  addObject(key: string): ChURIObject<TValue> {
-    const prevValue = this.#object[key];
-    let object: ChURIObject<TValue>;
+  addSuffix(suffix: string): void {
+    this.startMap(suffix).endMap();
+  }
+
+  addMap(key: string): ChURIMap<TValue> {
+    const prevValue = this.#map[key];
+    let map: ChURIMap<TValue>;
 
     if (prevValue && typeof prevValue === 'object' && !isArray(prevValue)) {
-      object = prevValue as ChURIObject<TValue>;
+      map = prevValue as ChURIMap<TValue>;
     } else {
-      this.put(key, (object = {}), 'object');
+      this.put(key, (map = {}), 'map');
     }
 
-    return object;
+    return map;
   }
 
-  override startArray(key: string): ChURIArrayConsumer<TValue> {
-    return new ChURIArrayBuilder(this.addArray(key));
+  startList(key: string): ChURIListConsumer<TValue> {
+    return new ChURIListBuilder(this.addList(key));
   }
 
-  addArray(key: string): ChURIArray<TValue> {
-    const prevValue = this.#object[key];
-    let array: ChURIArray<TValue>;
+  addList(key: string): ChURIList<TValue> {
+    const prevValue = this.#map[key];
+    let list: ChURIList<TValue>;
 
     if (isArray(prevValue)) {
-      array = prevValue;
+      list = prevValue;
     } else {
-      this.put(key, (array = prevValue != null ? [prevValue] : []), 'array');
+      this.put(key, (list = prevValue != null ? [prevValue] : []), 'list');
     }
 
-    return array;
+    return list;
   }
 
-  override endObject(): ChURIObject<TValue> {
-    return this.object;
+  endMap(): ChURIMap<TValue> {
+    return this.map;
   }
 
 }
 
-export class ChURIArrayBuilder<in out TValue = ChURIPrimitive> extends ChURIArrayConsumer<
-  TValue,
-  ChURIArray<TValue>
-> {
+export class ChURIListBuilder<in out TValue = ChURIPrimitive>
+  implements ChURIListConsumer<TValue, ChURIList<TValue>> {
 
-  readonly #array: ChURIArray<TValue>;
+  readonly #list: ChURIList<TValue>;
 
-  constructor(array: ChURIArray<TValue> = []) {
-    super();
-    this.#array = array;
+  constructor(list: ChURIList<TValue> = []) {
+    this.#list = list;
   }
 
-  get array(): ChURIArray<TValue> {
-    return this.#array;
+  get list(): ChURIList<TValue> {
+    return this.#list;
   }
 
-  override add(value: ChURIValue<TValue>, _type: string): void {
-    this.#array.push(value);
+  add(value: ChURIValue<TValue>, _type: string): void {
+    this.#list.push(value);
   }
 
-  override startObject(): ChURIObjectConsumer<TValue> {
-    return new ChURIObjectBuilder(this.addObject());
+  startMap(): ChURIMapConsumer<TValue> {
+    return new ChURIMapBuilder(this.addMap());
   }
 
-  addObject(): ChURIObject<TValue> {
-    const object = {};
+  addMap(): ChURIMap<TValue> {
+    const map = {};
 
-    this.add(object, 'object');
+    this.add(map, 'map');
 
-    return object;
+    return map;
   }
 
-  override startArray(): ChURIArrayConsumer<TValue> {
-    return new (this.constructor as typeof ChURIArrayBuilder<TValue>)(this.addArray());
+  startList(): ChURIListConsumer<TValue> {
+    return new (this.constructor as typeof ChURIListBuilder<TValue>)(this.addList());
   }
 
-  addArray(): ChURIArray<TValue> {
-    const array: ChURIArray<TValue> = [];
+  addList(): ChURIList<TValue> {
+    const list: ChURIList<TValue> = [];
 
-    this.add(array, 'array');
+    this.add(list, 'list');
 
-    return array;
+    return list;
   }
 
-  override endArray(): ChURIArray<TValue> {
-    return this.array;
+  endList(): ChURIList<TValue> {
+    return this.list;
   }
 
 }

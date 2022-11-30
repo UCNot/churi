@@ -1,6 +1,6 @@
 import {
-  ChURIArrayConsumer,
-  ChURIObjectConsumer,
+  ChURIListConsumer,
+  ChURIMapConsumer,
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
@@ -15,22 +15,19 @@ export interface URIChargeTarget<in out TValue, out TCharge = unknown> {
   decode(input: string): TCharge;
 }
 
-export class ChURIPropertyTarget<TValue>
-  extends ChURIValueConsumer<TValue>
-  implements URIChargeTarget<TValue> {
+export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
 
   readonly #key: string;
-  readonly #consumer: ChURIObjectConsumer<TValue>;
+  readonly #consumer: ChURIMapConsumer<TValue>;
   readonly #decoder: URIChargeDecoder;
   readonly #formatParser: URIChargeFormatParser<TValue>;
 
   constructor(
     parent: URIChargeTarget<TValue>,
     key: string,
-    consumer: ChURIObjectConsumer<TValue>,
+    consumer: ChURIMapConsumer<TValue>,
     decoder: URIChargeDecoder = parent.decoder,
   ) {
-    super();
     this.#key = key;
     this.#consumer = consumer;
     this.#decoder = decoder;
@@ -53,11 +50,11 @@ export class ChURIPropertyTarget<TValue>
     return this.#decoder.decodeValue(this, input);
   }
 
-  forKey(key: string): ChURIPropertyTarget<TValue> {
-    return new ChURIPropertyTarget(this, key, this.#consumer);
+  forKey(key: string): ChURIMapEntryTarget<TValue> {
+    return new ChURIMapEntryTarget(this, key, this.#consumer);
   }
 
-  override set(value: ChURIValue<TValue>, type: string): void {
+  set(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.put(this.#key, value, type);
   }
 
@@ -65,26 +62,23 @@ export class ChURIPropertyTarget<TValue>
     this.#consumer.addSuffix(this.#key);
   }
 
-  override startObject(): ChURIObjectConsumer<TValue> {
-    return this.#consumer.startObject(this.#key);
+  startMap(): ChURIMapConsumer<TValue> {
+    return this.#consumer.startMap(this.#key);
   }
 
-  override startArray(): ChURIArrayConsumer<TValue> {
-    return this.#consumer.startArray(this.#key);
+  startList(): ChURIListConsumer<TValue> {
+    return this.#consumer.startList(this.#key);
   }
 
 }
 
-export class ChURIElementTarget<TValue>
-  extends ChURIValueConsumer<TValue>
-  implements URIChargeTarget<TValue> {
+export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
 
-  readonly #consumer: ChURIArrayConsumer<TValue>;
+  readonly #consumer: ChURIListConsumer<TValue>;
   readonly #decoder: URIChargeDecoder;
   readonly #formatParser: URIChargeFormatParser<TValue, unknown>;
 
-  constructor(parent: URIChargeTarget<TValue>, consumer: ChURIArrayConsumer<TValue>) {
-    super();
+  constructor(parent: URIChargeTarget<TValue>, consumer: ChURIListConsumer<TValue>) {
     this.#consumer = consumer;
     this.#decoder = parent.decoder;
     this.#formatParser = parent.formatParser;
@@ -106,20 +100,20 @@ export class ChURIElementTarget<TValue>
     return this.#decoder.decodeValue(this, input);
   }
 
-  override set(value: ChURIValue<TValue>, type: string): void {
+  set(value: ChURIValue<TValue>, type: string): void {
     this.#consumer.add(value, type);
   }
 
-  override startObject(): ChURIObjectConsumer<TValue> {
-    return this.#consumer.startObject();
+  startMap(): ChURIMapConsumer<TValue> {
+    return this.#consumer.startMap();
   }
 
-  override startArray(): ChURIArrayConsumer<TValue> {
-    return this.#consumer.startArray();
+  startList(): ChURIListConsumer<TValue> {
+    return this.#consumer.startList();
   }
 
-  endArray(): void {
-    this.#consumer.endArray();
+  endList(): void {
+    this.#consumer.endList();
   }
 
 }
