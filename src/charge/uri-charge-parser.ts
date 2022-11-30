@@ -1,12 +1,12 @@
+import { ChURIExt } from './ch-uri-ext.js';
 import { ChURIValueBuilder } from './ch-uri-value-builder.js';
 import { ChURIValueConsumer } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
-import { PredefinedURIChargeFormats } from './formats/predefined.uri-charge-formats.js';
+import { PredefinedChURIExt } from './ext/predefined.ch-uri-ext.js';
+import { ChURIExtParser } from './impl/ch-uri-ext-parser.js';
 import { parseURIChargeValue } from './impl/parse-uri-charge-value.js';
 import { defaultURIChargeDecoder } from './impl/uri-charge-decoder.js';
-import { URIChargeFormatParser } from './impl/uri-charge-format-parser.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
-import { URIChargeFormat } from './uri-charge-format.js';
 
 export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURIValue<TValue>> {
 
@@ -16,7 +16,7 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURI
     ...options: ChURIValue extends TCharge
       ? ChURIPrimitive extends TValue
         ? [URIChargeParser.Options<TValue, TCharge>?]
-        : [URIChargeParser.Options.DefaultFormat<TValue, TCharge>]
+        : [URIChargeParser.Options.DefaultExt<TValue, TCharge>]
       : ChURIPrimitive extends TValue
       ? [URIChargeParser.Options.DefaultConsumer<TValue, TCharge>]
       : [URIChargeParser.Options.Custom<TValue, TCharge>]
@@ -28,7 +28,7 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, out TCharge = ChURI
     this.#to = {
       consumer: options?.consumer ?? ChURIValueBuilder$instance,
       decoder,
-      formatParser: new URIChargeFormatParser(options?.format),
+      ext: new ChURIExtParser(options?.ext),
       decode: input => decoder.decodeValue(this.#to, input),
     };
   }
@@ -43,28 +43,28 @@ export namespace URIChargeParser {
   export type Options<TValue, TCharge> =
     | Options.Custom<TValue, TCharge>
     | Options.DefaultConsumer<TValue, TCharge>
-    | Options.DefaultFormat<TValue, TCharge>
+    | Options.DefaultExt<TValue, TCharge>
     | Options.Default;
   export namespace Options {
     export interface Base<in out TValue, out TCharge> {
       readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
-      readonly format?: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined;
+      readonly ext?: ChURIExt<TValue> | readonly ChURIExt<TValue>[] | undefined;
     }
     export interface Custom<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-      readonly format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[];
+      readonly ext: ChURIExt<TValue> | readonly ChURIExt<TValue>[];
     }
-    export interface DefaultFormat<in out TValue, out TCharge> extends Base<TValue, TCharge> {
+    export interface DefaultExt<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-      readonly format?: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined;
+      readonly ext?: ChURIExt<TValue> | readonly ChURIExt<TValue>[] | undefined;
     }
     export interface DefaultConsumer<in out TValue, out TCharge> extends Base<TValue, TCharge> {
       readonly consumer?: ChURIValueConsumer<TValue, TCharge> | undefined;
-      readonly format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[];
+      readonly ext: ChURIExt<TValue> | readonly ChURIExt<TValue>[];
     }
     export interface Default extends Base<ChURIPrimitive, ChURIValue> {
       readonly consumer?: undefined;
-      readonly format?: undefined;
+      readonly ext?: undefined;
     }
   }
   export interface Result<out TCharge = ChURIValue> {
@@ -91,6 +91,6 @@ export function createURIChargeParser<TValue, TCharge>(
   }
 
   return (URIChargeParser$default ??= new URIChargeParser({
-    format: PredefinedURIChargeFormats,
+    ext: PredefinedChURIExt,
   })) as URIChargeParser<any, TCharge>;
 }

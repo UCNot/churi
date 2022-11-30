@@ -4,13 +4,13 @@ import {
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
+import { ChURIExtParser } from './ch-uri-ext-parser.js';
 import { URIChargeDecoder } from './uri-charge-decoder.js';
-import { URIChargeFormatParser } from './uri-charge-format-parser.js';
 
 export interface URIChargeTarget<in out TValue, out TCharge = unknown> {
   readonly decoder: URIChargeDecoder;
   readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-  readonly formatParser: URIChargeFormatParser<TValue, TCharge>;
+  readonly ext: ChURIExtParser<TValue, TCharge>;
 
   decode(input: string): TCharge;
 }
@@ -20,7 +20,7 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
   readonly #key: string;
   readonly #consumer: ChURIMapConsumer<TValue>;
   readonly #decoder: URIChargeDecoder;
-  readonly #formatParser: URIChargeFormatParser<TValue>;
+  readonly #ext: ChURIExtParser<TValue>;
 
   constructor(
     parent: URIChargeTarget<TValue>,
@@ -31,7 +31,7 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     this.#key = key;
     this.#consumer = consumer;
     this.#decoder = decoder;
-    this.#formatParser = parent.formatParser;
+    this.#ext = parent.ext;
   }
 
   get decoder(): URIChargeDecoder {
@@ -42,8 +42,8 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
     return this;
   }
 
-  get formatParser(): URIChargeFormatParser<TValue> {
-    return this.#formatParser;
+  get ext(): ChURIExtParser<TValue> {
+    return this.#ext;
   }
 
   decode(input: string): unknown {
@@ -76,12 +76,12 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
 
   readonly #consumer: ChURIListConsumer<TValue>;
   readonly #decoder: URIChargeDecoder;
-  readonly #formatParser: URIChargeFormatParser<TValue, unknown>;
+  readonly #ext: ChURIExtParser<TValue, unknown>;
 
   constructor(parent: URIChargeTarget<TValue>, consumer: ChURIListConsumer<TValue>) {
     this.#consumer = consumer;
     this.#decoder = parent.decoder;
-    this.#formatParser = parent.formatParser;
+    this.#ext = parent.ext;
   }
 
   get consumer(): ChURIValueConsumer<TValue> {
@@ -92,8 +92,8 @@ export class ChURIListItemTarget<TValue> implements URIChargeTarget<TValue> {
     return this.#decoder;
   }
 
-  get formatParser(): URIChargeFormatParser<TValue> {
-    return this.#formatParser;
+  get ext(): ChURIExtParser<TValue> {
+    return this.#ext;
   }
 
   decode(input: string): unknown {

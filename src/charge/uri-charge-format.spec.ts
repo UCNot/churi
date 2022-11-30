@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
+import { ChURIExtHandlerContext } from './ch-uri-ext.js';
 import { ChURIListBuilder, ChURIMapBuilder } from './ch-uri-value-builder.js';
 import {
   ChURIListConsumer,
@@ -6,20 +7,19 @@ import {
   ChURIValueConsumer,
 } from './ch-uri-value-consumer.js';
 import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
-import { URIChargeContext } from './uri-charge-format.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
-describe('URIChargeFormat', () => {
+describe('ChURIExt', () => {
   describe('entity', () => {
     let parser: URIChargeParser<ChURIPrimitive | TestValue, ChURIValue | TestValue>;
 
     beforeAll(() => {
       parser = new URIChargeParser<ChURIPrimitive | TestValue, ChURIValue | TestValue>({
-        format: {
+        ext: {
           entities: {
             ['!test']<TCharge>({
               consumer,
-            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): TCharge {
+            }: ChURIExtHandlerContext<ChURIPrimitive | TestValue, TCharge>): TCharge {
               return consumer.set({ [test__symbol]: 'test value' }, 'test');
             },
           },
@@ -49,11 +49,11 @@ describe('URIChargeFormat', () => {
 
     beforeAll(() => {
       parser = new URIChargeParser<ChURIPrimitive | TestValue, ChURIValue | TestValue>({
-        format: {
+        ext: {
           directives: {
             ['!test']<TCharge>({
               consumer,
-            }: URIChargeContext<ChURIPrimitive | TestValue, TCharge>): ChURIListConsumer<
+            }: ChURIExtHandlerContext<ChURIPrimitive | TestValue, TCharge>): ChURIListConsumer<
               ChURIPrimitive | TestValue,
               TCharge
             > {

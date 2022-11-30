@@ -73,7 +73,7 @@ function decodeExclamationPrefixedURICharge<TValue, TCharge>(
     return to.consumer.startList().endList();
   }
 
-  return to.formatParser.addEntity(to, input);
+  return to.ext.addEntity(to, input);
 }
 
 function decodeMinusSignedURICharge<TValue, TCharge>(

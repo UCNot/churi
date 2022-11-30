@@ -15,6 +15,6 @@ export function parseURICharge<TValue, TCharge>(
   options?: URIChargeParser.Options<TValue, TCharge>,
 ): URIChargeParser.Result<TCharge> {
   return createURIChargeParser(
-    options as URIChargeParser.Options.DefaultFormat<TValue, TCharge>,
+    options as URIChargeParser.Options.DefaultExt<TValue, TCharge>,
   ).parse(input);
 }

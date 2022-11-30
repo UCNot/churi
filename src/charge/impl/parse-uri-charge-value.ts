@@ -42,7 +42,7 @@ function parseURIChargeMapOrDirective<TValue, TCharge>(
 
   if (rawKey.startsWith('!')) {
     // Handle directive.
-    const directiveConsumer = to.formatParser.startDirective(to, rawKey);
+    const directiveConsumer = to.ext.startDirective(to, rawKey);
     const directiveEnd =
       firstValueOffset + parseURIChargeList(to, directiveConsumer, firstValueInput);
 

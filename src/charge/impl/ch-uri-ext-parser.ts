@@ -1,34 +1,34 @@
 import { asArray } from '@proc7ts/primitives';
 import {
+  ChURIDirectiveHandler,
+  ChURIEntityHandler,
+  ChURIExt,
+  ChURIExtHandlerContext,
+} from '../ch-uri-ext.js';
+import {
   ChURIListConsumer,
   ChURIMapConsumer,
   ChURIValueConsumer,
 } from '../ch-uri-value-consumer.js';
 import { ChURIValue } from '../ch-uri-value.js';
-import {
-  URIChargeContext,
-  URIChargeDirective,
-  URIChargeEntity,
-  URIChargeFormat,
-} from '../uri-charge-format.js';
 import { URIChargeTarget } from './uri-charge-target.js';
 
-export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
+export class ChURIExtParser<in out TValue, out TCharge = unknown> {
 
-  readonly #entities = new Map<string, URIChargeEntity<TValue>>();
-  readonly #directives = new Map<string, URIChargeDirective<TValue>>();
+  readonly #entities = new Map<string, ChURIEntityHandler<TValue>>();
+  readonly #directives = new Map<string, ChURIDirectiveHandler<TValue>>();
 
-  constructor(format: URIChargeFormat<TValue> | readonly URIChargeFormat<TValue>[] | undefined) {
-    const formats = asArray(format);
+  constructor(ext: ChURIExt<TValue> | readonly ChURIExt<TValue>[] | undefined) {
+    const exts = asArray(ext);
 
-    for (const { entities } of formats) {
+    for (const { entities } of exts) {
       if (entities) {
         for (const [rawEntity, entity] of Object.entries(entities)) {
           this.#entities.set(rawEntity, entity);
         }
       }
     }
-    for (const { directives } of formats) {
+    for (const { directives } of exts) {
       if (directives) {
         for (const [rawName, directive] of Object.entries(directives)) {
           this.#directives.set(rawName, directive);
@@ -41,7 +41,7 @@ export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
     const entity = this.#entities.get(rawEntity);
 
     return entity
-      ? entity(new URIChargeContext$(to), rawEntity)
+      ? entity(new ChURIExtParserContext(to), rawEntity)
       : to.consumer.set(decodeURIComponent(rawEntity), 'unknown-entity');
   }
 
@@ -52,13 +52,14 @@ export class URIChargeFormatParser<in out TValue, out TCharge = unknown> {
     const directive = this.#directives.get(rawName);
 
     return directive
-      ? directive(new URIChargeContext$(to), rawName)
-      : new ChURIUnrecognizedDirectiveConsumer(to, rawName);
+      ? directive(new ChURIExtParserContext(to), rawName)
+      : new UnrecognizedChURIDirectiveConsumer(to, rawName);
   }
 
 }
 
-class URIChargeContext$<in out TValue, out TCharge> implements URIChargeContext<TValue, TCharge> {
+class ChURIExtParserContext<in out TValue, out TCharge>
+  implements ChURIExtHandlerContext<TValue, TCharge> {
 
   readonly #to: URIChargeTarget<TValue, TCharge>;
 
@@ -72,7 +73,7 @@ class URIChargeContext$<in out TValue, out TCharge> implements URIChargeContext<
 
 }
 
-class ChURIUnrecognizedDirectiveConsumer<in out TValue, out TCharge>
+class UnrecognizedChURIDirectiveConsumer<in out TValue, out TCharge>
   implements ChURIListConsumer<TValue, TCharge> {
 
   readonly #hostConsumer: ChURIMapConsumer<TValue, TCharge>;

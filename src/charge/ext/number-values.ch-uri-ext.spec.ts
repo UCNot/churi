@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { parseURICharge } from '../parse-uri-charge.js';
 
-describe('NumberValuesURIChargeFormat', () => {
+describe('NumberValuesChURIExt', () => {
   describe('Infinity', () => {
     it('recognized as top-level value', () => {
       expect(parseURICharge('!Infinity').charge).toBe(Infinity);
