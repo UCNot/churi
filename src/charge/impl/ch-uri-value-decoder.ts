@@ -1,4 +1,3 @@
-import { asis } from '@proc7ts/primitives';
 import { URIChargeTarget } from './uri-charge-target.js';
 
 export interface ChURIValueDecoder {
@@ -120,6 +119,10 @@ function decodeUnsignedChURIValue<TValue, TCharge>(
 
 function negate<T extends number | bigint>(value: T): T {
   return -value as T;
+}
+
+function asis<T extends number | bigint>(value: T): T {
+  return value;
 }
 
 function decodeNumericChURIValue<TValue, TCharge>(

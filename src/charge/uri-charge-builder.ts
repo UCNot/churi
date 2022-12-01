@@ -1,4 +1,3 @@
-import { noop } from '@proc7ts/primitives';
 import {
   ChURIDirectiveConsumer,
   ChURIListConsumer,
@@ -37,10 +36,10 @@ export class URIChargeBuilder<in out TValue>
 export class URIChargeMapBuilder<in out TValue>
   implements ChURIMapConsumer<TValue, URICharge.Map<TValue>> {
 
-  readonly #endMap: (map: URICharge.Map<TValue>) => void;
+  readonly #endMap?: (map: URICharge.Map<TValue>) => void;
   readonly #map: Map<string, URICharge.Some<TValue>>;
 
-  constructor(endMap: (map: URICharge.Map<TValue>) => void = noop, base?: URICharge.Map<TValue>) {
+  constructor(endMap?: (map: URICharge.Map<TValue>) => void, base?: URICharge.Map<TValue>) {
     this.#endMap = endMap;
     this.#map = new Map(base?.entries());
   }
@@ -77,7 +76,7 @@ export class URIChargeMapBuilder<in out TValue>
   endMap(): URICharge.Map<TValue> {
     const map = new URICharge$Map(this.#map);
 
-    this.#endMap(map);
+    this.#endMap?.(map);
 
     return map;
   }
@@ -87,13 +86,10 @@ export class URIChargeMapBuilder<in out TValue>
 export class URIChargeListBuilder<in out TValue>
   implements ChURIListConsumer<TValue, URICharge.List<TValue>> {
 
-  readonly #endList: (list: URICharge.List<TValue>) => void;
+  readonly #endList?: (list: URICharge.List<TValue>) => void;
   readonly #list: URICharge.Some<TValue>[];
 
-  constructor(
-    endList: (list: URICharge.List<TValue>) => void = noop,
-    base?: URICharge.Some<TValue>,
-  ) {
+  constructor(endList?: (list: URICharge.List<TValue>) => void, base?: URICharge.Some<TValue>) {
     this.#endList = endList;
     if (base?.isList()) {
       this.#list = [...base.list()];
@@ -125,7 +121,7 @@ export class URIChargeListBuilder<in out TValue>
   endList(): URICharge.List<TValue> {
     const list = new URICharge$List(this.#list);
 
-    this.#endList(list);
+    this.#endList?.(list);
 
     return list;
   }
@@ -136,10 +132,10 @@ export class URIChargeDirectiveBuilder<in out TValue>
   implements ChURIDirectiveConsumer<TValue, URICharge.Single<TValue>> {
 
   readonly #rawName: string;
-  readonly #endDirective: (directive: URICharge.Single<TValue>) => void;
+  readonly #endDirective?: (directive: URICharge.Single<TValue>) => void;
   #value: URIChargeDirective$Value<TValue> = URIChargeDirective$none;
 
-  constructor(rawName: string, endDirective: (directive: URICharge.Single<TValue>) => void = noop) {
+  constructor(rawName: string, endDirective?: (directive: URICharge.Single<TValue>) => void) {
     this.#rawName = rawName;
     this.#endDirective = endDirective;
   }
@@ -167,7 +163,7 @@ export class URIChargeDirectiveBuilder<in out TValue>
   endDirective(): URICharge.Single<TValue> {
     const directive = new URICharge$Single(this.#value.toDirective(this.#rawName), 'directive');
 
-    this.#endDirective(directive);
+    this.#endDirective?.(directive);
 
     return directive;
   }

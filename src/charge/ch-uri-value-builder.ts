@@ -1,4 +1,3 @@
-import { isArray } from '@proc7ts/primitives';
 import {
   ChURIDirectiveConsumer,
   ChURIListConsumer,
@@ -26,27 +25,15 @@ export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
   }
 
   startMap(): ChURIMapConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIMapBuilder<TValue>(map => this.setMap(map));
-  }
-
-  setMap(map: ChURIMap<TValue>): ChURIValue<TValue> {
-    return this.set(map, 'map');
+    return new ChURIMapBuilder<TValue>();
   }
 
   startList(): ChURIListConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIListBuilder<TValue>(list => this.setList(list));
-  }
-
-  setList(list: ChURIList<TValue>): ChURIValue<TValue> {
-    return this.set(list, 'list');
+    return new ChURIListBuilder<TValue>();
   }
 
   startDirective(rawName: string): ChURIDirectiveConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIDirectiveBuilder(rawName, directive => this.setDirective(directive));
-  }
-
-  setDirective(directive: ChURIDirective<ChURIValue<TValue>>): ChURIValue<TValue> {
-    return this.set(directive, 'directive');
+    return new ChURIDirectiveBuilder(rawName);
   }
 
 }
@@ -82,7 +69,7 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
     const prevValue = this.#map[key];
     let map: ChURIMap<TValue>;
 
-    if (prevValue && typeof prevValue === 'object' && !isArray(prevValue)) {
+    if (prevValue && typeof prevValue === 'object' && !Array.isArray(prevValue)) {
       map = prevValue as ChURIMap<TValue>;
     } else {
       this.put(key, (map = {}), 'map');
@@ -99,7 +86,7 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
     const prevValue = this.#map[key];
     let list: ChURIList<TValue>;
 
-    if (isArray(prevValue)) {
+    if (Array.isArray(prevValue)) {
       list = prevValue;
     } else {
       this.put(key, (list = prevValue != null ? [prevValue] : []), 'list');
