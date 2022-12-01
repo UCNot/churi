@@ -4,4 +4,6 @@ export * from './ch-uri-value-consumer.js';
 export * from './ch-uri-value.js';
 export * from './ext/mod.js';
 export * from './parse-uri-charge.js';
+export * from './uri-charge-builder.js';
 export * from './uri-charge-parser.js';
+export * from './uri-charge.js';
