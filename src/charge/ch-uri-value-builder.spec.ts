@@ -1,27 +1,55 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ChURIDirectiveBuilder } from './ch-uri-value-builder.js';
+import { describe, expect, it } from '@jest/globals';
+import { ChURIValueBuilder } from './ch-uri-value-builder.js';
 import { ChURIDirective, ChURIEntity, ChURIValue } from './ch-uri-value.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
-describe('ChURIDirectiveBuilder', () => {
-  let builder: ChURIDirectiveBuilder;
-
-  beforeEach(() => {
-    builder = new ChURIDirectiveBuilder('test');
-  });
-
-  describe('endDirective', () => {
-    it('builds directive without parameters', () => {
-      const { rawName, value } = builder.endDirective();
-
-      expect(rawName).toBe('test');
-      expect(value).toEqual({});
+describe('ChURIValueBuilder', () => {
+  describe('string value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse('foo(bar)').charge).toEqual({ foo: 'bar' });
+    });
+    it('recognized when prefixed with "-"', () => {
+      expect(parse('foo(-bar)').charge).toEqual({ foo: '-bar' });
+    });
+    it('recognizes when percent-encoded', () => {
+      expect(parse('foo(%27bar%27)').charge).toEqual({ foo: "'bar'" });
     });
   });
-});
 
-describe('ChURIValueBuilder', () => {
+  describe('quoted string value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse("'foo")).toEqual({
+        charge: 'foo',
+        end: 4,
+      });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse("foo('bar)").charge).toEqual({ foo: 'bar' });
+    });
+    it('recognized as list item value', () => {
+      expect(parse("('bar)").charge).toEqual(['bar']);
+    });
+  });
+
+  describe('empty quoted string value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse("'")).toEqual({
+        charge: '',
+        end: 1,
+      });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse("foo(')").charge).toEqual({ foo: '' });
+    });
+    it('recognizes as list item value', () => {
+      expect(parse("(')").charge).toEqual(['']);
+    });
+  });
+
   describe('bigint value', () => {
     it('recognized as map entry value', () => {
       expect(parse('foo(0n13)').charge).toEqual({ foo: 13n });
@@ -123,21 +151,6 @@ describe('ChURIValueBuilder', () => {
     });
   });
 
-  describe('string value', () => {
-    it('recognized as top-level value', () => {
-      expect(parse('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
-    });
-    it('recognized as map entry value', () => {
-      expect(parse('foo(bar)').charge).toEqual({ foo: 'bar' });
-    });
-    it('recognized when prefixed with "-"', () => {
-      expect(parse('foo(-bar)').charge).toEqual({ foo: '-bar' });
-    });
-    it('recognizes when percent-encoded', () => {
-      expect(parse('foo(%27bar%27)').charge).toEqual({ foo: "'bar'" });
-    });
-  });
-
   describe('unknown entity', () => {
     it('recognized at top level', () => {
       expect(parse('!bar%20baz').charge).toEqual(new ChURIEntity('!bar%20baz'));
@@ -149,36 +162,6 @@ describe('ChURIValueBuilder', () => {
     });
     it('recognized as list item value', () => {
       expect(parse('(!bar%20baz)').charge).toEqual([new ChURIEntity('!bar%20baz')]);
-    });
-  });
-
-  describe('quoted string value', () => {
-    it('recognized as top-level value', () => {
-      expect(parse("'foo")).toEqual({
-        charge: 'foo',
-        end: 4,
-      });
-    });
-    it('recognized as map entry value', () => {
-      expect(parse("foo('bar)").charge).toEqual({ foo: 'bar' });
-    });
-    it('recognized as list item value', () => {
-      expect(parse("('bar)").charge).toEqual(['bar']);
-    });
-  });
-
-  describe('empty quoted string value', () => {
-    it('recognized as top-level value', () => {
-      expect(parse("'")).toEqual({
-        charge: '',
-        end: 1,
-      });
-    });
-    it('recognized as map entry value', () => {
-      expect(parse("foo(')").charge).toEqual({ foo: '' });
-    });
-    it('recognizes as list item value', () => {
-      expect(parse("(')").charge).toEqual(['']);
     });
   });
 
@@ -318,6 +301,14 @@ describe('ChURIValueBuilder', () => {
       const [{ rawName, value }] = parse('(!bar%20baz())').charge as [ChURIDirective];
 
       expect(rawName).toBe('!bar%20baz');
+      expect(value).toEqual({});
+    });
+    it('recognized without parameters', () => {
+      const { rawName, value } = new ChURIValueBuilder()
+        .startDirective('test')
+        .endDirective() as ChURIDirective;
+
+      expect(rawName).toBe('test');
       expect(value).toEqual({});
     });
   });

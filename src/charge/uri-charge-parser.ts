@@ -16,9 +16,9 @@ export class URIChargeParser<in TValue = ChURIPrimitive, out TCharge = ChURIValu
     ...options: ChURIValue extends TCharge
       ? ChURIPrimitive extends TValue
         ? [URIChargeParser.Options<TValue, TCharge>?]
-        : [URIChargeParser.Options.DefaultExt<TValue, TCharge>]
+        : [URIChargeParser.Options.DefaultConsumer<TValue, TCharge>]
       : ChURIPrimitive extends TValue
-      ? [URIChargeParser.Options.DefaultConsumer<TValue, TCharge>]
+      ? [URIChargeParser.Options.DefaultExt<TValue, TCharge>]
       : [URIChargeParser.Options.Custom<TValue, TCharge>]
   );
 

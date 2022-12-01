@@ -8,7 +8,7 @@ import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { URICharge } from './uri-charge.js';
 
-export class URIChargeBuilder<in out TValue>
+export class URIChargeBuilder<in out TValue = ChURIPrimitive>
   implements ChURIValueConsumer<TValue, URICharge<TValue>> {
 
   set(value: ChURIPrimitive | TValue, type: string): URICharge.Some<TValue> {
@@ -33,7 +33,7 @@ export class URIChargeBuilder<in out TValue>
 
 }
 
-export class URIChargeMapBuilder<in out TValue>
+export class URIChargeMapBuilder<in out TValue = ChURIPrimitive>
   implements ChURIMapConsumer<TValue, URICharge.Map<TValue>> {
 
   readonly #endMap?: (map: URICharge.Map<TValue>) => void;
@@ -83,7 +83,7 @@ export class URIChargeMapBuilder<in out TValue>
 
 }
 
-export class URIChargeListBuilder<in out TValue>
+export class URIChargeListBuilder<in out TValue = ChURIPrimitive>
   implements ChURIListConsumer<TValue, URICharge.List<TValue>> {
 
   readonly #endList?: (list: URICharge.List<TValue>) => void;
@@ -128,7 +128,7 @@ export class URIChargeListBuilder<in out TValue>
 
 }
 
-export class URIChargeDirectiveBuilder<in out TValue>
+export class URIChargeDirectiveBuilder<in out TValue = ChURIPrimitive>
   implements ChURIDirectiveConsumer<TValue, URICharge.Single<TValue>> {
 
   readonly #rawName: string;
@@ -174,7 +174,7 @@ export class URIChargeDirectiveBuilder<in out TValue>
 
 }
 
-interface URIChargeDirective$Value<TValue> {
+interface URIChargeDirective$Value<out TValue> {
   add(value: URICharge.Some<TValue>): URIChargeDirective$Value<TValue>;
   toDirective(rawName: string): ChURIDirective<URICharge<TValue>>;
 }
