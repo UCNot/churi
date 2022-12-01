@@ -1,4 +1,4 @@
-import { isArray, noop } from '@proc7ts/primitives';
+import { isArray } from '@proc7ts/primitives';
 import {
   ChURIDirectiveConsumer,
   ChURIListConsumer,
@@ -26,7 +26,7 @@ export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
   }
 
   startMap(): ChURIMapConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIMapBuilder<TValue>(undefined, map => this.setMap(map));
+    return new ChURIMapBuilder<TValue>(map => this.setMap(map));
   }
 
   setMap(map: ChURIMap<TValue>): ChURIValue<TValue> {
@@ -34,7 +34,7 @@ export class ChURIValueBuilder<in out TValue = ChURIPrimitive>
   }
 
   startList(): ChURIListConsumer<TValue, ChURIValue<TValue>> {
-    return new ChURIListBuilder<TValue>(undefined, list => this.setList(list));
+    return new ChURIListBuilder<TValue>(list => this.setList(list));
   }
 
   setList(list: ChURIList<TValue>): ChURIValue<TValue> {
@@ -55,9 +55,9 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
   implements ChURIMapConsumer<TValue, ChURIMap<TValue>> {
 
   readonly #map: ChURIMap<TValue>;
-  readonly #endMap: (map: ChURIMap<TValue>) => void;
+  readonly #endMap?: (map: ChURIMap<TValue>) => void;
 
-  constructor(map: ChURIMap<TValue> = {}, endMap: (map: ChURIMap<TValue>) => void = noop) {
+  constructor(endMap?: (map: ChURIMap<TValue>) => void, map: ChURIMap<TValue> = {}) {
     this.#map = map;
     this.#endMap = endMap;
   }
@@ -71,7 +71,7 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
   }
 
   startMap(key: string): ChURIMapConsumer<TValue> {
-    return new ChURIMapBuilder(this.addMap(key));
+    return new ChURIMapBuilder(undefined, this.addMap(key));
   }
 
   addSuffix(suffix: string): void {
@@ -92,7 +92,7 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
   }
 
   startList(key: string): ChURIListConsumer<TValue> {
-    return new ChURIListBuilder(this.addList(key));
+    return new ChURIListBuilder(undefined, this.addList(key));
   }
 
   addList(key: string): ChURIList<TValue> {
@@ -117,7 +117,7 @@ export class ChURIMapBuilder<in out TValue = ChURIPrimitive>
   }
 
   endMap(): ChURIMap<TValue> {
-    this.#endMap(this.#map);
+    this.#endMap?.(this.#map);
 
     return this.#map;
   }
@@ -133,7 +133,7 @@ export abstract class ChURIItemsBuilder<in out TValue = ChURIPrimitive> {
   }
 
   startMap(): ChURIMapConsumer<TValue> {
-    return new ChURIMapBuilder<TValue>(undefined, map => this.addMap(map));
+    return new ChURIMapBuilder<TValue>(map => this.addMap(map));
   }
 
   addMap(map: ChURIMap<TValue>): void {
@@ -141,7 +141,7 @@ export abstract class ChURIItemsBuilder<in out TValue = ChURIPrimitive> {
   }
 
   startList(): ChURIListConsumer<TValue> {
-    return new ChURIListBuilder(undefined, list => this.addList(list));
+    return new ChURIListBuilder(list => this.addList(list));
   }
 
   addList(list: ChURIList<TValue>): void {
@@ -163,9 +163,9 @@ export class ChURIListBuilder<in out TValue = ChURIPrimitive>
   implements ChURIListConsumer<TValue, ChURIList<TValue>> {
 
   readonly #list: ChURIList<TValue>;
-  readonly #endList: (list: ChURIList<TValue>) => void;
+  readonly #endList?: (list: ChURIList<TValue>) => void;
 
-  constructor(list: ChURIList<TValue> = [], endList: (list: ChURIList<TValue>) => void = noop) {
+  constructor(endList?: (list: ChURIList<TValue>) => void, list: ChURIList<TValue> = []) {
     super();
     this.#list = list;
     this.#endList = endList;
@@ -176,7 +176,7 @@ export class ChURIListBuilder<in out TValue = ChURIPrimitive>
   }
 
   endList(): ChURIList<TValue> {
-    this.#endList(this.#list);
+    this.#endList?.(this.#list);
 
     return this.#list;
   }
@@ -188,12 +188,12 @@ export class ChURIDirectiveBuilder<in out TValue = ChURIPrimitive>
   implements ChURIDirectiveConsumer<TValue, ChURIDirective<ChURIValue<TValue>>> {
 
   readonly #rawName: string;
-  readonly #endDirective: (directive: ChURIDirective<ChURIValue<TValue>>) => void;
+  readonly #endDirective?: (directive: ChURIDirective<ChURIValue<TValue>>) => void;
   #value: ChURIDirective$Value<TValue> = ChURIDirective$none;
 
   constructor(
     rawName: string,
-    endDirective: (directive: ChURIDirective<ChURIValue<TValue>>) => void = noop,
+    endDirective?: (directive: ChURIDirective<ChURIValue<TValue>>) => void,
   ) {
     super();
     this.#rawName = rawName;
@@ -207,7 +207,7 @@ export class ChURIDirectiveBuilder<in out TValue = ChURIPrimitive>
   endDirective(): ChURIDirective<ChURIValue<TValue>> {
     const directive = this.#value.toDirective(this.#rawName);
 
-    this.#endDirective(directive);
+    this.#endDirective?.(directive);
 
     return directive;
   }
