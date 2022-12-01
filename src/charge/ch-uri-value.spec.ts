@@ -25,12 +25,6 @@ describe('ChURIDirective', () => {
     });
   });
 
-  describe('value', () => {
-    it('is empty map by default', () => {
-      expect(new ChURIDirective('test').value).toEqual({});
-    });
-  });
-
   it('has string tag', () => {
     expect(directive[Symbol.toStringTag]).toBe('ChURIDirective');
   });
