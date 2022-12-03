@@ -10,7 +10,7 @@ describe('URIChargeBuilder', () => {
   let parser: URIChargeParser<ChURIPrimitive, URICharge>;
 
   beforeAll(() => {
-    parser = new URIChargeParser({ consumer: new URIChargeBuilder() });
+    parser = new URIChargeParser({ rx: new URIChargeBuilder(), ext: [] });
   });
 
   describe('string value', () => {

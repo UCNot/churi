@@ -1,9 +1,5 @@
-import {
-  ChURIDirectiveConsumer,
-  ChURIListConsumer,
-  ChURIMapConsumer,
-} from '../ch-uri-value-consumer.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
+import { URIChargeRx } from '../uri-charge-rx.js';
 import {
   ChURIDirectiveArgsTarget as ChURIDirectiveArgTarget,
   ChURIListItemTarget,
@@ -33,10 +29,10 @@ export function parseChURIValue<TValue, TCharge>(
 
   // Empty key. Start nested list and parse first item.
 
-  const listConsumer = to.consumer.startList();
-  const listEnd = parseChURIList(to, listConsumer, input.slice(1)) + 1;
+  const listRx = to.rx.startList();
+  const listEnd = parseChURIList(to as URIChargeTarget<TValue>, listRx, input.slice(1)) + 1;
 
-  return { charge: listConsumer.endList(), end: listEnd };
+  return { charge: listRx.endList(), end: listEnd };
 }
 
 const PARENT_PATTERN = /[()]/;
@@ -51,30 +47,33 @@ function parseChURIMapOrDirective<TValue, TCharge>(
 
   if (rawKey.startsWith('!')) {
     // Handle directive.
-    const directiveConsumer = to.ext.startDirective(to, rawKey);
+    const directiveRx = to.ext.startDirective(to, rawKey);
     const directiveEnd =
-      firstValueOffset + parseChURIDirective(to, directiveConsumer, firstValueInput);
+      firstValueOffset
+      + parseChURIDirective(to as URIChargeTarget<TValue>, directiveRx, firstValueInput);
 
-    return { charge: directiveConsumer.endDirective(), end: directiveEnd };
+    return { charge: directiveRx.endDirective(), end: directiveEnd };
   }
 
   // Start nested map and parse first entry.
   const firstKey = to.decoder.decodeKey(rawKey);
-  const mapConsumer = to.consumer.startMap();
-  const mapEnd = firstValueOffset + parseChURIMap(to, firstKey, mapConsumer, firstValueInput);
+  const mapRx = to.rx.startMap();
+  const mapEnd =
+    firstValueOffset
+    + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
 
-  return { charge: mapConsumer.endMap(), end: mapEnd };
+  return { charge: mapRx.endMap(), end: mapEnd };
 }
 
 function parseChURIMap<TValue>(
   parent: URIChargeTarget<TValue>,
   key: string,
-  consumer: ChURIMapConsumer<TValue>,
+  mapRx: URIChargeRx.MapRx<TValue>,
   firstValueInput: string,
 ): number {
   // Opening parent after key.
 
-  const to = new ChURIMapEntryTarget(parent, key, consumer);
+  const to = new ChURIMapEntryTarget(parent, key, mapRx);
 
   // Parse first entry value.
   const firstValueEnd = parseChURIValue(to, firstValueInput).end + 1; // After closing parent.
@@ -150,18 +149,21 @@ function parseChURIMapEntries<TValue>(
 
 function parseChURIList<TValue>(
   parent: URIChargeTarget<TValue>,
-  consumer: ChURIListConsumer<TValue>,
+  listRx: URIChargeRx.ListRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(new ChURIListItemTarget(parent, consumer), firstValueInput);
+  return parseChURIListOrDirective(new ChURIListItemTarget(parent, listRx), firstValueInput);
 }
 
 function parseChURIDirective<TValue>(
   parent: URIChargeTarget<TValue>,
-  consumer: ChURIDirectiveConsumer<TValue>,
+  directiveRx: URIChargeRx.DirectiveRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(new ChURIDirectiveArgTarget(parent, consumer), firstValueInput);
+  return parseChURIListOrDirective(
+    new ChURIDirectiveArgTarget(parent, directiveRx),
+    firstValueInput,
+  );
 }
 
 function parseChURIListOrDirective<TValue>(
@@ -197,10 +199,10 @@ function parseChURIListItems<TValue>(
     if (keyEnd < 0) {
       // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
-      const suffixConsumer = to.startMap();
+      const suffixRx = to.startMap();
 
-      suffixConsumer.addSuffix(to.decoder.decodeKey(input));
-      suffixConsumer.endMap();
+      suffixRx.addSuffix(to.decoder.decodeKey(input));
+      suffixRx.endMap();
 
       return offset + input.length;
     }

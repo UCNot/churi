@@ -1,20 +1,22 @@
-import { ChURIExt, ChURIExtHandlerContext } from '../ch-uri-ext.js';
-import { ChURIPrimitive } from '../ch-uri-value.js';
+import { URIChargeExt } from '../uri-charge-ext.js';
+import { URIChargeRx } from '../uri-charge-rx.js';
 
-export const NumberValuesChURIExt: ChURIExt = {
-  entities: {
-    ['!Infinity']<TCharge>({ consumer }: ChURIExtHandlerContext<ChURIPrimitive, TCharge>): TCharge {
-      return consumer.set(Infinity, 'number');
-    },
+export function NumberValuesChURIExt<TValue, TCharge>(
+  _charge: URIChargeRx<TValue, TCharge>,
+): URIChargeExt<TValue, TCharge> {
+  return {
+    entities: {
+      ['!Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+        return rx.set(Infinity, 'number');
+      },
 
-    ['!-Infinity']<TCharge>({
-      consumer,
-    }: ChURIExtHandlerContext<ChURIPrimitive, TCharge>): TCharge {
-      return consumer.set(-Infinity, 'number');
-    },
+      ['!-Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+        return rx.set(-Infinity, 'number');
+      },
 
-    ['!NaN']<TCharge>({ consumer }: ChURIExtHandlerContext<ChURIPrimitive, TCharge>): TCharge {
-      return consumer.set(NaN, 'number');
+      ['!NaN']<TCharge>({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+        return rx.set(NaN, 'number');
+      },
     },
-  },
-};
+  };
+}

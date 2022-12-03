@@ -1,10 +1,21 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChURIValueBuilder } from './ch-uri-value-builder.js';
 import { ChURIDirective, ChURIEntity, ChURIValue } from './ch-uri-value.js';
-import { parseURICharge } from './parse-uri-charge.js';
+import { createChURIValueParser, parseChURIValue } from './parse-ch-uri-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
-describe('ChURIValueBuilder', () => {
+describe('createChURIValueParser', () => {
+  describe('get', () => {
+    it('returns default instance without options', () => {
+      expect(createChURIValueParser()).toBe(createChURIValueParser());
+    });
+    it('returns new instance with options', () => {
+      expect(createChURIValueParser({})).not.toBe(createChURIValueParser());
+    });
+  });
+});
+
+describe('parseChURIValue', () => {
   describe('string value', () => {
     it('recognized as top-level value', () => {
       expect(parse('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
@@ -305,7 +316,7 @@ describe('ChURIValueBuilder', () => {
     });
     it('recognized without parameters', () => {
       const { rawName, value } = new ChURIValueBuilder()
-        .startDirective('test')
+        .rxDirective('test')
         .endDirective() as ChURIDirective;
 
       expect(rawName).toBe('test');
@@ -397,6 +408,6 @@ describe('ChURIValueBuilder', () => {
   });
 
   function parse(input: string): URIChargeParser.Result<ChURIValue> {
-    return parseURICharge(input);
+    return parseChURIValue(input);
   }
 });

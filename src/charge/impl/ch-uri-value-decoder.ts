@@ -22,7 +22,7 @@ function decodeChURIValue<TValue, TCharge>(
 ): TCharge {
   if (!input) {
     // Empty string treated as empty map.
-    return to.consumer.startMap().endMap();
+    return to.rx.startMap().endMap();
   }
 
   const decoder = CHURI_VALUE_DECODERS[input[0]];
@@ -60,10 +60,10 @@ function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.consumer.set(true, 'boolean');
+    return to.rx.set(true, 'boolean');
   }
   if (input === '!!') {
-    return to.consumer.startList().endList();
+    return to.rx.startList().endList();
   }
 
   return to.ext.addEntity(to, input);
@@ -74,10 +74,10 @@ function decodeMinusSignedChURIValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.consumer.set(false, 'boolean');
+    return to.rx.set(false, 'boolean');
   }
   if (input === '--') {
-    return to.consumer.set(null, 'null');
+    return to.rx.set(null, 'null');
   }
 
   const secondChar = input[1];
@@ -90,24 +90,24 @@ function decodeMinusSignedChURIValue<TValue, TCharge>(
 }
 
 function decodeNumberChURIValue<TValue, TCharge>(
-  { consumer: consumer }: URIChargeTarget<TValue, TCharge>,
+  { rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return consumer.set(Number(input), 'number');
+  return rx.set(Number(input), 'number');
 }
 
 function decodeQuotedChURIValue<TValue, TCharge>(
-  { decoder, consumer: consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, rx: rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return consumer.set(decoder.decodeString(input.slice(1)), 'string');
+  return rx.set(decoder.decodeString(input.slice(1)), 'string');
 }
 
 function decodeStringChURIValue<TValue, TCharge>(
-  { decoder, consumer: consumer }: URIChargeTarget<TValue, TCharge>,
+  { decoder, rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return consumer.set(decoder.decodeString(input), 'string');
+  return rx.set(decoder.decodeString(input), 'string');
 }
 
 function decodeUnsignedChURIValue<TValue, TCharge>(
@@ -126,17 +126,14 @@ function asis<T extends number | bigint>(value: T): T {
 }
 
 function decodeNumericChURIValue<TValue, TCharge>(
-  { consumer: consumer }: URIChargeTarget<TValue, TCharge>,
+  { rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): TCharge {
   if (input[offset + 1] === 'n') {
-    return consumer.set(
-      sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
-      'bigint',
-    );
+    return rx.set(sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))), 'bigint');
   }
 
-  return consumer.set(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
+  return rx.set(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
 }

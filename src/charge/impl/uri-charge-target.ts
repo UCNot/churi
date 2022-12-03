@@ -1,49 +1,49 @@
-import {
-  ChURIDirectiveConsumer,
-  ChURIListConsumer,
-  ChURIMapConsumer,
-  ChURIValueConsumer,
-} from '../ch-uri-value-consumer.js';
 import { ChURIPrimitive } from '../ch-uri-value.js';
-import { ChURIExtParser } from './ch-uri-ext-parser.js';
+import { URIChargeRx } from '../uri-charge-rx.js';
 import { ChURIValueDecoder } from './ch-uri-value-decoder.js';
+import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
-export interface URIChargeTarget<in TValue, out TCharge = unknown> {
+export interface URIChargeTarget<in out TValue, in out TCharge = unknown> {
   readonly decoder: ChURIValueDecoder;
-  readonly consumer: ChURIValueConsumer<TValue, TCharge>;
-  readonly ext: ChURIExtParser<TValue, TCharge>;
+  readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
+  readonly ext: URIChargeExtParser<TValue, TCharge>;
 
   decode(input: string): TCharge;
 }
 
-export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
+export class ChURIMapEntryTarget<TValue>
+  implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #key: string;
-  readonly #consumer: ChURIMapConsumer<TValue>;
+  readonly #mapRx: URIChargeRx.MapRx<TValue>;
   readonly #decoder: ChURIValueDecoder;
-  readonly #ext: ChURIExtParser<TValue>;
+  readonly #ext: URIChargeExtParser<TValue>;
 
   constructor(
     parent: URIChargeTarget<TValue>,
     key: string,
-    consumer: ChURIMapConsumer<TValue>,
+    mapRx: URIChargeRx.MapRx<TValue>,
     decoder: ChURIValueDecoder = parent.decoder,
   ) {
     this.#key = key;
-    this.#consumer = consumer;
+    this.#mapRx = mapRx;
     this.#decoder = decoder;
     this.#ext = parent.ext;
+  }
+
+  get chargeRx(): URIChargeRx<TValue> {
+    return this.#mapRx.chargeRx;
   }
 
   get decoder(): ChURIValueDecoder {
     return this.#decoder;
   }
 
-  get consumer(): ChURIValueConsumer<TValue> {
+  get rx(): URIChargeRx.ValueRx<TValue> {
     return this;
   }
 
-  get ext(): ChURIExtParser<TValue> {
+  get ext(): URIChargeExtParser<TValue> {
     return this.#ext;
   }
 
@@ -52,49 +52,55 @@ export class ChURIMapEntryTarget<TValue> implements URIChargeTarget<TValue> {
   }
 
   forKey(key: string): ChURIMapEntryTarget<TValue> {
-    return new ChURIMapEntryTarget(this, key, this.#consumer);
+    return new ChURIMapEntryTarget(this, key, this.#mapRx);
   }
 
   set(value: ChURIPrimitive | TValue, type: string): void {
-    this.#consumer.put(this.#key, value, type);
+    this.#mapRx.put(this.#key, value, type);
+  }
+
+  setCharge(charge: unknown): void {
+    this.#mapRx.putCharge(this.#key, charge);
   }
 
   setEntity(rawEntity: string): void {
-    this.#consumer.putEntity(this.#key, rawEntity);
+    this.#mapRx.putEntity(this.#key, rawEntity);
   }
 
   addSuffix(): void {
-    this.#consumer.addSuffix(this.#key);
+    this.#mapRx.addSuffix(this.#key);
   }
 
-  startMap(): ChURIMapConsumer<TValue> {
-    return this.#consumer.startMap(this.#key);
+  startMap(): URIChargeRx.MapRx<TValue> {
+    return this.#mapRx.startMap(this.#key);
   }
 
-  startList(): ChURIListConsumer<TValue> {
-    return this.#consumer.startList(this.#key);
+  startList(): URIChargeRx.ListRx<TValue> {
+    return this.#mapRx.startList(this.#key);
   }
 
-  startDirective(rawName: string): ChURIDirectiveConsumer<TValue> {
-    return this.#consumer.startDirective(this.#key, rawName);
+  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
+    return this.#mapRx.startDirective(this.#key, rawName);
   }
 
 }
 
-abstract class ChURIItemTarget<
-  TValue,
-  TConsumer extends ChURIListConsumer<TValue> | ChURIDirectiveConsumer<TValue>,
-> implements URIChargeTarget<TValue> {
+abstract class ChURIItemTarget<TValue, TRx extends URIChargeRx.ItemsRx<TValue>>
+  implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #decoder: ChURIValueDecoder;
-  readonly #ext: ChURIExtParser<TValue, unknown>;
+  readonly #ext: URIChargeExtParser<TValue, unknown>;
 
-  constructor(parent: URIChargeTarget<TValue>, protected readonly itemConsumer: TConsumer) {
+  constructor(parent: URIChargeTarget<TValue>, protected readonly itemsRx: TRx) {
     this.#decoder = parent.decoder;
     this.#ext = parent.ext;
   }
 
-  get consumer(): this {
+  get chargeRx(): URIChargeRx<TValue> {
+    return this.itemsRx.chargeRx;
+  }
+
+  get rx(): this {
     return this;
   }
 
@@ -102,7 +108,7 @@ abstract class ChURIItemTarget<
     return this.#decoder;
   }
 
-  get ext(): ChURIExtParser<TValue> {
+  get ext(): URIChargeExtParser<TValue> {
     return this.#ext;
   }
 
@@ -111,39 +117,43 @@ abstract class ChURIItemTarget<
   }
 
   set(value: ChURIPrimitive | TValue, type: string): void {
-    this.itemConsumer.add(value, type);
+    this.itemsRx.add(value, type);
+  }
+
+  setCharge(charge: unknown): unknown {
+    return this.itemsRx.addCharge(charge);
   }
 
   setEntity(rawEntity: string): void {
-    this.itemConsumer.addEntity(rawEntity);
+    this.itemsRx.addEntity(rawEntity);
   }
 
-  startMap(): ChURIMapConsumer<TValue> {
-    return this.itemConsumer.startMap();
+  startMap(): URIChargeRx.MapRx<TValue> {
+    return this.itemsRx.startMap();
   }
 
-  startList(): ChURIListConsumer<TValue> {
-    return this.itemConsumer.startList();
+  startList(): URIChargeRx.ListRx<TValue> {
+    return this.itemsRx.startList();
   }
 
-  startDirective(rawName: string): ChURIDirectiveConsumer<TValue> {
-    return this.itemConsumer.startDirective(rawName);
+  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
+    return this.itemsRx.startDirective(rawName);
   }
 
 }
 
 export class ChURIListItemTarget<TValue> extends ChURIItemTarget<
   TValue,
-  ChURIListConsumer<TValue>
+  URIChargeRx.ListRx<TValue>
 > {
 
   endList(): void {
-    this.itemConsumer.endList();
+    this.itemsRx.endList();
   }
 
 }
 
 export class ChURIDirectiveArgsTarget<TValue> extends ChURIItemTarget<
   TValue,
-  ChURIDirectiveConsumer<TValue>
+  URIChargeRx.DirectiveRx<TValue>
 > {}
