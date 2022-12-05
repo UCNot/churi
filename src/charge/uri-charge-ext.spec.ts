@@ -8,24 +8,21 @@ import { URIChargeRx } from './uri-charge-rx.js';
 
 describe('URIChargeExt', () => {
   describe('entity', () => {
-    let parser: URIChargeParser<
-      ChURIPrimitive | TestCharge,
-      ChURIValue<ChURIPrimitive | TestCharge>
-    >;
+    let parser: URIChargeParser<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>>;
 
     beforeAll(() => {
       parser = createChURIValueParser({
         ext: (): URIChargeExt<
-          ChURIPrimitive | TestCharge,
-          ChURIValue<ChURIPrimitive | TestCharge>
+          ChURIPrimitive | TestValue,
+          ChURIValue<ChURIPrimitive | TestValue>
         > => ({
           entities: {
             ['!test']({
               rx,
             }: URIChargeExt.Context<
-              ChURIPrimitive | TestCharge,
-              ChURIValue<ChURIPrimitive | TestCharge>
-            >): ChURIValue<ChURIPrimitive | TestCharge> {
+              ChURIPrimitive | TestValue,
+              ChURIValue<ChURIPrimitive | TestValue>
+            >): ChURIValue<ChURIPrimitive | TestValue> {
               return rx.setCharge({ [test__symbol]: 'test value' });
             },
           },
@@ -51,24 +48,21 @@ describe('URIChargeExt', () => {
   });
 
   describe('directive', () => {
-    let parser: URIChargeParser<
-      ChURIPrimitive | TestCharge,
-      ChURIValue<ChURIPrimitive | TestCharge>
-    >;
+    let parser: URIChargeParser<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>>;
 
     beforeAll(() => {
       parser = createChURIValueParser({
         ext: (): URIChargeExt<
-          ChURIPrimitive | TestCharge,
-          ChURIValue<ChURIPrimitive | TestCharge>
+          ChURIPrimitive | TestValue,
+          ChURIValue<ChURIPrimitive | TestValue>
         > => ({
           directives: {
             ['!test'](
               { rx },
               rawName: string,
             ): URIChargeRx.DirectiveRx<
-              ChURIPrimitive | TestCharge,
-              ChURIValue<ChURIPrimitive | TestCharge>
+              ChURIPrimitive | TestValue,
+              ChURIValue<ChURIPrimitive | TestValue>
             > {
               return new TestDirectiveRx(rx, rawName);
             },
@@ -96,39 +90,39 @@ describe('URIChargeExt', () => {
 
   const test__symbol = Symbol('testValue');
 
-  interface TestCharge<TValue = ChURIPrimitive> {
-    [test__symbol]: ChURIPrimitive | TValue;
+  interface TestValue {
+    [test__symbol]: unknown;
   }
 
   const OpaqueDirectiveRx = OpaqueURIChargeRx.DirectiveRx;
 
   class TestDirectiveRx<
-    TValue extends ChURIPrimitive | TestCharge = ChURIPrimitive | TestCharge,
-    TCharge extends ChURIValue<ChURIPrimitive | TestCharge> = ChURIValue<
-      ChURIPrimitive | TestCharge
-    >,
-  > extends OpaqueDirectiveRx<TValue, TCharge> {
+    TValue extends ChURIPrimitive | TestValue = ChURIPrimitive | TestValue,
+  > extends OpaqueDirectiveRx<TValue, ChURIValue<ChURIPrimitive | TestValue>> {
 
-    readonly #rx: URIChargeRx.ValueRx<TValue, TCharge>;
-    #charge: TCharge;
+    readonly #rx: URIChargeRx.ValueRx<TValue, ChURIValue<ChURIPrimitive | TestValue>>;
+    #charge: ChURIValue<ChURIPrimitive | TestValue>;
 
-    constructor(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawName: string) {
+    constructor(
+      rx: URIChargeRx.ValueRx<TValue, ChURIValue<ChURIPrimitive | TestValue>>,
+      rawName: string,
+    ) {
       super(rx.chargeRx, rawName);
       this.#rx = rx;
       this.#charge = rx.chargeRx.none;
     }
 
     override add(value: ChURIPrimitive | TValue): void {
-      const charge = { [test__symbol]: value } as TCharge;
+      const charge: TestValue = { [test__symbol]: value };
 
       this.addCharge(charge);
     }
 
-    override addCharge(charge: TCharge): void {
+    override addCharge(charge: ChURIValue<ChURIPrimitive | TestValue>): void {
       this.#charge = charge;
     }
 
-    endDirective(): TCharge {
+    endDirective(): ChURIValue<ChURIPrimitive | TestValue> {
       return this.#rx.setCharge(this.#charge);
     }
 
