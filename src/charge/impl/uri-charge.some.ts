@@ -142,7 +142,7 @@ export class URICharge$Map<out TValue>
 
 }
 
-export class URICharge$List<in out TValue>
+export class URICharge$List<out TValue>
   extends URICharge$Some<TValue>
   implements URICharge.List<TValue> {
 

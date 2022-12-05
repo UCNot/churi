@@ -4,7 +4,7 @@ import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 import { URICharge } from './uri-charge.js';
 
-export class URIChargeBuilder<in out TValue = ChURIPrimitive>
+export class URIChargeBuilder<out TValue = ChURIPrimitive>
   implements URIChargeRx<TValue, URICharge<TValue>> {
 
   get none(): URICharge.None {
@@ -50,7 +50,7 @@ const URIChargeBuilder$ValueRx = /*#__PURE__*/ OpaqueURIChargeRx.ValueRx;
 
 const OpaqueMapRx = /*#__PURE__*/ OpaqueURIChargeRx.MapRx;
 
-class URIChargeBuilder$MapRx<in out TValue = ChURIPrimitive> extends OpaqueMapRx<
+class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
   TValue,
   URICharge<TValue>
 > {
@@ -96,7 +96,7 @@ class URIChargeBuilder$MapRx<in out TValue = ChURIPrimitive> extends OpaqueMapRx
 
 const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
 
-class URIChargeBuilder$ListRx<in out TValue = ChURIPrimitive> extends OpaqueListRx<
+class URIChargeBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
   TValue,
   URICharge<TValue>
 > {
@@ -136,7 +136,7 @@ class URIChargeBuilder$ListRx<in out TValue = ChURIPrimitive> extends OpaqueList
 
 const OpaqueDirectiveRx = /*#__PURE__*/ OpaqueURIChargeRx.DirectiveRx;
 
-class URIChargeBuilder$DirectiveRx<in out TValue = ChURIPrimitive> extends OpaqueDirectiveRx<
+class URIChargeBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueDirectiveRx<
   TValue,
   URICharge<TValue>
 > {
