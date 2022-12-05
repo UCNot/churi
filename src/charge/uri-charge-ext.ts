@@ -1,7 +1,7 @@
 import { asArray } from '@proc7ts/primitives';
 import { URIChargeRx } from './uri-charge-rx.js';
 
-export interface URIChargeExt<in out TValue = unknown, in out TCharge = unknown> {
+export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
   readonly entities?:
     | {
         readonly [rawEntity: string]: URIChargeExt.EntityHandler<TValue, TCharge>;
@@ -43,24 +43,30 @@ export namespace URIChargeExt {
     | readonly Factory<TValue, TCharge>[]
     | undefined;
 
-  export type Factory<in TValue = unknown, out TCharge = unknown> = <
+  export type Factory<out TValue = unknown, out TCharge = unknown> = <
     TVal extends TValue,
     TCh extends TCharge,
   >(
     chargeRx: URIChargeRx<TVal, TCh>,
-  ) => URIChargeExt<TVal, TCh>;
+  ) => URIChargeExt<TValue, TCharge>;
 
-  export interface Context<in TValue = unknown, out TCharge = unknown> {
+  export interface Context<out TValue = unknown, out TCharge = unknown> {
     readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
   }
 
-  export type EntityHandler<in out TValue = unknown, in out TCharge = unknown> = (
-    context: Context<TValue, TCharge>,
+  export type EntityHandler<out TValue = unknown, out TCharge = unknown> = <
+    TVal extends TValue,
+    TCh extends TCharge,
+  >(
+    context: Context<TVal, TCh>,
     rawEntity: string,
   ) => TCharge;
 
-  export type DirectiveHandler<in out TValue = unknown, in out TCharge = unknown> = (
-    context: Context<TValue, TCharge>,
+  export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = <
+    TVal extends TValue,
+    TCh extends TCharge,
+  >(
+    context: Context<TVal, TCh>,
     rawName: string,
   ) => URIChargeRx.DirectiveRx<TValue, TCharge>;
 }

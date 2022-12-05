@@ -141,7 +141,7 @@ class URIChargeBuilder$DirectiveRx<in out TValue = ChURIPrimitive> extends Opaqu
   URICharge<TValue>
 > {
 
-  readonly #endDirective?: (directive: URICharge.Single<TValue>) => void;
+  readonly #endDirective?: URIChargeRx.End<URICharge.Single<TValue>>;
   #builder: URIChargeDirective$Builder<TValue> = URIChargeDirective$none;
 
   constructor(

@@ -6,7 +6,7 @@ import { URIChargeTarget } from './impl/uri-charge-target.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
-export class URIChargeParser<in out TValue = ChURIPrimitive, in out TCharge = unknown> {
+export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown> {
 
   readonly #to: URIChargeTarget<TValue, TCharge>;
 
@@ -29,7 +29,7 @@ export class URIChargeParser<in out TValue = ChURIPrimitive, in out TCharge = un
 }
 
 export namespace URIChargeParser {
-  export interface Options<TValue, TCharge> {
+  export interface Options<out TValue, out TCharge> {
     readonly rx: URIChargeRx<TValue, TCharge>;
     readonly ext?: URIChargeExt.Spec<TValue, TCharge> | undefined;
   }

@@ -10,7 +10,7 @@ export type ChURIPrimitive = bigint | boolean | number | string | null;
 
 export type ChURIList<TValue = ChURIPrimitive> = ChURIValue<TValue>[];
 
-export interface ChURIMap<in out TValue = ChURIPrimitive> {
+export interface ChURIMap<out TValue = ChURIPrimitive> {
   [key: string]: ChURIValue<TValue> | undefined;
 }
 

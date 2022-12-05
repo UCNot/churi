@@ -3,7 +3,7 @@ import { URIChargeRx } from '../uri-charge-rx.js';
 import { ChURIValueDecoder } from './ch-uri-value-decoder.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
-export interface URIChargeTarget<in out TValue, in out TCharge = unknown> {
+export interface URIChargeTarget<out TValue, out TCharge = unknown> {
   readonly decoder: ChURIValueDecoder;
   readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
   readonly ext: URIChargeExtParser<TValue, TCharge>;
@@ -11,7 +11,7 @@ export interface URIChargeTarget<in out TValue, in out TCharge = unknown> {
   decode(input: string): TCharge;
 }
 
-export class ChURIMapEntryTarget<TValue>
+export class ChURIMapEntryTarget<out TValue>
   implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #key: string;
@@ -85,7 +85,7 @@ export class ChURIMapEntryTarget<TValue>
 
 }
 
-abstract class ChURIItemTarget<TValue, TRx extends URIChargeRx.ItemsRx<TValue>>
+abstract class ChURIItemTarget<out TValue, TRx extends URIChargeRx.ItemsRx<TValue>>
   implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #decoder: ChURIValueDecoder;
@@ -142,7 +142,7 @@ abstract class ChURIItemTarget<TValue, TRx extends URIChargeRx.ItemsRx<TValue>>
 
 }
 
-export class ChURIListItemTarget<TValue> extends ChURIItemTarget<
+export class ChURIListItemTarget<out TValue> extends ChURIItemTarget<
   TValue,
   URIChargeRx.ListRx<TValue>
 > {
@@ -153,7 +153,7 @@ export class ChURIListItemTarget<TValue> extends ChURIItemTarget<
 
 }
 
-export class ChURIDirectiveArgsTarget<TValue> extends ChURIItemTarget<
+export class ChURIDirectiveArgsTarget<out TValue> extends ChURIItemTarget<
   TValue,
   URIChargeRx.DirectiveRx<TValue>
 > {}

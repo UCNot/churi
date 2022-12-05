@@ -1,6 +1,6 @@
 import { type ChURIPrimitive } from './ch-uri-value.js';
 
-export interface URIChargeRx<in TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly none: TCharge;
 
   createValue(value: TValue | ChURIPrimitive, type: string): TCharge;
@@ -34,7 +34,7 @@ export namespace URIChargeRx {
 
   export type End<out TCharge> = <TResult extends TCharge>(this: void, charge: TResult) => void;
 
-  export interface ValueRx<in TValue = ChURIPrimitive, out TCharge = unknown> {
+  export interface ValueRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
     set(value: ChURIPrimitive | TValue, type: string): TCharge;
@@ -57,7 +57,7 @@ export namespace URIChargeRx {
     ) => ValueRx<TValue, TCharge>;
   }
 
-  export interface MapRx<in TValue = ChURIPrimitive, out TCharge = unknown> {
+  export interface MapRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
     put(key: string, value: ChURIPrimitive | TValue, type: string): void;
@@ -84,7 +84,7 @@ export namespace URIChargeRx {
     ) => MapRx<TValue, TCharge>;
   }
 
-  export interface ItemsRx<in TValue = ChURIPrimitive, out TCharge = unknown> {
+  export interface ItemsRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
     add(value: ChURIPrimitive | TValue, type: string): void;
@@ -107,7 +107,7 @@ export namespace URIChargeRx {
     ) => ItemsRx<TValue, TCharge>;
   }
 
-  export interface ListRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+  export interface ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
     extends ItemsRx<TValue, TCharge> {
     endList(): TCharge;
   }
@@ -119,7 +119,7 @@ export namespace URIChargeRx {
     ) => ListRx<TValue, TCharge>;
   }
 
-  export interface DirectiveRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+  export interface DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
     extends ItemsRx<TValue, TCharge> {
     readonly rawName: string;
 

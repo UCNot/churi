@@ -3,7 +3,7 @@ import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeTarget } from './uri-charge-target.js';
 
-export class URIChargeExtParser<in out TValue, in out TCharge = unknown> {
+export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
   readonly #entities = new Map<string, URIChargeExt.EntityHandler<TValue, TCharge>>();
   readonly #directives = new Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>();
@@ -31,10 +31,11 @@ export class URIChargeExtParser<in out TValue, in out TCharge = unknown> {
   }
 
   addEntity(to: URIChargeTarget<TValue, TCharge>, rawEntity: string): TCharge {
-    return (
-      this.#entities.get(rawEntity)?.(new URIChargeExtContext(to), rawEntity)
-      ?? to.rx.setEntity(rawEntity)
-    );
+    const entityHandler = this.#entities.get(rawEntity);
+
+    return entityHandler
+      ? entityHandler(new URIChargeExtContext(to), rawEntity)
+      : to.rx.setEntity(rawEntity);
   }
 
   startDirective(
@@ -49,7 +50,7 @@ export class URIChargeExtParser<in out TValue, in out TCharge = unknown> {
 
 }
 
-class URIChargeExtContext<in out TValue, in out TCharge>
+class URIChargeExtContext<out TValue, out TCharge>
   implements URIChargeExt.Context<TValue, TCharge> {
 
   readonly #to: URIChargeTarget<TValue, TCharge>;

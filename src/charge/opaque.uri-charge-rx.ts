@@ -2,7 +2,7 @@ import { ChURIPrimitive } from './ch-uri-value.js';
 import { PassURICharge } from './impl/pass-uri-charge.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
-export class OpaqueURIChargeRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
   static get ValueRx(): URIChargeRx.ValueRx.Constructor {
@@ -68,7 +68,7 @@ export class OpaqueURIChargeRx<in TValue = ChURIPrimitive, out TCharge = unknown
 
 }
 
-class OpaqueURICharge$ValueRx<in TValue, out TCharge>
+class OpaqueURICharge$ValueRx<out TValue, out TCharge>
   implements URIChargeRx.ValueRx<TValue, TCharge> {
 
   readonly #chargeRx: URIChargeRx<TValue, TCharge>;
@@ -109,7 +109,7 @@ class OpaqueURICharge$ValueRx<in TValue, out TCharge>
 
 }
 
-class OpaqueURICharge$MapRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+class OpaqueURICharge$MapRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   implements URIChargeRx.MapRx<TValue, TCharge> {
 
   readonly #chargeRx: URIChargeRx<TValue, TCharge>;
@@ -156,7 +156,7 @@ class OpaqueURICharge$MapRx<in TValue = ChURIPrimitive, out TCharge = unknown>
 
 }
 
-abstract class OpaqueURICharge$ItemsRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+abstract class OpaqueURICharge$ItemsRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   implements URIChargeRx.ItemsRx<TValue, TCharge> {
 
   readonly #chargeRx: URIChargeRx<TValue, TCharge>;
@@ -195,7 +195,7 @@ abstract class OpaqueURICharge$ItemsRx<in TValue = ChURIPrimitive, out TCharge =
 
 }
 
-class OpaqueURICharge$ListRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+class OpaqueURICharge$ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   extends OpaqueURICharge$ItemsRx<TValue, TCharge>
   implements URIChargeRx.ListRx<TValue, TCharge> {
 
@@ -205,7 +205,7 @@ class OpaqueURICharge$ListRx<in TValue = ChURIPrimitive, out TCharge = unknown>
 
 }
 
-class OpaqueURICharge$DirectiveRx<in TValue = ChURIPrimitive, out TCharge = unknown>
+class OpaqueURICharge$DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   extends OpaqueURICharge$ItemsRx<TValue, TCharge>
   implements URIChargeRx.DirectiveRx<TValue, TCharge> {
 

@@ -1,5 +1,5 @@
 import { asis } from '@proc7ts/primitives';
-import { EndURICharge } from '../uri-charge-rx.js';
+import { URIChargeRx } from '../uri-charge-rx.js';
 
 export type PassURICharge<TCharge> = <TResult extends TCharge>(
   this: void,
@@ -7,7 +7,7 @@ export type PassURICharge<TCharge> = <TResult extends TCharge>(
 ) => TCharge;
 
 export function PassURICharge<TCharge>(
-  endCharge: EndURICharge<TCharge> | undefined,
+  endCharge: URIChargeRx.End<TCharge> | undefined,
 ): PassURICharge<TCharge> {
   return endCharge
     ? charge => {
