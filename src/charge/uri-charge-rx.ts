@@ -32,7 +32,9 @@ export namespace URIChargeRx {
     readonly none: TCharge;
   }
 
-  export type End<out TCharge> = <TResult extends TCharge>(this: void, charge: TResult) => void;
+  export type End<out TCharge> = {
+    endCharge(this: void, charge: TCharge): void;
+  }['endCharge'];
 
   export interface ValueRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;

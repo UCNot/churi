@@ -43,30 +43,22 @@ export namespace URIChargeExt {
     | readonly Factory<TValue, TCharge>[]
     | undefined;
 
-  export type Factory<out TValue = unknown, out TCharge = unknown> = <
-    TVal extends TValue,
-    TCh extends TCharge,
-  >(
-    chargeRx: URIChargeRx<TVal, TCh>,
-  ) => URIChargeExt<TValue, TCharge>;
+  export type Factory<out TValue = unknown, out TCharge = unknown> = {
+    extendCharge(chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
+  }['extendCharge'];
 
   export interface Context<out TValue = unknown, out TCharge = unknown> {
     readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
   }
 
-  export type EntityHandler<out TValue = unknown, out TCharge = unknown> = <
-    TVal extends TValue,
-    TCh extends TCharge,
-  >(
-    context: Context<TVal, TCh>,
-    rawEntity: string,
-  ) => TCharge;
+  export type EntityHandler<out TValue = unknown, out TCharge = unknown> = {
+    createEntity(context: Context<TValue, TCharge>, rawEntity: string): TCharge;
+  }['createEntity'];
 
-  export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = <
-    TVal extends TValue,
-    TCh extends TCharge,
-  >(
-    context: Context<TVal, TCh>,
-    rawName: string,
-  ) => URIChargeRx.DirectiveRx<TValue, TCharge>;
+  export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = {
+    rxDirective(
+      context: Context<TValue, TCharge>,
+      rawName: string,
+    ): URIChargeRx.DirectiveRx<TValue, TCharge>;
+  }['rxDirective'];
 }
