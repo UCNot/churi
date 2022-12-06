@@ -85,7 +85,7 @@ export class URICharge$Map<out TValue>
 
   readonly #map: Map<string, URICharge.Some<TValue>>;
 
-  constructor(map = new Map<string, URICharge.Some<TValue>>()) {
+  constructor(map: Map<string, URICharge.Some<TValue>>) {
     super();
     this.#map = map;
   }
@@ -148,7 +148,7 @@ export class URICharge$List<out TValue>
 
   readonly #list: URICharge.Some<TValue>[];
 
-  constructor(list: URICharge.Some<TValue>[] = []) {
+  constructor(list: URICharge.Some<TValue>[]) {
     super();
     this.#list = list;
   }
@@ -158,7 +158,10 @@ export class URICharge$List<out TValue>
   }
 
   override get type(): string | undefined {
-    return this.at(0).type;
+    const first = this.at(0);
+
+    // First item's type, unless it is a nested list.
+    return first.isList() ? undefined : first.type;
   }
 
   override get length(): number {

@@ -2,9 +2,9 @@ import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';
-import { URICharge } from './uri-charge.js';
+import { URICharge, URIChargeItem } from './uri-charge.js';
 
-export class URIChargeBuilder<out TValue = ChURIPrimitive>
+export class URIChargeBuilder<out TValue = URIChargeItem>
   implements URIChargeRx<TValue, URICharge<TValue>> {
 
   get none(): URICharge.None {
@@ -74,13 +74,23 @@ class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     }
   }
 
-  startMap(key: string): URIChargeRx.MapRx<TValue> {
+  override startMap(key: string): URIChargeRx.MapRx<TValue> {
     const prevCharge = this.#map.get(key);
 
     return new URIChargeBuilder$MapRx(
       this.chargeRx,
       map => this.putCharge(key, map),
       prevCharge && prevCharge.isMap() ? prevCharge : undefined,
+    );
+  }
+
+  override startList(key: string): URIChargeRx.ListRx<TValue, unknown> {
+    const prevCharge = this.#map.get(key);
+
+    return new URIChargeBuilder$ListRx(
+      this.chargeRx,
+      list => this.putCharge(key, list),
+      prevCharge,
     );
   }
 
@@ -113,6 +123,8 @@ class URIChargeBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
     this.#endList = endList;
     if (base?.isList()) {
       this.#list = [...base.list()];
+    } else if (base) {
+      this.#list = [base];
     } else {
       this.#list = [];
     }
