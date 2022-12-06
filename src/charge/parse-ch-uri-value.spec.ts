@@ -5,13 +5,11 @@ import { createChURIValueParser, parseChURIValue } from './parse-ch-uri-value.js
 import { URIChargeParser } from './uri-charge-parser.js';
 
 describe('createChURIValueParser', () => {
-  describe('get', () => {
-    it('returns default instance without options', () => {
-      expect(createChURIValueParser()).toBe(createChURIValueParser());
-    });
-    it('returns new instance with options', () => {
-      expect(createChURIValueParser({})).not.toBe(createChURIValueParser());
-    });
+  it('returns default instance without options', () => {
+    expect(createChURIValueParser()).toBe(createChURIValueParser());
+  });
+  it('returns new instance with options', () => {
+    expect(createChURIValueParser({})).not.toBe(createChURIValueParser());
   });
 });
 

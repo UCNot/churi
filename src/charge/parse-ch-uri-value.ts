@@ -5,7 +5,7 @@ import { URIChargeParser } from './uri-charge-parser.js';
 
 const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder<any>();
 
-let URIChargeParser$default: URIChargeParser<any, any> | undefined;
+let ChIROValueParser$default: URIChargeParser<any, any> | undefined;
 
 export function createChURIValueParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, ChURIValue<TValue>>>,
@@ -14,7 +14,7 @@ export function createChURIValueParser<TValue>(
     options ?? {};
 
   if (!options) {
-    return (URIChargeParser$default ??= new URIChargeParser({
+    return (ChIROValueParser$default ??= new URIChargeParser({
       rx,
       ext,
     })) as URIChargeParser<TValue, ChURIValue<TValue>>;

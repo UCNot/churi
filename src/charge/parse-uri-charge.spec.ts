@@ -1,20 +1,20 @@
-import { beforeAll, describe, expect, it } from '@jest/globals';
-import { ChURIPrimitive } from './ch-uri-value.js';
-import { URIChargeBuilder } from './uri-charge-builder.js';
+import { describe, expect, it } from '@jest/globals';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URICharge } from './uri-charge.js';
 
 import './impl/uri-charge-matchers.js';
+import { createURIChargeParser, parseURICharge } from './parse-uri-charge.js';
 
-describe('URIChargeBuilder', () => {
-  let parser: URIChargeParser<ChURIPrimitive, URICharge>;
-
-  beforeAll(() => {
-    parser = new URIChargeParser({
-      rx: new URIChargeBuilder<ChURIPrimitive>(),
-    });
+describe('createURIChargeParser', () => {
+  it('returns default instance without options', () => {
+    expect(createURIChargeParser()).toBe(createURIChargeParser());
   });
+  it('returns new instance with options', () => {
+    expect(createURIChargeParser({})).not.toBe(createURIChargeParser());
+  });
+});
 
+describe('parseURICharge', () => {
   describe('string value', () => {
     it('recognized as top-level value', () => {
       const charge = parse('Hello,%20World!').charge;
@@ -71,6 +71,6 @@ describe('URIChargeBuilder', () => {
   });
 
   function parse(input: string): URIChargeParser.Result<URICharge> {
-    return parser.parse(input);
+    return parseURICharge(input);
   }
 });
