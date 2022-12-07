@@ -12,6 +12,26 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export class ChURIValueBuilder<out TValue = ChURIPrimitive>
   implements URIChargeRx<TValue, ChURIValue<TValue>> {
 
+  static get ValueRx(): ChURIValueBuilder.ValueRx.Constructor {
+    return OpaqueURIChargeRx.ValueRx as unknown as ChURIValueBuilder.ValueRx.Constructor;
+  }
+
+  static get MapRx(): ChURIValueBuilder.MapRx.Constructor {
+    return ChURIValueBuilder$MapRx;
+  }
+
+  static get ListRx(): ChURIValueBuilder.ListRx.Constructor {
+    return ChURIValueBuilder$ListRx;
+  }
+
+  static get DirectiveRx(): ChURIValueBuilder.DirectiveRx.Constructor {
+    return ChURIValueBuilder$DirectiveRx;
+  }
+
+  get ns(): ChURIValueBuilder.Namespace {
+    return this.constructor as typeof ChURIValueBuilder;
+  }
+
   get none(): ChURIValue<TValue> {
     return null;
   }
@@ -24,39 +44,97 @@ export class ChURIValueBuilder<out TValue = ChURIPrimitive>
     return value;
   }
 
-  rxValue(
-    endValue?: URIChargeRx.End<ChURIValue<TValue>>,
-  ): URIChargeRx.ValueRx<TValue, ChURIValue<TValue>> {
-    return new ChURIValueBuilder$ValueRx(this, endValue);
+  rxValue(endValue?: URIChargeRx.End<ChURIValue<TValue>>): ChURIValueBuilder.ValueRx<TValue> {
+    return new this.ns.ValueRx(this, endValue);
   }
 
-  rxMap(endMap?: URIChargeRx.End<ChURIMap<TValue>>): URIChargeRx.MapRx<TValue, ChURIValue<TValue>> {
-    return new ChURIValueBuilder$MapRx(this, endMap);
+  rxMap(
+    endMap?: URIChargeRx.End<ChURIMap<TValue>>,
+    map?: ChURIMap<TValue>,
+  ): ChURIValueBuilder.MapRx<TValue> {
+    return new this.ns.MapRx(this, endMap, map);
   }
 
   rxList(
     endList?: URIChargeRx.End<ChURIList<TValue>>,
-  ): URIChargeRx.ListRx<TValue, ChURIValue<TValue>> {
-    return new ChURIValueBuilder$ListRx(this, endList);
+    list?: ChURIList<TValue>,
+  ): ChURIValueBuilder.ListRx<TValue> {
+    return new this.ns.ListRx(this, endList, list);
   }
 
   rxDirective(
     rawName: string,
     endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>,
-  ): URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>> {
-    return new ChURIValueBuilder$DirectiveRx(this, rawName, endDirective);
+  ): ChURIValueBuilder.DirectiveRx<TValue> {
+    return new this.ns.DirectiveRx(this, rawName, endDirective);
   }
 
 }
 
-const ChURIValueBuilder$ValueRx = /*#__PURE__*/ OpaqueURIChargeRx.ValueRx;
+export namespace ChURIValueBuilder {
+  export interface Namespace {
+    readonly ValueRx: ValueRx.Constructor;
+    readonly MapRx: MapRx.Constructor;
+    readonly ListRx: ListRx.Constructor;
+    readonly DirectiveRx: DirectiveRx.Constructor;
+  }
+
+  export interface ValueRx<out TValue = ChURIPrimitive>
+    extends URIChargeRx.ValueRx<TValue, ChURIValue<TValue>> {
+    readonly chargeRx: ChURIValueBuilder<TValue>;
+  }
+
+  export namespace ValueRx {
+    export type Constructor = new <TValue>(
+      chargeRx: ChURIValueBuilder<TValue>,
+      endValue?: URIChargeRx.End<ChURIValue<TValue>>,
+    ) => ValueRx<TValue>;
+  }
+
+  export interface MapRx<out TValue = ChURIPrimitive>
+    extends URIChargeRx.MapRx<TValue, ChURIValue<TValue>> {
+    readonly chargeRx: ChURIValueBuilder<TValue>;
+  }
+
+  export namespace MapRx {
+    export type Constructor = new <TValue>(
+      chargeRx: ChURIValueBuilder<TValue>,
+      endMap?: URIChargeRx.End<ChURIMap<TValue>>,
+      list?: ChURIMap<TValue>,
+    ) => MapRx<TValue>;
+  }
+  export interface ListRx<out TValue = ChURIPrimitive>
+    extends URIChargeRx.ListRx<TValue, ChURIValue<TValue>> {
+    readonly chargeRx: ChURIValueBuilder<TValue>;
+  }
+
+  export namespace ListRx {
+    export type Constructor = new <TValue>(
+      chargeRx: ChURIValueBuilder<TValue>,
+      endList?: URIChargeRx.End<ChURIList<TValue>>,
+      list?: ChURIList<TValue>,
+    ) => ListRx<TValue>;
+  }
+
+  export interface DirectiveRx<out TValue = ChURIPrimitive>
+    extends URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>> {
+    readonly chargeRx: ChURIValueBuilder<TValue>;
+  }
+
+  export namespace DirectiveRx {
+    export type Constructor = new <TValue>(
+      chargeRx: ChURIValueBuilder<TValue>,
+      rawName: string,
+      endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>,
+    ) => DirectiveRx<TValue>;
+  }
+}
 
 const OpaqueMapRx = /*#__PURE__*/ OpaqueURIChargeRx.MapRx;
 
-class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
-  TValue,
-  ChURIValue<TValue>
-> {
+class ChURIValueBuilder$MapRx<out TValue>
+  extends OpaqueMapRx<TValue, ChURIValue<TValue>>
+  implements ChURIValueBuilder.MapRx<TValue> {
 
   readonly #map: ChURIMap<TValue>;
   readonly #endMap?: URIChargeRx.End<ChURIMap<TValue>>;
@@ -75,8 +153,8 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     this.#map[key] = charge;
   }
 
-  startMap(key: string): URIChargeRx.MapRx<TValue> {
-    return new ChURIValueBuilder$MapRx(this.chargeRx, undefined, this.#addMap(key));
+  startMap(key: string): ChURIValueBuilder.MapRx<TValue> {
+    return this.chargeRx.rxMap(undefined, this.#addMap(key));
   }
 
   #addMap(key: string): ChURIMap<TValue> {
@@ -93,7 +171,7 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
   }
 
   startList(key: string): URIChargeRx.ListRx<TValue> {
-    return new ChURIValueBuilder$ListRx(this.chargeRx, undefined, this.#addList(key));
+    return this.chargeRx.rxList(undefined, this.#addList(key));
   }
 
   #addList(key: string): ChURIList<TValue> {
@@ -117,12 +195,15 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
 
 }
 
+interface ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> {
+  get chargeRx(): ChURIValueBuilder<TValue>;
+}
+
 const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
 
-class ChURIValueBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
-  TValue,
-  ChURIValue<TValue>
-> {
+class ChURIValueBuilder$ListRx<out TValue>
+  extends OpaqueListRx<TValue, ChURIValue<TValue>>
+  implements ChURIValueBuilder.ListRx<TValue> {
 
   readonly #list: ChURIList<TValue>;
   readonly #endList?: URIChargeRx.End<ChURIList<TValue>>;
@@ -149,12 +230,15 @@ class ChURIValueBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx
 
 }
 
+interface ChURIValueBuilder$ListRx<out TValue> {
+  get chargeRx(): ChURIValueBuilder<TValue>;
+}
+
 const OpaqueDirectiveRx = /*#__PURE__*/ OpaqueURIChargeRx.DirectiveRx;
 
-class ChURIValueBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueDirectiveRx<
-  TValue,
-  ChURIValue<TValue>
-> {
+class ChURIValueBuilder$DirectiveRx<out TValue>
+  extends OpaqueDirectiveRx<TValue, ChURIValue<TValue>>
+  implements ChURIValueBuilder.DirectiveRx<TValue> {
 
   readonly #rawName: string;
   readonly #endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>;
@@ -182,6 +266,10 @@ class ChURIValueBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueD
     return directive;
   }
 
+}
+
+interface ChURIValueBuilder$DirectiveRx<out TValue> {
+  get chargeRx(): ChURIValueBuilder<TValue>;
 }
 
 interface ChURIDirective$Builder<TValue> {
