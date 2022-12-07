@@ -25,9 +25,13 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       return this.#listRx;
     }
 
-    class OpaqueURICharge$ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-      extends this.ItemsRx<TValue, TCharge>
-      implements URIChargeRx.ListRx<TValue, TCharge> {
+    class OpaqueURICharge$ListRx<
+        out TValue,
+        out TCharge,
+        out TRx extends URIChargeRx<TValue, TCharge>,
+      >
+      extends this.ItemsRx<TValue, TCharge, TRx>
+      implements URIChargeRx.ListRx<TValue, TCharge, TRx> {
 
       endList(): TCharge {
         return this.chargeRx.none;
@@ -43,13 +47,17 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       return this.#directiveRx;
     }
 
-    class OpaqueURICharge$DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-      extends this.ItemsRx<TValue, TCharge>
-      implements URIChargeRx.DirectiveRx<TValue, TCharge> {
+    class OpaqueURICharge$DirectiveRx<
+        out TValue,
+        out TCharge,
+        out TRx extends URIChargeRx<TValue, TCharge>,
+      >
+      extends this.ItemsRx<TValue, TCharge, TRx>
+      implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
 
       readonly #rawName: string;
 
-      constructor(chargeRx: URIChargeRx<TValue, TCharge>, rawName: string) {
+      constructor(chargeRx: TRx, rawName: string) {
         super(chargeRx);
         this.#rawName = rawName;
       }
@@ -110,18 +118,18 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
 
 }
 
-class OpaqueURICharge$ValueRx<out TValue, out TCharge>
-  implements URIChargeRx.ValueRx<TValue, TCharge> {
+class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URIChargeRx<TValue, TCharge>>
+  implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
 
-  readonly #chargeRx: URIChargeRx<TValue, TCharge>;
+  readonly #chargeRx: TRx;
   readonly #passCharge: PassURICharge<TCharge>;
 
-  constructor(chargeRx: URIChargeRx<TValue, TCharge>, endCharge?: URIChargeRx.End<TCharge>) {
+  constructor(chargeRx: TRx, endCharge?: URIChargeRx.End<TCharge>) {
     this.#chargeRx = chargeRx;
     this.#passCharge = PassURICharge(endCharge);
   }
 
-  get chargeRx(): URIChargeRx<TValue, TCharge> {
+  get chargeRx(): TRx {
     return this.#chargeRx;
   }
 
@@ -151,16 +159,16 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge>
 
 }
 
-class OpaqueURICharge$MapRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-  implements URIChargeRx.MapRx<TValue, TCharge> {
+class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx<TValue, TCharge>>
+  implements URIChargeRx.MapRx<TValue, TCharge, TRx> {
 
-  readonly #chargeRx: URIChargeRx<TValue, TCharge>;
+  readonly #chargeRx: TRx;
 
-  constructor(chargeRx: URIChargeRx<TValue, TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
   }
 
-  get chargeRx(): URIChargeRx<TValue, TCharge> {
+  get chargeRx(): TRx {
     return this.#chargeRx;
   }
 
@@ -198,16 +206,19 @@ class OpaqueURICharge$MapRx<out TValue = ChURIPrimitive, out TCharge = unknown>
 
 }
 
-abstract class OpaqueURICharge$ItemsRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-  implements URIChargeRx.ItemsRx<TValue, TCharge> {
+abstract class OpaqueURICharge$ItemsRx<
+  out TValue,
+  out TCharge,
+  out TRx extends URIChargeRx<TValue, TCharge>,
+> implements URIChargeRx.ItemsRx<TValue, TCharge, TRx> {
 
-  readonly #chargeRx: URIChargeRx<TValue, TCharge>;
+  readonly #chargeRx: TRx;
 
-  constructor(chargeRx: URIChargeRx<TValue, TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
   }
 
-  get chargeRx(): URIChargeRx<TValue, TCharge> {
+  get chargeRx(): TRx {
     return this.#chargeRx;
   }
 

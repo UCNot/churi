@@ -36,8 +36,12 @@ export namespace URIChargeRx {
     endCharge(this: void, charge: TCharge): void;
   }['endCharge'];
 
-  export interface ValueRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
-    readonly chargeRx: URIChargeRx<TValue, TCharge>;
+  export interface ValueRx<
+    out TValue = ChURIPrimitive,
+    out TCharge = unknown,
+    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+  > {
+    readonly chargeRx: TRx;
 
     set(charge: TCharge): TCharge;
 
@@ -53,14 +57,22 @@ export namespace URIChargeRx {
   }
 
   export namespace ValueRx {
-    export type Constructor = new <TValue = ChURIPrimitive, TCharge = unknown>(
-      chargeRx: URIChargeRx<TValue, TCharge>,
+    export type Constructor = new <
+      TValue = ChURIPrimitive,
+      TCharge = unknown,
+      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+    >(
+      chargeRx: TRx,
       endValue?: End<TCharge>,
-    ) => ValueRx<TValue, TCharge>;
+    ) => ValueRx<TValue, TCharge, TRx>;
   }
 
-  export interface MapRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
-    readonly chargeRx: URIChargeRx<TValue, TCharge>;
+  export interface MapRx<
+    out TValue = ChURIPrimitive,
+    out TCharge = unknown,
+    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+  > {
+    readonly chargeRx: TRx;
 
     put(key: string, charge: TCharge): void;
 
@@ -80,14 +92,22 @@ export namespace URIChargeRx {
   }
 
   export namespace MapRx {
-    export type Constructor = new <TValue = ChURIPrimitive, TCharge = unknown>(
-      chargeRx: URIChargeRx<TValue, TCharge>,
+    export type Constructor = new <
+      TValue = ChURIPrimitive,
+      TCharge = unknown,
+      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+    >(
+      chargeRx: TRx,
       endMap?: End<TCharge>,
-    ) => MapRx<TValue, TCharge>;
+    ) => MapRx<TValue, TCharge, TRx>;
   }
 
-  export interface ItemsRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
-    readonly chargeRx: URIChargeRx<TValue, TCharge>;
+  export interface ItemsRx<
+    out TValue = ChURIPrimitive,
+    out TCharge = unknown,
+    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+  > {
+    readonly chargeRx: TRx;
 
     add(charge: TCharge): void;
 
@@ -103,36 +123,54 @@ export namespace URIChargeRx {
   }
 
   export namespace ItemsRx {
-    export type Constructor = abstract new <TValue = ChURIPrimitive, TCharge = unknown>(
-      chargeRx: URIChargeRx<TValue, TCharge>,
+    export type Constructor = abstract new <
+      TValue = ChURIPrimitive,
+      TCharge = unknown,
+      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+    >(
+      chargeRx: TRx,
       endItems?: End<TCharge>,
-    ) => ItemsRx<TValue, TCharge>;
+    ) => ItemsRx<TValue, TCharge, TRx>;
   }
 
-  export interface ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-    extends ItemsRx<TValue, TCharge> {
+  export interface ListRx<
+    out TValue = ChURIPrimitive,
+    out TCharge = unknown,
+    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+  > extends ItemsRx<TValue, TCharge, TRx> {
     endList(): TCharge;
   }
 
   export namespace ListRx {
-    export type Constructor = new <TValue = ChURIPrimitive, TCharge = unknown>(
-      chargeRx: URIChargeRx<TValue, TCharge>,
+    export type Constructor = new <
+      TValue = ChURIPrimitive,
+      TCharge = unknown,
+      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+    >(
+      chargeRx: TRx,
       endList?: End<TCharge>,
-    ) => ListRx<TValue, TCharge>;
+    ) => ListRx<TValue, TCharge, TRx>;
   }
 
-  export interface DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-    extends ItemsRx<TValue, TCharge> {
+  export interface DirectiveRx<
+    out TValue = ChURIPrimitive,
+    out TCharge = unknown,
+    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+  > extends ItemsRx<TValue, TCharge, TRx> {
     readonly rawName: string;
 
     endDirective(): TCharge;
   }
 
   export namespace DirectiveRx {
-    export type Constructor = new <TValue = ChURIPrimitive, TCharge = unknown>(
-      chargeRx: URIChargeRx<TValue, TCharge>,
+    export type Constructor = new <
+      TValue = ChURIPrimitive,
+      TCharge = unknown,
+      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
+    >(
+      chargeRx: TRx,
       rawName: string,
       endDirective?: End<TCharge>,
-    ) => DirectiveRx<TValue, TCharge>;
+    ) => DirectiveRx<TValue, TCharge, TRx>;
   }
 }

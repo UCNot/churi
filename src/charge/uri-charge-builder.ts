@@ -7,6 +7,26 @@ import { URICharge, URIChargeItem } from './uri-charge.js';
 export class URIChargeBuilder<out TValue = URIChargeItem>
   implements URIChargeRx<TValue, URICharge<TValue>> {
 
+  static get ValueRx(): URIChargeBuilder.ValueRx.Constructor {
+    return OpaqueURIChargeRx.ValueRx as unknown as URIChargeBuilder.ValueRx.Constructor;
+  }
+
+  static get MapRx(): URIChargeBuilder.MapRx.Constructor {
+    return URIChargeBuilder$MapRx;
+  }
+
+  static get ListRx(): URIChargeBuilder.ListRx.Constructor {
+    return URIChargeBuilder$ListRx;
+  }
+
+  static get DirectiveRx(): URIChargeBuilder.DirectiveRx.Constructor {
+    return URIChargeBuilder$DirectiveRx;
+  }
+
+  get ns(): URIChargeBuilder.Namespace {
+    return this.constructor as typeof URIChargeBuilder;
+  }
+
   get none(): URICharge.None {
     return URICharge.none;
   }
@@ -22,44 +42,114 @@ export class URIChargeBuilder<out TValue = URIChargeItem>
   rxValue(
     endValue?: URIChargeRx.End<URICharge<TValue>>,
   ): URIChargeRx.ValueRx<TValue, URICharge<TValue>> {
-    return new URIChargeBuilder$ValueRx(this, endValue);
+    return new this.ns.ValueRx(this, endValue);
   }
 
   rxMap(
     endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
+    map?: URICharge.Map<TValue>,
   ): URIChargeRx.MapRx<TValue, URICharge<TValue>> {
-    return new URIChargeBuilder$MapRx(this, endMap);
+    return new this.ns.MapRx(this, endMap, map);
   }
 
   rxList(
     endList?: URIChargeRx.End<URICharge.List<TValue>>,
   ): URIChargeRx.ListRx<TValue, URICharge<TValue>> {
-    return new URIChargeBuilder$ListRx(this, endList);
+    return new this.ns.ListRx(this, endList);
   }
 
   rxDirective(
     rawName: string,
     endDirective?: URIChargeRx.End<URICharge.Single<TValue>>,
   ): URIChargeRx.DirectiveRx<TValue, URICharge<TValue>> {
-    return new URIChargeBuilder$DirectiveRx(this, rawName, endDirective);
+    return new this.ns.DirectiveRx(this, rawName, endDirective);
   }
 
 }
 
-const URIChargeBuilder$ValueRx = /*#__PURE__*/ OpaqueURIChargeRx.ValueRx;
+export namespace URIChargeBuilder {
+  export interface Namespace {
+    readonly ValueRx: ValueRx.Constructor;
+    readonly MapRx: MapRx.Constructor;
+    readonly ListRx: ListRx.Constructor;
+    readonly DirectiveRx: DirectiveRx.Constructor;
+  }
+
+  export type ValueRx<
+    TValue,
+    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+  > = URIChargeRx.ValueRx<TValue, URICharge<TValue>, TRx>;
+
+  export namespace ValueRx {
+    export type Constructor = new <
+      TValue,
+      TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+    >(
+      chargeRx: TRx,
+      endValue?: URIChargeRx.End<URICharge<TValue>>,
+    ) => ValueRx<TValue, TRx>;
+  }
+
+  export type MapRx<
+    TValue,
+    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+  > = URIChargeRx.MapRx<TValue, URICharge<TValue>, TRx>;
+
+  export namespace MapRx {
+    export type Constructor = new <
+      TValue,
+      TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+    >(
+      chargeRx: TRx,
+      endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
+      map?: URICharge.Map<TValue>,
+    ) => MapRx<TValue, TRx>;
+  }
+
+  export type ListRx<
+    TValue,
+    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+  > = URIChargeRx.ListRx<TValue, URICharge<TValue>, TRx>;
+
+  export namespace ListRx {
+    export type Constructor = new <
+      TValue,
+      TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+    >(
+      chargeRx: TRx,
+      endList?: URIChargeRx.End<URICharge.List<TValue>>,
+      base?: URICharge.Some<TValue>,
+    ) => ListRx<TValue, TRx>;
+  }
+
+  export type DirectiveRx<
+    TValue,
+    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+  > = URIChargeRx.DirectiveRx<TValue, URICharge<TValue>, TRx>;
+
+  export namespace DirectiveRx {
+    export type Constructor = new <
+      TValue,
+      TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
+    >(
+      chargeRx: TRx,
+      rawName: string,
+      endDirective?: URIChargeRx.End<URICharge.Single<TValue>>,
+    ) => DirectiveRx<TValue, TRx>;
+  }
+}
 
 const OpaqueMapRx = /*#__PURE__*/ OpaqueURIChargeRx.MapRx;
 
-class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
-  TValue,
-  URICharge<TValue>
-> {
+class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
+  extends OpaqueMapRx<TValue, URICharge<TValue>, TRx>
+  implements URIChargeBuilder.MapRx<TValue, TRx> {
 
   readonly #endMap?: URIChargeRx.End<URICharge.Map<TValue>>;
   readonly #map: Map<string, URICharge.Some<TValue>>;
 
   constructor(
-    chargeRx: URIChargeRx<TValue, URICharge<TValue>>,
+    chargeRx: TRx,
     endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
     base?: URICharge.Map<TValue>,
   ) {
@@ -102,16 +192,15 @@ class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
 
 const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
 
-class URIChargeBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
-  TValue,
-  URICharge<TValue>
-> {
+class URIChargeBuilder$ListRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
+  extends OpaqueListRx<TValue, URICharge<TValue>, TRx>
+  implements URIChargeBuilder.ListRx<TValue, TRx> {
 
   readonly #endList?: URIChargeRx.End<URICharge.List<TValue>>;
   readonly #list: URICharge.Some<TValue>[];
 
   constructor(
-    chargeRx: URIChargeRx<TValue, URICharge<TValue>>,
+    chargeRx: TRx,
     endList?: URIChargeRx.End<URICharge.List<TValue>>,
     base?: URICharge.Some<TValue>,
   ) {
@@ -144,16 +233,15 @@ class URIChargeBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
 
 const OpaqueDirectiveRx = /*#__PURE__*/ OpaqueURIChargeRx.DirectiveRx;
 
-class URIChargeBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueDirectiveRx<
-  TValue,
-  URICharge<TValue>
-> {
+class URIChargeBuilder$DirectiveRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
+  extends OpaqueDirectiveRx<TValue, URICharge<TValue>, TRx>
+  implements URIChargeBuilder.DirectiveRx<TValue, TRx> {
 
   readonly #endDirective?: URIChargeRx.End<URICharge.Single<TValue>>;
   #builder: URIChargeDirective$Builder<TValue> = URIChargeDirective$none;
 
   constructor(
-    chargeRx: URIChargeRx<TValue, URICharge<TValue>>,
+    chargeRx: TRx,
     rawName: string,
     endDirective?: URIChargeRx.End<URICharge.Single<TValue>>,
   ) {
