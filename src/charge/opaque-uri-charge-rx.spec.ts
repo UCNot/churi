@@ -24,14 +24,19 @@ describe('OpaqueURIChargeRx', () => {
 
   describe('ValueRx', () => {
     let rx: URIChargeRx.ValueRx;
+    let received: unknown;
 
     beforeEach(() => {
-      rx = chargeRx.rxValue();
+      rx = chargeRx.rxValue(charge => {
+        received = charge;
+      });
+      received = undefined;
     });
 
     describe('setValue', () => {
       it('charges none', () => {
         expect(rx.setValue('some', 'string')).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
     describe('setCharge', () => {
@@ -39,15 +44,20 @@ describe('OpaqueURIChargeRx', () => {
         const charge = { name: 'test charge' };
 
         expect(rx.set(charge)).toBe(charge);
+        expect(received).toBe(charge);
       });
     });
   });
 
   describe('MapRx', () => {
     let rx: URIChargeRx.MapRx;
+    let received: unknown;
 
     beforeEach(() => {
-      rx = chargeRx.rxMap();
+      rx = chargeRx.rxMap(charge => {
+        received = charge;
+      });
+      received = undefined;
     });
 
     describe('put', () => {
@@ -55,6 +65,7 @@ describe('OpaqueURIChargeRx', () => {
         rx.put('key', 'some');
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
 
@@ -63,6 +74,7 @@ describe('OpaqueURIChargeRx', () => {
         rx.putEntity('key', '!some');
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
 
@@ -71,6 +83,7 @@ describe('OpaqueURIChargeRx', () => {
         rx.putValue('key', 'some', 'string');
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
 
@@ -79,6 +92,7 @@ describe('OpaqueURIChargeRx', () => {
         rx.startMap('key').endMap();
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
 
@@ -87,6 +101,7 @@ describe('OpaqueURIChargeRx', () => {
         rx.startList('key').endList();
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
 
@@ -95,14 +110,23 @@ describe('OpaqueURIChargeRx', () => {
         rx.startDirective('key', '!test').endDirective();
 
         expect(rx.endMap()).toBe(NONE);
+        expect(received).toBe(NONE);
       });
     });
   });
 
   describe('ListRx', () => {
-    it('is instance of `ListRx`', () => {
-      const rx = chargeRx.rxList();
+    let rx: URIChargeRx.ListRx;
+    let received: unknown;
 
+    beforeEach(() => {
+      rx = chargeRx.rxList(charge => {
+        received = charge;
+      });
+      received = undefined;
+    });
+
+    it('is instance of `ListRx`', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ListRx);
       expect(rx).not.toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
     });
@@ -112,18 +136,25 @@ describe('OpaqueURIChargeRx', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
     });
     it('ignores charge', () => {
-      const rx = chargeRx.rxList();
-
       rx.add('some');
 
       expect(rx.endList()).toBe(NONE);
+      expect(received).toBe(NONE);
     });
   });
 
   describe('DirectiveRx', () => {
-    it('is instance of `DirectiveRx`', () => {
-      const rx = chargeRx.rxDirective('!test');
+    let rx: URIChargeRx.DirectiveRx;
+    let received: unknown;
 
+    beforeEach(() => {
+      rx = chargeRx.rxDirective('!test', charge => {
+        received = charge;
+      });
+      received = undefined;
+    });
+
+    it('is instance of `DirectiveRx`', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
       expect(rx).not.toBeInstanceOf(OpaqueURIChargeRx.ListRx);
     });
@@ -133,11 +164,10 @@ describe('OpaqueURIChargeRx', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
     });
     it('ignores charge', () => {
-      const rx = chargeRx.rxDirective('!test');
-
       rx.add('some');
 
       expect(rx.endDirective()).toBe(NONE);
+      expect(received).toBe(NONE);
     });
 
     describe('rawName', () => {

@@ -1,5 +1,4 @@
 import { ChURIPrimitive } from './ch-uri-value.js';
-import { PassURICharge } from './impl/pass-uri-charge.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
@@ -33,8 +32,19 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       extends this.ItemsRx<TValue, TCharge, TRx>
       implements URIChargeRx.ListRx<TValue, TCharge, TRx> {
 
+      readonly #endList: URIChargeRx.End<TCharge> | undefined;
+
+      constructor(chargeRx: TRx, endList?: URIChargeRx.End<TCharge>) {
+        super(chargeRx);
+        this.#endList = endList;
+      }
+
       endList(): TCharge {
-        return this.chargeRx.none;
+        const { none } = this.chargeRx;
+
+        this.#endList?.(none);
+
+        return none;
       }
 
 }
@@ -56,10 +66,12 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
 
       readonly #rawName: string;
+      readonly #endDirective: URIChargeRx.End<TCharge> | undefined;
 
-      constructor(chargeRx: TRx, rawName: string) {
+      constructor(chargeRx: TRx, rawName: string, endDirective?: URIChargeRx.End<TCharge>) {
         super(chargeRx);
         this.#rawName = rawName;
+        this.#endDirective = endDirective;
       }
 
       get rawName(): string {
@@ -67,7 +79,11 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       }
 
       endDirective(): TCharge {
-        return this.chargeRx.none;
+        const { none } = this.chargeRx;
+
+        this.#endDirective?.(none);
+
+        return none;
       }
 
 }
@@ -122,11 +138,11 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
-  readonly #passCharge: PassURICharge<TCharge>;
+  readonly #passCharge: <TResult extends TCharge>(this: void, charge: TResult) => TCharge;
 
   constructor(chargeRx: TRx, endCharge?: URIChargeRx.End<TCharge>) {
     this.#chargeRx = chargeRx;
-    this.#passCharge = PassURICharge(endCharge);
+    this.#passCharge = endCharge ? charge => (endCharge(charge), charge) : charge => charge;
   }
 
   get chargeRx(): TRx {
@@ -163,9 +179,11 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   implements URIChargeRx.MapRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
+  readonly #endMap: URIChargeRx.End<TCharge> | undefined;
 
-  constructor(chargeRx: TRx) {
+  constructor(chargeRx: TRx, endMap?: URIChargeRx.End<TCharge>) {
     this.#chargeRx = chargeRx;
+    this.#endMap = endMap;
   }
 
   get chargeRx(): TRx {
@@ -201,7 +219,11 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   endMap(): TCharge {
-    return this.#chargeRx.none;
+    const { none } = this.#chargeRx;
+
+    this.#endMap?.(none);
+
+    return none;
   }
 
 }
