@@ -3,8 +3,8 @@ import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.
 
 export class ChSearchParams implements Iterable<[string, string]> {
 
-  readonly #list: [string, string][] = [];
-  readonly #map = new Map<string, string[]>();
+  readonly #list: ChSearchParamValue[] = [];
+  readonly #map: Map<string, ChSearchParam>;
 
   constructor(
     search:
@@ -12,40 +12,59 @@ export class ChSearchParams implements Iterable<[string, string]> {
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
   ) {
-    let entries: Iterable<readonly [string, (unknown | null)?]>;
+    this.#map =
+      typeof search === 'string'
+        ? this.#parse(search)
+        : this.#provide(isIterable(search) ? search : Object.entries(search));
+  }
 
-    if (typeof search === 'string') {
-      if (search.startsWith('?')) {
-        search = search.slice(1);
-      }
-      if (!search) {
-        return;
-      }
-
-      entries = search.split('&').map((part) => {
-        const [key, value] = part.split('=', 2);
-
-        return [decodeSearchParam(key), value ? decodeSearchParam(value) : '']
-    });
-    } else if (isIterable(search)) {
-      entries = search;
-    } else {
-      entries = Object.entries(search);
+  #parse(search: string): Map<string, ChSearchParam> {
+    if (search.startsWith('?')) {
+      search = search.slice(1);
     }
 
-    for (const [name, val] of entries) {
-      const value = val ? String(val) : '';
+    const entries = new Map<string, ChSearchParam$Parsed>();
 
-      this.#list.push([name, value]);
+    if (!search) {
+      return entries;
+    }
 
-      const prev = this.#map.get(name);
+    for (const part of search.split('&')) {
+      const [rawKey, rawValue = ''] = part.split('=', 2);
+      const key = decodeSearchParam(rawKey);
+      const prev = entries.get(key);
 
       if (prev) {
-        prev.push(value);
+        this.#list.push(prev.add(rawValue));
       } else {
-        this.#map.set(name, [value]);
+        const param = new ChSearchParam$Parsed(key, rawKey, rawValue);
+
+        entries.set(key, param);
+        this.#list.push(new ChSearchParamValue(param, 0));
       }
     }
+
+    return entries;
+  }
+
+  #provide(search: Iterable<readonly [string, (string | null)?]>): Map<string, ChSearchParam> {
+    const entries = new Map<string, ChSearchParam$Provided>();
+
+    for (const [key, val] of search) {
+      const value = val ? String(val) : '';
+      const prev = entries.get(key);
+
+      if (prev) {
+        this.#list.push(prev.add(value));
+      } else {
+        const param = new ChSearchParam$Provided(key, value);
+
+        entries.set(key, param);
+        this.#list.push(new ChSearchParamValue(param, 0));
+      }
+    }
+
+    return entries;
   }
 
   has(name: string): boolean {
@@ -53,37 +72,37 @@ export class ChSearchParams implements Iterable<[string, string]> {
   }
 
   get(name: string): string | null {
-    const values = this.#map.get(name);
+    const entry = this.#map.get(name);
 
-    return values ? values[0] : null;
+    return entry ? entry.values[0] : null;
   }
 
   getAll(name: string): string[] {
-    const values = this.#map.get(name);
+    const entry = this.#map.get(name);
 
-    return values ? values.slice() : [];
+    return entry ? entry.values.slice() : [];
   }
 
   *keys(): IterableIterator<string> {
-    for (const [key] of this.#list) {
+    for (const { key } of this.#list) {
       yield key;
     }
   }
 
   *entries(): IterableIterator<[string, string]> {
-    for (const [key, value] of this.#list) {
+    for (const { key, value } of this.#list) {
       yield [key, value];
     }
   }
 
   *values(): IterableIterator<string> {
-    for (const [, value] of this.#list) {
+    for (const { value } of this.#list) {
       yield value;
     }
   }
 
   forEach(callback: (value: string, key: string, parent: ChSearchParams) => void): void {
-    this.#list.forEach(([key, value]) => callback(value, key, this));
+    this.#list.forEach(({ key, value }) => callback(value, key, this));
   }
 
   [Symbol.iterator](): IterableIterator<[string, string]> {
@@ -91,16 +110,116 @@ export class ChSearchParams implements Iterable<[string, string]> {
   }
 
   toString(): string {
-    let out = '';
+    return this.#list.join('&');
+  }
 
-    for (const [key, value] of this.#list) {
-      if (out) {
-        out += '&';
-      }
-      out += encodeSearchParam(key) + '=' + encodeSearchParam(value);
-    }
+}
 
-    return out;
+class ChSearchParamValue {
+
+  readonly #param: ChSearchParam;
+  readonly #index: number;
+
+  constructor(param: ChSearchParam, index: number) {
+    this.#param = param;
+    this.#index = index;
+  }
+
+  get key(): string {
+    return this.#param.key;
+  }
+
+  get value(): string {
+    return this.#param.values[this.#index];
+  }
+
+  toString(): string {
+    return this.#param.rawKey + '=' + this.#param.rawValues[this.#index];
+  }
+
+}
+
+interface ChSearchParam {
+  readonly key: string;
+  readonly rawKey: string;
+  readonly values: string[];
+  readonly rawValues: string[];
+}
+
+class ChSearchParam$Parsed implements ChSearchParam {
+
+  readonly #key: string;
+  readonly #rawKey: string;
+  #values?: string[];
+  readonly #rawValues: string[];
+
+  constructor(key: string, rawKey: string, rawValue: string) {
+    this.#key = key;
+    this.#rawKey = rawKey;
+    this.#rawValues = [rawValue];
+  }
+
+  get key(): string {
+    return this.#key;
+  }
+
+  get rawKey(): string {
+    return this.#rawKey;
+  }
+
+  get values(): string[] {
+    return (this.#values ??= this.#rawValues.map(decodeSearchParam));
+  }
+
+  get rawValues(): string[] {
+    return this.#rawValues;
+  }
+
+  add(rawValue: string): ChSearchParamValue {
+    const index = this.#rawValues.length;
+
+    this.#rawValues.push(rawValue);
+
+    return new ChSearchParamValue(this, index);
+  }
+
+}
+
+class ChSearchParam$Provided implements ChSearchParam {
+
+  readonly #key: string;
+  readonly #values: string[];
+
+  #rawKey?: string;
+  #rawValues?: string[];
+
+  constructor(key: string, value: string) {
+    this.#key = key;
+    this.#values = [value];
+  }
+
+  get key(): string {
+    return this.#key;
+  }
+
+  get rawKey(): string {
+    return (this.#rawKey ??= decodeSearchParam(this.#key));
+  }
+
+  get values(): string[] {
+    return this.#values;
+  }
+
+  get rawValues(): string[] {
+    return (this.#rawValues ??= this.#values.map(encodeSearchParam));
+  }
+
+  add(value: string): ChSearchParamValue {
+    const index = this.#values.length;
+
+    this.#values.push(value);
+
+    return new ChSearchParamValue(this, index);
   }
 
 }
