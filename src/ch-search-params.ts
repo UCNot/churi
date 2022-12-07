@@ -1,46 +1,115 @@
 import { isIterable } from '@proc7ts/primitives';
+import { ChURIPrimitive } from './charge/ch-uri-value.js';
+import { createURIChargeParser } from './charge/parse-uri-charge.js';
+import { URIChargeParser } from './charge/uri-charge-parser.js';
+import { URICharge } from './charge/uri-charge.js';
+import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
 
-export class ChSearchParams implements Iterable<[string, string]> {
+export class ChSearchParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TValue>>
+  implements Iterable<[string, string]> {
 
-  readonly #list: [string, string][] = [];
-  readonly #map = new Map<string, string[]>();
+  readonly #chargeParser: URIChargeParser<TValue, TCharge>;
+  readonly #list: ChSearchParamValue[] = [];
+  readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
+  #charge?: TCharge;
 
   constructor(
     search:
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
+    ...chargeParser: ChURIPrimitive extends TValue
+      ? URICharge<TValue> extends TCharge
+        ? [URIChargeParser<TValue, TCharge>?]
+        : [URIChargeParser<TValue, TCharge>]
+      : [URIChargeParser<TValue, TCharge>]
+  );
+
+  constructor(
+    search:
+      | string
+      | Iterable<readonly [string, (string | null)?]>
+      | Readonly<Record<string, string | null | undefined>>,
+    chargeParser: URIChargeParser<TValue, TCharge> = createURIChargeParser() as URIChargeParser<
+      TValue,
+      TCharge
+    >,
   ) {
-    let entries: Iterable<readonly [string, (unknown | null)?]>;
+    this.#chargeParser = chargeParser;
+    this.#map =
+      typeof search === 'string'
+        ? this.#parse(search)
+        : this.#provide(isIterable(search) ? search : Object.entries(search));
+  }
 
-    if (typeof search === 'string') {
-      if (search.startsWith('?')) {
-        search = search.slice(1);
-      }
-      if (!search) {
-        return;
-      }
+  get chargeParser(): URIChargeParser<TValue, TCharge> {
+    return this.#chargeParser;
+  }
 
-      entries = search.split('&').map(part => part.split('=', 2) as [string, string?]);
-    } else if (isIterable(search)) {
-      entries = search;
-    } else {
-      entries = Object.entries(search);
+  #parse(search: string): Map<string, ChSearchParam<TValue, TCharge>> {
+    if (search.startsWith('?')) {
+      search = search.slice(1);
     }
 
-    for (const [name, val] of entries) {
-      const value = val != null ? String(val) : '';
+    const entries = new Map<string, ChSearchParam$Parsed<TValue, TCharge>>();
 
-      this.#list.push([name, value]);
+    if (!search) {
+      return entries;
+    }
 
-      const prev = this.#map.get(name);
+    for (const part of search.split('&')) {
+      const [rawKey, rawValue = ''] = part.split('=', 2);
+      const key = decodeSearchParam(rawKey);
+      const prev = entries.get(key);
 
       if (prev) {
-        prev.push(value);
+        this.#list.push(prev.add(rawValue));
       } else {
-        this.#map.set(name, [value]);
+        const param = new ChSearchParam$Parsed<TValue, TCharge>(key, rawKey, rawValue);
+
+        entries.set(key, param);
+        this.#list.push(new ChSearchParamValue(param, 0));
       }
     }
+
+    return entries;
+  }
+
+  #provide(
+    search: Iterable<readonly [string, (string | null)?]>,
+  ): Map<string, ChSearchParam<TValue, TCharge>> {
+    const entries = new Map<string, ChSearchParam$Provided<TValue, TCharge>>();
+
+    for (const [key, val] of search) {
+      const value = val ? String(val) : '';
+      const prev = entries.get(key);
+
+      if (prev) {
+        this.#list.push(prev.add(value));
+      } else {
+        const param = new ChSearchParam$Provided<TValue, TCharge>(key, value);
+
+        entries.set(key, param);
+        this.#list.push(new ChSearchParamValue(param, 0));
+      }
+    }
+
+    return entries;
+  }
+
+  get charge(): TCharge {
+    return this.#charge !== undefined ? this.#charge : (this.#charge = this.#parseCharge());
+  }
+
+  #parseCharge(): TCharge {
+    const { chargeParser } = this;
+    const mapRx = chargeParser.chargeRx.rxMap();
+
+    for (const entry of this.#map.values()) {
+      mapRx.put(entry.key, entry.getCharge(chargeParser));
+    }
+
+    return mapRx.endMap();
   }
 
   has(name: string): boolean {
@@ -48,37 +117,45 @@ export class ChSearchParams implements Iterable<[string, string]> {
   }
 
   get(name: string): string | null {
-    const values = this.#map.get(name);
+    const entry = this.#map.get(name);
 
-    return values ? values[0] : null;
+    return entry ? entry.values[0] : null;
   }
 
   getAll(name: string): string[] {
-    const values = this.#map.get(name);
+    const entry = this.#map.get(name);
 
-    return values ? values.slice() : [];
+    return entry ? entry.values.slice() : [];
+  }
+
+  chargeOf(name: string): TCharge {
+    const entry = this.#map.get(name);
+
+    return entry ? entry.getCharge(this.chargeParser) : this.chargeParser.chargeRx.none;
   }
 
   *keys(): IterableIterator<string> {
-    for (const [key] of this.#list) {
+    for (const { key } of this.#list) {
       yield key;
     }
   }
 
   *entries(): IterableIterator<[string, string]> {
-    for (const [key, value] of this.#list) {
+    for (const { key, value } of this.#list) {
       yield [key, value];
     }
   }
 
   *values(): IterableIterator<string> {
-    for (const [, value] of this.#list) {
+    for (const { value } of this.#list) {
       yield value;
     }
   }
 
-  forEach(callback: (value: string, key: string, parent: ChSearchParams) => void): void {
-    this.#list.forEach(([key, value]) => callback(value, key, this));
+  forEach(
+    callback: (value: string, key: string, parent: ChSearchParams<TValue, TCharge>) => void,
+  ): void {
+    this.#list.forEach(({ key, value }) => callback(value, key, this));
   }
 
   [Symbol.iterator](): IterableIterator<[string, string]> {
@@ -86,16 +163,147 @@ export class ChSearchParams implements Iterable<[string, string]> {
   }
 
   toString(): string {
-    let out = '';
+    return this.#list.join('&');
+  }
 
-    for (const [key, value] of this.#list) {
-      if (out) {
-        out += '&';
-      }
-      out += encodeURIComponent(key) + '=' + encodeURIComponent(value);
+}
+
+class ChSearchParamValue {
+
+  readonly #param: ChSearchParam<unknown, unknown>;
+  readonly #index: number;
+
+  constructor(param: ChSearchParam<unknown, unknown>, index: number) {
+    this.#param = param;
+    this.#index = index;
+  }
+
+  get key(): string {
+    return this.#param.key;
+  }
+
+  get value(): string {
+    return this.#param.values[this.#index];
+  }
+
+  toString(): string {
+    return this.#param.rawKey + '=' + this.#param.rawValues[this.#index];
+  }
+
+}
+
+abstract class ChSearchParam<out TValue, out TCharge> {
+
+  #charge?: TCharge;
+
+  abstract readonly key: string;
+  abstract readonly rawKey: string;
+  abstract readonly values: string[];
+  abstract readonly rawValues: string[];
+
+  getCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
+    return this.#charge !== undefined ? this.#charge : (this.#charge = this.#parseCharge(parser));
+  }
+
+  #parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
+    const { rawValues } = this;
+
+    return rawValues.length === 1
+      ? parser.parse(rawValues[0]).charge
+      : this.#parseList(parser, rawValues);
+  }
+
+  #parseList(parser: URIChargeParser<TValue, TCharge>, rawValues: string[]): TCharge {
+    const { chargeRx } = parser;
+    const listRx = chargeRx.rxList();
+
+    for (const rawValue of rawValues) {
+      const itemRx = chargeRx.rxValue(itemCharge => listRx.add(itemCharge));
+
+      parser.parse(rawValue, itemRx);
     }
 
-    return out;
+    return listRx.endList();
+  }
+
+}
+
+class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue, TCharge> {
+
+  readonly #key: string;
+  readonly #rawKey: string;
+  #values?: string[];
+  readonly #rawValues: string[];
+
+  constructor(key: string, rawKey: string, rawValue: string) {
+    super();
+    this.#key = key;
+    this.#rawKey = rawKey;
+    this.#rawValues = [rawValue];
+  }
+
+  get key(): string {
+    return this.#key;
+  }
+
+  get rawKey(): string {
+    return this.#rawKey;
+  }
+
+  get values(): string[] {
+    return (this.#values ??= this.#rawValues.map(decodeSearchParam));
+  }
+
+  get rawValues(): string[] {
+    return this.#rawValues;
+  }
+
+  add(rawValue: string): ChSearchParamValue {
+    const index = this.#rawValues.length;
+
+    this.#rawValues.push(rawValue);
+
+    return new ChSearchParamValue(this, index);
+  }
+
+}
+
+class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TValue, TCharge> {
+
+  readonly #key: string;
+  readonly #values: string[];
+
+  #rawKey?: string;
+  #rawValues?: string[];
+
+  constructor(key: string, value: string) {
+    super();
+    this.#key = key;
+    this.#values = [value];
+  }
+
+  get key(): string {
+    return this.#key;
+  }
+
+  get rawKey(): string {
+    return (this.#rawKey ??= decodeSearchParam(this.#key));
+  }
+
+  get values(): string[] {
+    return this.#values;
+  }
+
+  get rawValues(): string[] {
+    return (this.#rawValues ??= this.#values.map(encodeSearchParam));
+  }
+
+  add(value: string): ChSearchParamValue {
+    const index = this.#values.length;
+
+    this.#values.push(value);
+
+    return new ChSearchParamValue(this, index);
   }
 
 }

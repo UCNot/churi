@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { ChSearchParams } from './ch-search-params.js';
+import './spec/uri-charge-matchers.js';
 
 describe('ChSearchParams', () => {
   it('parsed from string', () => {
@@ -12,6 +13,26 @@ describe('ChSearchParams', () => {
       ['b', '2'],
       ['a', '3'],
     ]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('treats `+` as space', () => {
+    const input = 'key+foo=value+bar';
+    const params = new ChSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([['key foo', 'value bar']]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles percent-encoded symbols', () => {
+    const input = 'key%2Bfoo=value%2Bbar';
+    const params = new ChSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([['key+foo', 'value+bar']]);
     expect(String(params)).toBe(input);
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
@@ -172,6 +193,33 @@ describe('ChSearchParams', () => {
 
         expect(result).toEqual(urlResult);
       });
+    });
+  });
+
+  describe('charge', () => {
+    it('obtains parameter charges', () => {
+      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+
+      expect(params.chargeOf('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
+      expect(params.chargeOf('baz')).toHaveURIChargeItems(21, 22);
+      expect(params.chargeOf('test')).toHaveURIChargeItems({});
+
+      expect(params.charge).toHaveURIChargeItems({
+        foo: [{ bar: 'test' }, 1],
+        baz: [21, 22],
+        test: {},
+      });
+    });
+    it('is cached', () => {
+      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+
+      expect(params.charge).toBe(params.charge);
+      expect(params.chargeOf('foo')).toBe(params.chargeOf('foo'));
+    });
+    it('is none for missing parameter', () => {
+      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+
+      expect(params.chargeOf('missing')).toBe(params.chargeParser.chargeRx.none);
     });
   });
 });

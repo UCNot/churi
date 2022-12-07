@@ -1,6 +1,6 @@
 import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
 
-export abstract class URICharge<out TValue = URIChargeItem> {
+export abstract class URICharge<out TValue = ChURIPrimitive> {
 
   static get none(): URICharge.None {
     return URICharge$None$instance;
