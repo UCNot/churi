@@ -23,7 +23,7 @@ describe('URIChargeExt', () => {
               ChURIPrimitive | TestValue,
               ChURIValue<ChURIPrimitive | TestValue>
             >): ChURIValue<ChURIPrimitive | TestValue> {
-              return rx.setCharge({ [test__symbol]: 'test value' });
+              return rx.set({ [test__symbol]: 'test value' });
             },
           },
         }),
@@ -112,18 +112,18 @@ describe('URIChargeExt', () => {
       this.#charge = rx.chargeRx.none;
     }
 
-    override add(value: ChURIPrimitive | TValue): void {
+    override addValue(value: ChURIPrimitive | TValue): void {
       const charge: TestValue = { [test__symbol]: value };
 
-      this.addCharge(charge);
+      this.add(charge);
     }
 
-    override addCharge(charge: ChURIValue<ChURIPrimitive | TestValue>): void {
+    override add(charge: ChURIValue<ChURIPrimitive | TestValue>): void {
       this.#charge = charge;
     }
 
     endDirective(): ChURIValue<ChURIPrimitive | TestValue> {
-      return this.#rx.setCharge(this.#charge);
+      return this.#rx.set(this.#charge);
     }
 
 }

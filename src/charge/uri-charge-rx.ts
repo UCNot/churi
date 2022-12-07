@@ -3,9 +3,9 @@ import { type ChURIPrimitive } from './ch-uri-value.js';
 export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly none: TCharge;
 
-  createValue(value: TValue | ChURIPrimitive, type: string): TCharge;
-
   createEntity(rawEntity: string): TCharge;
+
+  createValue(value: TValue | ChURIPrimitive, type: string): TCharge;
 
   rxValue(endValue?: URIChargeRx.End<TCharge>): URIChargeRx.ValueRx<TValue, TCharge>;
 
@@ -39,11 +39,11 @@ export namespace URIChargeRx {
   export interface ValueRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
-    set(value: ChURIPrimitive | TValue, type: string): TCharge;
-
-    setCharge(charge: TCharge): TCharge;
+    set(charge: TCharge): TCharge;
 
     setEntity(rawEntity: string): TCharge;
+
+    setValue(value: ChURIPrimitive | TValue, type: string): TCharge;
 
     startMap(): MapRx<TValue, TCharge>;
 
@@ -62,11 +62,11 @@ export namespace URIChargeRx {
   export interface MapRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
-    put(key: string, value: ChURIPrimitive | TValue, type: string): void;
-
-    putCharge(key: string, charge: TCharge): void;
+    put(key: string, charge: TCharge): void;
 
     putEntity(key: string, rawEntity: string): void;
+
+    putValue(key: string, value: ChURIPrimitive | TValue, type: string): void;
 
     startMap(key: string): MapRx<TValue>;
 
@@ -89,11 +89,11 @@ export namespace URIChargeRx {
   export interface ItemsRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
     readonly chargeRx: URIChargeRx<TValue, TCharge>;
 
-    add(value: ChURIPrimitive | TValue, type: string): void;
-
-    addCharge(charge: TCharge): void;
+    add(charge: TCharge): void;
 
     addEntity(rawEntity: string): void;
+
+    addValue(value: ChURIPrimitive | TValue, type: string): void;
 
     startMap(): MapRx<TValue>;
 

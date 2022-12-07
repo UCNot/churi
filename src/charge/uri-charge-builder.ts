@@ -11,12 +11,12 @@ export class URIChargeBuilder<out TValue = URIChargeItem>
     return URICharge.none;
   }
 
-  createValue(value: TValue | ChURIPrimitive, type: string): URICharge.Single<TValue> {
-    return new URICharge$Single(value, type);
-  }
-
   createEntity(rawEntity: string): URICharge.Single<TValue> {
     return new URICharge$Single<TValue>(new ChURIEntity(rawEntity), 'entity');
+  }
+
+  createValue(value: TValue | ChURIPrimitive, type: string): URICharge.Single<TValue> {
+    return new URICharge$Single(value, type);
   }
 
   rxValue(
@@ -68,7 +68,7 @@ class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     this.#map = new Map(base?.entries());
   }
 
-  override putCharge(key: string, charge: URICharge<TValue>): void {
+  override put(key: string, charge: URICharge<TValue>): void {
     if (charge.isSome()) {
       this.#map.set(key, charge);
     }
@@ -79,7 +79,7 @@ class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
 
     return new URIChargeBuilder$MapRx(
       this.chargeRx,
-      map => this.putCharge(key, map),
+      map => this.put(key, map),
       prevCharge && prevCharge.isMap() ? prevCharge : undefined,
     );
   }
@@ -87,11 +87,7 @@ class URIChargeBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
   override startList(key: string): URIChargeRx.ListRx<TValue, unknown> {
     const prevCharge = this.#map.get(key);
 
-    return new URIChargeBuilder$ListRx(
-      this.chargeRx,
-      list => this.putCharge(key, list),
-      prevCharge,
-    );
+    return new URIChargeBuilder$ListRx(this.chargeRx, list => this.put(key, list), prevCharge);
   }
 
   endMap(): URICharge.Map<TValue> {
@@ -130,7 +126,7 @@ class URIChargeBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx<
     }
   }
 
-  override addCharge(charge: URICharge<TValue>): void {
+  override add(charge: URICharge<TValue>): void {
     if (charge.isSome()) {
       this.#list.push(charge);
     }
@@ -165,14 +161,14 @@ class URIChargeBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueDi
     this.#endDirective = endDirective;
   }
 
-  override addCharge(charge: URICharge<TValue>): void {
+  override add(charge: URICharge<TValue>): void {
     if (charge.isSome()) {
       this.#builder = this.#builder.add(charge);
     }
   }
 
   endDirective(): URICharge.Single<TValue> {
-    const directive = new URICharge$Single(this.#builder.build(this.rawName), 'directive');
+    const directive = new URICharge$Single(this.#builder.build(this, this.rawName), 'directive');
 
     this.#endDirective?.(directive);
 
@@ -183,7 +179,10 @@ class URIChargeBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueDi
 
 interface URIChargeDirective$Builder<out TValue> {
   add(value: URICharge.Some<TValue>): URIChargeDirective$Builder<TValue>;
-  build(rawName: string): ChURIDirective<URICharge<TValue>>;
+  build(
+    rx: URIChargeRx.DirectiveRx<TValue, URICharge<TValue>>,
+    rawName: string,
+  ): ChURIDirective<URICharge<TValue>>;
 }
 
 class URIChargeDirective$None<TValue> implements URIChargeDirective$Builder<TValue> {
@@ -192,8 +191,11 @@ class URIChargeDirective$None<TValue> implements URIChargeDirective$Builder<TVal
     return new URIChargeDirective$Single(value);
   }
 
-  build(rawName: string): ChURIDirective<URICharge<TValue>> {
-    return new ChURIDirective(rawName, URICharge.none);
+  build(
+    rx: URIChargeRx.DirectiveRx<TValue, URICharge<TValue>>,
+    rawName: string,
+  ): ChURIDirective<URICharge<TValue>> {
+    return new ChURIDirective(rawName, rx.chargeRx.none);
   }
 
 }
@@ -213,7 +215,10 @@ class URIChargeDirective$Single<TValue> implements URIChargeDirective$Builder<TV
     return new URIChargeDirective$List([this.#value, value]);
   }
 
-  build(rawName: string): ChURIDirective<URICharge<TValue>> {
+  build(
+    _rx: URIChargeRx.DirectiveRx<TValue, URICharge<TValue>>,
+    rawName: string,
+  ): ChURIDirective<URICharge<TValue>> {
     return new ChURIDirective(rawName, this.#value);
   }
 
@@ -233,7 +238,10 @@ class URIChargeDirective$List<TValue> implements URIChargeDirective$Builder<TVal
     return this;
   }
 
-  build(rawName: string): ChURIDirective<URICharge<TValue>> {
+  build(
+    _rx: URIChargeRx.DirectiveRx<TValue, URICharge<TValue>>,
+    rawName: string,
+  ): ChURIDirective<URICharge<TValue>> {
     return new ChURIDirective(rawName, new URICharge$List(this.#list));
   }
 

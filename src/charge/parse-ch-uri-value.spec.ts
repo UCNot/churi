@@ -313,12 +313,11 @@ describe('parseChURIValue', () => {
       expect(value).toEqual({});
     });
     it('recognized without parameters', () => {
-      const { rawName, value } = new ChURIValueBuilder()
-        .rxDirective('test')
-        .endDirective() as ChURIDirective;
+      const builder = new ChURIValueBuilder();
+      const { rawName, value } = builder.rxDirective('test').endDirective() as ChURIDirective;
 
       expect(rawName).toBe('test');
-      expect(value).toEqual({});
+      expect(value).toBe(builder.none);
     });
   });
 

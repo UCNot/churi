@@ -16,12 +16,12 @@ export class ChURIValueBuilder<out TValue = ChURIPrimitive>
     return null;
   }
 
-  createValue(value: TValue | ChURIPrimitive, _type: string): ChURIValue<TValue> {
-    return value;
-  }
-
   createEntity(rawEntity: string): ChURIValue<TValue> {
     return new ChURIEntity(rawEntity);
+  }
+
+  createValue(value: TValue | ChURIPrimitive, _type: string): ChURIValue<TValue> {
+    return value;
   }
 
   rxValue(
@@ -71,7 +71,7 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     this.#endMap = endMap;
   }
 
-  override putCharge(key: string, charge: ChURIValue<TValue>): void {
+  override put(key: string, charge: ChURIValue<TValue>): void {
     this.#map[key] = charge;
   }
 
@@ -86,7 +86,7 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     if (prevValue && typeof prevValue === 'object' && !Array.isArray(prevValue)) {
       map = prevValue as ChURIMap<TValue>;
     } else {
-      this.putCharge(key, (map = {}));
+      this.put(key, (map = {}));
     }
 
     return map;
@@ -103,7 +103,7 @@ class ChURIValueBuilder$MapRx<out TValue = ChURIPrimitive> extends OpaqueMapRx<
     if (Array.isArray(prevValue)) {
       list = prevValue;
     } else {
-      this.putCharge(key, (list = prevValue != null ? [prevValue] : []));
+      this.put(key, (list = prevValue != null ? [prevValue] : []));
     }
 
     return list;
@@ -137,7 +137,7 @@ class ChURIValueBuilder$ListRx<out TValue = ChURIPrimitive> extends OpaqueListRx
     this.#endList = endList;
   }
 
-  override addCharge(charge: ChURIValue<TValue>): void {
+  override add(charge: ChURIValue<TValue>): void {
     this.#list.push(charge);
   }
 
@@ -170,12 +170,12 @@ class ChURIValueBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueD
     this.#endDirective = endDirective;
   }
 
-  override addCharge(charge: ChURIValue<TValue>): void {
+  override add(charge: ChURIValue<TValue>): void {
     this.#value = this.#value.add(charge);
   }
 
   endDirective(): ChURIDirective<ChURIValue<TValue>> {
-    const directive = this.#value.build(this.#rawName);
+    const directive = this.#value.build(this, this.#rawName);
 
     this.#endDirective?.(directive);
 
@@ -186,7 +186,10 @@ class ChURIValueBuilder$DirectiveRx<out TValue = ChURIPrimitive> extends OpaqueD
 
 interface ChURIDirective$Builder<TValue> {
   add(value: ChURIValue<TValue>): ChURIDirective$Builder<TValue>;
-  build(rawName: string): ChURIDirective<ChURIValue<TValue>>;
+  build(
+    rx: URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>>,
+    rawName: string,
+  ): ChURIDirective<ChURIValue<TValue>>;
 }
 
 class ChURIDirective$None<TValue> implements ChURIDirective$Builder<TValue> {
@@ -195,8 +198,11 @@ class ChURIDirective$None<TValue> implements ChURIDirective$Builder<TValue> {
     return new ChURIDirective$Single(value);
   }
 
-  build(rawName: string): ChURIDirective<ChURIValue<TValue>> {
-    return new ChURIDirective(rawName, {});
+  build(
+    rx: URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>>,
+    rawName: string,
+  ): ChURIDirective<ChURIValue<TValue>> {
+    return new ChURIDirective(rawName, rx.chargeRx.none);
   }
 
 }
@@ -215,7 +221,10 @@ class ChURIDirective$Single<TValue> implements ChURIDirective$Builder<TValue> {
     return new ChURIDirective$List([this.#value, value]);
   }
 
-  build(rawName: string): ChURIDirective<ChURIValue<TValue>> {
+  build(
+    _rx: URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>>,
+    rawName: string,
+  ): ChURIDirective<ChURIValue<TValue>> {
     return new ChURIDirective(rawName, this.#value);
   }
 
@@ -235,7 +244,10 @@ class ChURIDirective$List<TValue> implements ChURIDirective$Builder<TValue> {
     return this;
   }
 
-  build(rawName: string): ChURIDirective<ChURIValue<TValue>> {
+  build(
+    _rx: URIChargeRx.DirectiveRx<TValue, ChURIValue<TValue>>,
+    rawName: string,
+  ): ChURIDirective<ChURIValue<TValue>> {
     return new ChURIDirective(rawName, this.#list);
   }
 

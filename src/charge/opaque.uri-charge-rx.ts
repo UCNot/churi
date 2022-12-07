@@ -5,6 +5,9 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
+  static #listRx?: URIChargeRx.ListRx.Constructor;
+  static #directiveRx?: URIChargeRx.DirectiveRx.Constructor;
+
   static get ValueRx(): URIChargeRx.ValueRx.Constructor {
     return OpaqueURICharge$ValueRx;
   }
@@ -18,11 +21,50 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
   }
 
   static get ListRx(): URIChargeRx.ListRx.Constructor {
-    return OpaqueURICharge$ListRx;
+    if (this.#listRx) {
+      return this.#listRx;
+    }
+
+    class OpaqueURICharge$ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
+      extends this.ItemsRx<TValue, TCharge>
+      implements URIChargeRx.ListRx<TValue, TCharge> {
+
+      endList(): TCharge {
+        return this.chargeRx.none;
+      }
+
+}
+
+    return (this.#listRx = OpaqueURICharge$ListRx);
   }
 
   static get DirectiveRx(): URIChargeRx.DirectiveRx.Constructor {
-    return OpaqueURICharge$DirectiveRx;
+    if (this.#directiveRx) {
+      return this.#directiveRx;
+    }
+
+    class OpaqueURICharge$DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
+      extends this.ItemsRx<TValue, TCharge>
+      implements URIChargeRx.DirectiveRx<TValue, TCharge> {
+
+      readonly #rawName: string;
+
+      constructor(chargeRx: URIChargeRx<TValue, TCharge>, rawName: string) {
+        super(chargeRx);
+        this.#rawName = rawName;
+      }
+
+      get rawName(): string {
+        return this.#rawName;
+      }
+
+      endDirective(): TCharge {
+        return this.chargeRx.none;
+      }
+
+}
+
+    return (this.#directiveRx = OpaqueURICharge$DirectiveRx);
   }
 
   readonly #none: TCharge;
@@ -39,11 +81,11 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
     return this.#none;
   }
 
-  createValue(_value: TValue | ChURIPrimitive, _type: string): TCharge {
+  createEntity(_rawEntity: string): TCharge {
     return this.none;
   }
 
-  createEntity(_rawEntity: string): TCharge {
+  createValue(_value: TValue | ChURIPrimitive, _type: string): TCharge {
     return this.none;
   }
 
@@ -83,16 +125,16 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge>
     return this.#chargeRx;
   }
 
-  set(value: ChURIPrimitive | TValue, type: string): TCharge {
-    return this.setCharge(this.#chargeRx.createValue(value, type));
-  }
-
-  setCharge(charge: TCharge): TCharge {
+  set(charge: TCharge): TCharge {
     return this.#passCharge(charge);
   }
 
   setEntity(rawEntity: string): TCharge {
-    return this.setCharge(this.#chargeRx.createEntity(rawEntity));
+    return this.set(this.#chargeRx.createEntity(rawEntity));
+  }
+
+  setValue(value: ChURIPrimitive | TValue, type: string): TCharge {
+    return this.set(this.#chargeRx.createValue(value, type));
   }
 
   startMap(): URIChargeRx.MapRx<TValue, TCharge> {
@@ -122,28 +164,28 @@ class OpaqueURICharge$MapRx<out TValue = ChURIPrimitive, out TCharge = unknown>
     return this.#chargeRx;
   }
 
-  put(key: string, value: ChURIPrimitive | TValue, type: string): void {
-    this.putCharge(key, this.#chargeRx.createValue(value, type));
-  }
-
-  putCharge(_key: string, _charge: TCharge): void {
+  put(_key: string, _charge: TCharge): void {
     // Ignore entity charge
   }
 
   putEntity(key: string, rawEntity: string): void {
-    this.putCharge(key, this.#chargeRx.createEntity(rawEntity));
+    this.put(key, this.#chargeRx.createEntity(rawEntity));
+  }
+
+  putValue(key: string, value: ChURIPrimitive | TValue, type: string): void {
+    this.put(key, this.#chargeRx.createValue(value, type));
   }
 
   startMap(key: string): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.putCharge(key, map));
+    return this.#chargeRx.rxMap(map => this.put(key, map));
   }
 
   startList(key: string): URIChargeRx.ListRx<TValue> {
-    return this.#chargeRx.rxList(list => this.putCharge(key, list));
+    return this.#chargeRx.rxList(list => this.put(key, list));
   }
 
   startDirective(key: string, rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.#chargeRx.rxDirective(rawName, directive => this.putCharge(key, directive));
+    return this.#chargeRx.rxDirective(rawName, directive => this.put(key, directive));
   }
 
   addSuffix(suffix: string): void {
@@ -169,59 +211,28 @@ abstract class OpaqueURICharge$ItemsRx<out TValue = ChURIPrimitive, out TCharge 
     return this.#chargeRx;
   }
 
-  add(value: ChURIPrimitive | TValue, type: string): void {
-    this.addCharge(this.#chargeRx.createValue(value, type));
-  }
-
-  addCharge(_charge: TCharge): void {
+  add(_charge: TCharge): void {
     // Ignore item charge
   }
 
   addEntity(rawEntity: string): void {
-    this.addCharge(this.#chargeRx.createEntity(rawEntity));
+    this.add(this.#chargeRx.createEntity(rawEntity));
+  }
+
+  addValue(value: ChURIPrimitive | TValue, type: string): void {
+    this.add(this.#chargeRx.createValue(value, type));
   }
 
   startMap(): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.addCharge(map));
+    return this.#chargeRx.rxMap(map => this.add(map));
   }
 
   startList(): URIChargeRx.ListRx<TValue> {
-    return this.#chargeRx.rxList(list => this.addCharge(list));
+    return this.#chargeRx.rxList(list => this.add(list));
   }
 
   startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.#chargeRx.rxDirective(rawName, directive => this.addCharge(directive));
-  }
-
-}
-
-class OpaqueURICharge$ListRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-  extends OpaqueURICharge$ItemsRx<TValue, TCharge>
-  implements URIChargeRx.ListRx<TValue, TCharge> {
-
-  endList(): TCharge {
-    return this.chargeRx.none;
-  }
-
-}
-
-class OpaqueURICharge$DirectiveRx<out TValue = ChURIPrimitive, out TCharge = unknown>
-  extends OpaqueURICharge$ItemsRx<TValue, TCharge>
-  implements URIChargeRx.DirectiveRx<TValue, TCharge> {
-
-  readonly #rawName: string;
-
-  constructor(chargeRx: URIChargeRx<TValue, TCharge>, rawName: string) {
-    super(chargeRx);
-    this.#rawName = rawName;
-  }
-
-  get rawName(): string {
-    return this.#rawName;
-  }
-
-  endDirective(): TCharge {
-    return this.chargeRx.none;
+    return this.#chargeRx.rxDirective(rawName, directive => this.add(directive));
   }
 
 }

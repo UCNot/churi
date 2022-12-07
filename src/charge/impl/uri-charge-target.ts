@@ -55,20 +55,16 @@ export class ChURIMapEntryTarget<out TValue>
     return new ChURIMapEntryTarget(this, key, this.#mapRx);
   }
 
-  set(value: ChURIPrimitive | TValue, type: string): void {
-    this.#mapRx.put(this.#key, value, type);
-  }
-
-  setCharge(charge: unknown): void {
-    this.#mapRx.putCharge(this.#key, charge);
+  set(charge: unknown): void {
+    this.#mapRx.put(this.#key, charge);
   }
 
   setEntity(rawEntity: string): void {
     this.#mapRx.putEntity(this.#key, rawEntity);
   }
 
-  addSuffix(): void {
-    this.#mapRx.addSuffix(this.#key);
+  setValue(value: ChURIPrimitive | TValue, type: string): void {
+    this.#mapRx.putValue(this.#key, value, type);
   }
 
   startMap(): URIChargeRx.MapRx<TValue> {
@@ -81,6 +77,10 @@ export class ChURIMapEntryTarget<out TValue>
 
   startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
     return this.#mapRx.startDirective(this.#key, rawName);
+  }
+
+  addSuffix(): void {
+    this.#mapRx.addSuffix(this.#key);
   }
 
 }
@@ -116,16 +116,16 @@ abstract class ChURIItemTarget<out TValue, TRx extends URIChargeRx.ItemsRx<TValu
     return this.#decoder.decodeValue(this, input);
   }
 
-  set(value: ChURIPrimitive | TValue, type: string): void {
-    this.itemsRx.add(value, type);
-  }
-
-  setCharge(charge: unknown): unknown {
-    return this.itemsRx.addCharge(charge);
+  set(charge: unknown): unknown {
+    return this.itemsRx.add(charge);
   }
 
   setEntity(rawEntity: string): void {
     this.itemsRx.addEntity(rawEntity);
+  }
+
+  setValue(value: ChURIPrimitive | TValue, type: string): void {
+    this.itemsRx.addValue(value, type);
   }
 
   startMap(): URIChargeRx.MapRx<TValue> {

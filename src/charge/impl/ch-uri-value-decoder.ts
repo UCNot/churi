@@ -60,7 +60,7 @@ function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.rx.set(true, 'boolean');
+    return to.rx.setValue(true, 'boolean');
   }
   if (input === '!!') {
     return to.rx.startList().endList();
@@ -74,10 +74,10 @@ function decodeMinusSignedChURIValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.rx.set(false, 'boolean');
+    return to.rx.setValue(false, 'boolean');
   }
   if (input === '--') {
-    return to.rx.set(null, 'null');
+    return to.rx.setValue(null, 'null');
   }
 
   const secondChar = input[1];
@@ -93,21 +93,21 @@ function decodeNumberChURIValue<TValue, TCharge>(
   { rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return rx.set(Number(input), 'number');
+  return rx.setValue(Number(input), 'number');
 }
 
 function decodeQuotedChURIValue<TValue, TCharge>(
   { decoder, rx: rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return rx.set(decoder.decodeString(input.slice(1)), 'string');
+  return rx.setValue(decoder.decodeString(input.slice(1)), 'string');
 }
 
 function decodeStringChURIValue<TValue, TCharge>(
   { decoder, rx }: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return rx.set(decoder.decodeString(input), 'string');
+  return rx.setValue(decoder.decodeString(input), 'string');
 }
 
 function decodeUnsignedChURIValue<TValue, TCharge>(
@@ -132,8 +132,11 @@ function decodeNumericChURIValue<TValue, TCharge>(
   sign: <T extends number | bigint>(value: T) => T,
 ): TCharge {
   if (input[offset + 1] === 'n') {
-    return rx.set(sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))), 'bigint');
+    return rx.setValue(
+      sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
+      'bigint',
+    );
   }
 
-  return rx.set(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
+  return rx.setValue(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
 }
