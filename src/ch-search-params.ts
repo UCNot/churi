@@ -1,4 +1,5 @@
 import { isIterable } from '@proc7ts/primitives';
+import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
 
 export class ChSearchParams implements Iterable<[string, string]> {
 
@@ -21,7 +22,11 @@ export class ChSearchParams implements Iterable<[string, string]> {
         return;
       }
 
-      entries = search.split('&').map(part => part.split('=', 2) as [string, string?]);
+      entries = search.split('&').map((part) => {
+        const [key, value] = part.split('=', 2);
+
+        return [decodeSearchParam(key), value ? decodeSearchParam(value) : '']
+    });
     } else if (isIterable(search)) {
       entries = search;
     } else {
@@ -29,7 +34,7 @@ export class ChSearchParams implements Iterable<[string, string]> {
     }
 
     for (const [name, val] of entries) {
-      const value = val != null ? String(val) : '';
+      const value = val ? String(val) : '';
 
       this.#list.push([name, value]);
 
@@ -92,7 +97,7 @@ export class ChSearchParams implements Iterable<[string, string]> {
       if (out) {
         out += '&';
       }
-      out += encodeURIComponent(key) + '=' + encodeURIComponent(value);
+      out += encodeSearchParam(key) + '=' + encodeSearchParam(value);
     }
 
     return out;

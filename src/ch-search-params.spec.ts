@@ -16,6 +16,30 @@ describe('ChSearchParams', () => {
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
   });
+  it('treats `+` as space', () => {
+    const input = 'key+foo=value+bar';
+    const params = new ChSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['key foo', 'value bar'],
+    ]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles percent-encoded symbols', () => {
+    const input = 'key%2Bfoo=value%2Bbar';
+    const params = new ChSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['key+foo', 'value+bar'],
+    ]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
   it('ignores leading `?`', () => {
     const input = '?a=1&b=2&a=3';
     const params = new ChSearchParams(input);
