@@ -34,13 +34,29 @@ function decodeChURIValue<TValue, TCharge>(
   return decodeStringChURIValue(to, input);
 }
 
+export type ChURIValuePrefix =
+  | '!'
+  | "'"
+  | '-'
+  | '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9';
+
 const CHURI_VALUE_DECODERS: {
-  [firstChar: string]: <TValue, TCharge>(
+  readonly [prefix: string]: <TValue, TCharge>(
     to: URIChargeTarget<TValue, TCharge>,
     input: string,
   ) => TCharge;
 } = {
   '!': decodeExclamationPrefixedChURIValue,
+  "'": decodeQuotedChURIValue,
   '-': decodeMinusSignedChURIValue,
   0: decodeUnsignedChURIValue,
   1: decodeNumberChURIValue,
@@ -52,8 +68,7 @@ const CHURI_VALUE_DECODERS: {
   7: decodeNumberChURIValue,
   8: decodeNumberChURIValue,
   9: decodeNumberChURIValue,
-  "'": decodeQuotedChURIValue,
-};
+} satisfies { readonly [prefix in ChURIValuePrefix]: unknown };
 
 function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,

@@ -64,13 +64,13 @@ describe('ChSearchParams', () => {
     expect(String(params)).toBe('');
   });
   it('constructed by iterable', () => {
-    const urlParams = new URLSearchParams('a=1&b=2&a=3');
+    const urlParams = new URLSearchParams('a=a1&b=b2&a=c3');
     const params = new ChSearchParams(urlParams);
 
     expect([...params]).toEqual([
-      ['a', '1'],
-      ['b', '2'],
-      ['a', '3'],
+      ['a', 'a1'],
+      ['b', 'b2'],
+      ['a', 'c3'],
     ]);
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
@@ -220,6 +220,23 @@ describe('ChSearchParams', () => {
       const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
       expect(params.chargeOf('missing')).toBe(params.chargeParser.chargeRx.none);
+    });
+  });
+
+  describe('toString', () => {
+    it('percent-encodes special prefixes', () => {
+      const urlParams = new URLSearchParams(
+        "p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val&p=7val&p=8val&p=9val&p=!val!&p='val'&p=-val-",
+      );
+      const params = new ChSearchParams(urlParams);
+      const output = String(params);
+
+      expect(String(new URLSearchParams(output))).toBe(String(urlParams));
+      expect(String(new URLSearchParams([...urlParams.entries()]))).toBe(String(urlParams));
+      expect(output).toBe(
+        'p=%30val&p=%31val&p=%32val&p=%33val&p=%34val&p=%35val&p=%36val'
+          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-",
+      );
     });
   });
 });
