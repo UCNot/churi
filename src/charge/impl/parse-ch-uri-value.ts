@@ -42,11 +42,16 @@ function parseChURIMapOrDirective<TValue, TCharge>(
   rawKey: string,
   input: string,
 ): URIChargeParser.Result<TCharge> {
-  const firstValueOffset = rawKey.length + 1;
-  const firstValueInput = input.slice(firstValueOffset);
-
   if (rawKey.startsWith('!')) {
+    const emptyMap = parseChURIEmptyMap(to, rawKey, input);
+
+    if (emptyMap) {
+      return emptyMap;
+    }
+
     // Handle directive.
+    const firstValueOffset = rawKey.length + 1;
+    const firstValueInput = input.slice(firstValueOffset);
     const directiveRx = to.ext.startDirective(to, rawKey);
     const directiveEnd =
       firstValueOffset
@@ -56,6 +61,8 @@ function parseChURIMapOrDirective<TValue, TCharge>(
   }
 
   // Start nested map and parse first entry.
+  const firstValueOffset = rawKey.length + 1;
+  const firstValueInput = input.slice(firstValueOffset);
   const firstKey = to.decoder.decodeKey(rawKey);
   const mapRx = to.rx.startMap();
   const mapEnd =
@@ -63,6 +70,35 @@ function parseChURIMapOrDirective<TValue, TCharge>(
     + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
 
   return { charge: mapRx.endMap(), end: mapEnd };
+}
+
+const EMPTY_MAP = '!())';
+
+function parseChURIEmptyMap<TValue, TCharge>(
+  to: URIChargeTarget<TValue, TCharge>,
+  rawKey: string,
+  input: string,
+): URIChargeParser.Result<TCharge> | undefined {
+  if (rawKey !== '!') {
+    return;
+  }
+
+  const inputLength = input.length;
+  let end: number;
+
+  if (inputLength >= EMPTY_MAP.length) {
+    if (!input.startsWith(EMPTY_MAP)) {
+      return;
+    }
+    end = EMPTY_MAP.length;
+  } else {
+    if (!EMPTY_MAP.startsWith(input)) {
+      return;
+    }
+    end = input.length;
+  }
+
+  return { charge: to.rx.startMap().endMap(), end };
 }
 
 function parseChURIMap<TValue>(

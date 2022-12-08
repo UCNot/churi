@@ -202,12 +202,12 @@ describe('ChSearchParams', () => {
 
       expect(params.chargeOf('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
       expect(params.chargeOf('baz')).toHaveURIChargeItems(21, 22);
-      expect(params.chargeOf('test')).toHaveURIChargeItems({});
+      expect(params.chargeOf('test')).toHaveURIChargeItems('');
 
       expect(params.charge).toHaveURIChargeItems({
         foo: [{ bar: 'test' }, 1],
         baz: [21, 22],
-        test: {},
+        test: '',
       });
     });
     it('is cached', () => {

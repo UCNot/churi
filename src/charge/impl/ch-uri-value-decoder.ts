@@ -21,8 +21,8 @@ function decodeChURIValue<TValue, TCharge>(
   input: string,
 ): TCharge {
   if (!input) {
-    // Empty string treated as empty map.
-    return to.rx.startMap().endMap();
+    // Empty string treated as is.
+    return to.rx.setValue('', 'string');
   }
 
   const decoder = CHURI_VALUE_DECODERS[input[0]];

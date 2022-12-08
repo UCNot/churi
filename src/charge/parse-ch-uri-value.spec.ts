@@ -44,6 +44,21 @@ describe('parseChURIValue', () => {
     });
   });
 
+  describe('empty string value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse('')).toEqual({
+        charge: '',
+        end: 0,
+      });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse('foo()').charge).toEqual({ foo: '' });
+    });
+    it('recognizes as list item value', () => {
+      expect(parse('()').charge).toEqual(['']);
+    });
+  });
+
   describe('empty quoted string value', () => {
     it('recognized as top-level value', () => {
       expect(parse("'")).toEqual({
@@ -87,13 +102,13 @@ describe('parseChURIValue', () => {
 
   describe('empty map', () => {
     it('recognized as top-level value', () => {
-      expect(parse('')).toEqual({ charge: {}, end: 0 });
+      expect(parse('!()')).toEqual({ charge: {}, end: 3 });
     });
     it('recognized as map entry value', () => {
-      expect(parse('foo()').charge).toEqual({ foo: {} });
+      expect(parse('foo(!())').charge).toEqual({ foo: {} });
     });
     it('recognized as list item value', () => {
-      expect(parse('()').charge).toEqual([{}]);
+      expect(parse('(!())').charge).toEqual([{}]);
     });
   });
 
@@ -183,17 +198,17 @@ describe('parseChURIValue', () => {
     });
     it('recognized as map entry value', () => {
       expect(parse('foo(1)(bar)()').charge).toEqual({
-        foo: [1, 'bar', {}],
+        foo: [1, 'bar', ''],
       });
     });
-    it('recognized as map entry value with leading empty map', () => {
+    it('recognized as map entry value with leading empty string', () => {
       expect(parse('foo()(1)').charge).toEqual({
-        foo: [{}, 1],
+        foo: ['', 1],
       });
     });
     it('recognized with multiple items', () => {
       expect(parse('foo((1)(bar)())').charge).toEqual({
-        foo: [1, 'bar', {}],
+        foo: [1, 'bar', ''],
       });
     });
     it('recognized with single item', () => {
@@ -201,9 +216,9 @@ describe('parseChURIValue', () => {
         foo: [1],
       });
     });
-    it('recognized with single item containing empty map', () => {
+    it('recognized with single item containing empty string', () => {
       expect(parse('foo(())').charge).toEqual({
-        foo: [{}],
+        foo: [''],
       });
     });
     it('recognized when nested', () => {
@@ -239,8 +254,8 @@ describe('parseChURIValue', () => {
       expect(parse('foo(1)bar(test)baz()suffix').charge).toEqual({
         foo: 1,
         bar: 'test',
-        baz: {},
-        suffix: {},
+        baz: '',
+        suffix: '',
       });
     });
     it('recognized after list-valued entry', () => {
@@ -251,14 +266,14 @@ describe('parseChURIValue', () => {
     });
     it('overrides previous value', () => {
       expect(parse('foo(1)foo(bar)foo').charge).toEqual({
-        foo: {},
+        foo: '',
       });
     });
     it('treated as trailing map of top-level list', () => {
       expect(parse('(123)(456)foo(test)bar(1)tail').charge).toEqual([
         123,
         456,
-        { foo: 'test', bar: 1, tail: {} },
+        { foo: 'test', bar: 1, tail: '' },
       ]);
     });
     it('treated as trailing map-valued item of the list', () => {
@@ -270,21 +285,21 @@ describe('parseChURIValue', () => {
 
   describe('map suffix', () => {
     it('treated as trailing map-valued item of top-level list', () => {
-      expect(parse('(123)(456)foo').charge).toEqual([123, 456, { foo: {} }]);
+      expect(parse('(123)(456)foo').charge).toEqual([123, 456, { foo: '' }]);
     });
-    it('treated as map entry containing empty map after single-valued entry', () => {
+    it('treated as map entry containing empty string after single-valued entry', () => {
       expect(parse('foo(bar(baz)test))').charge).toEqual({
-        foo: { bar: 'baz', test: {} },
+        foo: { bar: 'baz', test: '' },
       });
     });
-    it('treated as map entry containing empty map after list-valued entry', () => {
+    it('treated as map entry containing empty string after list-valued entry', () => {
       expect(parse('foo(bar(1)(2)test))').charge).toEqual({
-        foo: { bar: [1, 2], test: {} },
+        foo: { bar: [1, 2], test: '' },
       });
     });
     it('treated as trailing item containing map after list', () => {
       expect(parse('foo(bar((1)(2)test)))').charge).toEqual({
-        foo: { bar: [1, 2, { test: {} }] },
+        foo: { bar: [1, 2, { test: '' }] },
       });
     });
   });
@@ -294,7 +309,7 @@ describe('parseChURIValue', () => {
       const { rawName, value } = parse('!bar%20baz(foo)((1))test').charge as ChURIDirective;
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toEqual(['foo', [1], { test: {} }]);
+      expect(value).toEqual(['foo', [1], { test: '' }]);
     });
     it('recognized as map entry value', () => {
       const {
@@ -310,7 +325,7 @@ describe('parseChURIValue', () => {
       const [{ rawName, value }] = parse('(!bar%20baz())').charge as [ChURIDirective];
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toEqual({});
+      expect(value).toBe('');
     });
     it('recognized without parameters', () => {
       const builder = new ChURIValueBuilder();
@@ -321,9 +336,36 @@ describe('parseChURIValue', () => {
     });
   });
 
+  describe('directive `!`', () => {
+    it('recognized when followed by entity', () => {
+      const { rawName, value } = parse('!()bar(test)').charge as ChURIDirective;
+
+      expect(rawName).toBe('!');
+      expect(value).toEqual(['', { bar: 'test' }]);
+    });
+    it('recognized when followed by another item', () => {
+      const { rawName, value } = parse('!()(bar)test').charge as ChURIDirective;
+
+      expect(rawName).toBe('!');
+      expect(value).toEqual(['', 'bar', { test: '' }]);
+    });
+    it('recognized when has value', () => {
+      const { rawName, value } = parse('!(test)').charge as ChURIDirective;
+
+      expect(rawName).toBe('!');
+      expect(value).toBe('test');
+    });
+    it('recognized when has incomplete value', () => {
+      const { rawName, value } = parse('!(t').charge as ChURIDirective;
+
+      expect(rawName).toBe('!');
+      expect(value).toBe('t');
+    });
+  });
+
   it('merges maps', () => {
     expect(parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge).toEqual({
-      foo: { bar: { baz: 2, test: {} } },
+      foo: { bar: { baz: 2, test: '' } },
     });
   });
   it('concatenates lists', () => {
@@ -338,7 +380,7 @@ describe('parseChURIValue', () => {
   });
   it('replaces value with map', () => {
     expect(parse('foo(bar(test))foo(bar(baz(1)test))').charge).toEqual({
-      foo: { bar: { baz: 1, test: {} } },
+      foo: { bar: { baz: 1, test: '' } },
     });
   });
   it('concatenates maps', () => {
@@ -365,7 +407,7 @@ describe('parseChURIValue', () => {
     expect(parse('foo(bar))')).toEqual({ charge: { foo: 'bar' }, end: 8 });
   });
   it('stops map suffix parsing at closing parent', () => {
-    expect(parse('foo(bar)baz)')).toEqual({ charge: { foo: 'bar', baz: {} }, end: 11 });
+    expect(parse('foo(bar)baz)')).toEqual({ charge: { foo: 'bar', baz: '' }, end: 11 });
   });
   it('stops map parsing at the end of input', () => {
     expect(parse('foo(13')).toEqual({
@@ -393,13 +435,13 @@ describe('parseChURIValue', () => {
   });
   it('stops empty entry value parsing at the end of input', () => {
     expect(parse('foo(1)bar(2)baz(')).toEqual({
-      charge: { foo: 1, bar: 2, baz: {} },
+      charge: { foo: 1, bar: 2, baz: '' },
       end: 16,
     });
   });
   it('stops nested empty entry value parsing at the end of input', () => {
     expect(parse('foo(bar(baz(')).toEqual({
-      charge: { foo: { bar: { baz: {} } } },
+      charge: { foo: { bar: { baz: '' } } },
       end: 12,
     });
   });

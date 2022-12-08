@@ -215,7 +215,7 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   addSuffix(suffix: string): void {
-    this.startMap(suffix).endMap();
+    this.putValue(suffix, '', 'string');
   }
 
   endMap(): TCharge {
