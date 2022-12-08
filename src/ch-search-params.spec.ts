@@ -244,7 +244,7 @@ describe('ChSearchParams', () => {
   describe('toString', () => {
     it('percent-encodes special prefixes', () => {
       const urlParams = new URLSearchParams(
-        "p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val&p=7val&p=8val&p=9val&p=!val!&p='val'&p=-val-",
+        "p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val&p=7val&p=8val&p=9val&p=!val!&p='val'&p=-val-&p=(foo(&p=)foo)",
       );
       const params = new ChSearchParams(urlParams);
       const output = String(params);
@@ -253,7 +253,7 @@ describe('ChSearchParams', () => {
       expect(String(new URLSearchParams([...urlParams.entries()]))).toBe(String(urlParams));
       expect(output).toBe(
         'p=%30val&p=%31val&p=%32val&p=%33val&p=%34val&p=%35val&p=%36val'
-          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-",
+          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-&p=%28foo(&p=%29foo)",
       );
     });
   });
