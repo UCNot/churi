@@ -202,29 +202,10 @@ abstract class ChSearchParam<out TValue, out TCharge> {
   abstract readonly rawValues: string[];
 
   getCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
-    return this.#charge !== undefined ? this.#charge : (this.#charge = this.#parseCharge(parser));
+    return this.#charge !== undefined ? this.#charge : (this.#charge = this.parseCharge(parser));
   }
 
-  #parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
-    const { rawValues } = this;
-
-    return rawValues.length === 1
-      ? parser.parse(rawValues[0]).charge
-      : this.#parseList(parser, rawValues);
-  }
-
-  #parseList(parser: URIChargeParser<TValue, TCharge>, rawValues: string[]): TCharge {
-    const { chargeRx } = parser;
-    const listRx = chargeRx.rxList();
-
-    for (const rawValue of rawValues) {
-      const itemRx = chargeRx.rxValue(itemCharge => listRx.add(itemCharge));
-
-      parser.parse(rawValue, itemRx);
-    }
-
-    return listRx.endList();
-  }
+  protected abstract parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge;
 
 }
 
@@ -232,8 +213,9 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
 
   readonly #key: string;
   readonly #rawKey: string;
-  #values?: string[];
   readonly #rawValues: string[];
+
+  #values?: string[];
 
   constructor(key: string, rawKey: string, rawValue: string) {
     super();
@@ -264,6 +246,27 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
     this.#rawValues.push(rawValue);
 
     return new ChSearchParamValue(this, index);
+  }
+
+  protected override parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
+    const rawValues = this.#rawValues;
+
+    return rawValues.length === 1
+      ? parser.parse(rawValues[0]).charge
+      : this.#parseList(parser, rawValues);
+  }
+
+  #parseList(parser: URIChargeParser<TValue, TCharge>, rawValues: string[]): TCharge {
+    const { chargeRx } = parser;
+    const listRx = chargeRx.rxList();
+
+    for (const rawValue of rawValues) {
+      const itemRx = chargeRx.rxValue(itemCharge => listRx.add(itemCharge));
+
+      parser.parse(rawValue, itemRx);
+    }
+
+    return listRx.endList();
   }
 
 }
@@ -304,6 +307,25 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
     this.#values.push(value);
 
     return new ChSearchParamValue(this, index);
+  }
+
+  protected override parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
+    const values = this.#values;
+
+    return values.length === 1
+      ? parser.chargeRx.createValue(values[0], 'string')
+      : this.#parseList(parser, values);
+  }
+
+  #parseList(parser: URIChargeParser<TValue, TCharge>, values: string[]): TCharge {
+    const { chargeRx } = parser;
+    const listRx = chargeRx.rxList();
+
+    for (const value of values) {
+      listRx.addValue(value, 'string');
+    }
+
+    return listRx.endList();
   }
 
 }
