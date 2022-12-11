@@ -49,8 +49,6 @@ export type ChURIValuePrefix =
   | '8'
   | '9';
 
-export type ChURIValueSpecial = ChURIValuePrefix | '(' | ')';
-
 const CHURI_VALUE_DECODERS: {
   readonly [prefix: string]: <TValue, TCharge>(
     to: URIChargeTarget<TValue, TCharge>,
