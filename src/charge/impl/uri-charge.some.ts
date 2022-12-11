@@ -1,3 +1,5 @@
+import { encodeURICharge, encodeURIChargeList, encodeURIChargeMap } from '../encode-uri-charge.js';
+import { URIChargeEncodable } from '../uri-charge-encodable.js';
 import { URICharge, URIChargeItem } from '../uri-charge.js';
 
 abstract class URICharge$Some<out TValue>
@@ -10,6 +12,12 @@ abstract class URICharge$Some<out TValue>
 
   override isSome(): true {
     return true;
+  }
+
+  abstract encodeURICharge(placement: URIChargeEncodable.Placement): string;
+
+  override toString(): string {
+    return this.encodeURICharge({});
   }
 
 }
@@ -77,6 +85,10 @@ export class URICharge$Single<out TValue>
     // No entries
   }
 
+  override encodeURICharge(placement: URIChargeEncodable.Placement): string {
+    return encodeURICharge(this.#value, placement)!;
+  }
+
 }
 
 export class URICharge$Map<out TValue>
@@ -138,6 +150,10 @@ export class URICharge$Map<out TValue>
 
   override keys(): IterableIterator<string> {
     return this.#map.keys();
+  }
+
+  override encodeURICharge(placement: URIChargeEncodable.Placement): string {
+    return encodeURIChargeMap(this.#map, this.#map.size, placement);
   }
 
 }
@@ -202,6 +218,10 @@ export class URICharge$List<out TValue>
 
   override *keys(): IterableIterator<never> {
     // Not a map
+  }
+
+  override encodeURICharge(placement: URIChargeEncodable.Placement): string {
+    return encodeURIChargeList(this.#list, placement);
   }
 
 }
