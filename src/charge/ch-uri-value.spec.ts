@@ -28,4 +28,12 @@ describe('ChURIDirective', () => {
   it('has string tag', () => {
     expect(directive[Symbol.toStringTag]).toBe('ChURIDirective');
   });
+
+  describe('toString', () => {
+    it('reflects directive contents', () => {
+      expect(
+        String(new ChURIDirective('!test', ['arg1', 'arg2', { foo: 'bar', suffix: '' }])),
+      ).toBe('!test(arg1)(arg2)foo(bar)suffix');
+    });
+  });
 });

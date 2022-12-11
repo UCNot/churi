@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { ChURIDirective, ChURIEntity } from './ch-uri-value.js';
 import { encodeURICharge } from './encode-uri-charge.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
@@ -244,6 +245,41 @@ describe('encodeURICharge', () => {
     });
     it('encoded as deeply nested list item value', () => {
       expect(encodeURICharge([[[]]])).toBe('((!!))');
+    });
+  });
+
+  describe('unknown entity value', () => {
+    it('encoded as top-level value', () => {
+      expect(encodeURICharge(new ChURIEntity('!test'))).toBe('!test');
+    });
+    it('encoded as map entry value', () => {
+      expect(encodeURICharge({ foo: new ChURIEntity('!test') })).toBe('foo(!test)');
+    });
+    it('encoded as list item value', () => {
+      expect(encodeURICharge([new ChURIEntity('!test')])).toBe('(!test)');
+    });
+  });
+
+  describe('unknown directive value', () => {
+    it('encoded as top-level value', () => {
+      expect(encodeURICharge(new ChURIDirective('!test', 'foo'))).toBe('!test(foo)');
+    });
+    it('encoded as map entry value', () => {
+      expect(encodeURICharge({ foo: new ChURIDirective('!test', 'bar') })).toBe('foo(!test(bar))');
+    });
+    it('encoded as list item value', () => {
+      expect(encodeURICharge([new ChURIDirective('!test', 'foo')])).toBe('(!test(foo))');
+    });
+    it('encoded with array value', () => {
+      expect(encodeURICharge(new ChURIDirective('!test', ['foo', 'bar']))).toBe('!test(foo)(bar)');
+    });
+    it('encoded with suffix', () => {
+      expect(encodeURICharge(new ChURIDirective('!test', ['foo', { suffix: '' }]))).toBe(
+        '!test(foo)suffix',
+      );
+    });
+    it('encoded with missing value', () => {
+      expect(encodeURICharge(new ChURIDirective('!test', undefined!))).toBe('!test(--)');
     });
   });
 });

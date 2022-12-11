@@ -1,3 +1,6 @@
+import { encodeURICharge } from './encode-uri-charge.js';
+import { URIChargeEncodable } from './uri-charge-encodable.js';
+
 export type ChURIValue<TValue = ChURIPrimitive> =
   | TValue
   | ChURIPrimitive
@@ -14,7 +17,7 @@ export interface ChURIMap<out TValue = ChURIPrimitive> {
   [key: string]: ChURIValue<TValue> | undefined;
 }
 
-export class ChURIEntity {
+export class ChURIEntity implements URIChargeEncodable {
 
   readonly #raw: string;
 
@@ -38,13 +41,17 @@ export class ChURIEntity {
     return this.#raw;
   }
 
-  toString(): string {
+  encodeURICharge(_placement: URIChargeEncodable.Placement): string {
     return this.#raw;
+  }
+
+  toString(): string {
+    return this.encodeURICharge({});
   }
 
 }
 
-export class ChURIDirective<out TValue = ChURIPrimitive> {
+export class ChURIDirective<out TValue = ChURIPrimitive> implements URIChargeEncodable {
 
   #rawName: string;
   #value: TValue;
@@ -64,6 +71,26 @@ export class ChURIDirective<out TValue = ChURIPrimitive> {
 
   get [Symbol.toStringTag](): string {
     return 'ChURIDirective';
+  }
+
+  encodeURICharge(_placement: URIChargeEncodable.Placement): string {
+    let omitParentheses = false;
+    const valuePlacement: URIChargeEncodable.Arg = {
+      as: 'arg',
+      omitParentheses() {
+        omitParentheses = true;
+      },
+    };
+
+    const encodedValue = encodeURICharge(this.#value, valuePlacement) ?? '--';
+
+    return omitParentheses
+      ? `${this.#rawName}${encodedValue}`
+      : `${this.#rawName}(${encodedValue})`;
+  }
+
+  toString(): string {
+    return this.encodeURICharge({});
   }
 
 }

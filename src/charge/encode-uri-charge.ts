@@ -133,11 +133,13 @@ function encodeURIChargeList(list: unknown[], placement: URIChargeEncodable.Plac
     return encodeURIChargeListItem(list[0]);
   }
 
-  const isEntryValue = placement.as === 'entry';
   let tailIndex: number;
 
-  if (isEntryValue) {
+  if (placement.as === 'entry') {
     tailIndex = -1;
+    placement.omitParentheses();
+  } else if (placement.as === 'arg') {
+    tailIndex = list.length - 1;
     placement.omitParentheses();
   } else {
     tailIndex = list.length - 1;

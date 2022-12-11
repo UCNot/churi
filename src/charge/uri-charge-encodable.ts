@@ -27,7 +27,7 @@ export namespace URIChargeEncodable {
   /**
    * The supposed placement of encoded value.
    */
-  export type Placement = Any | Top | Entry | Tail;
+  export type Placement = Any | Top | Entry | Tail | Arg;
 
   /**
    * The encoded value may be used placed as any part of URI charge.
@@ -52,7 +52,7 @@ export namespace URIChargeEncodable {
   }
 
   /**
-   * The encoded value supposed to be placed after opening parent as a map entry value.
+   * The encoded value supposed to be placed as a map entry value after opening parent.
    *
    * This may affect a list. If it has two or more items, the enclosing parentheses may be omitted. So, the
    * ```
@@ -90,6 +90,27 @@ export namespace URIChargeEncodable {
 
     /**
      * Informs the enclosing list encoder that it may omit parentheses around encoded item value.
+     */
+    readonly omitParentheses: (this: void) => void;
+  }
+
+  /**
+   * The encoded value supposed to be placed as a directive argument value after opening parent.
+   *
+   * This may affect a list. If it has two or more items, the enclosing parentheses may be omitted. So, the
+   * ```
+   * !foo((arg1)(arg2)arg3(value)suffix)
+   * ```
+   * may be encoded as
+   * ```
+   !foo(arg1)(arg2)arg3(value)suffix
+   * ```
+   */
+  export interface Arg {
+    readonly as: 'arg';
+
+    /**
+     * Informs the enclosing directive encoder that it may omit parentheses around encoded argument(s).
      */
     readonly omitParentheses: (this: void) => void;
   }
