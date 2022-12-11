@@ -1,6 +1,6 @@
 export * from './ch-uri-value-builder.js';
 export * from './ch-uri-value.js';
-export * from './encode-uri-charge.js';
+export { encodeURICharge, encodeURIChargeKey, encodeURIChargeList } from './encode-uri-charge.js';
 export * from './ext/mod.js';
 export * from './opaque.uri-charge-rx.js';
 export * from './parse-ch-uri-value.js';

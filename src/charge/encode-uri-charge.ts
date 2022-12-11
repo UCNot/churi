@@ -1,4 +1,4 @@
-import { ChURIList, ChURIMap } from './ch-uri-value.js';
+import { ChURIMap } from './ch-uri-value.js';
 import {
   escapeURIChargeKey,
   escapeURIChargeTopLevelKey,
@@ -118,13 +118,18 @@ function encodeURIChargeObject(
     return encodeURIChargeList(value, placement);
   }
   if (isURIChargeMap(value)) {
-    return encodeURIChargeMap(value, placement);
+    const entries = Object.entries(value);
+
+    return encodeURIChargeMap(entries, entries.length, placement);
   }
 
   return encodeURICharge(JSON.parse(JSON.stringify(value)));
 }
 
-function encodeURIChargeList(list: unknown[], placement: URIChargeEncodable.Placement): string {
+export function encodeURIChargeList(
+  list: unknown[],
+  placement: URIChargeEncodable.Placement,
+): string {
   if (list.length < 2) {
     if (!list.length) {
       return '!!';
@@ -176,15 +181,17 @@ function encodeURIChargeListTail(item: unknown): string {
   return encoded != null ? `(${encoded})` : '(--)';
 }
 
-function isURIChargeMap(value: object): value is ChURIMap {
+function isURIChargeMap(value: object): value is Record<string, unknown> {
   return !value.constructor || value.constructor === Object;
 }
 
-function encodeURIChargeMap(
-  map: Record<string, unknown>,
+export function encodeURIChargeMap(
+  entries: Iterable<[string, unknown]>,
+  numEntries: number,
   placement: URIChargeEncodable.Placement,
 ): string {
   const isTail = placement.as === 'tail';
+  const lastIndex = numEntries - 1;
 
   let omitParentheses: boolean;
   const entryPlacement: URIChargeEncodable.Entry = {
@@ -195,8 +202,9 @@ function encodeURIChargeMap(
   };
   let keyPlacement: URIChargeEncodable.Placement | undefined = placement;
   const encoded: string[] = [];
+  let index = 0;
 
-  Object.entries(map).forEach(([key, value], index, entries) => {
+  for (const [key, value] of entries) {
     omitParentheses = false;
 
     const encodedValue = encodeURICharge(value, entryPlacement);
@@ -206,7 +214,7 @@ function encodeURIChargeMap(
 
       keyPlacement = undefined;
 
-      if (!encodedValue && index === entries.length - 1 && (encoded.length || isTail)) {
+      if (!encodedValue && index === lastIndex && (encoded.length || isTail)) {
         // Suffix.
         encoded.push(encodedKey);
       } else {
@@ -214,8 +222,10 @@ function encodeURIChargeMap(
           omitParentheses ? `${encodedKey}${encodedValue}` : `${encodedKey}(${encodedValue})`,
         );
       }
+
+      ++index;
     }
-  });
+  }
 
   if (!encoded.length) {
     // Empty map.

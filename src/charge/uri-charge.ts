@@ -1,6 +1,7 @@
 import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
+import { URIChargeEncodable } from './uri-charge-encodable.js';
 
-export abstract class URICharge<out TValue = ChURIPrimitive> {
+export abstract class URICharge<out TValue = ChURIPrimitive> implements URIChargeEncodable {
 
   static get none(): URICharge.None {
     return URICharge$None$instance;
@@ -26,6 +27,8 @@ export abstract class URICharge<out TValue = ChURIPrimitive> {
   abstract get(key: string): URICharge.Some<TValue> | URICharge.None;
   abstract entries(): IterableIterator<[string, URICharge.Some<TValue>]>;
   abstract keys(): IterableIterator<string>;
+
+  abstract encodeURICharge(placement: URIChargeEncodable.Placement): string | undefined;
 
 }
 
@@ -80,11 +83,15 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
+
+    encodeURICharge(_placement: URIChargeEncodable.Placement): undefined;
   }
 
-  export interface Some<out TValue = ChURIPrimitive> extends URICharge<TValue> {
+  export interface Some<out TValue = ChURIPrimitive> extends URICharge<TValue>, URIChargeEncodable {
     isNone(): false;
     isSome(): true;
+
+    encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
   export interface WithValues<out TValue = ChURIPrimitive> extends Some<TValue> {
@@ -105,6 +112,8 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
+
+    encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
   export interface List<out TValue = ChURIPrimitive> extends Some<TValue>, WithoutEntries<TValue> {
@@ -116,6 +125,8 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
+
+    encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
   export interface Map<out TValue = ChURIPrimitive> extends Some<TValue>, WithoutValues<TValue> {
@@ -135,6 +146,8 @@ export namespace URICharge {
     at(index: 0): this;
     at(index: number): this | None;
     list(): IterableIterator<this>;
+
+    encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 }
 
@@ -194,6 +207,14 @@ class URICharge$None extends URICharge<undefined> implements URICharge.None {
 
   *keys(): IterableIterator<never> {
     // Not a map.
+  }
+
+  override encodeURICharge(_placement: URIChargeEncodable.Placement): undefined {
+    return;
+  }
+
+  override toString(): string {
+    return '!None';
   }
 
 }

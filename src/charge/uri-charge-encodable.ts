@@ -9,9 +9,9 @@ export interface URIChargeEncodable {
    *
    * @param placement - The supposed placement of encoded value.
    *
-   * @returns String with encoded value.
+   * @returns String with encoded value, or `undefined` if the value can not be encoded.
    */
-  encodeURICharge?(placement: URIChargeEncodable.Placement): string;
+  encodeURICharge?(placement: URIChargeEncodable.Placement): string | undefined;
 
   /**
    * Represents the value as JSON.

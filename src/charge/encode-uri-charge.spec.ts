@@ -1,7 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChURIDirective, ChURIEntity } from './ch-uri-value.js';
 import { encodeURICharge } from './encode-uri-charge.js';
+import { parseURICharge } from './parse-uri-charge.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
+import { URICharge } from './uri-charge.js';
 
 describe('encodeURICharge', () => {
   describe('bigint value', () => {
@@ -280,6 +282,25 @@ describe('encodeURICharge', () => {
     });
     it('encoded with missing value', () => {
       expect(encodeURICharge(new ChURIDirective('!test', undefined!))).toBe('!test(--)');
+    });
+  });
+
+  describe('URICharge', () => {
+    it('encoded when simple', () => {
+      expect(String(parseURICharge('%74est').charge)).toBe('test');
+    });
+    it('encoded when map', () => {
+      expect(String(parseURICharge('%74est(foo)').charge)).toBe('test(foo)');
+    });
+    it('encoded when list', () => {
+      expect(String(parseURICharge('(foo)(%74est').charge)).toBe('(foo)(test)');
+    });
+    it('encoded when directive', () => {
+      expect(String(parseURICharge('!foo(%74est').charge)).toBe('!foo(test)');
+    });
+    it('is not encoded when none', () => {
+      expect(String(URICharge.none)).toBe('!None');
+      expect(encodeURICharge(URICharge.none)).toBeUndefined();
     });
   });
 });
