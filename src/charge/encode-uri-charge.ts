@@ -126,6 +126,7 @@ function encodeURIChargeObject(
   return encodeURICharge(JSON.parse(JSON.stringify(value)));
 }
 
+/** @internal */
 export function encodeURIChargeList(
   list: unknown[],
   placement: URIChargeEncodable.Placement,
@@ -185,6 +186,7 @@ function isURIChargeMap(value: object): value is Record<string, unknown> {
   return !value.constructor || value.constructor === Object;
 }
 
+/** @internal */
 export function encodeURIChargeMap(
   entries: Iterable<[string, unknown]>,
   numEntries: number,
