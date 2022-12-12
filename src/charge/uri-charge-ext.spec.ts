@@ -17,13 +17,8 @@ describe('URIChargeExt', () => {
           ChURIValue<ChURIPrimitive | TestValue>
         > => ({
           entities: {
-            ['!test']({
-              rx,
-            }: URIChargeExt.Context<
-              ChURIPrimitive | TestValue,
-              ChURIValue<ChURIPrimitive | TestValue>
-            >): ChURIValue<ChURIPrimitive | TestValue> {
-              return rx.set({ [test__symbol]: 'test value' });
+            ['!test'](): ChURIValue<ChURIPrimitive | TestValue> {
+              return { [test__symbol]: 'test value' };
             },
           },
         }),
@@ -52,19 +47,20 @@ describe('URIChargeExt', () => {
 
     beforeAll(() => {
       parser = createChURIValueParser({
-        ext: (): URIChargeExt<
-          ChURIPrimitive | TestValue,
-          ChURIValue<ChURIPrimitive | TestValue>
-        > => ({
+        ext: (
+          charge,
+        ): URIChargeExt<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>> => ({
           directives: {
             ['!test'](
-              { rx },
               rawName: string,
-            ): URIChargeRx.DirectiveRx<
-              ChURIPrimitive | TestValue,
-              ChURIValue<ChURIPrimitive | TestValue>
-            > {
-              return new TestDirectiveRx(rx, rawName);
+              parse: (
+                rx: URIChargeRx.DirectiveRx<
+                  ChURIPrimitive | TestValue,
+                  ChURIValue<ChURIPrimitive | TestValue>
+                >,
+              ) => ChURIValue<ChURIPrimitive | TestValue>,
+            ): ChURIValue<ChURIPrimitive | TestValue> {
+              return charge.rxValue(rx => parse(new TestDirectiveRx(rx, rawName)));
             },
           },
         }),

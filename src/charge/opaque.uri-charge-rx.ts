@@ -32,19 +32,8 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       extends this.ItemsRx<TValue, TCharge, TRx>
       implements URIChargeRx.ListRx<TValue, TCharge, TRx> {
 
-      readonly #endList: URIChargeRx.End<TCharge> | undefined;
-
-      constructor(chargeRx: TRx, endList?: URIChargeRx.End<TCharge>) {
-        super(chargeRx);
-        this.#endList = endList;
-      }
-
       endList(): TCharge {
-        const { none } = this.chargeRx;
-
-        this.#endList?.(none);
-
-        return none;
+        return this.chargeRx.none;
       }
 
 }
@@ -66,12 +55,10 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
 
       readonly #rawName: string;
-      readonly #endDirective: URIChargeRx.End<TCharge> | undefined;
 
-      constructor(chargeRx: TRx, rawName: string, endDirective?: URIChargeRx.End<TCharge>) {
+      constructor(chargeRx: TRx, rawName: string) {
         super(chargeRx);
         this.#rawName = rawName;
-        this.#endDirective = endDirective;
       }
 
       get rawName(): string {
@@ -79,11 +66,7 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       }
 
       endDirective(): TCharge {
-        const { none } = this.chargeRx;
-
-        this.#endDirective?.(none);
-
-        return none;
+        return this.chargeRx.none;
       }
 
 }
@@ -113,23 +96,23 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
     return this.none;
   }
 
-  rxValue(endValue?: URIChargeRx.End<TCharge>): URIChargeRx.ValueRx<TValue, TCharge> {
-    return new this.ns.ValueRx(this, endValue);
+  rxValue(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
+    return parse(new this.ns.ValueRx(this));
   }
 
-  rxMap(endMap?: URIChargeRx.End<TCharge>): URIChargeRx.MapRx<TValue, TCharge> {
-    return new this.ns.MapRx(this, endMap);
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
+    return parse(new this.ns.MapRx(this));
   }
 
-  rxList(endList?: URIChargeRx.End<TCharge>): URIChargeRx.ListRx<TValue, TCharge> {
-    return new this.ns.ListRx(this, endList);
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge {
+    return parse(new this.ns.ListRx(this));
   }
 
   rxDirective(
     rawName: string,
-    endDirective?: URIChargeRx.End<TCharge> | undefined,
-  ): URIChargeRx.DirectiveRx<TValue, TCharge> {
-    return new this.ns.DirectiveRx(this, rawName, endDirective);
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): TCharge {
+    return parse(new this.ns.DirectiveRx(this, rawName));
   }
 
 }
@@ -138,11 +121,9 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
-  readonly #passCharge: <TResult extends TCharge>(this: void, charge: TResult) => TCharge;
 
-  constructor(chargeRx: TRx, endCharge?: URIChargeRx.End<TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
-    this.#passCharge = endCharge ? charge => (endCharge(charge), charge) : charge => charge;
   }
 
   get chargeRx(): TRx {
@@ -150,7 +131,7 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   }
 
   set(charge: TCharge): TCharge {
-    return this.#passCharge(charge);
+    return charge;
   }
 
   setEntity(rawEntity: string): TCharge {
@@ -161,16 +142,19 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     return this.set(this.#chargeRx.createValue(value, type));
   }
 
-  startMap(): URIChargeRx.MapRx<TValue, TCharge> {
-    return this.#chargeRx.rxMap(this.#passCharge);
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
+    return this.chargeRx.rxMap(parse);
   }
 
-  startList(): URIChargeRx.ListRx<TValue, TCharge> {
-    return this.#chargeRx.rxList(this.#passCharge);
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge {
+    return this.chargeRx.rxList(parse);
   }
 
-  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue, TCharge> {
-    return this.#chargeRx.rxDirective(rawName, this.#passCharge);
+  rxDirective(
+    rawName: string,
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): TCharge {
+    return this.#chargeRx.rxDirective(rawName, parse);
   }
 
 }
@@ -179,11 +163,9 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   implements URIChargeRx.MapRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
-  readonly #endMap: URIChargeRx.End<TCharge> | undefined;
 
-  constructor(chargeRx: TRx, endMap?: URIChargeRx.End<TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
-    this.#endMap = endMap;
   }
 
   get chargeRx(): TRx {
@@ -202,16 +184,38 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
     this.put(key, this.#chargeRx.createValue(value, type));
   }
 
-  startMap(key: string): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.put(key, map));
+  rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
+    this.#chargeRx.rxMap(rx => {
+      const map = parse(rx);
+
+      this.put(key, map);
+
+      return map;
+    });
   }
 
-  startList(key: string): URIChargeRx.ListRx<TValue> {
-    return this.#chargeRx.rxList(list => this.put(key, list));
+  rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
+    this.#chargeRx.rxList(rx => {
+      const list = parse(rx);
+
+      this.put(key, list);
+
+      return list;
+    });
   }
 
-  startDirective(key: string, rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.#chargeRx.rxDirective(rawName, directive => this.put(key, directive));
+  rxDirective(
+    key: string,
+    rawName: string,
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): void {
+    this.#chargeRx.rxDirective(rawName, rx => {
+      const directive = parse(rx);
+
+      this.put(key, directive);
+
+      return directive;
+    });
   }
 
   addSuffix(suffix: string): void {
@@ -219,11 +223,7 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   endMap(): TCharge {
-    const { none } = this.#chargeRx;
-
-    this.#endMap?.(none);
-
-    return none;
+    return this.#chargeRx.none;
   }
 
 }
@@ -256,16 +256,37 @@ abstract class OpaqueURICharge$ItemsRx<
     this.add(this.#chargeRx.createValue(value, type));
   }
 
-  startMap(): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.add(map));
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
+    this.#chargeRx.rxMap(rx => {
+      const charge = parse(rx);
+
+      this.add(charge);
+
+      return charge;
+    });
   }
 
-  startList(): URIChargeRx.ListRx<TValue> {
-    return this.#chargeRx.rxList(list => this.add(list));
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
+    this.#chargeRx.rxList(rx => {
+      const list = parse(rx);
+
+      this.add(list);
+
+      return list;
+    });
   }
 
-  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.#chargeRx.rxDirective(rawName, directive => this.add(directive));
+  rxDirective(
+    rawName: string,
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): void {
+    this.#chargeRx.rxDirective(rawName, rx => {
+      const directive = parse(rx);
+
+      this.add(directive);
+
+      return directive;
+    });
   }
 
 }

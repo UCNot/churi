@@ -284,6 +284,9 @@ describe('parseChURIValue', () => {
   });
 
   describe('map suffix', () => {
+    it('parsed for top-level map', () => {
+      expect(parse('foo(456)suffix').charge).toEqual({ foo: 456, suffix: '' });
+    });
     it('treated as trailing map-valued item of top-level list', () => {
       expect(parse('(123)(456)foo').charge).toEqual([123, 456, { foo: '' }]);
     });
@@ -329,9 +332,9 @@ describe('parseChURIValue', () => {
     });
     it('recognized without parameters', () => {
       const builder = new ChURIValueBuilder();
-      const { rawName, value } = builder.rxDirective('test').endDirective() as ChURIDirective;
+      const { rawName, value } = builder.rxDirective('!test', rx => rx.endDirective()) as ChURIDirective;
 
-      expect(rawName).toBe('test');
+      expect(rawName).toBe('!test');
       expect(value).toBe(builder.none);
     });
   });

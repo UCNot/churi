@@ -57,6 +57,17 @@ export function encodeURIChargeKey(key: string, placement?: URIChargeEncodable.P
 }
 
 /**
+ * Decodes key of URI charge map entry.
+ *
+ * @param encoded - Percent-encoded and possibly escaped key.
+ *
+ * @returns Decoded key.
+ */
+export function decodeURIChargeKey(encoded: string): string {
+  return decodeURIComponent(encoded.startsWith("'") ? encoded.slice(1) : encoded);
+}
+
+/**
  * Encodes URI charge string value.
  *
  * @param key - Entry key to encode.

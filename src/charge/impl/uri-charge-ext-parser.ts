@@ -1,27 +1,48 @@
 import { asArray } from '@proc7ts/primitives';
 import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeTarget } from './uri-charge-target.js';
+import {
+  URIChargeEntryTarget,
+  URIChargeItemTarget,
+  URIChargeValueTarget,
+} from './uri-charge-target.js';
 
 export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
-  readonly #entities = new Map<string, URIChargeExt.EntityHandler<TValue, TCharge>>();
-  readonly #directives = new Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>();
+  readonly #chargeRx: URIChargeRx<TValue, TCharge>;
+  readonly #specs: URIChargeExt.Factory<TValue, TCharge>[];
+
+  #entities?: Map<string, URIChargeExt.EntityHandler<TCharge>>;
+  #directives?: Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>;
+
+  #valueTarget?: URIChargeValueTarget<TValue, TCharge>;
+  #entryTarget?: URIChargeEntryTarget<TValue>;
+  #itemTarget?: URIChargeItemTarget<TValue>;
 
   constructor(
     chargeRx: URIChargeRx<TValue, TCharge>,
     spec: URIChargeExt.Spec<TValue, TCharge> | undefined,
   ) {
-    const exts = asArray(spec).map(spec => spec(chargeRx));
+    this.#chargeRx = chargeRx;
+    this.#specs = asArray(spec);
+  }
 
-    for (const { entities } of exts) {
+  #init(): void {
+    if (this.#entities) {
+      return;
+    }
+
+    this.#entities = new Map();
+    this.#directives = new Map();
+
+    const exts = this.#specs.map(spec => spec(this.#chargeRx));
+
+    for (const { entities, directives } of exts) {
       if (entities) {
         for (const [rawEntity, entity] of Object.entries(entities)) {
           this.#entities.set(rawEntity, entity);
         }
       }
-    }
-    for (const { directives } of exts) {
       if (directives) {
         for (const [rawName, directive] of Object.entries(directives)) {
           this.#directives.set(rawName, directive);
@@ -30,37 +51,28 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  addEntity(to: URIChargeTarget<TValue, TCharge>, rawEntity: string): TCharge {
-    const entityHandler = this.#entities.get(rawEntity);
+  forEntity(rawEntity: string): URIChargeExt.EntityHandler<TCharge> | undefined {
+    this.#init();
 
-    return entityHandler
-      ? entityHandler(new URIChargeExtContext(to), rawEntity)
-      : to.rx.setEntity(rawEntity);
+    return this.#entities!.get(rawEntity);
   }
 
-  startDirective(
-    to: URIChargeTarget<TValue, TCharge>,
-    rawName: string,
-  ): URIChargeRx.DirectiveRx<TValue, TCharge> {
-    return (
-      this.#directives.get(rawName)?.(new URIChargeExtContext(to), rawName)
-      ?? to.rx.startDirective(rawName)
-    );
+  forDirective(rawName: string): URIChargeExt.DirectiveHandler<TValue, TCharge> | undefined {
+    this.#init();
+
+    return this.#directives!.get(rawName);
   }
 
-}
-
-class URIChargeExtContext<out TValue, out TCharge>
-  implements URIChargeExt.Context<TValue, TCharge> {
-
-  readonly #to: URIChargeTarget<TValue, TCharge>;
-
-  constructor(to: URIChargeTarget<TValue, TCharge>) {
-    this.#to = to;
+  get valueTarget(): URIChargeValueTarget<TValue, TCharge> {
+    return (this.#valueTarget ??= new URIChargeValueTarget(this));
   }
 
-  get rx(): URIChargeRx.ValueRx<TValue, TCharge> {
-    return this.#to.rx;
+  get entryTarget(): URIChargeEntryTarget<TValue> {
+    return (this.#entryTarget ??= new URIChargeEntryTarget(this));
+  }
+
+  get itemTarget(): URIChargeItemTarget<TValue> {
+    return (this.#itemTarget ??= new URIChargeItemTarget(this));
   }
 
 }

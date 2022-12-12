@@ -296,9 +296,9 @@ describe('parseURICharge', () => {
       });
     });
     it('recognized without parameters', () => {
-      const charge = new URIChargeBuilder().rxDirective('test').endDirective();
+      const charge = new URIChargeBuilder().rxDirective('!test', rx => rx.endDirective());
 
-      expect(charge).toHaveURIChargeValue({ rawName: 'test', value: undefined });
+      expect(charge).toHaveURIChargeValue({ rawName: '!test', value: undefined });
     });
   });
 

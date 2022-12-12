@@ -1,4 +1,4 @@
-import { encodeURICharge } from './encode-uri-charge.js';
+import { encodeURICharge } from './uri-charge-codec.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
 export type ChURIValue<TValue = ChURIPrimitive> =

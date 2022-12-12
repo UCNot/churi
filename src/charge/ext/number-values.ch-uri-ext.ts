@@ -2,20 +2,20 @@ import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 
 export function NumberValuesChURIExt<TValue, TCharge>(
-  _charge: URIChargeRx<TValue, TCharge>,
+  charge: URIChargeRx<TValue, TCharge>,
 ): URIChargeExt<TValue, TCharge> {
   return {
     entities: {
-      ['!Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
-        return rx.setValue(Infinity, 'number');
+      ['!Infinity'](): TCharge {
+        return charge.createValue(Infinity, 'number');
       },
 
-      ['!-Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
-        return rx.setValue(-Infinity, 'number');
+      ['!-Infinity'](): TCharge {
+        return charge.createValue(-Infinity, 'number');
       },
 
-      ['!NaN']<TCharge>({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
-        return rx.setValue(NaN, 'number');
+      ['!NaN'](): TCharge {
+        return charge.createValue(NaN, 'number');
       },
     },
   };
