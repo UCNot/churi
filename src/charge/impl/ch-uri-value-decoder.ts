@@ -1,37 +1,34 @@
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeExtParser } from './uri-charge-ext-parser.js';
+import { URIChargeTarget } from './uri-charge-target.js';
 
 export type ChURIValueDecoder = <TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
   input: string,
 ) => TCharge;
 
 export function decodeChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
   if (!input) {
     // Empty string treated as is.
-    return rx.setValue('', 'string');
+    return to.setValue('', 'string');
   }
 
   const decoder = CHURI_VALUE_DECODERS[input[0]];
 
   if (decoder) {
-    return decoder(rx, ext, input);
+    return decoder(to, input);
   }
 
-  return decodeStringChURIValue(rx, input);
+  return decodeStringChURIValue(to, input);
 }
 
 export function decodeChURIDirectiveArg<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
-  return decodeChURIValue(rx, ext, input);
+  return decodeChURIValue(to, input);
 }
 
 export type ChURIValuePrefix =
@@ -51,8 +48,7 @@ export type ChURIValuePrefix =
 
 const CHURI_VALUE_DECODERS: {
   readonly [prefix: string]: <TValue, TCharge>(
-    rx: URIChargeRx.ValueRx<TValue, TCharge>,
-    ext: URIChargeExtParser<TValue, TCharge>,
+    to: URIChargeTarget<TValue, TCharge>,
     input: string,
   ) => TCharge;
 } = {
@@ -72,23 +68,21 @@ const CHURI_VALUE_DECODERS: {
 } satisfies { readonly [prefix in ChURIValuePrefix]: unknown };
 
 function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return rx.setValue(true, 'boolean');
+    return to.setValue(true, 'boolean');
   }
   if (input === '!!') {
-    return rx.rxList(rx => rx.endList());
+    return to.rxList(rx => rx.endList());
   }
 
-  return ext.addEntity(rx, input);
+  return to.setEntity(input);
 }
 
 function decodeMinusSignedChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): TCharge {
   if (input.length === 1) {
@@ -109,7 +103,6 @@ function decodeMinusSignedChURIValue<TValue, TCharge>(
 
 function decodeNumberChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): TCharge {
   return rx.setValue(Number(input), 'number');
@@ -117,7 +110,6 @@ function decodeNumberChURIValue<TValue, TCharge>(
 
 function decodeQuotedChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): TCharge {
   return rx.setValue(decodeURIComponent(input.slice(1)), 'string');
@@ -132,7 +124,6 @@ function decodeStringChURIValue<TValue, TCharge>(
 
 function decodeUnsignedChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): TCharge {
   return decodeNumericChURIValue(rx, input, 0, asis);

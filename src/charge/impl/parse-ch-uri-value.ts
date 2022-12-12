@@ -17,12 +17,12 @@ export function parseChURIValue<TValue, TCharge>(
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    return { charge: decoder(to.rx, to.ext, input), end: input.length };
+    return { charge: decoder(to, input), end: input.length };
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
     return {
-      charge: decoder(to.rx, to.ext, input.slice(0, valueEnd)),
+      charge: decoder(to, input.slice(0, valueEnd)),
       end: valueEnd,
     };
   }
@@ -35,7 +35,7 @@ export function parseChURIValue<TValue, TCharge>(
   // Empty key. Start nested list and parse first item.
 
   let end!: number;
-  const charge = to.rx.rxList(listRx => {
+  const charge = to.rxList(listRx => {
     end = parseChURIList(to as URIChargeTarget<TValue>, listRx, input.slice(1)) + 1;
 
     return listRx.endList();
@@ -62,7 +62,7 @@ function parseChURIMapOrDirective<TValue, TCharge>(
     const firstValueOffset = rawKey.length + 1;
     const firstValueInput = input.slice(firstValueOffset);
     let end!: number;
-    const charge = to.ext.rxDirective(to.rx, rawKey, directiveRx => {
+    const charge = to.rxDirective(rawKey, directiveRx => {
       end =
         firstValueOffset
         + parseChURIDirective(to as URIChargeTarget<TValue>, directiveRx, firstValueInput);
@@ -78,7 +78,7 @@ function parseChURIMapOrDirective<TValue, TCharge>(
   const firstValueInput = input.slice(firstValueOffset);
   const firstKey = decodeURIChargeKey(rawKey);
   let end!: number;
-  const charge = to.rx.rxMap(mapRx => {
+  const charge = to.rxMap(mapRx => {
     end =
       firstValueOffset
       + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
@@ -115,7 +115,7 @@ function parseChURIEmptyMap<TValue, TCharge>(
     end = input.length;
   }
 
-  return { charge: to.rx.rxMap(mapRx => mapRx.endMap()), end };
+  return { charge: to.rxMap(mapRx => mapRx.endMap()), end };
 }
 
 function parseChURIMap<TValue>(

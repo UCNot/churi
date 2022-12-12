@@ -29,20 +29,12 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  addEntity(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawEntity: string): TCharge {
-    const entityHandler = this.#entities.get(rawEntity);
-
-    return entityHandler ? entityHandler(rx, rawEntity) : rx.setEntity(rawEntity);
+  forEntity(rawEntity: string): URIChargeExt.EntityHandler<TValue, TCharge> | undefined {
+    return this.#entities.get(rawEntity);
   }
 
-  rxDirective(
-    rx: URIChargeRx.ValueRx<TValue, TCharge>,
-    rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
-    const handler = this.#directives.get(rawName);
-
-    return handler ? handler(rx, rawName, parse) : rx.rxDirective(rawName, parse);
+  forDirective(rawName: string): URIChargeExt.DirectiveHandler<TValue, TCharge> | undefined {
+    return this.#directives.get(rawName);
   }
 
 }
