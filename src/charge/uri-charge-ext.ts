@@ -47,17 +47,13 @@ export namespace URIChargeExt {
     extendCharge(chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
   }['extendCharge'];
 
-  export interface Context<out TValue = unknown, out TCharge = unknown> {
-    readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
-  }
-
   export type EntityHandler<out TValue = unknown, out TCharge = unknown> = {
-    createEntity(context: Context<TValue, TCharge>, rawEntity: string): TCharge;
+    createEntity(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawEntity: string): TCharge;
   }['createEntity'];
 
   export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = {
     rxDirective(
-      context: Context<TValue, TCharge>,
+      rx: URIChargeRx.ValueRx<TValue, TCharge>,
       rawName: string,
       parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
     ): TCharge;

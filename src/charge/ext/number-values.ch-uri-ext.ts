@@ -6,15 +6,15 @@ export function NumberValuesChURIExt<TValue, TCharge>(
 ): URIChargeExt<TValue, TCharge> {
   return {
     entities: {
-      ['!Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+      ['!Infinity'](rx: URIChargeRx.ValueRx<TValue, TCharge>): TCharge {
         return rx.setValue(Infinity, 'number');
       },
 
-      ['!-Infinity']({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+      ['!-Infinity'](rx: URIChargeRx.ValueRx<TValue, TCharge>): TCharge {
         return rx.setValue(-Infinity, 'number');
       },
 
-      ['!NaN']<TCharge>({ rx }: URIChargeExt.Context<TValue, TCharge>): TCharge {
+      ['!NaN']<TCharge>(rx: URIChargeRx.ValueRx<TValue, TCharge>): TCharge {
         return rx.setValue(NaN, 'number');
       },
     },

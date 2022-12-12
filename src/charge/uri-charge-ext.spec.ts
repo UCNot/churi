@@ -17,12 +17,12 @@ describe('URIChargeExt', () => {
           ChURIValue<ChURIPrimitive | TestValue>
         > => ({
           entities: {
-            ['!test']({
-              rx,
-            }: URIChargeExt.Context<
-              ChURIPrimitive | TestValue,
-              ChURIValue<ChURIPrimitive | TestValue>
-            >): ChURIValue<ChURIPrimitive | TestValue> {
+            ['!test'](
+              rx: URIChargeRx.ValueRx<
+                ChURIPrimitive | TestValue,
+                ChURIValue<ChURIPrimitive | TestValue>
+              >,
+            ): ChURIValue<ChURIPrimitive | TestValue> {
               return rx.set({ [test__symbol]: 'test value' });
             },
           },
@@ -58,7 +58,7 @@ describe('URIChargeExt', () => {
         > => ({
           directives: {
             ['!test'](
-              { rx },
+              rx,
               rawName: string,
               parse: (
                 rx: URIChargeRx.DirectiveRx<

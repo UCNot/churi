@@ -10,11 +10,14 @@ export function parseChURIValue<TValue, TCharge>(
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    return { charge: to.decoder.decodeValue(to, input), end: input.length };
+    return { charge: to.decoder.decodeValue(to.rx, to.ext, input), end: input.length };
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
-    return { charge: to.decoder.decodeValue(to, input.slice(0, valueEnd)), end: valueEnd };
+    return {
+      charge: to.decoder.decodeValue(to.rx, to.ext, input.slice(0, valueEnd)),
+      end: valueEnd,
+    };
   }
 
   // Opening parent.
@@ -52,7 +55,7 @@ function parseChURIMapOrDirective<TValue, TCharge>(
     const firstValueOffset = rawKey.length + 1;
     const firstValueInput = input.slice(firstValueOffset);
     let end!: number;
-    const charge = to.ext.rxDirective(to, rawKey, directiveRx => {
+    const charge = to.ext.rxDirective(to.rx, rawKey, directiveRx => {
       end =
         firstValueOffset
         + parseChURIDirective(to as URIChargeTarget<TValue>, directiveRx, firstValueInput);

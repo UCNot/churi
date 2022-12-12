@@ -1,7 +1,6 @@
 import { asArray } from '@proc7ts/primitives';
 import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeTarget } from './uri-charge-target.js';
 
 export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
@@ -30,39 +29,20 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  addEntity(to: URIChargeTarget<TValue, TCharge>, rawEntity: string): TCharge {
+  addEntity(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawEntity: string): TCharge {
     const entityHandler = this.#entities.get(rawEntity);
 
-    return entityHandler
-      ? entityHandler(new URIChargeExtContext(to), rawEntity)
-      : to.rx.setEntity(rawEntity);
+    return entityHandler ? entityHandler(rx, rawEntity) : rx.setEntity(rawEntity);
   }
 
   rxDirective(
-    to: URIChargeTarget<TValue, TCharge>,
+    rx: URIChargeRx.ValueRx<TValue, TCharge>,
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
   ): TCharge {
     const handler = this.#directives.get(rawName);
 
-    return handler
-      ? handler(new URIChargeExtContext(to), rawName, parse)
-      : to.rx.rxDirective(rawName, parse);
-  }
-
-}
-
-class URIChargeExtContext<out TValue, out TCharge>
-  implements URIChargeExt.Context<TValue, TCharge> {
-
-  readonly #to: URIChargeTarget<TValue, TCharge>;
-
-  constructor(to: URIChargeTarget<TValue, TCharge>) {
-    this.#to = to;
-  }
-
-  get rx(): URIChargeRx.ValueRx<TValue, TCharge> {
-    return this.#to.rx;
+    return handler ? handler(rx, rawName, parse) : rx.rxDirective(rawName, parse);
   }
 
 }
