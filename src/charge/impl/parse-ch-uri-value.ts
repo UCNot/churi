@@ -1,6 +1,6 @@
+import { decodeURIChargeKey } from '../uri-charge-codec.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { decodeChURIKey } from './ch-uri-value-decoder.js';
 import { ChURIItemTarget, ChURIMapEntryTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseChURIValue<TValue, TCharge>(
@@ -70,7 +70,7 @@ function parseChURIMapOrDirective<TValue, TCharge>(
   // Start nested map and parse first entry.
   const firstValueOffset = rawKey.length + 1;
   const firstValueInput = input.slice(firstValueOffset);
-  const firstKey = decodeChURIKey(rawKey);
+  const firstKey = decodeURIChargeKey(rawKey);
   let end!: number;
   const charge = to.rx.rxMap(mapRx => {
     end =
@@ -147,7 +147,7 @@ function parseChURIMapEntries<TValue>(
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      to.forKey(decodeChURIKey(input)).addSuffix();
+      to.forKey(decodeURIChargeKey(input)).addSuffix();
 
       return offset + input.length;
     }
@@ -155,7 +155,7 @@ function parseChURIMapEntries<TValue>(
     if (keyEnd) {
       // New key specified explicitly.
       // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
-      to = to.forKey(decodeChURIKey(input.slice(0, keyEnd)));
+      to = to.forKey(decodeURIChargeKey(input.slice(0, keyEnd)));
     }
     if (input[keyEnd] === ')') {
       if (keyEnd) {
@@ -265,7 +265,7 @@ function parseChURIListItems<TValue>(
       // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
       to.rxMap(suffixRx => {
-        suffixRx.addSuffix(decodeChURIKey(input));
+        suffixRx.addSuffix(decodeURIChargeKey(input));
 
         return suffixRx.endMap();
       });

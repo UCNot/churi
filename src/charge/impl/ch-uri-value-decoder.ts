@@ -15,10 +15,6 @@ export const defaultChURIValueDecoder: ChURIValueDecoder = {
   decodeValue: decodeChURIValue,
 };
 
-export function decodeChURIKey(rawKey: string): string {
-  return decodeURIComponent(rawKey.startsWith("'") ? rawKey.slice(1) : rawKey);
-}
-
 function decodeChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
   ext: URIChargeExtParser<TValue, TCharge>,

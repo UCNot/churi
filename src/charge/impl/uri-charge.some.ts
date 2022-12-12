@@ -1,4 +1,4 @@
-import { encodeURICharge, encodeURIChargeList, encodeURIChargeMap } from '../encode-uri-charge.js';
+import { encodeURICharge, encodeURIChargeList, encodeURIChargeMap } from '../uri-charge-codec.js';
 import { URIChargeEncodable } from '../uri-charge-encodable.js';
 import { URICharge, URIChargeItem } from '../uri-charge.js';
 
