@@ -1,5 +1,5 @@
 import { ChURIPrimitive } from './ch-uri-value.js';
-import { defaultChURIValueDecoder } from './impl/ch-uri-value-decoder.js';
+import { decodeChURIValue } from './impl/ch-uri-value-decoder.js';
 import { parseChURIValue } from './impl/parse-ch-uri-value.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
 import { URIChargeTarget } from './impl/uri-charge-target.js';
@@ -39,11 +39,9 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
-    const decoder = defaultChURIValueDecoder;
-
     const to: URIChargeTarget<TValue, TCharge> = {
       rx,
-      decoder,
+      decoder: decodeChURIValue,
       ext: this.#extParser,
     };
 

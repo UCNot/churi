@@ -1,21 +1,13 @@
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
-export interface ChURIValueDecoder {
-  decodeString(rawString: string): string;
-  decodeValue<TValue, TCharge>(
-    rx: URIChargeRx.ValueRx<TValue, TCharge>,
-    ext: URIChargeExtParser<TValue, TCharge>,
-    input: string,
-  ): TCharge;
-}
+export type ChURIValueDecoder = <TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+) => TCharge;
 
-export const defaultChURIValueDecoder: ChURIValueDecoder = {
-  decodeString: decodeURIComponent,
-  decodeValue: decodeChURIValue,
-};
-
-function decodeChURIValue<TValue, TCharge>(
+export function decodeChURIValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
   ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
