@@ -140,7 +140,6 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
   extends OpaqueMapRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
   implements URIChargeBuilder.MapRx<TValue, TRx> {
 
-  readonly #endMap?: URIChargeRx.End<URICharge.Map<TValue>>;
   readonly #map: Map<string, URICharge.Some<TValue>>;
 
   constructor(chargeRx: TRx, base?: URICharge.Map<TValue>) {
@@ -189,11 +188,7 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
   }
 
   override endMap(): URICharge.Map<TValue> {
-    const map = new URICharge$Map(this.#map);
-
-    this.#endMap?.(map);
-
-    return map;
+    return new URICharge$Map(this.#map);
   }
 
 }

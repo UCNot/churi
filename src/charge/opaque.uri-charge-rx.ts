@@ -32,19 +32,8 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       extends this.ItemsRx<TValue, TCharge, TRx>
       implements URIChargeRx.ListRx<TValue, TCharge, TRx> {
 
-      readonly #endList: URIChargeRx.End<TCharge> | undefined;
-
-      constructor(chargeRx: TRx, endList?: URIChargeRx.End<TCharge>) {
-        super(chargeRx);
-        this.#endList = endList;
-      }
-
       endList(): TCharge {
-        const { none } = this.chargeRx;
-
-        this.#endList?.(none);
-
-        return none;
+        return this.chargeRx.none;
       }
 
 }
@@ -66,12 +55,10 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
 
       readonly #rawName: string;
-      readonly #endDirective: URIChargeRx.End<TCharge> | undefined;
 
-      constructor(chargeRx: TRx, rawName: string, endDirective?: URIChargeRx.End<TCharge>) {
+      constructor(chargeRx: TRx, rawName: string) {
         super(chargeRx);
         this.#rawName = rawName;
-        this.#endDirective = endDirective;
       }
 
       get rawName(): string {
@@ -79,11 +66,7 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
       }
 
       endDirective(): TCharge {
-        const { none } = this.chargeRx;
-
-        this.#endDirective?.(none);
-
-        return none;
+        return this.chargeRx.none;
       }
 
 }

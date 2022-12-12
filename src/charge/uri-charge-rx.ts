@@ -32,10 +32,6 @@ export namespace URIChargeRx {
     readonly none: TCharge;
   }
 
-  export type End<out TCharge> = {
-    endCharge(this: void, charge: TCharge): void;
-  }['endCharge'];
-
   export type Parser<TRx, TCharge> = {
     parse(this: void, rx: TRx): TCharge;
   }['parse'];
