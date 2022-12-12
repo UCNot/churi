@@ -155,11 +155,11 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
 
   override rxMap(
     key: string,
-    parse: (rx: URIChargeRx.MapRx<URIChargeItem<TValue>>) => URICharge<TValue>,
-  ): URICharge<TValue> {
+    parse: (rx: URIChargeBuilder.MapRx<TValue>) => URICharge<TValue>,
+  ): void {
     const prevCharge = this.#map.get(key);
 
-    return this.chargeRx.rxMap(
+    this.chargeRx.rxMap(
       rx => {
         const map = parse(rx);
 
@@ -174,11 +174,11 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
 
   override rxList(
     key: string,
-    parse: (rx: URIChargeRx.ListRx<URIChargeItem<TValue>>) => URICharge<TValue>,
-  ): URICharge<TValue> {
+    parse: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>,
+  ): void {
     const prevCharge = this.#map.get(key);
 
-    return this.chargeRx.rxList(rx => {
+    this.chargeRx.rxList(rx => {
       const list = parse(rx);
 
       this.put(key, list);

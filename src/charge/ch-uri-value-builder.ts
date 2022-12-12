@@ -161,8 +161,8 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
   override rxMap(
     key: string,
     parse: (rx: ChURIValueBuilder.MapRx<TValue>) => ChURIValue<TValue>,
-  ): ChURIValue<TValue> {
-    return this.chargeRx.rxMap(parse, this.#addMap(key));
+  ): void {
+    this.chargeRx.rxMap(parse, this.#addMap(key));
   }
 
   #addMap(key: string): ChURIMap<TValue> {
@@ -181,8 +181,8 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
   override rxList(
     key: string,
     parse: (rx: ChURIValueBuilder.ListRx<TValue>) => ChURIValue<TValue>,
-  ): ChURIValue<TValue> {
-    return this.chargeRx.rxList(parse, this.#addList(key));
+  ): void {
+    this.chargeRx.rxList(parse, this.#addList(key));
   }
 
   #addList(key: string): ChURIList<TValue> {

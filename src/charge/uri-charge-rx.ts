@@ -82,15 +82,15 @@ export namespace URIChargeRx {
 
     putValue(key: string, value: ChURIPrimitive | TValue, type: string): void;
 
-    rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue>) => TCharge): TCharge;
+    rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
-    rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue>) => TCharge): TCharge;
+    rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
 
     rxDirective(
       key: string,
       rawName: string,
-      parse: (rx: URIChargeRx.DirectiveRx<TValue>) => TCharge,
-    ): TCharge;
+      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    ): void;
 
     addSuffix(suffix: string): void;
 
@@ -120,11 +120,14 @@ export namespace URIChargeRx {
 
     addValue(value: ChURIPrimitive | TValue, type: string): void;
 
-    rxMap(parse: (rx: URIChargeRx.MapRx<TValue>) => TCharge): TCharge;
+    rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
-    rxList(parse: (rx: URIChargeRx.ListRx<TValue>) => TCharge): TCharge;
+    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
 
-    rxDirective(rawName: string, parse: (rx: URIChargeRx.DirectiveRx<TValue>) => TCharge): TCharge;
+    rxDirective(
+      rawName: string,
+      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    ): void;
   }
 
   export namespace ItemsRx {
