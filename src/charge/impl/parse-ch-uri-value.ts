@@ -1,11 +1,6 @@
 import { URIChargeParser } from '../uri-charge-parser.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import {
-  ChURIDirectiveArgsTarget as ChURIDirectiveArgTarget,
-  ChURIListItemTarget,
-  ChURIMapEntryTarget,
-  URIChargeTarget,
-} from './uri-charge-target.js';
+import { ChURIItemTarget, ChURIMapEntryTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
@@ -29,10 +24,14 @@ export function parseChURIValue<TValue, TCharge>(
 
   // Empty key. Start nested list and parse first item.
 
-  const listRx = to.rx.startList();
-  const listEnd = parseChURIList(to as URIChargeTarget<TValue>, listRx, input.slice(1)) + 1;
+  let end!: number;
+  const charge = to.rx.rxList(listRx => {
+    end = parseChURIList(to as URIChargeTarget<TValue>, listRx, input.slice(1)) + 1;
 
-  return { charge: listRx.endList(), end: listEnd };
+    return listRx.endList();
+  });
+
+  return { charge, end };
 }
 
 const PARENT_PATTERN = /[()]/;
@@ -52,28 +51,32 @@ function parseChURIMapOrDirective<TValue, TCharge>(
     // Handle directive.
     const firstValueOffset = rawKey.length + 1;
     const firstValueInput = input.slice(firstValueOffset);
-    const directiveRx = to.ext.startDirective(to, rawKey);
-    const directiveEnd =
-      firstValueOffset
-      + parseChURIDirective(to as URIChargeTarget<TValue>, directiveRx, firstValueInput);
+    let end!: number;
+    const charge = to.ext.rxDirective(to, rawKey, directiveRx => {
+      end =
+        firstValueOffset
+        + parseChURIDirective(to as URIChargeTarget<TValue>, directiveRx, firstValueInput);
 
-    return { charge: directiveRx.endDirective(), end: directiveEnd };
+      return directiveRx.endDirective();
+    });
+
+    return { charge, end };
   }
 
   // Start nested map and parse first entry.
   const firstValueOffset = rawKey.length + 1;
   const firstValueInput = input.slice(firstValueOffset);
   const firstKey = to.decoder.decodeKey(rawKey);
-  let mapEnd!: number;
+  let end!: number;
   const charge = to.rx.rxMap(mapRx => {
-    mapEnd =
+    end =
       firstValueOffset
       + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
 
     return mapRx.endMap();
   });
 
-  return { charge, end: mapEnd };
+  return { charge, end };
 }
 
 const EMPTY_MAP = '!())';
@@ -134,14 +137,12 @@ function parseChURIMapEntries<TValue>(
   to: ChURIMapEntryTarget<TValue>,
   input: string /* never empty */,
 ): number {
-  let toList: ChURIListItemTarget<TValue> | undefined;
   let offset = 0;
 
   for (;;) {
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      toList?.endList();
       to.forKey(to.decoder.decodeKey(input)).addSuffix();
 
       return offset + input.length;
@@ -151,34 +152,31 @@ function parseChURIMapEntries<TValue>(
       // New key specified explicitly.
       // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
       to = to.forKey(to.decoder.decodeKey(input.slice(0, keyEnd)));
-      if (toList) {
-        // End the list value of preceding entry.
-        toList.endList();
-        toList = undefined;
-      }
     }
-
     if (input[keyEnd] === ')') {
-      toList?.endList();
       if (keyEnd) {
         to.addSuffix();
       }
 
       return offset + keyEnd;
     }
-    if (!keyEnd && !toList) {
+
+    let nextKeyStart!: number;
+
+    if (!keyEnd) {
       // Convert entry value to list if not converted yet, and continue appending to it.
-      toList = new ChURIListItemTarget(to, to.startList());
+      to.rxList(rx => {
+        nextKeyStart = parseChURIMapEntryItems(new ChURIItemTarget(to, rx), input);
+
+        return rx.endList();
+      });
+    } else {
+      input = input.slice(keyEnd + 1);
+      offset += keyEnd + 1;
+      nextKeyStart = parseChURIValue(to, input).end + 1;
     }
 
-    input = input.slice(keyEnd + 1);
-    offset += keyEnd + 1;
-
-    const nextKeyStart = parseChURIValue(toList ?? to, input).end + 1;
-
     if (nextKeyStart >= input.length) {
-      toList?.endList();
-
       return offset + input.length;
     }
 
@@ -187,12 +185,38 @@ function parseChURIMapEntries<TValue>(
   }
 }
 
+function parseChURIMapEntryItems<TValue>(
+  to: ChURIItemTarget<TValue>,
+  input: string /* never empty */,
+): number {
+  let offset = 0;
+
+  for (;;) {
+    input = input.slice(1);
+    ++offset;
+
+    const nextTokenStart = parseChURIValue(to, input).end + 1;
+
+    if (nextTokenStart >= input.length) {
+      return offset + input.length;
+    }
+
+    if (input[nextTokenStart] !== '(') {
+      // Not a next item.
+      return offset + nextTokenStart;
+    }
+
+    input = input.slice(nextTokenStart);
+    offset += nextTokenStart;
+  }
+}
+
 function parseChURIList<TValue>(
   parent: URIChargeTarget<TValue>,
   listRx: URIChargeRx.ListRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(new ChURIListItemTarget(parent, listRx), firstValueInput);
+  return parseChURIListOrDirective(new ChURIItemTarget(parent, listRx), firstValueInput);
 }
 
 function parseChURIDirective<TValue>(
@@ -200,14 +224,11 @@ function parseChURIDirective<TValue>(
   directiveRx: URIChargeRx.DirectiveRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(
-    new ChURIDirectiveArgTarget(parent, directiveRx),
-    firstValueInput,
-  );
+  return parseChURIListOrDirective(new ChURIItemTarget(parent, directiveRx), firstValueInput);
 }
 
 function parseChURIListOrDirective<TValue>(
-  to: ChURIListItemTarget<TValue> | ChURIDirectiveArgTarget<TValue>,
+  to: ChURIItemTarget<TValue>,
   firstValueInput: string,
 ): number {
   // Opening parent without preceding key.
@@ -228,7 +249,7 @@ function parseChURIListOrDirective<TValue>(
 }
 
 function parseChURIListItems<TValue>(
-  to: ChURIListItemTarget<TValue> | ChURIDirectiveArgTarget<TValue>,
+  to: ChURIItemTarget<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;

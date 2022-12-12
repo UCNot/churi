@@ -78,7 +78,7 @@ describe('OpaqueURIChargeRx', () => {
       it('ignores charge', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.rxMap('key', rx => rx.endMap());
+            rx.rxMap('key', nestedRx => nestedRx.endMap());
 
             return rx.endMap();
           }),
@@ -90,7 +90,7 @@ describe('OpaqueURIChargeRx', () => {
       it('ignores charge', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.startList('key').endList();
+            rx.rxList('key', listRx => listRx.endList());
 
             return rx.endMap();
           }),
@@ -102,7 +102,7 @@ describe('OpaqueURIChargeRx', () => {
       it('ignores charge', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.startDirective('key', '!test').endDirective();
+            rx.rxDirective('key', '!test', directiveRx => directiveRx.endDirective());
 
             return rx.endMap();
           }),
@@ -112,19 +112,15 @@ describe('OpaqueURIChargeRx', () => {
   });
 
   describe('ListRx', () => {
-    let rx: URIChargeRx.ListRx;
-    let received: unknown;
-
-    beforeEach(() => {
-      rx = chargeRx.rxList(charge => {
-        received = charge;
-      });
-      received = undefined;
-    });
-
     it('is instance of `ListRx`', () => {
-      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ListRx);
-      expect(rx).not.toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
+      let listRx!: URIChargeRx.ListRx;
+
+      chargeRx.rxList(rx => {
+        listRx = rx;
+      });
+
+      expect(listRx).toBeInstanceOf(OpaqueURIChargeRx.ListRx);
+      expect(listRx).not.toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
     });
     it('is inherited from `ItemsRx`', () => {
       const rx = new OpaqueURIChargeRx.ListRx(chargeRx);
@@ -132,27 +128,28 @@ describe('OpaqueURIChargeRx', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
     });
     it('ignores charge', () => {
-      rx.add('some');
+      expect(
+        chargeRx.rxList(rx => {
+          rx.add('some');
 
-      expect(rx.endList()).toBe(NONE);
-      expect(received).toBe(NONE);
+          return rx.endList();
+        }),
+      ).toBe(NONE);
     });
   });
 
   describe('DirectiveRx', () => {
-    let rx: URIChargeRx.DirectiveRx;
-    let received: unknown;
-
-    beforeEach(() => {
-      rx = chargeRx.rxDirective('!test', charge => {
-        received = charge;
-      });
-      received = undefined;
-    });
-
     it('is instance of `DirectiveRx`', () => {
-      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
-      expect(rx).not.toBeInstanceOf(OpaqueURIChargeRx.ListRx);
+      let directiveRx!: URIChargeRx.DirectiveRx;
+
+      chargeRx.rxDirective('!test', rx => {
+        directiveRx = rx;
+
+        return rx.endDirective();
+      });
+
+      expect(directiveRx).toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
+      expect(directiveRx).not.toBeInstanceOf(OpaqueURIChargeRx.ListRx);
     });
     it('is inherited from `ItemsRx`', () => {
       const rx = new OpaqueURIChargeRx.DirectiveRx(chargeRx, '!test');
@@ -160,10 +157,13 @@ describe('OpaqueURIChargeRx', () => {
       expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
     });
     it('ignores charge', () => {
-      rx.add('some');
+      expect(
+        chargeRx.rxDirective('!test', rx => {
+          rx.add('some');
 
-      expect(rx.endDirective()).toBe(NONE);
-      expect(received).toBe(NONE);
+          return rx.endDirective();
+        }),
+      ).toBe(NONE);
     });
 
     describe('rawName', () => {

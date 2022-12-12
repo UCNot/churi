@@ -259,13 +259,14 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
 
   #parseList(parser: URIChargeParser<TValue, TCharge>, rawValues: string[]): TCharge {
     const { chargeRx } = parser;
-    const listRx = chargeRx.rxList();
 
-    for (const rawValue of rawValues) {
-      listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
-    }
+    return chargeRx.rxList(listRx => {
+      for (const rawValue of rawValues) {
+        listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
+      }
 
-    return listRx.endList();
+      return listRx.endList();
+    });
   }
 
 }
@@ -318,13 +319,14 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
 
   #parseList(parser: URIChargeParser<TValue, TCharge>, values: string[]): TCharge {
     const { chargeRx } = parser;
-    const listRx = chargeRx.rxList();
 
-    for (const value of values) {
-      listRx.addValue(value, 'string');
-    }
+    return chargeRx.rxList(listRx => {
+      for (const value of values) {
+        listRx.addValue(value, 'string');
+      }
 
-    return listRx.endList();
+      return listRx.endList();
+    });
   }
 
 }

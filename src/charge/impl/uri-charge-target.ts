@@ -71,12 +71,12 @@ export class ChURIMapEntryTarget<out TValue>
     this.#mapRx.rxMap(this.#key, parse);
   }
 
-  startList(): URIChargeRx.ListRx<TValue> {
-    return this.#mapRx.startList(this.#key);
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue>) => void): void {
+    this.#mapRx.rxList(this.#key, parse);
   }
 
-  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.#mapRx.startDirective(this.#key, rawName);
+  rxDirective(rawName: string, parse: (rx: URIChargeRx.DirectiveRx<TValue>) => void): void {
+    this.#mapRx.rxDirective(this.#key, rawName, parse);
   }
 
   addSuffix(): void {
@@ -85,19 +85,21 @@ export class ChURIMapEntryTarget<out TValue>
 
 }
 
-abstract class ChURIItemTarget<out TValue, TRx extends URIChargeRx.ItemsRx<TValue>>
+export class ChURIItemTarget<out TValue>
   implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #decoder: ChURIValueDecoder;
   readonly #ext: URIChargeExtParser<TValue, unknown>;
+  readonly #itemsRx: URIChargeRx.ItemsRx<TValue>;
 
-  constructor(parent: URIChargeTarget<TValue>, protected readonly itemsRx: TRx) {
+  constructor(parent: URIChargeTarget<TValue>, itemsRx: URIChargeRx.ItemsRx<TValue>) {
     this.#decoder = parent.decoder;
     this.#ext = parent.ext;
+    this.#itemsRx = itemsRx;
   }
 
   get chargeRx(): URIChargeRx<TValue> {
-    return this.itemsRx.chargeRx;
+    return this.#itemsRx.chargeRx;
   }
 
   get rx(): this {
@@ -117,43 +119,27 @@ abstract class ChURIItemTarget<out TValue, TRx extends URIChargeRx.ItemsRx<TValu
   }
 
   set(charge: unknown): unknown {
-    return this.itemsRx.add(charge);
+    return this.#itemsRx.add(charge);
   }
 
   setEntity(rawEntity: string): void {
-    this.itemsRx.addEntity(rawEntity);
+    this.#itemsRx.addEntity(rawEntity);
   }
 
   setValue(value: ChURIPrimitive | TValue, type: string): void {
-    this.itemsRx.addValue(value, type);
+    this.#itemsRx.addValue(value, type);
   }
 
   rxMap(parse: (rx: URIChargeRx.MapRx<TValue>) => void): void {
-    this.itemsRx.rxMap(parse);
+    this.#itemsRx.rxMap(parse);
   }
 
-  startList(): URIChargeRx.ListRx<TValue> {
-    return this.itemsRx.startList();
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue>) => void): void {
+    this.#itemsRx.rxList(parse);
   }
 
-  startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue> {
-    return this.itemsRx.startDirective(rawName);
-  }
-
-}
-
-export class ChURIListItemTarget<out TValue> extends ChURIItemTarget<
-  TValue,
-  URIChargeRx.ListRx<TValue>
-> {
-
-  endList(): void {
-    this.itemsRx.endList();
+  rxDirective(rawName: string, parse: (rx: URIChargeRx.DirectiveRx<TValue>) => void): void {
+    this.#itemsRx.rxDirective(rawName, parse);
   }
 
 }
-
-export class ChURIDirectiveArgsTarget<out TValue> extends ChURIItemTarget<
-  TValue,
-  URIChargeRx.DirectiveRx<TValue>
-> {}

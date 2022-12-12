@@ -60,11 +60,14 @@ describe('URIChargeExt', () => {
             ['!test'](
               { rx },
               rawName: string,
-            ): URIChargeRx.DirectiveRx<
-              ChURIPrimitive | TestValue,
-              ChURIValue<ChURIPrimitive | TestValue>
-            > {
-              return new TestDirectiveRx(rx, rawName);
+              parse: (
+                rx: URIChargeRx.DirectiveRx<
+                  ChURIPrimitive | TestValue,
+                  ChURIValue<ChURIPrimitive | TestValue>
+                >,
+              ) => ChURIValue<ChURIPrimitive | TestValue>,
+            ): ChURIValue<ChURIPrimitive | TestValue> {
+              return parse(new TestDirectiveRx(rx, rawName));
             },
           },
         }),

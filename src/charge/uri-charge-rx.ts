@@ -11,12 +11,12 @@ export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
 
   rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge;
 
-  rxList(endList?: URIChargeRx.End<TCharge>): URIChargeRx.ListRx<TValue, TCharge>;
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge;
 
   rxDirective(
     rawName: string,
-    endDirective?: URIChargeRx.End<TCharge> | undefined,
-  ): URIChargeRx.DirectiveRx<TValue, TCharge>;
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): TCharge;
 }
 
 export namespace URIChargeRx {
@@ -55,9 +55,12 @@ export namespace URIChargeRx {
 
     rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge;
 
-    startList(): ListRx<TValue, TCharge>;
+    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge;
 
-    startDirective(rawName: string): DirectiveRx<TValue, TCharge>;
+    rxDirective(
+      rawName: string,
+      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    ): TCharge;
   }
 
   export namespace ValueRx {
@@ -85,9 +88,13 @@ export namespace URIChargeRx {
 
     rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue>) => TCharge): TCharge;
 
-    startList(key: string): ListRx<TValue>;
+    rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue>) => TCharge): TCharge;
 
-    startDirective(key: string, rawName: string): DirectiveRx<TValue>;
+    rxDirective(
+      key: string,
+      rawName: string,
+      parse: (rx: URIChargeRx.DirectiveRx<TValue>) => TCharge,
+    ): TCharge;
 
     addSuffix(suffix: string): void;
 
@@ -119,9 +126,9 @@ export namespace URIChargeRx {
 
     rxMap(parse: (rx: URIChargeRx.MapRx<TValue>) => TCharge): TCharge;
 
-    startList(): ListRx<TValue>;
+    rxList(parse: (rx: URIChargeRx.ListRx<TValue>) => TCharge): TCharge;
 
-    startDirective(rawName: string): DirectiveRx<TValue>;
+    rxDirective(rawName: string, parse: (rx: URIChargeRx.DirectiveRx<TValue>) => TCharge): TCharge;
   }
 
   export namespace ItemsRx {
@@ -131,7 +138,6 @@ export namespace URIChargeRx {
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
       chargeRx: TRx,
-      endItems?: End<TCharge>,
     ) => ItemsRx<TValue, TCharge, TRx>;
   }
 
@@ -150,7 +156,6 @@ export namespace URIChargeRx {
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
       chargeRx: TRx,
-      endList?: End<TCharge>,
     ) => ListRx<TValue, TCharge, TRx>;
   }
 
@@ -172,7 +177,6 @@ export namespace URIChargeRx {
     >(
       chargeRx: TRx,
       rawName: string,
-      endDirective?: End<TCharge>,
     ) => DirectiveRx<TValue, TCharge, TRx>;
   }
 }

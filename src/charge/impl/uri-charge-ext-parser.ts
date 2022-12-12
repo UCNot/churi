@@ -38,14 +38,16 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
       : to.rx.setEntity(rawEntity);
   }
 
-  startDirective(
+  rxDirective(
     to: URIChargeTarget<TValue, TCharge>,
     rawName: string,
-  ): URIChargeRx.DirectiveRx<TValue, TCharge> {
-    return (
-      this.#directives.get(rawName)?.(new URIChargeExtContext(to), rawName)
-      ?? to.rx.startDirective(rawName)
-    );
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+  ): TCharge {
+    const handler = this.#directives.get(rawName);
+
+    return handler
+      ? handler(new URIChargeExtContext(to), rawName, parse)
+      : to.rx.rxDirective(rawName, parse);
   }
 
 }

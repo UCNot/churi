@@ -59,6 +59,7 @@ export namespace URIChargeExt {
     rxDirective(
       context: Context<TValue, TCharge>,
       rawName: string,
-    ): URIChargeRx.DirectiveRx<TValue, TCharge>;
+      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    ): TCharge;
   }['rxDirective'];
 }

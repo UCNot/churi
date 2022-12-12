@@ -44,26 +44,31 @@ export class ChURIValueBuilder<out TValue = ChURIPrimitive>
     return value;
   }
 
-  rxValue<T>(parse: (rx: ChURIValueBuilder.ValueRx<TValue>) => T): T {
+  rxValue(
+    parse: (rx: ChURIValueBuilder.ValueRx<TValue>) => ChURIValue<TValue>,
+  ): ChURIValue<TValue> {
     return parse(new this.ns.ValueRx(this));
   }
 
-  rxMap<T>(parse: (rx: ChURIValueBuilder.MapRx<TValue>) => T, map?: ChURIMap<TValue>): T {
+  rxMap(
+    parse: (rx: ChURIValueBuilder.MapRx<TValue>) => ChURIValue<TValue>,
+    map?: ChURIMap<TValue>,
+  ): ChURIValue<TValue> {
     return parse(new this.ns.MapRx(this, map));
   }
 
   rxList(
-    endList?: URIChargeRx.End<ChURIList<TValue>>,
+    parse: (rx: ChURIValueBuilder.ListRx<TValue>) => ChURIValue<TValue>,
     list?: ChURIList<TValue>,
-  ): ChURIValueBuilder.ListRx<TValue> {
-    return new this.ns.ListRx(this, endList, list);
+  ): ChURIValue<TValue> {
+    return parse(new this.ns.ListRx(this, list));
   }
 
   rxDirective(
     rawName: string,
-    endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>,
-  ): ChURIValueBuilder.DirectiveRx<TValue> {
-    return new this.ns.DirectiveRx(this, rawName, endDirective);
+    parse: (rx: ChURIValueBuilder.DirectiveRx<TValue>) => ChURIValue<TValue>,
+  ): ChURIValue<TValue> {
+    return parse(new this.ns.DirectiveRx(this, rawName));
   }
 
 }
@@ -101,7 +106,7 @@ export namespace ChURIValueBuilder {
       TRx extends ChURIValueBuilder<TValue> = ChURIValueBuilder<TValue>,
     >(
       chargeRx: TRx,
-      list?: ChURIMap<TValue>,
+      map?: ChURIMap<TValue>,
     ) => MapRx<TValue, TRx>;
   }
 
@@ -116,7 +121,6 @@ export namespace ChURIValueBuilder {
       TRx extends ChURIValueBuilder<TValue> = ChURIValueBuilder<TValue>,
     >(
       chargeRx: TRx,
-      endList?: URIChargeRx.End<ChURIList<TValue>>,
       list?: ChURIList<TValue>,
     ) => ListRx<TValue, TRx>;
   }
@@ -133,7 +137,6 @@ export namespace ChURIValueBuilder {
     >(
       chargeRx: TRx,
       rawName: string,
-      endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>,
     ) => DirectiveRx<TValue, TRx>;
   }
 }
@@ -145,7 +148,6 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
   implements ChURIValueBuilder.MapRx<TValue, TRx> {
 
   readonly #map: ChURIMap<TValue>;
-  readonly #endMap?: URIChargeRx.End<ChURIMap<TValue>>;
 
   constructor(chargeRx: TRx, map: ChURIMap<TValue> = {}) {
     super(chargeRx);
@@ -156,7 +158,7 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
     this.#map[key] = charge;
   }
 
-  rxMap(
+  override rxMap(
     key: string,
     parse: (rx: ChURIValueBuilder.MapRx<TValue>) => ChURIValue<TValue>,
   ): ChURIValue<TValue> {
@@ -176,8 +178,11 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
     return map;
   }
 
-  startList(key: string): URIChargeRx.ListRx<TValue> {
-    return this.chargeRx.rxList(undefined, this.#addList(key));
+  override rxList(
+    key: string,
+    parse: (rx: ChURIValueBuilder.ListRx<TValue>) => ChURIValue<TValue>,
+  ): ChURIValue<TValue> {
+    return this.chargeRx.rxList(parse, this.#addList(key));
   }
 
   #addList(key: string): ChURIList<TValue> {
@@ -193,9 +198,7 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
     return list;
   }
 
-  endMap(): ChURIMap<TValue> {
-    this.#endMap?.(this.#map);
-
+  override endMap(): ChURIMap<TValue> {
     return this.#map;
   }
 
@@ -208,25 +211,17 @@ class ChURIValueBuilder$ListRx<out TValue, out TRx extends ChURIValueBuilder<TVa
   implements ChURIValueBuilder.ListRx<TValue, TRx> {
 
   readonly #list: ChURIList<TValue>;
-  readonly #endList?: URIChargeRx.End<ChURIList<TValue>>;
 
-  constructor(
-    chargeRx: TRx,
-    endList?: URIChargeRx.End<ChURIList<TValue>>,
-    list: ChURIList<TValue> = [],
-  ) {
-    super(chargeRx, endList);
+  constructor(chargeRx: TRx, list: ChURIList<TValue> = []) {
+    super(chargeRx);
     this.#list = list;
-    this.#endList = endList;
   }
 
   override add(charge: ChURIValue<TValue>): void {
     this.#list.push(charge);
   }
 
-  endList(): ChURIList<TValue> {
-    this.#endList?.(this.#list);
-
+  override endList(): ChURIList<TValue> {
     return this.#list;
   }
 
@@ -239,29 +234,19 @@ class ChURIValueBuilder$DirectiveRx<out TValue, out TRx extends ChURIValueBuilde
   implements ChURIValueBuilder.DirectiveRx<TValue, TRx> {
 
   readonly #rawName: string;
-  readonly #endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>;
   #value: ChURIDirective$Builder<TValue> = ChURIDirective$none;
 
-  constructor(
-    chargeRx: TRx,
-    rawName: string,
-    endDirective?: URIChargeRx.End<ChURIDirective<ChURIValue<TValue>>>,
-  ) {
-    super(chargeRx, rawName, endDirective);
+  constructor(chargeRx: TRx, rawName: string) {
+    super(chargeRx, rawName);
     this.#rawName = rawName;
-    this.#endDirective = endDirective;
   }
 
   override add(charge: ChURIValue<TValue>): void {
     this.#value = this.#value.add(charge);
   }
 
-  endDirective(): ChURIDirective<ChURIValue<TValue>> {
-    const directive = this.#value.build(this, this.#rawName);
-
-    this.#endDirective?.(directive);
-
-    return directive;
+  override endDirective(): ChURIDirective<ChURIValue<TValue>> {
+    return this.#value.build(this, this.#rawName);
   }
 
 }

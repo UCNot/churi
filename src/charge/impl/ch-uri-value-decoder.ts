@@ -78,7 +78,7 @@ function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
     return to.rx.setValue(true, 'boolean');
   }
   if (input === '!!') {
-    return to.rx.startList().endList();
+    return to.rx.rxList(rx => rx.endList());
   }
 
   return to.ext.addEntity(to, input);
