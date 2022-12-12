@@ -1,34 +1,39 @@
-import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeTarget } from './uri-charge-target.js';
+import { AnyURIChargeRx, URIChargeTarget } from './uri-charge-target.js';
 
 export type ChURIValueDecoder = <TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ) => TCharge;
 
 export function decodeChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
   if (!input) {
     // Empty string treated as is.
-    return to.setValue('', 'string');
+    return to.setValue(rx, key, '', 'string');
   }
 
   const decoder = CHURI_VALUE_DECODERS[input[0]];
 
   if (decoder) {
-    return decoder(to, input);
+    return decoder(to, rx, key, input);
   }
 
-  return decodeStringChURIValue(to, input);
+  return decodeStringChURIValue(to, rx, key, input);
 }
 
 export function decodeChURIDirectiveArg<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
-  return decodeChURIValue(to, input);
+  return decodeChURIValue(to, rx, key, input);
 }
 
 export type ChURIValuePrefix =
@@ -47,10 +52,7 @@ export type ChURIValuePrefix =
   | '9';
 
 const CHURI_VALUE_DECODERS: {
-  readonly [prefix: string]: <TValue, TCharge>(
-    to: URIChargeTarget<TValue, TCharge>,
-    input: string,
-  ) => TCharge;
+  readonly [prefix: string]: ChURIValueDecoder;
 } = {
   '!': decodeExclamationPrefixedChURIValue,
   "'": decodeQuotedChURIValue,
@@ -69,64 +71,76 @@ const CHURI_VALUE_DECODERS: {
 
 function decodeExclamationPrefixedChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return to.setValue(true, 'boolean');
+    return to.setValue(rx, key, true, 'boolean');
   }
   if (input === '!!') {
-    return to.rxList(rx => rx.endList());
+    return to.rxList(rx, key, listRx => listRx.endList());
   }
 
-  return to.setEntity(input);
+  return to.setEntity(rx, key, input);
 }
 
 function decodeMinusSignedChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
   if (input.length === 1) {
-    return rx.setValue(false, 'boolean');
+    return to.setValue(rx, key, false, 'boolean');
   }
   if (input === '--') {
-    return rx.setValue(null, 'null');
+    return to.setValue(rx, key, null, 'null');
   }
 
   const secondChar = input[1];
 
   if (secondChar >= '0' && secondChar <= '9') {
-    return decodeNumericChURIValue(rx, input, 1, negate);
+    return decodeNumericChURIValue(to, rx, key, input, 1, negate);
   }
 
-  return decodeStringChURIValue(rx, input);
+  return decodeStringChURIValue(to, rx, key, input);
 }
 
 function decodeNumberChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
-  return rx.setValue(Number(input), 'number');
+  return to.setValue(rx, key, Number(input), 'number');
 }
 
 function decodeQuotedChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
-  return rx.setValue(decodeURIComponent(input.slice(1)), 'string');
+  return to.setValue(rx, key, decodeURIComponent(input.slice(1)), 'string');
 }
 
 function decodeStringChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
-  return rx.setValue(decodeURIComponent(input), 'string');
+  return to.setValue(rx, key, decodeURIComponent(input), 'string');
 }
 
 function decodeUnsignedChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
 ): TCharge {
-  return decodeNumericChURIValue(rx, input, 0, asis);
+  return decodeNumericChURIValue(to, rx, key, input, 0, asis);
 }
 
 function negate<T extends number | bigint>(value: T): T {
@@ -138,17 +152,26 @@ function asis<T extends number | bigint>(value: T): T {
 }
 
 function decodeNumericChURIValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  to: URIChargeTarget<TValue, TCharge>,
+  rx: AnyURIChargeRx<TValue, TCharge>,
+  key: string,
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): TCharge {
   if (input[offset + 1] === 'n') {
-    return rx.setValue(
+    return to.setValue(
+      rx,
+      key,
       sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
       'bigint',
     );
   }
 
-  return rx.setValue(sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))), 'number');
+  return to.setValue(
+    rx,
+    key,
+    sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))),
+    'number',
+  );
 }

@@ -2,20 +2,19 @@ import { ChURIPrimitive } from './ch-uri-value.js';
 import { decodeChURIValue } from './impl/ch-uri-value-decoder.js';
 import { parseChURIValue } from './impl/parse-ch-uri-value.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
-import { ChURIValueTarget } from './impl/uri-charge-target.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown> {
 
   readonly #rx: URIChargeRx<TValue, TCharge>;
-  readonly #extParser: URIChargeExtParser<TValue, TCharge>;
+  readonly #ext: URIChargeExtParser<TValue, TCharge>;
 
   constructor(options: URIChargeParser.Options<TValue, TCharge>) {
     const { rx, ext } = options;
 
     this.#rx = rx;
-    this.#extParser = new URIChargeExtParser(rx, ext);
+    this.#ext = new URIChargeExtParser(rx, ext);
   }
 
   get chargeRx(): URIChargeRx<TValue, TCharge> {
@@ -39,7 +38,7 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
-    return parseChURIValue(new ChURIValueTarget(rx, this.#extParser), decodeChURIValue, input);
+    return parseChURIValue(this.#ext.valueTarget, rx, '', decodeChURIValue, input);
   }
 
 }
