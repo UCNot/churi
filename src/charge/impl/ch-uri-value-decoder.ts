@@ -2,7 +2,6 @@ import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
 export interface ChURIValueDecoder {
-  decodeKey(rawKey: string): string;
   decodeString(rawString: string): string;
   decodeValue<TValue, TCharge>(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
@@ -12,12 +11,11 @@ export interface ChURIValueDecoder {
 }
 
 export const defaultChURIValueDecoder: ChURIValueDecoder = {
-  decodeKey: decodeChURIKey,
   decodeString: decodeURIComponent,
   decodeValue: decodeChURIValue,
 };
 
-function decodeChURIKey(rawKey: string): string {
+export function decodeChURIKey(rawKey: string): string {
   return decodeURIComponent(rawKey.startsWith("'") ? rawKey.slice(1) : rawKey);
 }
 
