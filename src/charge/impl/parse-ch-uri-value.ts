@@ -6,7 +6,7 @@ import {
   decodeChURIDirectiveArg,
   decodeChURIValue,
 } from './ch-uri-value-decoder.js';
-import { ChURIItemTarget, ChURIMapEntryTarget, URIChargeTarget } from './uri-charge-target.js';
+import { ChURIEntryTarget, ChURIItemTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
@@ -126,7 +126,7 @@ function parseChURIMap<TValue>(
 ): number {
   // Opening parent after key.
 
-  const to = new ChURIMapEntryTarget(parent, key, mapRx);
+  const to = new ChURIEntryTarget(parent, key, mapRx);
 
   // Parse first entry value.
   const firstValueEnd = parseChURIValue(to, decodeChURIValue, firstValueInput).end + 1; // After closing parent.
@@ -144,7 +144,7 @@ function parseChURIMap<TValue>(
 }
 
 function parseChURIMapEntries<TValue>(
-  to: ChURIMapEntryTarget<TValue>,
+  to: ChURIEntryTarget<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;

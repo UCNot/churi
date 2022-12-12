@@ -7,7 +7,7 @@ export interface URIChargeTarget<out TValue, out TCharge = unknown> {
   readonly ext: URIChargeExtParser<TValue, TCharge>;
 }
 
-export class ChURIMapEntryTarget<out TValue>
+export class ChURIEntryTarget<out TValue>
   implements URIChargeTarget<TValue>, URIChargeRx.ValueRx<TValue> {
 
   readonly #key: string;
@@ -32,8 +32,8 @@ export class ChURIMapEntryTarget<out TValue>
     return this.#ext;
   }
 
-  forKey(key: string): ChURIMapEntryTarget<TValue> {
-    return new ChURIMapEntryTarget(this, key, this.#mapRx);
+  forKey(key: string): ChURIEntryTarget<TValue> {
+    return new ChURIEntryTarget(this, key, this.#mapRx);
   }
 
   set(charge: unknown): void {
