@@ -45,7 +45,6 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
       rx,
       decoder,
       ext: this.#extParser,
-      decode: input => decoder.decodeValue(to, input),
     };
 
     return parseChURIValue(to, input);

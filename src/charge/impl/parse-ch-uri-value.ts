@@ -10,11 +10,11 @@ export function parseChURIValue<TValue, TCharge>(
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    return { charge: to.decode(input), end: input.length };
+    return { charge: to.decoder.decodeValue(to, input), end: input.length };
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
-    return { charge: to.decode(input.slice(0, valueEnd)), end: valueEnd };
+    return { charge: to.decoder.decodeValue(to, input.slice(0, valueEnd)), end: valueEnd };
   }
 
   // Opening parent.

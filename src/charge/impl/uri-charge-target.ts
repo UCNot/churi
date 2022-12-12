@@ -7,8 +7,6 @@ export interface URIChargeTarget<out TValue, out TCharge = unknown> {
   readonly decoder: ChURIValueDecoder;
   readonly rx: URIChargeRx.ValueRx<TValue, TCharge>;
   readonly ext: URIChargeExtParser<TValue, TCharge>;
-
-  decode(input: string): TCharge;
 }
 
 export class ChURIMapEntryTarget<out TValue>
@@ -45,10 +43,6 @@ export class ChURIMapEntryTarget<out TValue>
 
   get ext(): URIChargeExtParser<TValue> {
     return this.#ext;
-  }
-
-  decode(input: string): unknown {
-    return this.#decoder.decodeValue(this, input);
   }
 
   forKey(key: string): ChURIMapEntryTarget<TValue> {
@@ -112,10 +106,6 @@ export class ChURIItemTarget<out TValue>
 
   get ext(): URIChargeExtParser<TValue> {
     return this.#ext;
-  }
-
-  decode(input: string): unknown {
-    return this.#decoder.decodeValue(this, input);
   }
 
   set(charge: unknown): unknown {
