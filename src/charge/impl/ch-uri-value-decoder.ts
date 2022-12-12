@@ -26,6 +26,14 @@ export function decodeChURIValue<TValue, TCharge>(
   return decodeStringChURIValue(rx, input);
 }
 
+export function decodeChURIDirectiveArg<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): TCharge {
+  return decodeChURIValue(rx, ext, input);
+}
+
 export type ChURIValuePrefix =
   | '!'
   | "'"

@@ -1,22 +1,28 @@
 import { decodeURIChargeKey } from '../uri-charge-codec.js';
 import { URIChargeParser } from '../uri-charge-parser.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
+import {
+  ChURIValueDecoder,
+  decodeChURIDirectiveArg,
+  decodeChURIValue,
+} from './ch-uri-value-decoder.js';
 import { ChURIItemTarget, ChURIMapEntryTarget, URIChargeTarget } from './uri-charge-target.js';
 
 export function parseChURIValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
+  decoder: ChURIValueDecoder,
   input: string,
 ): URIChargeParser.Result<TCharge> {
   const valueEnd = input.search(PARENT_PATTERN);
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    return { charge: to.decoder(to.rx, to.ext, input), end: input.length };
+    return { charge: decoder(to.rx, to.ext, input), end: input.length };
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
     return {
-      charge: to.decoder(to.rx, to.ext, input.slice(0, valueEnd)),
+      charge: decoder(to.rx, to.ext, input.slice(0, valueEnd)),
       end: valueEnd,
     };
   }
@@ -123,7 +129,7 @@ function parseChURIMap<TValue>(
   const to = new ChURIMapEntryTarget(parent, key, mapRx);
 
   // Parse first entry value.
-  const firstValueEnd = parseChURIValue(to, firstValueInput).end + 1; // After closing parent.
+  const firstValueEnd = parseChURIValue(to, decodeChURIValue, firstValueInput).end + 1; // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
@@ -177,7 +183,7 @@ function parseChURIMapEntries<TValue>(
     } else {
       input = input.slice(keyEnd + 1);
       offset += keyEnd + 1;
-      nextKeyStart = parseChURIValue(to, input).end + 1;
+      nextKeyStart = parseChURIValue(to, decodeChURIValue, input).end + 1;
     }
 
     if (nextKeyStart >= input.length) {
@@ -199,7 +205,7 @@ function parseChURIMapEntryItems<TValue>(
     input = input.slice(1);
     ++offset;
 
-    const nextTokenStart = parseChURIValue(to, input).end + 1;
+    const nextTokenStart = parseChURIValue(to, decodeChURIValue, input).end + 1;
 
     if (nextTokenStart >= input.length) {
       return offset + input.length;
@@ -220,7 +226,11 @@ function parseChURIList<TValue>(
   listRx: URIChargeRx.ListRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(new ChURIItemTarget(parent, listRx), firstValueInput);
+  return parseChURIListOrDirective(
+    new ChURIItemTarget(parent, listRx),
+    decodeChURIValue,
+    firstValueInput,
+  );
 }
 
 function parseChURIDirective<TValue>(
@@ -228,16 +238,21 @@ function parseChURIDirective<TValue>(
   directiveRx: URIChargeRx.DirectiveRx<TValue>,
   firstValueInput: string,
 ): number {
-  return parseChURIListOrDirective(new ChURIItemTarget(parent, directiveRx), firstValueInput);
+  return parseChURIListOrDirective(
+    new ChURIItemTarget(parent, directiveRx),
+    decodeChURIDirectiveArg,
+    firstValueInput,
+  );
 }
 
 function parseChURIListOrDirective<TValue>(
   to: ChURIItemTarget<TValue>,
+  decoder: ChURIValueDecoder,
   firstValueInput: string,
 ): number {
   // Opening parent without preceding key.
   // Parse first item value.
-  const firstValueEnd = parseChURIValue(to, firstValueInput).end + 1; // After closing parent.
+  const firstValueEnd = parseChURIValue(to, decoder, firstValueInput).end + 1; // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
     // End of input.
@@ -249,11 +264,15 @@ function parseChURIListOrDirective<TValue>(
   }
 
   // Parse the rest of list items.
-  return firstValueEnd + parseChURIListItems(to, firstValueInput.slice(firstValueEnd));
+  return (
+    firstValueEnd
+    + parseChURIListOrDirectiveItems(to, decoder, firstValueInput.slice(firstValueEnd))
+  );
 }
 
-function parseChURIListItems<TValue>(
+function parseChURIListOrDirectiveItems<TValue>(
   to: ChURIItemTarget<TValue>,
+  decoder: ChURIValueDecoder,
   input: string /* never empty */,
 ): number {
   let offset = 0;
@@ -287,7 +306,7 @@ function parseChURIListItems<TValue>(
     input = input.slice(1);
     ++offset;
 
-    const nextKeyStart = parseChURIValue(to, input).end + 1;
+    const nextKeyStart = parseChURIValue(to, decoder, input).end + 1;
 
     if (nextKeyStart >= input.length) {
       return offset + input.length;

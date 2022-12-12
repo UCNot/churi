@@ -41,11 +41,10 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
     const to: URIChargeTarget<TValue, TCharge> = {
       rx,
-      decoder: decodeChURIValue,
       ext: this.#extParser,
     };
 
-    return parseChURIValue(to, input);
+    return parseChURIValue(to, decodeChURIValue, input);
   }
 
 }
