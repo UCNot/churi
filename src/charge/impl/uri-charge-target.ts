@@ -29,11 +29,7 @@ export abstract class URIChargeTarget<
     const handler = this.#ext.forEntity(rawEntity);
 
     if (handler) {
-      return this.set(
-        rx,
-        key,
-        this.#ext.chargeRx.rxValue(rx => handler(rx, rawEntity)),
-      );
+      return this.set(rx, key, handler(rawEntity));
     }
 
     return this._setEntity(rx, key, rawEntity);
@@ -64,11 +60,7 @@ export abstract class URIChargeTarget<
     const handler = this.#ext.forDirective(rawName);
 
     if (handler) {
-      return this.set(
-        rx,
-        key,
-        this.#ext.chargeRx.rxValue(rx => handler(rx, rawName, parse)),
-      );
+      return this.set(rx, key, handler(rawName, parse));
     }
 
     return this._rxDirective(rx, key, rawName, parse);

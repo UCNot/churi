@@ -12,7 +12,7 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
   readonly #chargeRx: URIChargeRx<TValue, TCharge>;
   readonly #specs: URIChargeExt.Factory<TValue, TCharge>[];
 
-  #entities?: Map<string, URIChargeExt.EntityHandler<TValue, TCharge>>;
+  #entities?: Map<string, URIChargeExt.EntityHandler<TCharge>>;
   #directives?: Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>;
 
   #valueTarget?: URIChargeValueTarget<TValue, TCharge>;
@@ -51,11 +51,7 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  get chargeRx(): URIChargeRx<TValue, TCharge> {
-    return this.#chargeRx;
-  }
-
-  forEntity(rawEntity: string): URIChargeExt.EntityHandler<TValue, TCharge> | undefined {
+  forEntity(rawEntity: string): URIChargeExt.EntityHandler<TCharge> | undefined {
     this.#init();
 
     return this.#entities!.get(rawEntity);

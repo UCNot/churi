@@ -4,7 +4,7 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
   readonly entities?:
     | {
-        readonly [rawEntity: string]: URIChargeExt.EntityHandler<TValue, TCharge>;
+        readonly [rawEntity: string]: URIChargeExt.EntityHandler<TCharge>;
       }
     | undefined;
   readonly directives?:
@@ -17,11 +17,9 @@ export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
 export function URIChargeExt<TValue, TCharge>(
   spec: URIChargeExt.Spec<TValue, TCharge>,
 ): URIChargeExt.Factory<TValue, TCharge> {
-  return <TVal extends TValue, TCh extends TCharge>(
-    chargeRx: URIChargeRx<TVal, TCh>,
-  ): URIChargeExt<TVal, TCh> => {
-    const entities: Record<string, URIChargeExt.EntityHandler<TVal, TCh>> = {};
-    const directives: Record<string, URIChargeExt.DirectiveHandler<TVal, TCh>> = {};
+  return (chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
+    const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
+    const directives: Record<string, URIChargeExt.DirectiveHandler<TValue, TCharge>> = {};
 
     for (const factory of asArray(spec)) {
       const ext = factory(chargeRx);
@@ -47,13 +45,12 @@ export namespace URIChargeExt {
     extendCharge(chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
   }['extendCharge'];
 
-  export type EntityHandler<out TValue = unknown, out TCharge = unknown> = {
-    createEntity(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawEntity: string): TCharge;
+  export type EntityHandler<out TCharge = unknown> = {
+    createEntity(rawEntity: string): TCharge;
   }['createEntity'];
 
   export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = {
     rxDirective(
-      rx: URIChargeRx.ValueRx<TValue, TCharge>,
       rawName: string,
       parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
     ): TCharge;

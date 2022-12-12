@@ -17,13 +17,8 @@ describe('URIChargeExt', () => {
           ChURIValue<ChURIPrimitive | TestValue>
         > => ({
           entities: {
-            ['!test'](
-              rx: URIChargeRx.ValueRx<
-                ChURIPrimitive | TestValue,
-                ChURIValue<ChURIPrimitive | TestValue>
-              >,
-            ): ChURIValue<ChURIPrimitive | TestValue> {
-              return rx.set({ [test__symbol]: 'test value' });
+            ['!test'](): ChURIValue<ChURIPrimitive | TestValue> {
+              return { [test__symbol]: 'test value' };
             },
           },
         }),
@@ -52,13 +47,11 @@ describe('URIChargeExt', () => {
 
     beforeAll(() => {
       parser = createChURIValueParser({
-        ext: (): URIChargeExt<
-          ChURIPrimitive | TestValue,
-          ChURIValue<ChURIPrimitive | TestValue>
-        > => ({
+        ext: (
+          charge,
+        ): URIChargeExt<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>> => ({
           directives: {
             ['!test'](
-              rx,
               rawName: string,
               parse: (
                 rx: URIChargeRx.DirectiveRx<
@@ -67,7 +60,7 @@ describe('URIChargeExt', () => {
                 >,
               ) => ChURIValue<ChURIPrimitive | TestValue>,
             ): ChURIValue<ChURIPrimitive | TestValue> {
-              return parse(new TestDirectiveRx(rx, rawName));
+              return charge.rxValue(rx => parse(new TestDirectiveRx(rx, rawName)));
             },
           },
         }),
