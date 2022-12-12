@@ -23,28 +23,16 @@ describe('OpaqueURIChargeRx', () => {
   });
 
   describe('ValueRx', () => {
-    let rx: URIChargeRx.ValueRx;
-    let received: unknown;
-
-    beforeEach(() => {
-      rx = chargeRx.rxValue(charge => {
-        received = charge;
-      });
-      received = undefined;
-    });
-
     describe('setValue', () => {
       it('charges none', () => {
-        expect(rx.setValue('some', 'string')).toBe(NONE);
-        expect(received).toBe(NONE);
+        expect(chargeRx.rxValue(rx => rx.setValue('some', 'string'))).toBe(NONE);
       });
     });
     describe('setCharge', () => {
       it('charges input', () => {
         const charge = { name: 'test charge' };
 
-        expect(rx.set(charge)).toBe(charge);
-        expect(received).toBe(charge);
+        expect(chargeRx.rxValue(rx => rx.set(charge))).toBe(charge);
       });
     });
   });

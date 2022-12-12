@@ -261,9 +261,7 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
     const listRx = chargeRx.rxList();
 
     for (const rawValue of rawValues) {
-      const itemRx = chargeRx.rxValue(itemCharge => listRx.add(itemCharge));
-
-      parser.parse(rawValue, itemRx);
+      listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
     }
 
     return listRx.endList();

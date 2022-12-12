@@ -113,8 +113,8 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
     return this.none;
   }
 
-  rxValue(endValue?: URIChargeRx.End<TCharge>): URIChargeRx.ValueRx<TValue, TCharge> {
-    return new this.ns.ValueRx(this, endValue);
+  rxValue<T>(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => T): T {
+    return parse(new this.ns.ValueRx(this));
   }
 
   rxMap(endMap?: URIChargeRx.End<TCharge>): URIChargeRx.MapRx<TValue, TCharge> {
@@ -138,11 +138,9 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
-  readonly #passCharge: <TResult extends TCharge>(this: void, charge: TResult) => TCharge;
 
-  constructor(chargeRx: TRx, endCharge?: URIChargeRx.End<TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
-    this.#passCharge = endCharge ? charge => (endCharge(charge), charge) : charge => charge;
   }
 
   get chargeRx(): TRx {
@@ -150,7 +148,7 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   }
 
   set(charge: TCharge): TCharge {
-    return this.#passCharge(charge);
+    return charge;
   }
 
   setEntity(rawEntity: string): TCharge {
@@ -162,15 +160,15 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   }
 
   startMap(): URIChargeRx.MapRx<TValue, TCharge> {
-    return this.#chargeRx.rxMap(this.#passCharge);
+    return this.#chargeRx.rxMap();
   }
 
   startList(): URIChargeRx.ListRx<TValue, TCharge> {
-    return this.#chargeRx.rxList(this.#passCharge);
+    return this.#chargeRx.rxList();
   }
 
   startDirective(rawName: string): URIChargeRx.DirectiveRx<TValue, TCharge> {
-    return this.#chargeRx.rxDirective(rawName, this.#passCharge);
+    return this.#chargeRx.rxDirective(rawName);
   }
 
 }

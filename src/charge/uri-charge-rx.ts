@@ -7,7 +7,7 @@ export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
 
   createValue(value: TValue | ChURIPrimitive, type: string): TCharge;
 
-  rxValue(endValue?: URIChargeRx.End<TCharge>): URIChargeRx.ValueRx<TValue, TCharge>;
+  rxValue<T>(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => T): T;
 
   rxMap(endMap?: URIChargeRx.End<TCharge>): URIChargeRx.MapRx<TValue, TCharge>;
 
@@ -36,6 +36,10 @@ export namespace URIChargeRx {
     endCharge(this: void, charge: TCharge): void;
   }['endCharge'];
 
+  export type Parser<TRx, TCharge> = {
+    parse(this: void, rx: TRx): TCharge;
+  }['parse'];
+
   export interface ValueRx<
     out TValue = ChURIPrimitive,
     out TCharge = unknown,
@@ -63,7 +67,6 @@ export namespace URIChargeRx {
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
       chargeRx: TRx,
-      endValue?: End<TCharge>,
     ) => ValueRx<TValue, TCharge, TRx>;
   }
 

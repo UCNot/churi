@@ -22,10 +22,11 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
     return this.#rx;
   }
 
-  parse(
-    input: string,
-    rx: URIChargeRx.ValueRx<TValue, TCharge> = this.chargeRx.rxValue(),
-  ): URIChargeParser.Result<TCharge> {
+  parse(input: string, rx?: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
+    return rx ? this.#parse(input, rx) : this.chargeRx.rxValue(rx => this.#parse(input, rx));
+  }
+
+  #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
     const decoder = defaultChURIValueDecoder;
 
     const to: URIChargeTarget<TValue, TCharge> = {

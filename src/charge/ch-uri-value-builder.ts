@@ -44,8 +44,8 @@ export class ChURIValueBuilder<out TValue = ChURIPrimitive>
     return value;
   }
 
-  rxValue(endValue?: URIChargeRx.End<ChURIValue<TValue>>): ChURIValueBuilder.ValueRx<TValue> {
-    return new this.ns.ValueRx(this, endValue);
+  rxValue<T>(parse: (rx: URIChargeRx.ValueRx<TValue, ChURIValue<TValue>>) => T): T {
+    return parse(new this.ns.ValueRx(this));
   }
 
   rxMap(
@@ -90,7 +90,6 @@ export namespace ChURIValueBuilder {
       TRx extends ChURIValueBuilder<TValue> = ChURIValueBuilder<TValue>,
     >(
       chargeRx: TRx,
-      endValue?: URIChargeRx.End<ChURIValue<TValue>>,
     ) => ValueRx<TValue, TRx>;
   }
 
