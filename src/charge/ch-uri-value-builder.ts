@@ -44,15 +44,12 @@ export class ChURIValueBuilder<out TValue = ChURIPrimitive>
     return value;
   }
 
-  rxValue<T>(parse: (rx: URIChargeRx.ValueRx<TValue, ChURIValue<TValue>>) => T): T {
+  rxValue<T>(parse: (rx: ChURIValueBuilder.ValueRx<TValue>) => T): T {
     return parse(new this.ns.ValueRx(this));
   }
 
-  rxMap(
-    endMap?: URIChargeRx.End<ChURIMap<TValue>>,
-    map?: ChURIMap<TValue>,
-  ): ChURIValueBuilder.MapRx<TValue> {
-    return new this.ns.MapRx(this, endMap, map);
+  rxMap<T>(parse: (rx: ChURIValueBuilder.MapRx<TValue>) => T, map?: ChURIMap<TValue>): T {
+    return parse(new this.ns.MapRx(this, map));
   }
 
   rxList(
@@ -104,7 +101,6 @@ export namespace ChURIValueBuilder {
       TRx extends ChURIValueBuilder<TValue> = ChURIValueBuilder<TValue>,
     >(
       chargeRx: TRx,
-      endMap?: URIChargeRx.End<ChURIMap<TValue>>,
       list?: ChURIMap<TValue>,
     ) => MapRx<TValue, TRx>;
   }
@@ -151,22 +147,20 @@ class ChURIValueBuilder$MapRx<out TValue, out TRx extends ChURIValueBuilder<TVal
   readonly #map: ChURIMap<TValue>;
   readonly #endMap?: URIChargeRx.End<ChURIMap<TValue>>;
 
-  constructor(
-    chargeRx: TRx,
-    endMap?: URIChargeRx.End<ChURIMap<TValue>>,
-    map: ChURIMap<TValue> = {},
-  ) {
-    super(chargeRx, endMap);
+  constructor(chargeRx: TRx, map: ChURIMap<TValue> = {}) {
+    super(chargeRx);
     this.#map = map;
-    this.#endMap = endMap;
   }
 
   override put(key: string, charge: ChURIValue<TValue>): void {
     this.#map[key] = charge;
   }
 
-  startMap(key: string): ChURIValueBuilder.MapRx<TValue> {
-    return this.chargeRx.rxMap(undefined, this.#addMap(key));
+  rxMap(
+    key: string,
+    parse: (rx: ChURIValueBuilder.MapRx<TValue>) => ChURIValue<TValue>,
+  ): ChURIValue<TValue> {
+    return this.chargeRx.rxMap(parse, this.#addMap(key));
   }
 
   #addMap(key: string): ChURIMap<TValue> {

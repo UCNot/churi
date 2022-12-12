@@ -23,7 +23,19 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
   }
 
   parse(input: string, rx?: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
-    return rx ? this.#parse(input, rx) : this.chargeRx.rxValue(rx => this.#parse(input, rx));
+    if (rx) {
+      return this.#parse(input, rx);
+    }
+
+    let result!: URIChargeParser.Result<TCharge>;
+
+    this.chargeRx.rxValue(rx => {
+      result = this.#parse(input, rx);
+
+      return result.charge;
+    });
+
+    return result;
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {

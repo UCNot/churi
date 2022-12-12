@@ -103,13 +103,14 @@ export class ChSearchParams<out TValue = ChURIPrimitive, out TCharge = URICharge
 
   #parseCharge(): TCharge {
     const { chargeParser } = this;
-    const mapRx = chargeParser.chargeRx.rxMap();
 
-    for (const entry of this.#map.values()) {
-      mapRx.put(entry.key, entry.getCharge(chargeParser));
-    }
+    return chargeParser.chargeRx.rxMap(rx => {
+      for (const entry of this.#map.values()) {
+        rx.put(entry.key, entry.getCharge(chargeParser));
+      }
 
-    return mapRx.endMap();
+      return rx.endMap();
+    });
   }
 
   has(name: string): boolean {

@@ -38,67 +38,75 @@ describe('OpaqueURIChargeRx', () => {
   });
 
   describe('MapRx', () => {
-    let rx: URIChargeRx.MapRx;
-    let received: unknown;
-
-    beforeEach(() => {
-      rx = chargeRx.rxMap(charge => {
-        received = charge;
-      });
-      received = undefined;
-    });
-
     describe('put', () => {
       it('ignores charge', () => {
-        rx.put('key', 'some');
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.put('key', 'some');
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
 
     describe('putEntity', () => {
       it('ignores entity', () => {
-        rx.putEntity('key', '!some');
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.putEntity('key', '!some');
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
 
     describe('putValue', () => {
       it('ignores value', () => {
-        rx.putValue('key', 'some', 'string');
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.putValue('key', 'some', 'string');
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
 
-    describe('startMap', () => {
+    describe('rxMap', () => {
       it('ignores charge', () => {
-        rx.startMap('key').endMap();
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.rxMap('key', rx => rx.endMap());
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
 
     describe('startList', () => {
       it('ignores charge', () => {
-        rx.startList('key').endList();
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.startList('key').endList();
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
 
     describe('startDirective', () => {
       it('ignores charge', () => {
-        rx.startDirective('key', '!test').endDirective();
+        expect(
+          chargeRx.rxMap(rx => {
+            rx.startDirective('key', '!test').endDirective();
 
-        expect(rx.endMap()).toBe(NONE);
-        expect(received).toBe(NONE);
+            return rx.endMap();
+          }),
+        ).toBe(NONE);
       });
     });
   });

@@ -43,11 +43,8 @@ export class URIChargeBuilder<out TValue = ChURIPrimitive>
     return parse(new this.ns.ValueRx(this));
   }
 
-  rxMap(
-    endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
-    map?: URICharge.Map<TValue>,
-  ): URIChargeBuilder.MapRx<TValue> {
-    return new this.ns.MapRx(this, endMap, map);
+  rxMap<T>(parse: (rx: URIChargeBuilder.MapRx<TValue>) => T, map?: URICharge.Map<TValue>): T {
+    return parse(new this.ns.MapRx(this, map));
   }
 
   rxList(
@@ -99,7 +96,6 @@ export namespace URIChargeBuilder {
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
     >(
       chargeRx: TRx,
-      endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
       map?: URICharge.Map<TValue>,
     ) => MapRx<TValue, TRx>;
   }
@@ -146,13 +142,8 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
   readonly #endMap?: URIChargeRx.End<URICharge.Map<TValue>>;
   readonly #map: Map<string, URICharge.Some<TValue>>;
 
-  constructor(
-    chargeRx: TRx,
-    endMap?: URIChargeRx.End<URICharge.Map<TValue>>,
-    base?: URICharge.Map<TValue>,
-  ) {
-    super(chargeRx, endMap);
-    this.#endMap = endMap;
+  constructor(chargeRx: TRx, base?: URICharge.Map<TValue>) {
+    super(chargeRx);
     this.#map = new Map(base?.entries());
   }
 
@@ -162,11 +153,21 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
     }
   }
 
-  override startMap(key: string): URIChargeBuilder.MapRx<TValue> {
+  override rxMap(
+    key: string,
+    parse: (rx: URIChargeRx.MapRx<URIChargeItem<TValue>>) => URICharge<TValue>,
+  ): URICharge<TValue> {
     const prevCharge = this.#map.get(key);
 
     return this.chargeRx.rxMap(
-      map => this.put(key, map),
+      rx => {
+        const map = parse(rx);
+
+        this.put(key, map);
+
+        return map;
+      },
+
       prevCharge && prevCharge.isMap() ? prevCharge : undefined,
     );
   }
@@ -177,7 +178,7 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
     return this.chargeRx.rxList(list => this.put(key, list), prevCharge);
   }
 
-  endMap(): URICharge.Map<TValue> {
+  override endMap(): URICharge.Map<TValue> {
     const map = new URICharge$Map(this.#map);
 
     this.#endMap?.(map);
@@ -252,7 +253,7 @@ class URIChargeBuilder$DirectiveRx<out TValue, out TRx extends URIChargeBuilder<
     }
   }
 
-  endDirective(): URICharge.Single<TValue> {
+  override endDirective(): URICharge.Single<TValue> {
     const directive = new URICharge$Single(this.#builder.build(this, this.rawName), 'directive');
 
     this.#endDirective?.(directive);

@@ -64,12 +64,16 @@ function parseChURIMapOrDirective<TValue, TCharge>(
   const firstValueOffset = rawKey.length + 1;
   const firstValueInput = input.slice(firstValueOffset);
   const firstKey = to.decoder.decodeKey(rawKey);
-  const mapRx = to.rx.startMap();
-  const mapEnd =
-    firstValueOffset
-    + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
+  let mapEnd!: number;
+  const charge = to.rx.rxMap(mapRx => {
+    mapEnd =
+      firstValueOffset
+      + parseChURIMap(to as URIChargeTarget<TValue>, firstKey, mapRx, firstValueInput);
 
-  return { charge: mapRx.endMap(), end: mapEnd };
+    return mapRx.endMap();
+  });
+
+  return { charge, end: mapEnd };
 }
 
 const EMPTY_MAP = '!())';
@@ -98,7 +102,7 @@ function parseChURIEmptyMap<TValue, TCharge>(
     end = input.length;
   }
 
-  return { charge: to.rx.startMap().endMap(), end };
+  return { charge: to.rx.rxMap(mapRx => mapRx.endMap()), end };
 }
 
 function parseChURIMap<TValue>(
@@ -235,10 +239,11 @@ function parseChURIListItems<TValue>(
     if (keyEnd < 0) {
       // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
-      const suffixRx = to.startMap();
+      to.rxMap(suffixRx => {
+        suffixRx.addSuffix(to.decoder.decodeKey(input));
 
-      suffixRx.addSuffix(to.decoder.decodeKey(input));
-      suffixRx.endMap();
+        return suffixRx.endMap();
+      });
 
       return offset + input.length;
     }

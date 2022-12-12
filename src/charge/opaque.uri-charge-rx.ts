@@ -113,12 +113,12 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
     return this.none;
   }
 
-  rxValue<T>(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => T): T {
+  rxValue(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
     return parse(new this.ns.ValueRx(this));
   }
 
-  rxMap(endMap?: URIChargeRx.End<TCharge>): URIChargeRx.MapRx<TValue, TCharge> {
-    return new this.ns.MapRx(this, endMap);
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
+    return parse(new this.ns.MapRx(this));
   }
 
   rxList(endList?: URIChargeRx.End<TCharge>): URIChargeRx.ListRx<TValue, TCharge> {
@@ -159,8 +159,8 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     return this.set(this.#chargeRx.createValue(value, type));
   }
 
-  startMap(): URIChargeRx.MapRx<TValue, TCharge> {
-    return this.#chargeRx.rxMap();
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
+    return this.chargeRx.rxMap(parse);
   }
 
   startList(): URIChargeRx.ListRx<TValue, TCharge> {
@@ -177,11 +177,9 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   implements URIChargeRx.MapRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
-  readonly #endMap: URIChargeRx.End<TCharge> | undefined;
 
-  constructor(chargeRx: TRx, endMap?: URIChargeRx.End<TCharge>) {
+  constructor(chargeRx: TRx) {
     this.#chargeRx = chargeRx;
-    this.#endMap = endMap;
   }
 
   get chargeRx(): TRx {
@@ -200,8 +198,17 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
     this.put(key, this.#chargeRx.createValue(value, type));
   }
 
-  startMap(key: string): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.put(key, map));
+  rxMap(
+    key: string,
+    parse: (rx: URIChargeRx.MapRx<TValue, unknown, URIChargeRx<TValue, unknown>>) => TCharge,
+  ): TCharge {
+    return this.#chargeRx.rxMap(rx => {
+      const charge = parse(rx);
+
+      this.put(key, charge);
+
+      return charge;
+    });
   }
 
   startList(key: string): URIChargeRx.ListRx<TValue> {
@@ -217,11 +224,7 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   endMap(): TCharge {
-    const { none } = this.#chargeRx;
-
-    this.#endMap?.(none);
-
-    return none;
+    return this.#chargeRx.none;
   }
 
 }
@@ -254,8 +257,16 @@ abstract class OpaqueURICharge$ItemsRx<
     this.add(this.#chargeRx.createValue(value, type));
   }
 
-  startMap(): URIChargeRx.MapRx<TValue> {
-    return this.#chargeRx.rxMap(map => this.add(map));
+  rxMap(
+    parse: (rx: URIChargeRx.MapRx<TValue, unknown, URIChargeRx<TValue, unknown>>) => TCharge,
+  ): TCharge {
+    return this.#chargeRx.rxMap(rx => {
+      const charge = parse(rx);
+
+      this.add(charge);
+
+      return charge;
+    });
   }
 
   startList(): URIChargeRx.ListRx<TValue> {

@@ -67,8 +67,8 @@ export class ChURIMapEntryTarget<out TValue>
     this.#mapRx.putValue(this.#key, value, type);
   }
 
-  startMap(): URIChargeRx.MapRx<TValue> {
-    return this.#mapRx.startMap(this.#key);
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue>) => void): void {
+    this.#mapRx.rxMap(this.#key, parse);
   }
 
   startList(): URIChargeRx.ListRx<TValue> {
@@ -128,8 +128,8 @@ abstract class ChURIItemTarget<out TValue, TRx extends URIChargeRx.ItemsRx<TValu
     this.itemsRx.addValue(value, type);
   }
 
-  startMap(): URIChargeRx.MapRx<TValue> {
-    return this.itemsRx.startMap();
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue>) => void): void {
+    this.itemsRx.rxMap(parse);
   }
 
   startList(): URIChargeRx.ListRx<TValue> {
