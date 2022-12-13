@@ -1,4 +1,4 @@
-import { ChURIPrimitive } from '../churi-value.js';
+import { UcPrimitive } from '../uc-value.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
@@ -37,7 +37,7 @@ export abstract class URIChargeTarget<
 
   protected abstract _setEntity(rx: TRx, key: string, rawEntity: string): TCharge;
 
-  abstract setValue(rx: TRx, key: string, value: TValue | ChURIPrimitive, type: string): TCharge;
+  abstract setValue(rx: TRx, key: string, value: TValue | UcPrimitive, type: string): TCharge;
 
   abstract rxMap(
     rx: TRx,
@@ -88,7 +88,7 @@ export class URIChargeValueTarget<out TValue, out TCharge> extends URIChargeTarg
   override setValue(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
-    value: TValue | ChURIPrimitive,
+    value: TValue | UcPrimitive,
     type: string,
   ): TCharge {
     return rx.setValue(value, type);
@@ -142,7 +142,7 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
   override setValue(
     rx: URIChargeRx.MapRx<TValue>,
     key: string,
-    value: ChURIPrimitive | TValue,
+    value: UcPrimitive | TValue,
     type: string,
   ): void {
     rx.putValue(key, value, type);
@@ -196,7 +196,7 @@ export class URIChargeItemTarget<out TValue> extends URIChargeTarget<
   override setValue(
     rx: URIChargeRx.ItemsRx<TValue>,
     _key: string,
-    value: ChURIPrimitive | TValue,
+    value: UcPrimitive | TValue,
     type: string,
   ): void {
     rx.addValue(value, type);

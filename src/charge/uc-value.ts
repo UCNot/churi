@@ -1,23 +1,23 @@
 import { encodeURICharge } from './uri-charge-codec.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
-export type ChURIValue<TValue = ChURIPrimitive> =
+export type UcValue<TValue = UcPrimitive> =
   | TValue
-  | ChURIPrimitive
-  | ChURIEntity
-  | ChURIMap<TValue>
-  | ChURIList<TValue>
-  | ChURIDirective<ChURIValue<TValue>>;
+  | UcPrimitive
+  | UcEntity
+  | UcMap<TValue>
+  | UcList<TValue>
+  | UcDirective<UcValue<TValue>>;
 
-export type ChURIPrimitive = bigint | boolean | number | string | null;
+export type UcPrimitive = bigint | boolean | number | string | null;
 
-export type ChURIList<TValue = ChURIPrimitive> = ChURIValue<TValue>[];
+export type UcList<TValue = UcPrimitive> = UcValue<TValue>[];
 
-export interface ChURIMap<out TValue = ChURIPrimitive> {
-  [key: string]: ChURIValue<TValue> | undefined;
+export interface UcMap<out TValue = UcPrimitive> {
+  [key: string]: UcValue<TValue> | undefined;
 }
 
-export class ChURIEntity implements URIChargeEncodable {
+export class UcEntity implements URIChargeEncodable {
 
   readonly #raw: string;
 
@@ -30,7 +30,7 @@ export class ChURIEntity implements URIChargeEncodable {
   }
 
   get [Symbol.toStringTag](): string {
-    return 'ChURIEntity';
+    return 'UcEntity';
   }
 
   [Symbol.toPrimitive](): string {
@@ -51,7 +51,7 @@ export class ChURIEntity implements URIChargeEncodable {
 
 }
 
-export class ChURIDirective<out TValue = ChURIPrimitive> implements URIChargeEncodable {
+export class UcDirective<out TValue = UcPrimitive> implements URIChargeEncodable {
 
   readonly #rawName: string;
   readonly #value: TValue;
@@ -70,7 +70,7 @@ export class ChURIDirective<out TValue = ChURIPrimitive> implements URIChargeEnc
   }
 
   get [Symbol.toStringTag](): string {
-    return 'ChURIDirective';
+    return 'UcDirective';
   }
 
   encodeURICharge(_placement: URIChargeEncodable.Placement): string {

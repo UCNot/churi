@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
-import { ChURIDirective, ChURIEntity } from '../charge/churi-value.js';
+import { UcDirective, UcEntity } from '../charge/uc-value.js';
 import { URICharge, URIChargeItem } from '../charge/uri-charge.js';
 
 expect.extend({
@@ -196,10 +196,10 @@ function extractURIChargeItem(charge: URICharge): URIChargeValue {
 function extractURIChargeValue(charge: URICharge): URIChargeValue {
   const { value } = charge;
 
-  if (value instanceof ChURIDirective) {
+  if (value instanceof UcDirective) {
     return { rawName: value.rawName, value: extractURIChargeItem(value.value) };
   }
-  if (value instanceof ChURIEntity) {
+  if (value instanceof UcEntity) {
     return { raw: value.raw };
   }
 

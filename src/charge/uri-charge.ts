@@ -1,7 +1,7 @@
-import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './churi-value.js';
+import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
-export abstract class URICharge<out TValue = ChURIPrimitive> implements URIChargeEncodable {
+export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeEncodable {
 
   static get none(): URICharge.None {
     return URICharge$None$instance;
@@ -32,14 +32,14 @@ export abstract class URICharge<out TValue = ChURIPrimitive> implements URICharg
 
 }
 
-export type URIChargeItem<TValue = ChURIPrimitive> =
+export type URIChargeItem<TValue = UcPrimitive> =
   | TValue
-  | ChURIPrimitive
-  | ChURIEntity
-  | ChURIDirective<URICharge<TValue>>;
+  | UcPrimitive
+  | UcEntity
+  | UcDirective<URICharge<TValue>>;
 
 export namespace URICharge {
-  export interface WithoutValues<out TValue = ChURIPrimitive> extends URICharge<TValue> {
+  export interface WithoutValues<out TValue = UcPrimitive> extends URICharge<TValue> {
     get value(): undefined;
     get type(): undefined;
 
@@ -51,7 +51,7 @@ export namespace URICharge {
     at(index: number): URICharge.Some<TValue> | None;
   }
 
-  export interface WithoutEntries<out TValue = ChURIPrimitive> extends URICharge<TValue> {
+  export interface WithoutEntries<out TValue = UcPrimitive> extends URICharge<TValue> {
     isMap(): false;
 
     get(key: string): None;
@@ -87,14 +87,14 @@ export namespace URICharge {
     encodeURICharge(_placement: URIChargeEncodable.Placement): undefined;
   }
 
-  export interface Some<out TValue = ChURIPrimitive> extends URICharge<TValue>, URIChargeEncodable {
+  export interface Some<out TValue = UcPrimitive> extends URICharge<TValue>, URIChargeEncodable {
     isNone(): false;
     isSome(): true;
 
     encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
-  export interface WithValues<out TValue = ChURIPrimitive> extends Some<TValue> {
+  export interface WithValues<out TValue = UcPrimitive> extends Some<TValue> {
     get value(): URIChargeItem<TValue>;
     get type(): string;
 
@@ -102,7 +102,7 @@ export namespace URICharge {
     isMap(): false;
   }
 
-  export interface Single<out TValue = ChURIPrimitive> extends WithValues<TValue> {
+  export interface Single<out TValue = UcPrimitive> extends WithValues<TValue> {
     isList(): false;
 
     at(index: 0): this;
@@ -116,7 +116,7 @@ export namespace URICharge {
     encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
-  export interface List<out TValue = ChURIPrimitive> extends Some<TValue>, WithoutEntries<TValue> {
+  export interface List<out TValue = UcPrimitive> extends Some<TValue>, WithoutEntries<TValue> {
     isNone(): false;
     isSome(): true;
     isList(): true;
@@ -129,7 +129,7 @@ export namespace URICharge {
     encodeURICharge(placement: URIChargeEncodable.Placement): string;
   }
 
-  export interface Map<out TValue = ChURIPrimitive> extends Some<TValue>, WithoutValues<TValue> {
+  export interface Map<out TValue = UcPrimitive> extends Some<TValue>, WithoutValues<TValue> {
     get value(): undefined;
     get type(): undefined;
     get length(): 0;

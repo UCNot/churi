@@ -1,7 +1,7 @@
-import { ChURIPrimitive } from './churi-value.js';
+import { UcPrimitive } from './uc-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
-export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>
+export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
   static #listRx?: URIChargeRx.ListRx.Constructor;
@@ -92,7 +92,7 @@ export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknow
     return this.none;
   }
 
-  createValue(_value: TValue | ChURIPrimitive, _type: string): TCharge {
+  createValue(_value: TValue | UcPrimitive, _type: string): TCharge {
     return this.none;
   }
 
@@ -138,7 +138,7 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     return this.set(this.#chargeRx.createEntity(rawEntity));
   }
 
-  setValue(value: ChURIPrimitive | TValue, type: string): TCharge {
+  setValue(value: UcPrimitive | TValue, type: string): TCharge {
     return this.set(this.#chargeRx.createValue(value, type));
   }
 
@@ -180,7 +180,7 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
     this.put(key, this.#chargeRx.createEntity(rawEntity));
   }
 
-  putValue(key: string, value: ChURIPrimitive | TValue, type: string): void {
+  putValue(key: string, value: UcPrimitive | TValue, type: string): void {
     this.put(key, this.#chargeRx.createValue(value, type));
   }
 
@@ -252,7 +252,7 @@ abstract class OpaqueURICharge$ItemsRx<
     this.add(this.#chargeRx.createEntity(rawEntity));
   }
 
-  addValue(value: ChURIPrimitive | TValue, type: string): void {
+  addValue(value: UcPrimitive | TValue, type: string): void {
     this.add(this.#chargeRx.createValue(value, type));
   }
 

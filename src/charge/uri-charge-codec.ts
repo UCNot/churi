@@ -1,17 +1,17 @@
-import { ChURIMap } from './churi-value.js';
 import {
-  escapeURIChargeKey,
-  escapeURIChargeTopLevelKey,
-  escapeURIChargeTopLevelValue,
-  escapeURIChargeValue,
-} from './impl/escape-uri-charge-string.js';
+  escapeUcKey,
+  escapeUcTopLevelKey,
+  escapeUcTopLevelValue,
+  escapeUcValue,
+} from './impl/uc-string-escapes.js';
+import { UcMap } from './uc-value.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
 /**
  * Encodes arbitrary value to be placed to URI charge string.
  *
  * Handles primitive values, {@link URIChargeEncodable URI charge-encodable} values, as well as arbitrary
- * {@link ChURIList arrays} and {@link ChURIMap object literals}.
+ * {@link UcList arrays} and {@link UcMap object literals}.
  *
  * @param value - The value to encode.
  * @param placement - The supposed placement of encoded value.
@@ -51,9 +51,7 @@ const URI_CHARGE_ENCODERS: {
 export function encodeURIChargeKey(key: string, placement?: URIChargeEncodable.Placement): string {
   const encoded = encodeURIComponent(key);
 
-  return placement?.as === 'top'
-    ? escapeURIChargeTopLevelKey(encoded)
-    : escapeURIChargeKey(encoded);
+  return placement?.as === 'top' ? escapeUcTopLevelKey(encoded) : escapeUcKey(encoded);
 }
 
 /**
@@ -81,9 +79,7 @@ export function encodeURIChargeString(
 ): string {
   const encoded = encodeURIComponent(value);
 
-  return placement?.as === 'top'
-    ? escapeURIChargeTopLevelValue(encoded)
-    : escapeURIChargeValue(encoded);
+  return placement?.as === 'top' ? escapeUcTopLevelValue(encoded) : escapeUcValue(encoded);
 }
 
 function encodeURIChargeNumber(value: number): string {

@@ -1,19 +1,19 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIValueBuilder } from './churi-value-builder.js';
-import { ChURIDirective, ChURIEntity, ChURIList, ChURIValue } from './churi-value.js';
-import { createChURIValueParser, parseChURIValue } from './parse-churi-value.js';
+import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
+import { UcValueBuilder } from './uc-value-builder.js';
+import { UcDirective, UcEntity, UcList, UcValue } from './uc-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
-describe('createChURIValueParser', () => {
+describe('createUcValueParser', () => {
   it('returns default instance without options', () => {
-    expect(createChURIValueParser()).toBe(createChURIValueParser());
+    expect(createUcValueParser()).toBe(createUcValueParser());
   });
   it('returns new instance with options', () => {
-    expect(createChURIValueParser({})).not.toBe(createChURIValueParser());
+    expect(createUcValueParser({})).not.toBe(createUcValueParser());
   });
 });
 
-describe('parseChURIValue', () => {
+describe('parseUcValue', () => {
   describe('string value', () => {
     it('recognized as top-level value', () => {
       expect(parse('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
@@ -177,15 +177,15 @@ describe('parseChURIValue', () => {
 
   describe('unknown entity', () => {
     it('recognized at top level', () => {
-      expect(parse('!bar%20baz').charge).toEqual(new ChURIEntity('!bar%20baz'));
+      expect(parse('!bar%20baz').charge).toEqual(new UcEntity('!bar%20baz'));
     });
     it('recognized as map entry value', () => {
       expect(parse('foo(!bar%20baz)').charge).toEqual({
-        foo: new ChURIEntity('!bar%20baz'),
+        foo: new UcEntity('!bar%20baz'),
       });
     });
     it('recognized as list item value', () => {
-      expect(parse('(!bar%20baz)').charge).toEqual([new ChURIEntity('!bar%20baz')]);
+      expect(parse('(!bar%20baz)').charge).toEqual([new UcEntity('!bar%20baz')]);
     });
   });
 
@@ -310,12 +310,12 @@ describe('parseChURIValue', () => {
   describe('unknown directive', () => {
     it('recognized as top-level value', () => {
       const { rawName, value } = parse('!bar%20baz(foo%20bar)((1))test')
-        .charge as ChURIDirective<ChURIList>;
+        .charge as UcDirective<UcList>;
 
       expect(rawName).toBe('!bar%20baz');
       expect(value).toHaveLength(3);
-      expect(value[0]).toBeInstanceOf(ChURIEntity);
-      expect((value[0] as ChURIEntity).raw).toBe('foo%20bar');
+      expect(value[0]).toBeInstanceOf(UcEntity);
+      expect((value[0] as UcEntity).raw).toBe('foo%20bar');
       expect(value[1]).toEqual([1]);
       expect(value[2]).toEqual({ test: '' });
     });
@@ -323,23 +323,23 @@ describe('parseChURIValue', () => {
       const {
         foo: { rawName, value },
       } = parse('foo(!bar%20baz(1))').charge as {
-        foo: ChURIDirective<ChURIEntity>;
+        foo: UcDirective<UcEntity>;
       };
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(ChURIEntity);
+      expect(value).toBeInstanceOf(UcEntity);
       expect(value.raw).toBe('1');
     });
     it('recognized as list item value', () => {
-      const [{ rawName, value }] = parse('(!bar%20baz())').charge as [ChURIDirective<ChURIEntity>];
+      const [{ rawName, value }] = parse('(!bar%20baz())').charge as [UcDirective<UcEntity>];
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(ChURIEntity);
+      expect(value).toBeInstanceOf(UcEntity);
       expect(value.raw).toBe('');
     });
     it('recognized without parameters', () => {
-      const builder = new ChURIValueBuilder();
-      const { rawName, value } = builder.rxDirective('!test', rx => rx.endDirective()) as ChURIDirective;
+      const builder = new UcValueBuilder();
+      const { rawName, value } = builder.rxDirective('!test', rx => rx.endDirective()) as UcDirective;
 
       expect(rawName).toBe('!test');
       expect(value).toBe(builder.none);
@@ -348,28 +348,28 @@ describe('parseChURIValue', () => {
 
   describe('directive `!`', () => {
     it('recognized when followed by entity', () => {
-      const { rawName, value } = parse('!()bar(test)').charge as ChURIDirective<ChURIList>;
+      const { rawName, value } = parse('!()bar(test)').charge as UcDirective<UcList>;
 
       expect(rawName).toBe('!');
-      expect((value[0] as ChURIEntity).raw).toBe('');
+      expect((value[0] as UcEntity).raw).toBe('');
       expect(value[1]).toEqual({ bar: 'test' });
     });
     it('recognized when followed by another item', () => {
-      const { rawName, value } = parse('!()(bar%20baz)test').charge as ChURIDirective<ChURIList>;
+      const { rawName, value } = parse('!()(bar%20baz)test').charge as UcDirective<UcList>;
 
       expect(rawName).toBe('!');
-      expect((value[0] as ChURIEntity).raw).toBe('');
-      expect((value[1] as ChURIEntity).raw).toBe('bar%20baz');
+      expect((value[0] as UcEntity).raw).toBe('');
+      expect((value[1] as UcEntity).raw).toBe('bar%20baz');
       expect(value[2]).toEqual({ test: '' });
     });
     it('recognized when has value', () => {
-      const { rawName, value } = parse('!(test)').charge as ChURIDirective<ChURIEntity>;
+      const { rawName, value } = parse('!(test)').charge as UcDirective<UcEntity>;
 
       expect(rawName).toBe('!');
       expect(value.raw).toBe('test');
     });
     it('recognized when has incomplete value', () => {
-      const { rawName, value } = parse('!(t').charge as ChURIDirective<ChURIEntity>;
+      const { rawName, value } = parse('!(t').charge as UcDirective<UcEntity>;
 
       expect(rawName).toBe('!');
       expect(value.raw).toBe('t');
@@ -459,7 +459,7 @@ describe('parseChURIValue', () => {
     });
   });
 
-  function parse(input: string): URIChargeParser.Result<ChURIValue> {
-    return parseChURIValue(input);
+  function parse(input: string): URIChargeParser.Result<UcValue> {
+    return parseUcValue(input);
   }
 });

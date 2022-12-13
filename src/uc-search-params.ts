@@ -1,11 +1,11 @@
 import { isIterable } from '@proc7ts/primitives';
-import { ChURIPrimitive } from './charge/churi-value.js';
 import { createURIChargeParser } from './charge/parse-uri-charge.js';
+import { UcPrimitive } from './charge/uc-value.js';
 import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
 
-export class ChURIParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TValue>>
+export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
   implements Iterable<[string, string]> {
 
   readonly #chargeParser: URIChargeParser<TValue, TCharge>;
@@ -18,7 +18,7 @@ export class ChURIParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TV
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    ...chargeParser: ChURIPrimitive extends TValue
+    ...chargeParser: UcPrimitive extends TValue
       ? URICharge<TValue> extends TCharge
         ? [URIChargeParser<TValue, TCharge>?]
         : [URIChargeParser<TValue, TCharge>]
@@ -154,7 +154,7 @@ export class ChURIParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TV
   }
 
   forEach(
-    callback: (value: string, key: string, parent: ChURIParams<TValue, TCharge>) => void,
+    callback: (value: string, key: string, parent: UcSearchParams<TValue, TCharge>) => void,
   ): void {
     this.#list.forEach(({ key, value }) => callback(value, key, this));
   }

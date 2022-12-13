@@ -1,4 +1,4 @@
-import { ChURIParams } from './churi-params.js';
+import { UcSearchParams } from './uc-search-params.js';
 
 /**
  * Charged URI.
@@ -20,7 +20,7 @@ export class ChURI {
 
   readonly #url: URL;
   #scheme?: string;
-  #searchParams?: ChURIParams;
+  #searchParams?: UcSearchParams;
 
   /**
    * Constructs charged URI.
@@ -130,8 +130,8 @@ export class ChURI {
    *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): ChURIParams {
-    return (this.#searchParams ??= new ChURIParams(this.search));
+  get searchParams(): UcSearchParams {
+    return (this.#searchParams ??= new UcSearchParams(this.search));
   }
 
   /**

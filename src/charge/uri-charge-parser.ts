@@ -1,11 +1,11 @@
-import { ChURIPrimitive } from './churi-value.js';
-import { decodeChURIValue } from './impl/churi-value-decoder.js';
-import { parseChURIValue } from './impl/parse-churi-value.js';
+import { decodeUcValue } from './impl/uc-value-decoder.js';
+import { parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
+import { UcPrimitive } from './uc-value.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
-export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown> {
+export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   readonly #rx: URIChargeRx<TValue, TCharge>;
   readonly #ext: URIChargeExtParser<TValue, TCharge>;
@@ -38,7 +38,7 @@ export class URIChargeParser<out TValue = ChURIPrimitive, out TCharge = unknown>
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
-    return parseChURIValue(this.#ext.valueTarget, rx, '', decodeChURIValue, input);
+    return parseUcValue(this.#ext.valueTarget, rx, '', decodeUcValue, input);
   }
 
 }

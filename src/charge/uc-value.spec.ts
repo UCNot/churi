@@ -1,8 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIDirective, ChURIEntity } from './churi-value.js';
+import { UcDirective, UcEntity } from './uc-value.js';
 
-describe('ChURIEntity', () => {
-  const entity = new ChURIEntity('!foo%20bar');
+describe('UcEntity', () => {
+  const entity = new UcEntity('!foo%20bar');
 
   it('contains raw encoded value', () => {
     expect(entity.raw).toBe('!foo%20bar');
@@ -12,12 +12,12 @@ describe('ChURIEntity', () => {
   });
 
   it('has string tag', () => {
-    expect(entity[Symbol.toStringTag]).toBe('ChURIEntity');
+    expect(entity[Symbol.toStringTag]).toBe('UcEntity');
   });
 });
 
-describe('ChURIDirective', () => {
-  const directive = new ChURIDirective('!foo%20bar', { foo: 'bar' });
+describe('UcDirective', () => {
+  const directive = new UcDirective('!foo%20bar', { foo: 'bar' });
 
   describe('rawName', () => {
     it('contains raw encoded name', () => {
@@ -26,14 +26,14 @@ describe('ChURIDirective', () => {
   });
 
   it('has string tag', () => {
-    expect(directive[Symbol.toStringTag]).toBe('ChURIDirective');
+    expect(directive[Symbol.toStringTag]).toBe('UcDirective');
   });
 
   describe('toString', () => {
     it('reflects directive contents', () => {
-      expect(
-        String(new ChURIDirective('!test', ['arg1', 'arg2', { foo: 'bar', suffix: '' }])),
-      ).toBe('!test(arg1)(arg2)foo(bar)suffix');
+      expect(String(new UcDirective('!test', ['arg1', 'arg2', { foo: 'bar', suffix: '' }]))).toBe(
+        '!test(arg1)(arg2)foo(bar)suffix',
+      );
     });
   });
 });

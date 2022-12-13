@@ -1,7 +1,7 @@
 import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 
-export function NumberValuesURIChargeExt<TValue, TCharge>(
+export function NumberValuesUcExt<TValue, TCharge>(
   charge: URIChargeRx<TValue, TCharge>,
 ): URIChargeExt<TValue, TCharge> {
   return {

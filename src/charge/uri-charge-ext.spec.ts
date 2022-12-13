@@ -1,23 +1,20 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { ChURIPrimitive, ChURIValue } from './churi-value.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
-import { createChURIValueParser } from './parse-churi-value.js';
+import { createUcValueParser } from './parse-uc-value.js';
+import { UcPrimitive, UcValue } from './uc-value.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 describe('URIChargeExt', () => {
   describe('entity', () => {
-    let parser: URIChargeParser<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>>;
+    let parser: URIChargeParser<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>;
 
     beforeAll(() => {
-      parser = createChURIValueParser({
-        ext: (): URIChargeExt<
-          ChURIPrimitive | TestValue,
-          ChURIValue<ChURIPrimitive | TestValue>
-        > => ({
+      parser = createUcValueParser({
+        ext: (): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
           entities: {
-            ['!test'](): ChURIValue<ChURIPrimitive | TestValue> {
+            ['!test'](): UcValue<UcPrimitive | TestValue> {
               return { [test__symbol]: 'test value' };
             },
           },
@@ -43,23 +40,21 @@ describe('URIChargeExt', () => {
   });
 
   describe('directive', () => {
-    let parser: URIChargeParser<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>>;
+    let parser: URIChargeParser<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>;
 
     beforeAll(() => {
-      parser = createChURIValueParser({
-        ext: (
-          charge,
-        ): URIChargeExt<ChURIPrimitive | TestValue, ChURIValue<ChURIPrimitive | TestValue>> => ({
+      parser = createUcValueParser({
+        ext: (charge): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
           directives: {
             ['!test'](
               rawName: string,
               parse: (
                 rx: URIChargeRx.DirectiveRx<
-                  ChURIPrimitive | TestValue,
-                  ChURIValue<ChURIPrimitive | TestValue>
+                  UcPrimitive | TestValue,
+                  UcValue<UcPrimitive | TestValue>
                 >,
-              ) => ChURIValue<ChURIPrimitive | TestValue>,
-            ): ChURIValue<ChURIPrimitive | TestValue> {
+              ) => UcValue<UcPrimitive | TestValue>,
+            ): UcValue<UcPrimitive | TestValue> {
               return charge.rxValue(rx => parse(new TestDirectiveRx(rx, rawName)));
             },
           },
@@ -93,14 +88,14 @@ describe('URIChargeExt', () => {
   const OpaqueDirectiveRx = OpaqueURIChargeRx.DirectiveRx;
 
   class TestDirectiveRx<
-    TValue extends ChURIPrimitive | TestValue = ChURIPrimitive | TestValue,
-  > extends OpaqueDirectiveRx<TValue, ChURIValue<ChURIPrimitive | TestValue>> {
+    TValue extends UcPrimitive | TestValue = UcPrimitive | TestValue,
+  > extends OpaqueDirectiveRx<TValue, UcValue<UcPrimitive | TestValue>> {
 
-    readonly #rx: URIChargeRx.ValueRx<TValue, ChURIValue<ChURIPrimitive | TestValue>>;
-    #charge: ChURIValue<ChURIPrimitive | TestValue>;
+    readonly #rx: URIChargeRx.ValueRx<TValue, UcValue<UcPrimitive | TestValue>>;
+    #charge: UcValue<UcPrimitive | TestValue>;
 
     constructor(
-      rx: URIChargeRx.ValueRx<TValue, ChURIValue<ChURIPrimitive | TestValue>>,
+      rx: URIChargeRx.ValueRx<TValue, UcValue<UcPrimitive | TestValue>>,
       rawName: string,
     ) {
       super(rx.chargeRx, rawName);
@@ -108,17 +103,17 @@ describe('URIChargeExt', () => {
       this.#charge = rx.chargeRx.none;
     }
 
-    override addEntity(rawEntity: ChURIPrimitive | TValue): void {
+    override addEntity(rawEntity: UcPrimitive | TValue): void {
       const charge: TestValue = { [test__symbol]: rawEntity };
 
       this.add(charge);
     }
 
-    override add(charge: ChURIValue<ChURIPrimitive | TestValue>): void {
+    override add(charge: UcValue<UcPrimitive | TestValue>): void {
       this.#charge = charge;
     }
 
-    endDirective(): ChURIValue<ChURIPrimitive | TestValue> {
+    endDirective(): UcValue<UcPrimitive | TestValue> {
       return this.#rx.set(this.#charge);
     }
 

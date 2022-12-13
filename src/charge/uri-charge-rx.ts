@@ -1,11 +1,11 @@
-import { type ChURIPrimitive } from './churi-value.js';
+import { type UcPrimitive } from './uc-value.js';
 
-export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
+export interface URIChargeRx<out TValue = UcPrimitive, out TCharge = unknown> {
   readonly none: TCharge;
 
   createEntity(rawEntity: string): TCharge;
 
-  createValue(value: TValue | ChURIPrimitive, type: string): TCharge;
+  createValue(value: TValue | UcPrimitive, type: string): TCharge;
 
   rxValue(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge;
 
@@ -37,7 +37,7 @@ export namespace URIChargeRx {
   }['parse'];
 
   export interface ValueRx<
-    out TValue = ChURIPrimitive,
+    out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
   > {
@@ -47,7 +47,7 @@ export namespace URIChargeRx {
 
     setEntity(rawEntity: string): TCharge;
 
-    setValue(value: ChURIPrimitive | TValue, type: string): TCharge;
+    setValue(value: UcPrimitive | TValue, type: string): TCharge;
 
     rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge;
 
@@ -61,7 +61,7 @@ export namespace URIChargeRx {
 
   export namespace ValueRx {
     export type Constructor = new <
-      TValue = ChURIPrimitive,
+      TValue = UcPrimitive,
       TCharge = unknown,
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
@@ -70,7 +70,7 @@ export namespace URIChargeRx {
   }
 
   export interface MapRx<
-    out TValue = ChURIPrimitive,
+    out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
   > {
@@ -80,7 +80,7 @@ export namespace URIChargeRx {
 
     putEntity(key: string, rawEntity: string): void;
 
-    putValue(key: string, value: ChURIPrimitive | TValue, type: string): void;
+    putValue(key: string, value: UcPrimitive | TValue, type: string): void;
 
     rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
@@ -99,7 +99,7 @@ export namespace URIChargeRx {
 
   export namespace MapRx {
     export type Constructor = new <
-      TValue = ChURIPrimitive,
+      TValue = UcPrimitive,
       TCharge = unknown,
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
@@ -108,7 +108,7 @@ export namespace URIChargeRx {
   }
 
   export interface ItemsRx<
-    out TValue = ChURIPrimitive,
+    out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
   > {
@@ -118,7 +118,7 @@ export namespace URIChargeRx {
 
     addEntity(rawEntity: string): void;
 
-    addValue(value: ChURIPrimitive | TValue, type: string): void;
+    addValue(value: UcPrimitive | TValue, type: string): void;
 
     rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
@@ -132,7 +132,7 @@ export namespace URIChargeRx {
 
   export namespace ItemsRx {
     export type Constructor = abstract new <
-      TValue = ChURIPrimitive,
+      TValue = UcPrimitive,
       TCharge = unknown,
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
@@ -141,7 +141,7 @@ export namespace URIChargeRx {
   }
 
   export interface ListRx<
-    out TValue = ChURIPrimitive,
+    out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
   > extends ItemsRx<TValue, TCharge, TRx> {
@@ -150,7 +150,7 @@ export namespace URIChargeRx {
 
   export namespace ListRx {
     export type Constructor = new <
-      TValue = ChURIPrimitive,
+      TValue = UcPrimitive,
       TCharge = unknown,
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(
@@ -159,7 +159,7 @@ export namespace URIChargeRx {
   }
 
   export interface DirectiveRx<
-    out TValue = ChURIPrimitive,
+    out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
   > extends ItemsRx<TValue, TCharge, TRx> {
@@ -170,7 +170,7 @@ export namespace URIChargeRx {
 
   export namespace DirectiveRx {
     export type Constructor = new <
-      TValue = ChURIPrimitive,
+      TValue = UcPrimitive,
       TCharge = unknown,
       TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
     >(

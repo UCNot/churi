@@ -1,10 +1,10 @@
-import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './churi-value.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
+import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 import { URICharge, URIChargeItem } from './uri-charge.js';
 
-export class URIChargeBuilder<out TValue = ChURIPrimitive>
+export class URIChargeBuilder<out TValue = UcPrimitive>
   implements URIChargeRx<URIChargeItem<TValue>, URICharge<TValue>> {
 
   static get ValueRx(): URIChargeBuilder.ValueRx.Constructor {
@@ -32,7 +32,7 @@ export class URIChargeBuilder<out TValue = ChURIPrimitive>
   }
 
   createEntity(rawEntity: string): URICharge.Single<TValue> {
-    return new URICharge$Single<TValue>(new ChURIEntity(rawEntity), 'entity');
+    return new URICharge$Single<TValue>(new UcEntity(rawEntity), 'entity');
   }
 
   createValue(value: URIChargeItem<TValue>, type: string): URICharge.Single<TValue> {
@@ -246,10 +246,7 @@ class URIChargeBuilder$DirectiveRx<out TValue, out TRx extends URIChargeBuilder<
 
 interface URIChargeDirective$Builder<out TValue> {
   add(value: URICharge.Some<TValue>): URIChargeDirective$Builder<TValue>;
-  build(
-    rx: URIChargeBuilder.DirectiveRx<TValue>,
-    rawName: string,
-  ): ChURIDirective<URICharge<TValue>>;
+  build(rx: URIChargeBuilder.DirectiveRx<TValue>, rawName: string): UcDirective<URICharge<TValue>>;
 }
 
 class URIChargeDirective$None<TValue> implements URIChargeDirective$Builder<TValue> {
@@ -258,11 +255,8 @@ class URIChargeDirective$None<TValue> implements URIChargeDirective$Builder<TVal
     return new URIChargeDirective$Single(value);
   }
 
-  build(
-    rx: URIChargeBuilder.DirectiveRx<TValue>,
-    rawName: string,
-  ): ChURIDirective<URICharge<TValue>> {
-    return new ChURIDirective(rawName, rx.chargeRx.none);
+  build(rx: URIChargeBuilder.DirectiveRx<TValue>, rawName: string): UcDirective<URICharge<TValue>> {
+    return new UcDirective(rawName, rx.chargeRx.none);
   }
 
 }
@@ -285,8 +279,8 @@ class URIChargeDirective$Single<TValue> implements URIChargeDirective$Builder<TV
   build(
     _rx: URIChargeBuilder.DirectiveRx<TValue>,
     rawName: string,
-  ): ChURIDirective<URICharge<TValue>> {
-    return new ChURIDirective(rawName, this.#value);
+  ): UcDirective<URICharge<TValue>> {
+    return new UcDirective(rawName, this.#value);
   }
 
 }
@@ -308,8 +302,8 @@ class URIChargeDirective$List<TValue> implements URIChargeDirective$Builder<TVal
   build(
     _rx: URIChargeBuilder.DirectiveRx<TValue>,
     rawName: string,
-  ): ChURIDirective<URICharge<TValue>> {
-    return new ChURIDirective(rawName, new URICharge$List(this.#list));
+  ): UcDirective<URICharge<TValue>> {
+    return new UcDirective(rawName, new URICharge$List(this.#list));
   }
 
 }
