@@ -296,7 +296,7 @@ describe('encodeURICharge', () => {
       expect(String(parseURICharge('(foo)(%74est').charge)).toBe('(foo)(test)');
     });
     it('encoded when directive', () => {
-      expect(String(parseURICharge('!foo(%74est').charge)).toBe('!foo(test)');
+      expect(String(parseURICharge('!foo(%74est').charge)).toBe('!foo(%74est)');
     });
     it('is not encoded when none', () => {
       expect(String(URICharge.none)).toBe('!None');

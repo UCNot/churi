@@ -277,7 +277,7 @@ describe('parseURICharge', () => {
       expect(charge).toBeURIChargeSingle('directive');
       expect(charge).toHaveURIChargeValue({
         rawName: '!bar%20baz',
-        value: ['foo', [1], { test: '' }],
+        value: [{ raw: 'foo' }, [1], { test: '' }],
       });
 
       expect(charge.get('value')).toBeURIChargeNone();
@@ -286,13 +286,13 @@ describe('parseURICharge', () => {
     });
     it('recognized as map entry value', () => {
       expect(parse('foo(!bar%20baz(1))').charge).toHaveURIChargeItems({
-        foo: { rawName: '!bar%20baz', value: 1 },
+        foo: { rawName: '!bar%20baz', value: { raw: '1' } },
       });
     });
     it('recognized as list item value', () => {
       expect(parse('(!bar%20baz())').charge).toHaveURIChargeItems({
         rawName: '!bar%20baz',
-        value: '',
+        value: { raw: '' },
       });
     });
     it('recognized without parameters', () => {

@@ -53,8 +53,8 @@ export class ChURIEntity implements URIChargeEncodable {
 
 export class ChURIDirective<out TValue = ChURIPrimitive> implements URIChargeEncodable {
 
-  #rawName: string;
-  #value: TValue;
+  readonly #rawName: string;
+  readonly #value: TValue;
 
   constructor(rawName: string, value: TValue) {
     this.#rawName = rawName;
@@ -75,14 +75,13 @@ export class ChURIDirective<out TValue = ChURIPrimitive> implements URIChargeEnc
 
   encodeURICharge(_placement: URIChargeEncodable.Placement): string {
     let omitParentheses = false;
-    const valuePlacement: URIChargeEncodable.Arg = {
-      as: 'arg',
-      omitParentheses() {
-        omitParentheses = true;
-      },
-    };
-
-    const encodedValue = encodeURICharge(this.#value, valuePlacement) ?? '--';
+    const encodedValue =
+      encodeURICharge(this.#value, {
+        as: 'arg',
+        omitParentheses() {
+          omitParentheses = true;
+        },
+      }) ?? '--';
 
     return omitParentheses
       ? `${this.#rawName}${encodedValue}`

@@ -33,7 +33,7 @@ export function decodeChURIDirectiveArg<TValue, TCharge>(
   key: string,
   input: string,
 ): TCharge {
-  return decodeChURIValue(to, rx, key, input);
+  return to.setEntity(rx, key, input);
 }
 
 export type ChURIValuePrefix =

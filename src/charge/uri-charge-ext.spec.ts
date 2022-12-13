@@ -68,7 +68,7 @@ describe('URIChargeExt', () => {
     });
 
     it('recognized at top level', () => {
-      expect(parser.parse("!test('foo)")).toEqual({ charge: { [test__symbol]: 'foo' }, end: 11 });
+      expect(parser.parse("!test('foo)")).toEqual({ charge: { [test__symbol]: "'foo" }, end: 11 });
     });
     it('recognized as map entry value', () => {
       expect(parser.parse('foo(!test(bar))')).toEqual({
@@ -108,8 +108,8 @@ describe('URIChargeExt', () => {
       this.#charge = rx.chargeRx.none;
     }
 
-    override addValue(value: ChURIPrimitive | TValue): void {
-      const charge: TestValue = { [test__symbol]: value };
+    override addEntity(rawEntity: ChURIPrimitive | TValue): void {
+      const charge: TestValue = { [test__symbol]: rawEntity };
 
       this.add(charge);
     }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChURIValueBuilder } from './ch-uri-value-builder.js';
-import { ChURIDirective, ChURIEntity, ChURIValue } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity, ChURIList, ChURIValue } from './ch-uri-value.js';
 import { createChURIValueParser, parseChURIValue } from './parse-ch-uri-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
@@ -309,26 +309,33 @@ describe('parseChURIValue', () => {
 
   describe('unknown directive', () => {
     it('recognized as top-level value', () => {
-      const { rawName, value } = parse('!bar%20baz(foo)((1))test').charge as ChURIDirective;
+      const { rawName, value } = parse('!bar%20baz(foo%20bar)((1))test')
+        .charge as ChURIDirective<ChURIList>;
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toEqual(['foo', [1], { test: '' }]);
+      expect(value).toHaveLength(3);
+      expect(value[0]).toBeInstanceOf(ChURIEntity);
+      expect((value[0] as ChURIEntity).raw).toBe('foo%20bar');
+      expect(value[1]).toEqual([1]);
+      expect(value[2]).toEqual({ test: '' });
     });
     it('recognized as map entry value', () => {
       const {
         foo: { rawName, value },
       } = parse('foo(!bar%20baz(1))').charge as {
-        foo: ChURIDirective;
+        foo: ChURIDirective<ChURIEntity>;
       };
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBe(1);
+      expect(value).toBeInstanceOf(ChURIEntity);
+      expect(value.raw).toBe('1');
     });
     it('recognized as list item value', () => {
-      const [{ rawName, value }] = parse('(!bar%20baz())').charge as [ChURIDirective];
+      const [{ rawName, value }] = parse('(!bar%20baz())').charge as [ChURIDirective<ChURIEntity>];
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBe('');
+      expect(value).toBeInstanceOf(ChURIEntity);
+      expect(value.raw).toBe('');
     });
     it('recognized without parameters', () => {
       const builder = new ChURIValueBuilder();
@@ -341,28 +348,31 @@ describe('parseChURIValue', () => {
 
   describe('directive `!`', () => {
     it('recognized when followed by entity', () => {
-      const { rawName, value } = parse('!()bar(test)').charge as ChURIDirective;
+      const { rawName, value } = parse('!()bar(test)').charge as ChURIDirective<ChURIList>;
 
       expect(rawName).toBe('!');
-      expect(value).toEqual(['', { bar: 'test' }]);
+      expect((value[0] as ChURIEntity).raw).toBe('');
+      expect(value[1]).toEqual({ bar: 'test' });
     });
     it('recognized when followed by another item', () => {
-      const { rawName, value } = parse('!()(bar)test').charge as ChURIDirective;
+      const { rawName, value } = parse('!()(bar%20baz)test').charge as ChURIDirective<ChURIList>;
 
       expect(rawName).toBe('!');
-      expect(value).toEqual(['', 'bar', { test: '' }]);
+      expect((value[0] as ChURIEntity).raw).toBe('');
+      expect((value[1] as ChURIEntity).raw).toBe('bar%20baz');
+      expect(value[2]).toEqual({ test: '' });
     });
     it('recognized when has value', () => {
-      const { rawName, value } = parse('!(test)').charge as ChURIDirective;
+      const { rawName, value } = parse('!(test)').charge as ChURIDirective<ChURIEntity>;
 
       expect(rawName).toBe('!');
-      expect(value).toBe('test');
+      expect(value.raw).toBe('test');
     });
     it('recognized when has incomplete value', () => {
-      const { rawName, value } = parse('!(t').charge as ChURIDirective;
+      const { rawName, value } = parse('!(t').charge as ChURIDirective<ChURIEntity>;
 
       expect(rawName).toBe('!');
-      expect(value).toBe('t');
+      expect(value.raw).toBe('t');
     });
   });
 
