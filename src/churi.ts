@@ -1,10 +1,10 @@
-import { ChSearchParams } from './ch-search-params.js';
+import { ChURIParams } from './churi-params.js';
 
 export class ChURI {
 
   readonly #url: URL;
   #schema?: string;
-  #searchParams?: ChSearchParams;
+  #searchParams?: ChURIParams;
 
   constructor(uri: string) {
     const url = new URL(uri);
@@ -52,8 +52,8 @@ export class ChURI {
     return this.#url.search;
   }
 
-  get searchParams(): ChSearchParams {
-    return (this.#searchParams ??= new ChSearchParams(this.search));
+  get searchParams(): ChURIParams {
+    return (this.#searchParams ??= new ChURIParams(this.search));
   }
 
   get hash(): string {

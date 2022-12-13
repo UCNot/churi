@@ -5,7 +5,7 @@ import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
 
-export class ChSearchParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TValue>>
+export class ChURIParams<out TValue = ChURIPrimitive, out TCharge = URICharge<TValue>>
   implements Iterable<[string, string]> {
 
   readonly #chargeParser: URIChargeParser<TValue, TCharge>;
@@ -154,7 +154,7 @@ export class ChSearchParams<out TValue = ChURIPrimitive, out TCharge = URICharge
   }
 
   forEach(
-    callback: (value: string, key: string, parent: ChSearchParams<TValue, TCharge>) => void,
+    callback: (value: string, key: string, parent: ChURIParams<TValue, TCharge>) => void,
   ): void {
     this.#list.forEach(({ key, value }) => callback(value, key, this));
   }

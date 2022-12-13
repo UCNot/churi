@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { ChSearchParams } from './ch-search-params.js';
+import { ChURIParams } from './churi-params.js';
 import './spec/uri-charge-matchers.js';
 
-describe('ChSearchParams', () => {
+describe('ChURIParams', () => {
   it('parsed from string', () => {
     const input = 'a=1&b=2&a=3';
-    const params = new ChSearchParams(input);
+    const params = new ChURIParams(input);
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([
@@ -19,7 +19,7 @@ describe('ChSearchParams', () => {
   });
   it('treats `+` as space', () => {
     const input = 'key+foo=value+bar';
-    const params = new ChSearchParams(input);
+    const params = new ChURIParams(input);
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([['key foo', 'value bar']]);
@@ -29,7 +29,7 @@ describe('ChSearchParams', () => {
   });
   it('handles percent-encoded symbols', () => {
     const input = 'key%2Bfoo=value%2Bbar';
-    const params = new ChSearchParams(input);
+    const params = new ChURIParams(input);
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([['key+foo', 'value+bar']]);
@@ -39,7 +39,7 @@ describe('ChSearchParams', () => {
   });
   it('ignores leading `?`', () => {
     const input = '?a=1&b=2&a=3';
-    const params = new ChSearchParams(input);
+    const params = new ChURIParams(input);
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([
@@ -52,20 +52,20 @@ describe('ChSearchParams', () => {
     expect(String(params)).toBe(String(urlParams));
   });
   it('is empty for empty string', () => {
-    const params = new ChSearchParams('');
+    const params = new ChURIParams('');
 
     expect([...params]).toEqual([]);
     expect(String(params)).toBe('');
   });
   it('is empty for `?` string', () => {
-    const params = new ChSearchParams('?');
+    const params = new ChURIParams('?');
 
     expect([...params]).toEqual([]);
     expect(String(params)).toBe('');
   });
   it('constructed by iterable', () => {
     const urlParams = new URLSearchParams('a=a1&b=b2&a=c3');
-    const params = new ChSearchParams(urlParams);
+    const params = new ChURIParams(urlParams);
 
     expect([...params]).toEqual([
       ['a', 'a1'],
@@ -77,7 +77,7 @@ describe('ChSearchParams', () => {
   });
   it('constructed by object literal', () => {
     const input = { a: 1, b: 2 } as Record<string, unknown> as Record<string, string>;
-    const params = new ChSearchParams(input);
+    const params = new ChURIParams(input);
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([
@@ -88,10 +88,10 @@ describe('ChSearchParams', () => {
   });
 
   describe('has', () => {
-    let params: ChSearchParams;
+    let params: ChURIParams;
 
     beforeAll(() => {
-      params = new ChSearchParams('aaa=1&bbb');
+      params = new ChURIParams('aaa=1&bbb');
     });
 
     it('detects parameter presence', () => {
@@ -104,10 +104,10 @@ describe('ChSearchParams', () => {
   });
 
   describe('get', () => {
-    let params: ChSearchParams;
+    let params: ChURIParams;
 
     beforeAll(() => {
-      params = new ChSearchParams('aaa=111&bbb&aaa=333');
+      params = new ChURIParams('aaa=111&bbb&aaa=333');
     });
 
     it('returns first parameter value', () => {
@@ -122,10 +122,10 @@ describe('ChSearchParams', () => {
   });
 
   describe('getAll', () => {
-    let params: ChSearchParams;
+    let params: ChURIParams;
 
     beforeAll(() => {
-      params = new ChSearchParams('aaa&bbb=222&aaa=333');
+      params = new ChURIParams('aaa&bbb=222&aaa=333');
     });
 
     it('returns all parameter values', () => {
@@ -138,12 +138,12 @@ describe('ChSearchParams', () => {
   });
 
   describe('iteration', () => {
-    let params: ChSearchParams;
+    let params: ChURIParams;
     let urlParams = new URLSearchParams();
 
     beforeAll(() => {
       urlParams = new URLSearchParams('aaa=111&bbb&aaa=333');
-      params = new ChSearchParams(urlParams);
+      params = new ChURIParams(urlParams);
     });
 
     describe('keys', () => {
@@ -198,7 +198,7 @@ describe('ChSearchParams', () => {
 
   describe('charge', () => {
     it('obtains parameter charges', () => {
-      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+      const params = new ChURIParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
       expect(params.chargeOf('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
       expect(params.chargeOf('baz')).toHaveURIChargeItems(21, 22);
@@ -211,18 +211,18 @@ describe('ChSearchParams', () => {
       });
     });
     it('is cached', () => {
-      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+      const params = new ChURIParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
       expect(params.charge).toBe(params.charge);
       expect(params.chargeOf('foo')).toBe(params.chargeOf('foo'));
     });
     it('is none for missing parameter', () => {
-      const params = new ChSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+      const params = new ChURIParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
       expect(params.chargeOf('missing')).toBe(params.chargeParser.chargeRx.none);
     });
     it('contains strings when constructed from iterable', () => {
-      const params = new ChSearchParams([
+      const params = new ChURIParams([
         ['foo', 'bar(test)'],
         ['foo', '1'],
         ['baz', '(21)(22)'],
@@ -246,7 +246,7 @@ describe('ChSearchParams', () => {
       const urlParams = new URLSearchParams(
         "p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val&p=7val&p=8val&p=9val&p=!val!&p='val'&p=-val-&p=(foo(&p=)foo)",
       );
-      const params = new ChSearchParams(urlParams);
+      const params = new ChURIParams(urlParams);
       const output = String(params);
 
       expect(String(new URLSearchParams(output))).toBe(String(urlParams));
