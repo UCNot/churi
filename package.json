@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "description": "Charged URI",
   "keywords": [
-    "data-faucet",
-    "data-churi",
-    "data-sink"
+    "matrix-uri",
+    "matrix-url",
+    "rfc3986",
+    "uri",
+    "url"
   ],
   "homepage": "https://github.com/hatsyjs/churi",
   "repository": {

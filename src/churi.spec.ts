@@ -2,14 +2,14 @@ import { describe, expect, it } from '@jest/globals';
 import { ChURI } from './churi.js';
 
 describe('ChURI', () => {
-  describe('schema', () => {
+  describe('scheme', () => {
     it('can not be empty', () => {
       expect(() => new ChURI('/some/path')).toThrow(new TypeError('Invalid URL'));
     });
     it('contains protocol without trailing colon', () => {
       const uri = new ChURI('file:///path');
 
-      expect(uri.schema).toBe('file');
+      expect(uri.scheme).toBe('file');
       expect(uri.protocol).toBe('file:');
     });
   });
@@ -199,6 +199,7 @@ describe('ChURI', () => {
 
       expect(uri.href).toBe(href);
       expect(String(uri)).toBe(href);
+      expect(JSON.stringify(uri)).toBe(`"${href}"`);
       expect(uri.toURL().href).toBe(href);
     });
     it('is the one of URL when authority absent', () => {
@@ -207,6 +208,7 @@ describe('ChURI', () => {
 
       expect(uri.href).toBe(href);
       expect(String(uri)).toBe(href);
+      expect(JSON.stringify(uri)).toBe(`"${href}"`);
       expect(uri.toURL().href).toBe(href);
     });
     it('is the one of URL when non-empty authority added automatically', () => {
