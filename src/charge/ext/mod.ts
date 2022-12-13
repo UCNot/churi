@@ -1,2 +1,2 @@
-export * from './number-values.ch-uri-ext.js';
-export * from './predefined.ch-uri-ext.js';
+export * from './number-values.uri-charge-ext.js';
+export * from './predefined.uri-charge-ext.js';

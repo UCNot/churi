@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
-import { ChURIDirective, ChURIEntity } from '../charge/ch-uri-value.js';
+import { ChURIDirective, ChURIEntity } from '../charge/churi-value.js';
 import { URICharge, URIChargeItem } from '../charge/uri-charge.js';
 
 expect.extend({

@@ -1,5 +1,5 @@
-import { ChURIPrimitive } from './ch-uri-value.js';
-import { PredefinedChURIExt } from './ext/predefined.ch-uri-ext.js';
+import { ChURIPrimitive } from './churi-value.js';
+import { PredefinedURIChargeExt } from './ext/predefined.uri-charge-ext.js';
 import { URIChargeBuilder } from './uri-charge-builder.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URICharge } from './uri-charge.js';
@@ -11,8 +11,10 @@ let URIChargeParser$default: URIChargeParser<any, any> | undefined;
 export function createURIChargeParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, URICharge<TValue>>>,
 ): URIChargeParser<TValue, URICharge<TValue>> {
-  const { rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>, ext = PredefinedChURIExt } =
-    options ?? {};
+  const {
+    rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>,
+    ext = PredefinedURIChargeExt,
+  } = options ?? {};
 
   if (!options) {
     return (URIChargeParser$default ??= new URIChargeParser({

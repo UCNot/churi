@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIDirective, ChURIEntity } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity } from './churi-value.js';
 
 describe('ChURIEntity', () => {
   const entity = new ChURIEntity('!foo%20bar');

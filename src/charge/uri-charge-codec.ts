@@ -1,4 +1,4 @@
-import { ChURIMap } from './ch-uri-value.js';
+import { ChURIMap } from './churi-value.js';
 import {
   escapeURIChargeKey,
   escapeURIChargeTopLevelKey,

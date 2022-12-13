@@ -5,7 +5,7 @@ import {
   ChURIMap,
   ChURIPrimitive,
   ChURIValue,
-} from './ch-uri-value.js';
+} from './churi-value.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 

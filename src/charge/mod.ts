@@ -1,8 +1,8 @@
-export * from './ch-uri-value-builder.js';
-export * from './ch-uri-value.js';
+export * from './churi-value-builder.js';
+export * from './churi-value.js';
 export * from './ext/mod.js';
 export * from './opaque.uri-charge-rx.js';
-export * from './parse-ch-uri-value.js';
+export * from './parse-churi-value.js';
 export * from './parse-uri-charge.js';
 export * from './uri-charge-builder.js';
 export {

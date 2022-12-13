@@ -1,4 +1,4 @@
-import { ChURIValuePrefix } from './ch-uri-value-decoder.js';
+import { ChURIValuePrefix } from './churi-value-decoder.js';
 
 interface URIChargeEscapeMap {
   readonly [special: string]: string;

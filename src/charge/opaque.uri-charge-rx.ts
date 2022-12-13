@@ -1,4 +1,4 @@
-import { ChURIPrimitive } from './ch-uri-value.js';
+import { ChURIPrimitive } from './churi-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 export class OpaqueURIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown>

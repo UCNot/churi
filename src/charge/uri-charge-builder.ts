@@ -1,4 +1,4 @@
-import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './churi-value.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';

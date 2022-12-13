@@ -1,5 +1,5 @@
 import { isIterable } from '@proc7ts/primitives';
-import { ChURIPrimitive } from './charge/ch-uri-value.js';
+import { ChURIPrimitive } from './charge/churi-value.js';
 import { createURIChargeParser } from './charge/parse-uri-charge.js';
 import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';

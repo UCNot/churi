@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIDirective, ChURIEntity } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity } from './churi-value.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { encodeURICharge } from './uri-charge-codec.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';

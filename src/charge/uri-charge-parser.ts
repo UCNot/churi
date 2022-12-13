@@ -1,6 +1,6 @@
-import { ChURIPrimitive } from './ch-uri-value.js';
-import { decodeChURIValue } from './impl/ch-uri-value-decoder.js';
-import { parseChURIValue } from './impl/parse-ch-uri-value.js';
+import { ChURIPrimitive } from './churi-value.js';
+import { decodeChURIValue } from './impl/churi-value-decoder.js';
+import { parseChURIValue } from './impl/parse-churi-value.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';

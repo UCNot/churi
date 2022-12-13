@@ -1,4 +1,4 @@
-import { ChURIPrimitive } from '../ch-uri-value.js';
+import { ChURIPrimitive } from '../churi-value.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 

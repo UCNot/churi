@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { ChURIValueBuilder } from './ch-uri-value-builder.js';
-import { ChURIDirective, ChURIEntity, ChURIList, ChURIValue } from './ch-uri-value.js';
-import { createChURIValueParser, parseChURIValue } from './parse-ch-uri-value.js';
+import { ChURIValueBuilder } from './churi-value-builder.js';
+import { ChURIDirective, ChURIEntity, ChURIList, ChURIValue } from './churi-value.js';
+import { createChURIValueParser, parseChURIValue } from './parse-churi-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 describe('createChURIValueParser', () => {

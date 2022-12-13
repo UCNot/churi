@@ -1,4 +1,4 @@
-import { type ChURIPrimitive } from './ch-uri-value.js';
+import { type ChURIPrimitive } from './churi-value.js';
 
 export interface URIChargeRx<out TValue = ChURIPrimitive, out TCharge = unknown> {
   readonly none: TCharge;

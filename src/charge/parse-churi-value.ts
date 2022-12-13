@@ -1,6 +1,6 @@
-import { ChURIValueBuilder } from './ch-uri-value-builder.js';
-import { ChURIPrimitive, ChURIValue } from './ch-uri-value.js';
-import { PredefinedChURIExt } from './ext/predefined.ch-uri-ext.js';
+import { ChURIValueBuilder } from './churi-value-builder.js';
+import { ChURIPrimitive, ChURIValue } from './churi-value.js';
+import { PredefinedURIChargeExt } from './ext/predefined.uri-charge-ext.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 const ChURIValueBuilder$instance = /*#__PURE__*/ new ChURIValueBuilder<any>();
@@ -10,8 +10,10 @@ let ChIROValueParser$default: URIChargeParser<any, any> | undefined;
 export function createChURIValueParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, ChURIValue<TValue>>>,
 ): URIChargeParser<TValue, ChURIValue<TValue>> {
-  const { rx = ChURIValueBuilder$instance as ChURIValueBuilder<TValue>, ext = PredefinedChURIExt } =
-    options ?? {};
+  const {
+    rx = ChURIValueBuilder$instance as ChURIValueBuilder<TValue>,
+    ext = PredefinedURIChargeExt,
+  } = options ?? {};
 
   if (!options) {
     return (ChIROValueParser$default ??= new URIChargeParser({

@@ -1,4 +1,4 @@
-import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './ch-uri-value.js';
+import { ChURIDirective, ChURIEntity, ChURIPrimitive } from './churi-value.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
 export abstract class URICharge<out TValue = ChURIPrimitive> implements URIChargeEncodable {

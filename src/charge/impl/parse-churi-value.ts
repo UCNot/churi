@@ -5,7 +5,7 @@ import {
   ChURIValueDecoder,
   decodeChURIDirectiveArg,
   decodeChURIValue,
-} from './ch-uri-value-decoder.js';
+} from './churi-value-decoder.js';
 import {
   AnyURIChargeRx,
   URIChargeEntryTarget,
