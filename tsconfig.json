@@ -4,5 +4,5 @@
     "lib": ["DOM", "ES2022"],
     "outDir": "target/js"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*.ts"]
 }
