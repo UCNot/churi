@@ -253,7 +253,7 @@ describe('UcSearchParams', () => {
       expect(String(new URLSearchParams([...urlParams.entries()]))).toBe(String(urlParams));
       expect(output).toBe(
         'p=%30val&p=%31val&p=%32val&p=%33val&p=%34val&p=%35val&p=%36val'
-          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-&p=%28foo(&p=%29foo)",
+          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-&p=%28foo%28&p=%29foo%29",
       );
     });
   });

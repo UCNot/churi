@@ -77,19 +77,25 @@ describe('encodeURICharge', () => {
 
   describe('string value', () => {
     it('encoded as top-level value', () => {
-      expect(encodeURICharge('Hello, World!')).toBe('Hello%2C%20World!');
+      expect(encodeURICharge('Hello, (World)!')).toBe('Hello%2C%20%28World%29!');
       expect(encodeURICharge('-test')).toBe("'-test");
       expect(encodeURICharge('-test', { as: 'top' })).toBe('%2Dtest');
     });
     it('encoded as map entry value', () => {
-      expect(encodeURICharge({ foo: 'Hello, World!' })).toBe('foo(Hello%2C%20World!)');
+      expect(encodeURICharge({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29!)');
       expect(encodeURICharge({ foo: '-test' })).toBe("foo('-test)");
       expect(encodeURICharge({ foo: '-test' }, { as: 'top' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(encodeURICharge(['Hello, World!'])).toBe('(Hello%2C%20World!)');
+      expect(encodeURICharge(['Hello, (World)!'])).toBe('(Hello%2C%20%28World%29!)');
       expect(encodeURICharge(['-test'])).toBe("('-test)");
       expect(encodeURICharge(['-test'], { as: 'top' })).toBe("('-test)");
+    });
+  });
+
+  describe('empty string value', () => {
+    it('encoded as is', () => {
+      expect(encodeURICharge('')).toBe('');
     });
   });
 
@@ -189,10 +195,21 @@ describe('encodeURICharge', () => {
 
   describe('object entry key', () => {
     it('escaped', () => {
-      expect(encodeURICharge({ '!foo': 1, '!bar': 2 })).toBe("'!foo(1)'!bar(2)");
+      expect(encodeURICharge({ '!foo(baz)': 1, '!bar': 2 })).toBe("'!foo%28baz%29(1)'!bar(2)");
     });
     it('percent-encoded at top level', () => {
-      expect(encodeURICharge({ '!foo': 1, '!bar': 2 }, { as: 'top' })).toBe("%21foo(1)'!bar(2)");
+      expect(encodeURICharge({ '!foo(baz)': 1, '!bar': 2 }, { as: 'top' })).toBe(
+        "%21foo%28baz%29(1)'!bar(2)",
+      );
+    });
+  });
+
+  describe('empty object entry key', () => {
+    it('escaped at top level', () => {
+      expect(encodeURICharge({ '': 1 }, { as: 'top' })).toBe("'(1)");
+    });
+    it('escaped when nested', () => {
+      expect(encodeURICharge([{ '': 1 }], { as: 'top' })).toBe("('(1))");
     });
   });
 

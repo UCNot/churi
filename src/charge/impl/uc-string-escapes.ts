@@ -33,33 +33,33 @@ const UC_KEY_ESCAPE_MAP: UcValueEscapeMap = {
 } satisfies { readonly [prefix in UcKeyEscaped]: string };
 
 export function escapeUcValue(encoded: string): string {
-  return escapeUcString(encoded, UC_VALUE_ESCAPE_MAP);
+  return encoded && escapeUcString(encoded, UC_VALUE_ESCAPE_MAP);
 }
 
 export function escapeUcKey(encoded: string): string {
-  return escapeUcString(encoded, UC_KEY_ESCAPE_MAP);
+  return encoded ? escapeUcString(encoded, UC_KEY_ESCAPE_MAP) : "'";
 }
 
 export function escapeUcTopLevelValue(encoded: string): string {
-  return escapeUcTopLevel(encoded, UC_VALUE_ESCAPE_MAP);
+  return encoded && escapeUcTopLevel(encoded, UC_VALUE_ESCAPE_MAP);
 }
 
 export function escapeUcTopLevelKey(encoded: string): string {
-  return escapeUcTopLevel(encoded, UC_KEY_ESCAPE_MAP);
+  return encoded ? escapeUcTopLevel(encoded, UC_KEY_ESCAPE_MAP) : "'";
 }
 
 function escapeUcString(encoded: string, escapeMap: UcValueEscapeMap): string {
-  return encoded && escapeMap[encoded[0]] ? `'${encoded}` : encoded;
+  return escapeUcSpecials(escapeMap[encoded[0]] ? `'${encoded}` : encoded);
 }
 
 function escapeUcTopLevel(encoded: string, escapeMap: UcValueEscapeMap): string {
-  if (encoded) {
-    const first = escapeMap[encoded[0]];
+  const first = escapeMap[encoded[0]];
 
-    if (first) {
-      return first + encoded.slice(1);
-    }
-  }
+  return escapeUcSpecials(first ? first + encoded.slice(1) : encoded);
+}
 
-  return encoded;
+const UC_SPECIALS_PATTERN = /*#__PURE__*/ /[()]/g;
+
+function escapeUcSpecials(encoded: string): string {
+  return encoded.replace(UC_SPECIALS_PATTERN, special => UC_VALUE_ESCAPE_MAP[special]);
 }
