@@ -1,3 +1,4 @@
+import { UcRoute } from './uc-route.js';
 import { UcSearchParams } from './uc-search-params.js';
 
 /**
@@ -20,6 +21,7 @@ export class ChURI {
 
   readonly #url: URL;
   #scheme?: string;
+  #route?: UcRoute;
   #searchParams?: UcSearchParams;
 
   /**
@@ -111,6 +113,15 @@ export class ChURI {
    */
   get pathname(): string {
     return this.#url.pathname;
+  }
+
+  /**
+   * Parsed path representing route.
+   *
+   * The returned {@link UcRoute} instance represents the first fragment of the path.
+   */
+  get route(): UcRoute {
+    return (this.#route ??= new UcRoute(this.pathname));
   }
 
   /**

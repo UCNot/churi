@@ -42,6 +42,15 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
         : this.#provide(isIterable(search) ? search : Object.entries(search));
   }
 
+  /**
+   * Parameters separator symbol.
+   *
+   * @defaultValue `"&" (U+0026)`
+   */
+  get separator(): string {
+    return '&';
+  }
+
   get chargeParser(): URIChargeParser<TValue, TCharge> {
     return this.#chargeParser;
   }
@@ -57,8 +66,19 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       return entries;
     }
 
-    for (const part of search.split('&')) {
-      const [rawKey, rawValue = ''] = part.split('=', 2);
+    for (const part of search.split(this.separator)) {
+      const valueStart = part.indexOf('=');
+      let rawKey: string;
+      let rawValue: string;
+
+      if (valueStart < 0) {
+        rawKey = part;
+        rawValue = '';
+      } else {
+        rawKey = part.slice(0, valueStart);
+        rawValue = part.slice(valueStart + 1);
+      }
+
       const key = decodeSearchParam(rawKey);
       const prev = entries.get(key);
 
