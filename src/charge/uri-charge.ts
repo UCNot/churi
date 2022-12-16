@@ -47,7 +47,7 @@ export namespace URICharge {
     isSingle(): false;
     isList(): false;
 
-    at(index: 0): this;
+    at(index: 0 | -1): this;
     at(index: number): URICharge.Some<TValue> | None;
   }
 
@@ -76,7 +76,7 @@ export namespace URICharge {
 
     isMap(): false;
 
-    at(index: 0): this;
+    at(index: 0 | -1): this;
     at(index: number): None;
     list(): IterableIterator<never>;
 
@@ -105,7 +105,7 @@ export namespace URICharge {
   export interface Single<out TValue = UcPrimitive> extends WithValues<TValue> {
     isList(): false;
 
-    at(index: 0): this;
+    at(index: 0 | -1): this;
     at(index: number): this | None;
     list(): IterableIterator<this>;
 
@@ -143,7 +143,7 @@ export namespace URICharge {
 
     isMap(): true;
 
-    at(index: 0): this;
+    at(index: 0 | -1): this;
     at(index: number): this | None;
     list(): IterableIterator<this>;
 
