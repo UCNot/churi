@@ -25,7 +25,8 @@ describe('parseURICharge', () => {
       expect(charge).toHaveURIChargeItems('Hello, World!');
 
       expect(charge.get('some')).toBeURIChargeNone();
-      expect(charge.at(-1)).toBeURIChargeNone();
+      expect(charge.at(-2)).toBeURIChargeNone();
+      expect(charge.at(-1)).toBe(charge);
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
     });
@@ -41,7 +42,8 @@ describe('parseURICharge', () => {
       expect(charge).toBeURIChargeSingle('string');
       expect(charge).toHaveURIChargeValue('bar');
       expect(charge).toHaveURIChargeItems('bar');
-      expect(charge.at(-1)).toBeURIChargeNone();
+      expect(charge.at(-2)).toBeURIChargeNone();
+      expect(charge.at(-1)).toBe(charge);
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
     });
@@ -56,7 +58,8 @@ describe('parseURICharge', () => {
       expect(charge).not.toBe(list);
       expect(list).toHaveURIChargeValue('bar');
       expect(list).toHaveURIChargeItems('bar');
-      expect(charge.at(-1)).toBeURIChargeNone();
+      expect(charge.at(-2)).toBeURIChargeNone();
+      expect(charge.at(-1)).toBe(charge);
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
     });
@@ -89,7 +92,8 @@ describe('parseURICharge', () => {
       expect([...charge.entries()]).toHaveLength(0);
       expect([...charge.keys()]).toHaveLength(0);
 
-      expect(charge.at(-1)).toBeURIChargeNone();
+      expect(charge.at(-2)).toBeURIChargeNone();
+      expect(charge.at(-1)).toBe(charge);
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
     });
@@ -189,8 +193,10 @@ describe('parseURICharge', () => {
 
       expect(charge).toBeURIChargeList(1, 'number');
       expect(charge).toHaveURIChargeItems(123);
+      expect(charge.at(-2)).toBeURIChargeNone();
+      expect(charge.at(-1)).toBe(charge.at(0));
+      expect(charge.at(0)).toHaveURIChargeItems(123);
       expect(charge.at(1)).toBeURIChargeNone();
-      expect(charge.at(-1)).toBeURIChargeNone();
 
       expect(charge.get('some')).toBeURIChargeNone();
     });
@@ -199,8 +205,12 @@ describe('parseURICharge', () => {
 
       expect(charge).toBeURIChargeList(2, 'number');
       expect(charge).toHaveURIChargeItems(123, 456);
+      expect(charge.at(-3)).toBeURIChargeNone();
+      expect(charge.at(-2)).toBe(charge.at(0));
+      expect(charge.at(-1)).toBe(charge.at(1));
+      expect(charge.at(0)).toHaveURIChargeValue(123);
+      expect(charge.at(1)).toHaveURIChargeValue(456);
       expect(charge.at(2)).toBeURIChargeNone();
-      expect(charge.at(-1)).toBeURIChargeNone();
 
       expect([...charge.entries()]).toHaveLength(0);
       expect([...charge.keys()]).toHaveLength(0);
@@ -209,8 +219,14 @@ describe('parseURICharge', () => {
       const charge = parse('foo(1)(bar)()').charge.get('foo');
 
       expect(charge).toBeURIChargeList(3, 'number');
-      expect(charge.at(-1)).toBeURIChargeNone();
       expect(charge).toHaveURIChargeItems(1, 'bar', '');
+      expect(charge.at(-4)).toBeURIChargeNone();
+      expect(charge.at(-3)).toBe(charge.at(0));
+      expect(charge.at(-2)).toBe(charge.at(1));
+      expect(charge.at(-1)).toBe(charge.at(2));
+      expect(charge.at(0)).toHaveURIChargeValue(1);
+      expect(charge.at(1)).toHaveURIChargeValue('bar');
+      expect(charge.at(2)).toHaveURIChargeValue('');
       expect(charge.at(3)).toBeURIChargeNone();
     });
     it('recognized as map entry value with leading empty string', () => {

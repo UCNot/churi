@@ -63,10 +63,10 @@ export class URICharge$Single<out TValue>
     return false;
   }
 
-  override at(index: 0): this;
+  override at(index: 0 | -1): this;
   override at(index: number): URICharge.None;
   override at(index: number): this | URICharge.None {
-    return index ? URICharge.none : this;
+    return index && index !== -1 ? URICharge.none : this;
   }
 
   override *list(): IterableIterator<this> {
@@ -130,10 +130,10 @@ export class URICharge$Map<out TValue>
     return true;
   }
 
-  override at(index: 0): this;
+  override at(index: 0 | -1): this;
   override at(index: number): this | URICharge.None;
   override at(index: number): this | URICharge.None {
-    return index ? URICharge.none : this;
+    return index && index !== -1 ? URICharge.none : this;
   }
 
   override *list(): IterableIterator<this> {
@@ -201,7 +201,11 @@ export class URICharge$List<out TValue>
   }
 
   override at(index: number): URICharge.Some<TValue> | URICharge.None {
-    return index >= 0 && index < this.#list.length ? this.#list[index] : URICharge.none;
+    const listIndex = index < 0 ? this.#list.length + index : index;
+
+    return (
+      (listIndex >= 0 && listIndex < this.#list.length && this.#list[listIndex]) || URICharge.none
+    );
   }
 
   override *list(): IterableIterator<URICharge.Some<TValue>> {
