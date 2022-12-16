@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import './spec/uri-charge-matchers.js';
 import { UcRoute } from './uc-route.js';
 
 describe('UcRoute', () => {
@@ -27,6 +28,28 @@ describe('UcRoute', () => {
     });
     it('is URL-decoded', () => {
       expect(new UcRoute('/some%20path').fragment).toBe('/some path');
+    });
+  });
+
+  describe('name', () => {
+    it('is URL-decoded', () => {
+      expect(new UcRoute('some%20path').name).toBe('some path');
+    });
+    it('omits slashes', () => {
+      expect(new UcRoute('').name).toBe('');
+      expect(new UcRoute('/').name).toBe('');
+      expect(new UcRoute('//').name).toBe('');
+      expect(new UcRoute('/path').name).toBe('path');
+      expect(new UcRoute('/path').name).toBe('path');
+      expect(new UcRoute('path/').name).toBe('path');
+      expect(new UcRoute('/path/').name).toBe('path');
+    });
+    it('omits charge', () => {
+      expect(new UcRoute('name(foo)').name).toBe('name');
+      expect(new UcRoute('name(foo);p=bar').name).toBe('name');
+    });
+    it('omits matrix parameters', () => {
+      expect(new UcRoute('name;p=bar').name).toBe('name');
     });
   });
 
@@ -93,6 +116,41 @@ describe('UcRoute', () => {
     });
     it('is not URL-decoded', () => {
       expect(new UcRoute('/some%20path').path).toBe('/some%20path');
+    });
+  });
+
+  describe('charge', () => {
+    it('is none without charge', () => {
+      expect(new UcRoute('/path').charge).toBeURIChargeNone();
+    });
+    it('recognizes single charge', () => {
+      expect(new UcRoute('/path(foo)').charge).toHaveURIChargeValue('foo');
+    });
+    it('recognizes list charge', () => {
+      expect(new UcRoute('/path(foo)(bar)').charge).toHaveURIChargeItems('foo', 'bar');
+    });
+    it('recognizes map charge', () => {
+      expect(new UcRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems('foo', { bar: 'baz' });
+    });
+  });
+
+  describe('matrix', () => {
+    it('is empty by default', () => {
+      const charge = new UcRoute('/path').matrix.charge;
+
+      expect(charge).toBeURIChargeMap();
+      expect(charge).toHaveURIChargeEntries({});
+    });
+    it('is empty without parameters', () => {
+      const charge = new UcRoute('/path;').matrix.charge;
+
+      expect(charge).toBeURIChargeMap();
+      expect(charge).toHaveURIChargeEntries({});
+    });
+    it('recognizes matrix parameters', () => {
+      const charge = new UcRoute('/path;p1=v1(foo);p2=v2').matrix.charge;
+
+      expect(charge).toHaveURIChargeEntries({ p1: { v1: 'foo' }, p2: 'v2' });
     });
   });
 
