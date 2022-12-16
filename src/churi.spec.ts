@@ -132,6 +132,20 @@ describe('ChURI', () => {
     });
   });
 
+  describe('route', () => {
+    it('contains normalized route', () => {
+      expect(new ChURI('route:/path').route.path).toBe('/path');
+      expect(new ChURI('route:path').route.path).toBe('path');
+      expect(new ChURI('route:./path').route.path).toBe('path');
+      expect(new ChURI('route:./path/to/file/..').route.path).toBe('path/to');
+      expect(new ChURI('route:./path/to/file/../').route.path).toBe('path/to/');
+      expect(new ChURI('route:./path/to/file/../dir/').route.path).toBe('path/to/dir/');
+    });
+    it('does not URI-decode path', () => {
+      expect(new ChURI('route:/some%20path').route.path).toBe('/some%20path');
+    });
+  });
+
   describe('search', () => {
     it('is empty when absent', () => {
       const uri = new ChURI('route:path');
