@@ -119,6 +119,12 @@ describe('UcSearchParams', () => {
     it('returns `null` for absent parameters', () => {
       expect(params.get('ccc')).toBeNull();
     });
+    it('recognizes parameter without value', () => {
+      expect(new UcSearchParams('aaa').get('aaa')).toBe('');
+    });
+    it('recognizes value with `=` char', () => {
+      expect(new UcSearchParams('aaa=bbb=ccc').get('aaa')).toBe('bbb=ccc');
+    });
   });
 
   describe('getAll', () => {
