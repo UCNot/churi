@@ -1,5 +1,5 @@
 import { decodeUcValue } from './impl/uc-value-decoder.js';
-import { parseUcValue } from './impl/uc-value-parser.js';
+import { parseUcArgs, parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
 import { UcPrimitive } from './uc-value.js';
 import { URIChargeExt } from './uri-charge-ext.js';
@@ -46,29 +46,30 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
     rx?: URIChargeRx.DirectiveRx<TValue, TCharge>,
   ): URIChargeParser.Result<TCharge> {
     if (rx) {
-      return this.#parseArgs(input, rx);
+      const end = this.#parseArgs(input, rx);
+
+      return { charge: rx.endDirective(), end };
     }
 
     let end!: number;
-
     const charge = this.chargeRx.rxArgs(rx => {
-      const result = this.#parseArgs(input, rx);
+      end = this.#parseArgs(input, rx);
 
-      end = result.end;
-
-      return result.charge;
+      return rx.endDirective();
     });
 
     return { charge, end };
   }
 
-  #parseArgs(
-    input: string,
-    rx: URIChargeRx.DirectiveRx<TValue, TCharge>,
-  ): URIChargeParser.Result<TCharge> {
-    const { end } = parseUcValue(this.#ext.itemTarget, rx, '', decodeUcValue, input);
+  #parseArgs(input: string, rx: URIChargeRx.DirectiveRx<TValue, TCharge>): number {
+    let offset = 0;
 
-    return { charge: rx.endDirective(), end };
+    if (input.startsWith('(')) {
+      offset = 1;
+      input = input.slice(1);
+    }
+
+    return offset + parseUcArgs(this.#ext.itemTarget, rx, input);
   }
 
 }

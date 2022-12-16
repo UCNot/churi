@@ -1,7 +1,7 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';
-import { UcDirective, UcEntity, UcList, UcValue } from './uc-value.js';
+import { UcDirective, UcEntity, UcList, UcPrimitive, UcValue } from './uc-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 describe('createUcValueParser', () => {
@@ -13,14 +13,16 @@ describe('createUcValueParser', () => {
   });
 
   describe('parseArgs', () => {
-    it('builds args', () => {
-      const parser = createUcValueParser();
-      const charge = parser.parseArgs('Hello,%20World!').charge;
+    let parser: URIChargeParser<UcPrimitive, UcValue>;
 
-      expect(charge).toBe('Hello, World!');
+    beforeEach(() => {
+      parser = createUcValueParser();
     });
-    it('builds args by custom parser', () => {
-      const parser = createUcValueParser();
+
+    it('recognizes single arg', () => {
+      expect(parser.parseArgs('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
+    });
+    it('recognizes arg with custom receiver', () => {
       const { rawName, value } = parser.chargeRx.rxDirective(
         '!test',
         rx => parser.parseArgs('Hello,%20World!', rx).charge,
@@ -28,6 +30,15 @@ describe('createUcValueParser', () => {
 
       expect(rawName).toBe('!test');
       expect(value).toBe('Hello, World!');
+    });
+    it('recognizes arg in parentheses', () => {
+      expect(parser.parseArgs('(Hello,%20World!)')).toEqual({ charge: 'Hello, World!', end: 17 });
+    });
+    it('recognizes multiple args', () => {
+      expect(parser.parseArgs('(Hello,%20World!)foo(bar)suffix')).toEqual({
+        charge: ['Hello, World!', { foo: 'bar', suffix: '' }],
+        end: 31,
+      });
     });
   });
 });

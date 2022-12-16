@@ -240,6 +240,14 @@ function parseUcDirective<TValue>(
   return parseUcListOrDirective(to, rx, decodeUcDirectiveArg, firstValueInput);
 }
 
+export function parseUcArgs<TValue>(
+  to: URIChargeItemTarget<TValue>,
+  rx: URIChargeRx.DirectiveRx<TValue>,
+  firstValueInput: string,
+): number {
+  return parseUcListOrDirective(to, rx, decodeUcValue, firstValueInput);
+}
+
 function parseUcListOrDirective<TValue>(
   to: URIChargeItemTarget<TValue>,
   rx: URIChargeRx.ItemsRx<TValue>,
