@@ -11,6 +11,25 @@ describe('createUcValueParser', () => {
   it('returns new instance with options', () => {
     expect(createUcValueParser({})).not.toBe(createUcValueParser());
   });
+
+  describe('parseArgs', () => {
+    it('builds args', () => {
+      const parser = createUcValueParser();
+      const charge = parser.parseArgs('Hello,%20World!').charge;
+
+      expect(charge).toBe('Hello, World!');
+    });
+    it('builds args by custom parser', () => {
+      const parser = createUcValueParser();
+      const { rawName, value } = parser.chargeRx.rxDirective(
+        '!test',
+        rx => parser.parseArgs('Hello,%20World!', rx).charge,
+      ) as UcDirective;
+
+      expect(rawName).toBe('!test');
+      expect(value).toBe('Hello, World!');
+    });
+  });
 });
 
 describe('parseUcValue', () => {

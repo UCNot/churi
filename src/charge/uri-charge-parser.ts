@@ -41,6 +41,36 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
     return parseUcValue(this.#ext.valueTarget, rx, '', decodeUcValue, input);
   }
 
+  parseArgs(
+    input: string,
+    rx?: URIChargeRx.DirectiveRx<TValue, TCharge>,
+  ): URIChargeParser.Result<TCharge> {
+    if (rx) {
+      return this.#parseArgs(input, rx);
+    }
+
+    let end!: number;
+
+    const charge = this.chargeRx.rxArgs(rx => {
+      const result = this.#parseArgs(input, rx);
+
+      end = result.end;
+
+      return result.charge;
+    });
+
+    return { charge, end };
+  }
+
+  #parseArgs(
+    input: string,
+    rx: URIChargeRx.DirectiveRx<TValue, TCharge>,
+  ): URIChargeParser.Result<TCharge> {
+    const { end } = parseUcValue(this.#ext.itemTarget, rx, '', decodeUcValue, input);
+
+    return { charge: rx.endDirective(), end };
+  }
+
 }
 
 export namespace URIChargeParser {

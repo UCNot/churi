@@ -64,6 +64,12 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
     return parse(new this.ns.DirectiveRx(this, rawName));
   }
 
+  rxArgs(
+    parse: (rx: URIChargeBuilder.DirectiveRx<TValue>) => URICharge<TValue>,
+  ): URICharge<TValue> {
+    return (this.rxDirective('', parse).value as UcDirective<URICharge<TValue>>).value;
+  }
+
 }
 
 export namespace URIChargeBuilder {

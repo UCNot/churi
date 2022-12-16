@@ -1,10 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { URIChargeParser } from './uri-charge-parser.js';
-import { URICharge } from './uri-charge.js';
-
 import '../spec/uri-charge-matchers.js';
 import { createURIChargeParser, parseURICharge } from './parse-uri-charge.js';
 import { URIChargeBuilder } from './uri-charge-builder.js';
+import { URIChargeParser } from './uri-charge-parser.js';
+import { URICharge } from './uri-charge.js';
 
 describe('createURIChargeParser', () => {
   it('returns default instance without options', () => {
@@ -12,6 +11,26 @@ describe('createURIChargeParser', () => {
   });
   it('returns new instance with options', () => {
     expect(createURIChargeParser({})).not.toBe(createURIChargeParser());
+  });
+
+  describe('parseArgs', () => {
+    it('builds args', () => {
+      const parser = createURIChargeParser();
+      const charge = parser.parseArgs('Hello,%20World!').charge;
+
+      expect(charge).toBeURIChargeSingle('string');
+      expect(charge).toHaveURIChargeValue('Hello, World!');
+    });
+    it('builds args by custom parser', () => {
+      const parser = createURIChargeParser();
+      const charge = parser.chargeRx.rxDirective(
+        '!test',
+        rx => parser.parseArgs('Hello,%20World!', rx).charge,
+      );
+
+      expect(charge).toBeURIChargeSingle('directive');
+      expect(charge).toHaveURIChargeItems({ rawName: '!test', value: 'Hello, World!' });
+    });
   });
 });
 
