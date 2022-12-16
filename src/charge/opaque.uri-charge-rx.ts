@@ -115,6 +115,12 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return parse(new this.ns.DirectiveRx(this, rawName));
   }
 
+  rxArgs(
+    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
+  ): TCharge {
+    return this.rxDirective('', parse);
+  }
+
 }
 
 class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URIChargeRx<TValue, TCharge>>

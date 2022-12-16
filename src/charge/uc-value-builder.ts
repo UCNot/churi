@@ -62,6 +62,10 @@ export class UcValueBuilder<out TValue = UcPrimitive>
     return parse(new this.ns.DirectiveRx(this, rawName));
   }
 
+  rxArgs(parse: (rx: UcValueBuilder.DirectiveRx<TValue>) => UcValue<TValue>): UcValue<TValue> {
+    return (this.rxDirective('', parse) as UcDirective<UcValue<TValue>>).value;
+  }
+
 }
 
 export namespace UcValueBuilder {
