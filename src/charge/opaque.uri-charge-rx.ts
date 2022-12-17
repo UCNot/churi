@@ -4,51 +4,12 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
-  static #directiveRx?: URIChargeRx.DirectiveRx.Constructor;
-
   static get ValueRx(): URIChargeRx.ValueRx.Constructor {
     return OpaqueURICharge$ValueRx;
   }
 
   static get MapRx(): URIChargeRx.MapRx.Constructor {
     return OpaqueURICharge$MapRx;
-  }
-
-  static get ListRx(): URIChargeRx.ListRx.Constructor {
-    return OpaqueURICharge$ValueRx;
-  }
-
-  static get DirectiveRx(): URIChargeRx.DirectiveRx.Constructor {
-    if (this.#directiveRx) {
-      return this.#directiveRx;
-    }
-
-    class OpaqueURICharge$DirectiveRx<
-        out TValue,
-        out TCharge,
-        out TRx extends URIChargeRx<TValue, TCharge>,
-      >
-      extends this.ValueRx<TValue, TCharge, TRx>
-      implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
-
-      readonly #rawName: string;
-
-      constructor(chargeRx: TRx, rawName: string) {
-        super(chargeRx);
-        this.#rawName = rawName;
-      }
-
-      get rawName(): string {
-        return this.#rawName;
-      }
-
-      end(): TCharge {
-        return this.chargeRx.none;
-      }
-
-}
-
-    return (this.#directiveRx = OpaqueURICharge$DirectiveRx);
   }
 
   readonly #none: TCharge;
@@ -81,15 +42,15 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return parse(new this.ns.MapRx(this));
   }
 
-  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge {
-    return parse(new this.ns.ListRx(this));
+  rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
+    return this.rxValue(parse);
   }
 
   rxDirective(
-    rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    _rawName: string,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): TCharge {
-    return parse(new this.ns.DirectiveRx(this, rawName));
+    return this.rxValue(parse);
   }
 
 }
@@ -120,36 +81,15 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
   }
 
   rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
-    this.chargeRx.rxMap(rx => {
-      const map = parse(rx);
-
-      this.add(map);
-
-      return map;
-    });
+    this.add(this.chargeRx.rxMap(parse));
   }
 
-  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
-    this.chargeRx.rxList(rx => {
-      const list = parse(rx);
-
-      this.add(list);
-
-      return list;
-    });
+  rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
+    this.add(this.chargeRx.rxList(parse));
   }
 
-  rxDirective(
-    rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): void {
-    this.#chargeRx.rxDirective(rawName, rx => {
-      const directive = parse(rx);
-
-      this.add(directive);
-
-      return directive;
-    });
+  rxDirective(rawName: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
+    this.add(this.#chargeRx.rxDirective(rawName, parse));
   }
 
   end(): TCharge {
@@ -184,37 +124,19 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
-    this.#chargeRx.rxMap(rx => {
-      const map = parse(rx);
-
-      this.put(key, map);
-
-      return map;
-    });
+    this.put(key, this.#chargeRx.rxMap(parse));
   }
 
-  rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
-    this.#chargeRx.rxList(rx => {
-      const list = parse(rx);
-
-      this.put(key, list);
-
-      return list;
-    });
+  rxList(key: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
+    this.put(key, this.#chargeRx.rxList(parse));
   }
 
   rxDirective(
     key: string,
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void {
-    this.#chargeRx.rxDirective(rawName, rx => {
-      const directive = parse(rx);
-
-      this.put(key, directive);
-
-      return directive;
-    });
+    this.put(key, this.#chargeRx.rxDirective(rawName, parse));
   }
 
   addSuffix(suffix: string): void {

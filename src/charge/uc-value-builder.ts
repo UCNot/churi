@@ -17,10 +17,6 @@ export class UcValueBuilder<out TValue = UcPrimitive>
     return UcValueBuilder$ListRx;
   }
 
-  static get DirectiveRx(): UcValueBuilder.DirectiveRx.Constructor {
-    return UcValueBuilder$DirectiveRx;
-  }
-
   get ns(): UcValueBuilder.Namespace {
     return this.constructor as typeof UcValueBuilder;
   }
@@ -57,9 +53,13 @@ export class UcValueBuilder<out TValue = UcPrimitive>
 
   rxDirective(
     rawName: string,
-    parse: (rx: UcValueBuilder.DirectiveRx<TValue>) => UcValue<TValue>,
+    parse: (rx: UcValueBuilder.ValueRx<TValue>) => UcValue<TValue>,
   ): UcValue<TValue> {
-    return parse(new this.ns.DirectiveRx(this, rawName));
+    return this.rxValue(rx => {
+      const value = parse(rx);
+
+      return new UcDirective(rawName, value);
+    });
   }
 
 }
@@ -69,7 +69,6 @@ export namespace UcValueBuilder {
     readonly ValueRx: ValueRx.Constructor;
     readonly MapRx: MapRx.Constructor;
     readonly ListRx: ListRx.Constructor;
-    readonly DirectiveRx: DirectiveRx.Constructor;
   }
 
   export type ValueRx<
@@ -104,7 +103,7 @@ export namespace UcValueBuilder {
   export type ListRx<
     TValue = UcPrimitive,
     TRx extends UcValueBuilder<TValue> = UcValueBuilder<TValue>,
-  > = URIChargeRx.ListRx<TValue, UcValue<TValue>, TRx>;
+  > = URIChargeRx.ValueRx<TValue, UcValue<TValue>, TRx>;
 
   export namespace ListRx {
     export type Constructor = new <
@@ -114,21 +113,6 @@ export namespace UcValueBuilder {
       chargeRx: TRx,
       list?: UcList<TValue>,
     ) => ListRx<TValue, TRx>;
-  }
-
-  export type DirectiveRx<
-    TValue = UcPrimitive,
-    TRx extends UcValueBuilder<TValue> = UcValueBuilder<TValue>,
-  > = URIChargeRx.DirectiveRx<TValue, UcValue<TValue>, TRx>;
-
-  export namespace DirectiveRx {
-    export type Constructor = new <
-      TValue,
-      TRx extends UcValueBuilder<TValue> = UcValueBuilder<TValue>,
-    >(
-      chargeRx: TRx,
-      rawName: string,
-    ) => DirectiveRx<TValue, TRx>;
   }
 }
 
@@ -267,10 +251,8 @@ class UcValueBuilder$MapRx<out TValue, out TRx extends UcValueBuilder<TValue>>
 
 }
 
-const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
-
 class UcValueBuilder$ListRx<out TValue, out TRx extends UcValueBuilder<TValue>>
-  extends OpaqueListRx<TValue, UcValue<TValue>, TRx>
+  extends OpaqueValueRx<TValue, UcValue<TValue>, TRx>
   implements UcValueBuilder.ListRx<TValue, TRx> {
 
   readonly #list: UcList<TValue>;
@@ -286,99 +268,6 @@ class UcValueBuilder$ListRx<out TValue, out TRx extends UcValueBuilder<TValue>>
 
   override end(): UcList<TValue> {
     return this.#list;
-  }
-
-}
-
-const OpaqueDirectiveRx = /*#__PURE__*/ OpaqueURIChargeRx.DirectiveRx;
-
-class UcValueBuilder$DirectiveRx<out TValue, out TRx extends UcValueBuilder<TValue>>
-  extends OpaqueDirectiveRx<TValue, UcValue<TValue>, TRx>
-  implements UcValueBuilder.DirectiveRx<TValue, TRx> {
-
-  readonly #rawName: string;
-  #value: UcDirective$Builder<TValue> = UcDirective$none;
-
-  constructor(chargeRx: TRx, rawName: string) {
-    super(chargeRx, rawName);
-    this.#rawName = rawName;
-  }
-
-  override add(charge: UcValue<TValue>): void {
-    this.#value = this.#value.add(charge);
-  }
-
-  override end(): UcDirective<UcValue<TValue>> {
-    return this.#value.build(this, this.#rawName);
-  }
-
-}
-
-interface UcDirective$Builder<TValue> {
-  add(value: UcValue<TValue>): UcDirective$Builder<TValue>;
-  build(
-    rx: URIChargeRx.DirectiveRx<TValue, UcValue<TValue>>,
-    rawName: string,
-  ): UcDirective<UcValue<TValue>>;
-}
-
-class UcDirective$None<TValue> implements UcDirective$Builder<TValue> {
-
-  add(value: UcValue<TValue>): UcDirective$Single<TValue> {
-    return new UcDirective$Single(value);
-  }
-
-  build(
-    rx: URIChargeRx.DirectiveRx<TValue, UcValue<TValue>>,
-    rawName: string,
-  ): UcDirective<UcValue<TValue>> {
-    return new UcDirective(rawName, rx.chargeRx.none);
-  }
-
-}
-
-const UcDirective$none: UcDirective$Builder<any> = /*#__PURE__*/ new UcDirective$None();
-
-class UcDirective$Single<TValue> implements UcDirective$Builder<TValue> {
-
-  readonly #value: UcValue<TValue>;
-
-  constructor(value: UcValue<TValue>) {
-    this.#value = value;
-  }
-
-  add(value: UcValue<TValue>): UcDirective$List<TValue> {
-    return new UcDirective$List([this.#value, value]);
-  }
-
-  build(
-    _rx: URIChargeRx.DirectiveRx<TValue, UcValue<TValue>>,
-    rawName: string,
-  ): UcDirective<UcValue<TValue>> {
-    return new UcDirective(rawName, this.#value);
-  }
-
-}
-
-class UcDirective$List<TValue> implements UcDirective$Builder<TValue> {
-
-  readonly #list: UcList<TValue>;
-
-  constructor(list: UcList<TValue>) {
-    this.#list = list;
-  }
-
-  add(value: UcValue<TValue>): this {
-    this.#list.push(value);
-
-    return this;
-  }
-
-  build(
-    _rx: URIChargeRx.DirectiveRx<TValue, UcValue<TValue>>,
-    rawName: string,
-  ): UcDirective<UcValue<TValue>> {
-    return new UcDirective(rawName, this.#list);
   }
 
 }

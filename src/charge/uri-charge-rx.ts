@@ -11,11 +11,11 @@ export interface URIChargeRx<out TValue = UcPrimitive, out TCharge = unknown> {
 
   rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge;
 
-  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge;
+  rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge;
 
   rxDirective(
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): TCharge;
 }
 
@@ -23,8 +23,6 @@ export namespace URIChargeRx {
   export interface Namespace {
     readonly ValueRx: ValueRx.Constructor;
     readonly MapRx: MapRx.Constructor;
-    readonly ListRx: ListRx.Constructor;
-    readonly DirectiveRx: DirectiveRx.Constructor;
   }
 
   export interface Init<out TCharge> {
@@ -50,11 +48,11 @@ export namespace URIChargeRx {
 
     rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
-    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
+    rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
 
     rxDirective(
       rawName: string,
-      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+      parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
     ): void;
 
     end(): TCharge;
@@ -85,12 +83,12 @@ export namespace URIChargeRx {
 
     rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
-    rxList(key: string, parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
+    rxList(key: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
 
     rxDirective(
       key: string,
       rawName: string,
-      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+      parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
     ): void;
 
     addSuffix(suffix: string): void;
@@ -106,44 +104,5 @@ export namespace URIChargeRx {
     >(
       chargeRx: TRx,
     ) => MapRx<TValue, TCharge, TRx>;
-  }
-
-  export interface ListRx<
-    out TValue = UcPrimitive,
-    out TCharge = unknown,
-    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-  > extends ValueRx<TValue, TCharge, TRx> {
-    end(): TCharge;
-  }
-
-  export namespace ListRx {
-    export type Constructor = new <
-      TValue = UcPrimitive,
-      TCharge = unknown,
-      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-    >(
-      chargeRx: TRx,
-    ) => ListRx<TValue, TCharge, TRx>;
-  }
-
-  export interface DirectiveRx<
-    out TValue = UcPrimitive,
-    out TCharge = unknown,
-    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-  > extends ValueRx<TValue, TCharge, TRx> {
-    readonly rawName: string;
-
-    end(): TCharge;
-  }
-
-  export namespace DirectiveRx {
-    export type Constructor = new <
-      TValue = UcPrimitive,
-      TCharge = unknown,
-      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-    >(
-      chargeRx: TRx,
-      rawName: string,
-    ) => DirectiveRx<TValue, TCharge, TRx>;
   }
 }

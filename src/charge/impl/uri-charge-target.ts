@@ -47,14 +47,14 @@ export abstract class URIChargeTarget<
   abstract rxList(
     rx: TRx,
     key: string,
-    parse: (rx: URIChargeRx.ListRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
   ): void;
 
   rxDirective(
     rx: TRx,
     key: string,
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void {
     const handler = this.#ext.forDirective(rawName);
 
@@ -69,7 +69,7 @@ export abstract class URIChargeTarget<
     rx: TRx,
     key: string,
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void;
 
 }
@@ -104,7 +104,7 @@ export class URIChargeValueTarget<out TValue, out TCharge = unknown> extends URI
   override rxList(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
-    parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void {
     rx.rxList(parse);
   }
@@ -121,7 +121,7 @@ export class URIChargeValueTarget<out TValue, out TCharge = unknown> extends URI
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void {
     rx.rxDirective(rawName, parse);
   }
@@ -158,7 +158,7 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
   override rxList(
     rx: URIChargeRx.MapRx<TValue>,
     key: string,
-    parse: (rx: URIChargeRx.ListRx<TValue>) => void,
+    parse: (rx: URIChargeRx.ValueRx<TValue>) => void,
   ): void {
     rx.rxList(key, parse);
   }
@@ -175,7 +175,7 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
     rx: URIChargeRx.MapRx<TValue>,
     key: string,
     rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue>) => void,
+    parse: (rx: URIChargeRx.ValueRx<TValue>) => void,
   ): void {
     rx.rxDirective(key, rawName, parse);
   }
