@@ -55,11 +55,7 @@ export class UcValueBuilder<out TValue = UcPrimitive>
     rawName: string,
     parse: (rx: UcValueBuilder.ValueRx<TValue>) => UcValue<TValue>,
   ): UcValue<TValue> {
-    return this.rxValue(rx => {
-      const value = parse(rx);
-
-      return new UcDirective(rawName, value);
-    });
+    return this.rxValue(rx => new UcDirective(rawName, parse(rx)));
   }
 
 }
@@ -122,14 +118,19 @@ class UcValueBuilder$ValueRx<out TValue, out TRx extends UcValueBuilder<TValue>>
   extends OpaqueValueRx<TValue, UcValue<TValue>, TRx>
   implements UcValueBuilder.ValueRx<TValue, TRx> {
 
-  #value: UcValue$Builder<TValue> = UcValue$none;
+  #builder: UcValue$Builder<TValue>;
+
+  constructor(chargeRx: TRx, builder: UcValue$Builder<TValue> = UcValue$none) {
+    super(chargeRx);
+    this.#builder = builder;
+  }
 
   override add(charge: UcValue<TValue>): void {
-    this.#value = this.#value.add(charge);
+    this.#builder = this.#builder.add(charge);
   }
 
   override end(): UcValue<TValue> {
-    return this.#value.build(this);
+    return this.#builder.build(this);
   }
 
 }
