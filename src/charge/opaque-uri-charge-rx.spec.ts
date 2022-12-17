@@ -102,7 +102,7 @@ describe('OpaqueURIChargeRx', () => {
       it('ignores charge', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.rxList('key', listRx => listRx.endList());
+            rx.rxList('key', listRx => listRx.end());
 
             return rx.endMap();
           }),
@@ -114,7 +114,7 @@ describe('OpaqueURIChargeRx', () => {
       it('ignores charge', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.rxDirective('key', '!test', directiveRx => directiveRx.endDirective());
+            rx.rxDirective('key', '!test', directiveRx => directiveRx.end());
 
             return rx.endMap();
           }),
@@ -134,17 +134,17 @@ describe('OpaqueURIChargeRx', () => {
       expect(listRx).toBeInstanceOf(OpaqueURIChargeRx.ListRx);
       expect(listRx).not.toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
     });
-    it('is inherited from `ItemsRx`', () => {
+    it('is inherited from `ValueRx`', () => {
       const rx = new OpaqueURIChargeRx.ListRx(chargeRx);
 
-      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
+      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ValueRx);
     });
     it('ignores charge', () => {
       expect(
         chargeRx.rxList(rx => {
           rx.add('some');
 
-          return rx.endList();
+          return rx.end();
         }),
       ).toBe(NONE);
     });
@@ -157,23 +157,23 @@ describe('OpaqueURIChargeRx', () => {
       chargeRx.rxDirective('!test', rx => {
         directiveRx = rx;
 
-        return rx.endDirective();
+        return rx.end();
       });
 
       expect(directiveRx).toBeInstanceOf(OpaqueURIChargeRx.DirectiveRx);
-      expect(directiveRx).not.toBeInstanceOf(OpaqueURIChargeRx.ListRx);
+      expect(directiveRx).toBeInstanceOf(OpaqueURIChargeRx.ValueRx);
     });
-    it('is inherited from `ItemsRx`', () => {
+    it('is inherited from `ValueRx`', () => {
       const rx = new OpaqueURIChargeRx.DirectiveRx(chargeRx, '!test');
 
-      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ItemsRx);
+      expect(rx).toBeInstanceOf(OpaqueURIChargeRx.ValueRx);
     });
     it('ignores charge', () => {
       expect(
         chargeRx.rxDirective('!test', rx => {
           rx.add('some');
 
-          return rx.endDirective();
+          return rx.end();
         }),
       ).toBe(NONE);
     });

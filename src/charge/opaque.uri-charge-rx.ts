@@ -4,7 +4,6 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
-  static #listRx?: URIChargeRx.ListRx.Constructor;
   static #directiveRx?: URIChargeRx.DirectiveRx.Constructor;
 
   static get ValueRx(): URIChargeRx.ValueRx.Constructor {
@@ -15,30 +14,8 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return OpaqueURICharge$MapRx;
   }
 
-  static get ItemsRx(): URIChargeRx.ItemsRx.Constructor {
-    return OpaqueURICharge$ItemsRx;
-  }
-
   static get ListRx(): URIChargeRx.ListRx.Constructor {
-    if (this.#listRx) {
-      return this.#listRx;
-    }
-
-    class OpaqueURICharge$ListRx<
-        out TValue,
-        out TCharge,
-        out TRx extends URIChargeRx<TValue, TCharge>,
-      >
-      extends this.ItemsRx<TValue, TCharge, TRx>
-      implements URIChargeRx.ListRx<TValue, TCharge, TRx> {
-
-      endList(): TCharge {
-        return this.chargeRx.none;
-      }
-
-}
-
-    return (this.#listRx = OpaqueURICharge$ListRx);
+    return OpaqueURICharge$ValueRx;
   }
 
   static get DirectiveRx(): URIChargeRx.DirectiveRx.Constructor {
@@ -51,7 +28,7 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
         out TCharge,
         out TRx extends URIChargeRx<TValue, TCharge>,
       >
-      extends this.ItemsRx<TValue, TCharge, TRx>
+      extends this.ValueRx<TValue, TCharge, TRx>
       implements URIChargeRx.DirectiveRx<TValue, TCharge, TRx> {
 
       readonly #rawName: string;
@@ -65,7 +42,7 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
         return this.#rawName;
       }
 
-      endDirective(): TCharge {
+      end(): TCharge {
         return this.chargeRx.none;
       }
 
@@ -246,69 +223,6 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
 
   endMap(): TCharge {
     return this.#chargeRx.none;
-  }
-
-}
-
-abstract class OpaqueURICharge$ItemsRx<
-  out TValue,
-  out TCharge,
-  out TRx extends URIChargeRx<TValue, TCharge>,
-> implements URIChargeRx.ItemsRx<TValue, TCharge, TRx> {
-
-  readonly #chargeRx: TRx;
-
-  constructor(chargeRx: TRx) {
-    this.#chargeRx = chargeRx;
-  }
-
-  get chargeRx(): TRx {
-    return this.#chargeRx;
-  }
-
-  add(_charge: TCharge): void {
-    // Ignore item charge.
-  }
-
-  addEntity(rawEntity: string): void {
-    this.add(this.#chargeRx.createEntity(rawEntity));
-  }
-
-  addValue(value: UcPrimitive | TValue, type: string): void {
-    this.add(this.#chargeRx.createValue(value, type));
-  }
-
-  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
-    this.#chargeRx.rxMap(rx => {
-      const charge = parse(rx);
-
-      this.add(charge);
-
-      return charge;
-    });
-  }
-
-  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
-    this.#chargeRx.rxList(rx => {
-      const list = parse(rx);
-
-      this.add(list);
-
-      return list;
-    });
-  }
-
-  rxDirective(
-    rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): void {
-    this.#chargeRx.rxDirective(rawName, rx => {
-      const directive = parse(rx);
-
-      this.add(directive);
-
-      return directive;
-    });
   }
 
 }

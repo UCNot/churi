@@ -295,7 +295,7 @@ class URIChargeBuilder$ListRx<out TValue, out TRx extends URIChargeBuilder<TValu
     }
   }
 
-  override endList(): URICharge.List<TValue> {
+  override end(): URICharge.List<TValue> {
     return new URICharge$List(this.#list);
   }
 
@@ -315,7 +315,7 @@ class URIChargeBuilder$DirectiveRx<out TValue, out TRx extends URIChargeBuilder<
     }
   }
 
-  override endDirective(): URICharge<TValue> {
+  override end(): URICharge<TValue> {
     return new URICharge$Single(this.#builder.build(this, this.rawName), 'directive');
   }
 

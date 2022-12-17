@@ -78,7 +78,7 @@ function decodeExclamationPrefixedUcValue<TValue, TCharge>(
   if (input.length === 1) {
     to.addValue(rx, key, true, 'boolean');
   } else if (input === '!!') {
-    to.rxList(rx, key, listRx => listRx.endList());
+    to.rxList(rx, key, listRx => listRx.end());
   } else {
     to.addEntity(rx, key, input);
   }

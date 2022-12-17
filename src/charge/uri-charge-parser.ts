@@ -70,7 +70,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
       input = input.slice(1);
     }
 
-    return offset + parseUcArgs(this.#ext.itemTarget, rx, input);
+    return offset + parseUcArgs(this.#ext.valueTarget, rx, input);
   }
 
 }

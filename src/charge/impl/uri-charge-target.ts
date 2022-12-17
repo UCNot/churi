@@ -4,8 +4,7 @@ import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
 export type AnyURIChargeRx<TValue, TCharge = unknown> =
   | URIChargeRx.ValueRx<TValue, TCharge>
-  | URIChargeRx.MapRx<TValue, TCharge>
-  | URIChargeRx.ItemsRx<TValue, TCharge>;
+  | URIChargeRx.MapRx<TValue, TCharge>;
 
 export abstract class URIChargeTarget<
   out TValue,
@@ -75,7 +74,7 @@ export abstract class URIChargeTarget<
 
 }
 
-export class URIChargeValueTarget<out TValue, out TCharge> extends URIChargeTarget<
+export class URIChargeValueTarget<out TValue, out TCharge = unknown> extends URIChargeTarget<
   TValue,
   TCharge,
   URIChargeRx.ValueRx<TValue, TCharge>
@@ -179,60 +178,6 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
     parse: (rx: URIChargeRx.DirectiveRx<TValue>) => void,
   ): void {
     rx.rxDirective(key, rawName, parse);
-  }
-
-}
-
-export class URIChargeItemTarget<out TValue> extends URIChargeTarget<
-  TValue,
-  unknown,
-  URIChargeRx.ItemsRx<TValue>
-> {
-
-  override add(rx: URIChargeRx.ItemsRx<TValue>, _key: string, charge: unknown): void {
-    rx.add(charge);
-  }
-
-  override addValue(
-    rx: URIChargeRx.ItemsRx<TValue>,
-    _key: string,
-    value: UcPrimitive | TValue,
-    type: string,
-  ): void {
-    rx.addValue(value, type);
-  }
-
-  override rxMap(
-    rx: URIChargeRx.ItemsRx<TValue>,
-    _key: string,
-    parse: (rx: URIChargeRx.MapRx<TValue>) => void,
-  ): void {
-    rx.rxMap(parse);
-  }
-
-  override rxList(
-    rx: URIChargeRx.ItemsRx<TValue>,
-    _key: string,
-    parse: (rx: URIChargeRx.ListRx<TValue>) => void,
-  ): void {
-    rx.rxList(parse);
-  }
-
-  protected override _addEntity(
-    rx: URIChargeRx.ItemsRx<TValue>,
-    _key: string,
-    rawEntity: string,
-  ): void {
-    rx.addEntity(rawEntity);
-  }
-
-  protected override _rxDirective(
-    rx: URIChargeRx.ItemsRx<TValue>,
-    _key: string,
-    rawName: string,
-    parse: (rx: URIChargeRx.DirectiveRx<TValue>) => void,
-  ): void {
-    rx.rxDirective(rawName, parse);
   }
 
 }

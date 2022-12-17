@@ -328,7 +328,7 @@ describe('parseURICharge', () => {
       });
     });
     it('recognized without parameters', () => {
-      const charge = new URIChargeBuilder().rxDirective('!test', rx => rx.endDirective());
+      const charge = new URIChargeBuilder().rxDirective('!test', rx => rx.end());
 
       expect(charge).toHaveURIChargeValue({ rawName: '!test', value: undefined });
     });

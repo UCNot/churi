@@ -1,11 +1,7 @@
 import { asArray } from '@proc7ts/primitives';
 import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import {
-  URIChargeEntryTarget,
-  URIChargeItemTarget,
-  URIChargeValueTarget,
-} from './uri-charge-target.js';
+import { URIChargeEntryTarget, URIChargeValueTarget } from './uri-charge-target.js';
 
 export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
@@ -17,7 +13,6 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
   #valueTarget?: URIChargeValueTarget<TValue, TCharge>;
   #entryTarget?: URIChargeEntryTarget<TValue>;
-  #itemTarget?: URIChargeItemTarget<TValue>;
 
   constructor(
     chargeRx: URIChargeRx<TValue, TCharge>,
@@ -69,10 +64,6 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
   get entryTarget(): URIChargeEntryTarget<TValue> {
     return (this.#entryTarget ??= new URIChargeEntryTarget(this));
-  }
-
-  get itemTarget(): URIChargeItemTarget<TValue> {
-    return (this.#itemTarget ??= new URIChargeItemTarget(this));
   }
 
 }

@@ -284,7 +284,7 @@ class UcValueBuilder$ListRx<out TValue, out TRx extends UcValueBuilder<TValue>>
     this.#list.push(charge);
   }
 
-  override endList(): UcList<TValue> {
+  override end(): UcList<TValue> {
     return this.#list;
   }
 
@@ -308,7 +308,7 @@ class UcValueBuilder$DirectiveRx<out TValue, out TRx extends UcValueBuilder<TVal
     this.#value = this.#value.add(charge);
   }
 
-  override endDirective(): UcDirective<UcValue<TValue>> {
+  override end(): UcDirective<UcValue<TValue>> {
     return this.#value.build(this, this.#rawName);
   }
 

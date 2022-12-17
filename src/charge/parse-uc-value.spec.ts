@@ -365,7 +365,7 @@ describe('parseUcValue', () => {
     });
     it('recognized without parameters', () => {
       const builder = new UcValueBuilder();
-      const { rawName, value } = builder.rxDirective('!test', rx => rx.endDirective()) as UcDirective;
+      const { rawName, value } = builder.rxDirective('!test', rx => rx.end()) as UcDirective;
 
       expect(rawName).toBe('!test');
       expect(value).toBe(builder.none);

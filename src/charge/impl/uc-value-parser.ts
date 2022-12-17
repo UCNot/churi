@@ -4,8 +4,8 @@ import { decodeUcDirectiveArg, decodeUcValue, UcValueDecoder } from './uc-value-
 import {
   AnyURIChargeRx,
   URIChargeEntryTarget,
-  URIChargeItemTarget,
   URIChargeTarget,
+  URIChargeValueTarget,
 } from './uri-charge-target.js';
 
 export function parseUcValue<TValue, TCharge>(
@@ -39,9 +39,9 @@ export function parseUcValue<TValue, TCharge>(
   let end!: number;
 
   to.rxList(rx, key, listRx => {
-    end = parseUcList(to.ext.itemTarget, listRx, input.slice(1)) + 1;
+    end = parseUcList(to.ext.valueTarget, listRx, input.slice(1)) + 1;
 
-    return listRx.endList();
+    return listRx.end();
   });
 
   return end;
@@ -69,9 +69,9 @@ function parseUcMapOrDirective<TValue, TCharge>(
     let end!: number;
 
     to.rxDirective(rx, key, rawKey, directiveRx => {
-      end = firstValueOffset + parseUcDirective(to.ext.itemTarget, directiveRx, firstValueInput);
+      end = firstValueOffset + parseUcDirective(to.ext.valueTarget, directiveRx, firstValueInput);
 
-      return directiveRx.endDirective();
+      return directiveRx.end();
     });
 
     return end;
@@ -182,9 +182,9 @@ function parseUcMapEntries<TValue>(
     if (!keyEnd) {
       // Convert entry value to list if not converted yet, and continue appending to it.
       to.rxList(rx, key, listRx => {
-        nextKeyStart = parseUcMapEntryItems(to.ext.itemTarget, listRx, input);
+        nextKeyStart = parseUcMapEntryItems(to.ext.valueTarget, listRx, input);
 
-        return listRx.endList();
+        return listRx.end();
       });
     } else {
       input = input.slice(keyEnd + 1);
@@ -202,8 +202,8 @@ function parseUcMapEntries<TValue>(
 }
 
 function parseUcMapEntryItems<TValue>(
-  to: URIChargeItemTarget<TValue>,
-  rx: URIChargeRx.ItemsRx<TValue>,
+  to: URIChargeValueTarget<TValue>,
+  rx: URIChargeRx.ValueRx<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;
@@ -229,7 +229,7 @@ function parseUcMapEntryItems<TValue>(
 }
 
 function parseUcList<TValue>(
-  to: URIChargeItemTarget<TValue>,
+  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.ListRx<TValue>,
   firstValueInput: string,
 ): number {
@@ -237,7 +237,7 @@ function parseUcList<TValue>(
 }
 
 function parseUcDirective<TValue>(
-  to: URIChargeItemTarget<TValue>,
+  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.DirectiveRx<TValue>,
   firstValueInput: string,
 ): number {
@@ -245,7 +245,7 @@ function parseUcDirective<TValue>(
 }
 
 export function parseUcArgs<TValue>(
-  to: URIChargeItemTarget<TValue>,
+  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.ValueRx<TValue>,
   firstValueInput: string,
 ): number {
@@ -253,8 +253,8 @@ export function parseUcArgs<TValue>(
 }
 
 function parseUcListOrDirective<TValue>(
-  to: URIChargeItemTarget<TValue>,
-  rx: URIChargeRx.ItemsRx<TValue>,
+  to: URIChargeValueTarget<TValue>,
+  rx: URIChargeRx.ValueRx<TValue>,
   decoder: UcValueDecoder,
   firstValueInput: string,
 ): number {
@@ -280,8 +280,8 @@ function parseUcListOrDirective<TValue>(
 }
 
 function parseUcListOrDirectiveItems<TValue>(
-  to: URIChargeItemTarget<TValue>,
-  rx: URIChargeRx.ItemsRx<TValue>,
+  to: URIChargeValueTarget<TValue>,
+  rx: URIChargeRx.ValueRx<TValue>,
   decoder: UcValueDecoder,
   input: string /* never empty */,
 ): number {

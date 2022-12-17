@@ -23,7 +23,6 @@ export namespace URIChargeRx {
   export interface Namespace {
     readonly ValueRx: ValueRx.Constructor;
     readonly MapRx: MapRx.Constructor;
-    readonly ItemsRx: ItemsRx.Constructor;
     readonly ListRx: ListRx.Constructor;
     readonly DirectiveRx: DirectiveRx.Constructor;
   }
@@ -109,45 +108,12 @@ export namespace URIChargeRx {
     ) => MapRx<TValue, TCharge, TRx>;
   }
 
-  export interface ItemsRx<
-    out TValue = UcPrimitive,
-    out TCharge = unknown,
-    out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-  > {
-    readonly chargeRx: TRx;
-
-    add(charge: TCharge): void;
-
-    addEntity(rawEntity: string): void;
-
-    addValue(value: UcPrimitive | TValue, type: string): void;
-
-    rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
-
-    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
-
-    rxDirective(
-      rawName: string,
-      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-    ): void;
-  }
-
-  export namespace ItemsRx {
-    export type Constructor = abstract new <
-      TValue = UcPrimitive,
-      TCharge = unknown,
-      TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-    >(
-      chargeRx: TRx,
-    ) => ItemsRx<TValue, TCharge, TRx>;
-  }
-
   export interface ListRx<
     out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-  > extends ItemsRx<TValue, TCharge, TRx> {
-    endList(): TCharge;
+  > extends ValueRx<TValue, TCharge, TRx> {
+    end(): TCharge;
   }
 
   export namespace ListRx {
@@ -164,10 +130,10 @@ export namespace URIChargeRx {
     out TValue = UcPrimitive,
     out TCharge = unknown,
     out TRx extends URIChargeRx<TValue, TCharge> = URIChargeRx<TValue, TCharge>,
-  > extends ItemsRx<TValue, TCharge, TRx> {
+  > extends ValueRx<TValue, TCharge, TRx> {
     readonly rawName: string;
 
-    endDirective(): TCharge;
+    end(): TCharge;
   }
 
   export namespace DirectiveRx {

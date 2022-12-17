@@ -285,7 +285,7 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
         listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
       }
 
-      return listRx.endList();
+      return listRx.end();
     });
   }
 
@@ -345,7 +345,7 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
         listRx.addValue(value, 'string');
       }
 
-      return listRx.endList();
+      return listRx.end();
     });
   }
 
