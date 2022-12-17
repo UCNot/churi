@@ -45,20 +45,22 @@ export namespace URIChargeRx {
   > {
     readonly chargeRx: TRx;
 
-    set(charge: TCharge): TCharge;
+    add(charge: TCharge): void;
 
-    setEntity(rawEntity: string): TCharge;
+    addEntity(rawEntity: string): void;
 
-    setValue(value: UcPrimitive | TValue, type: string): TCharge;
+    addValue(value: UcPrimitive | TValue, type: string): void;
 
-    rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge;
+    rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
 
-    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge;
+    rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void;
 
     rxDirective(
       rawName: string,
       parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-    ): TCharge;
+    ): void;
+
+    end(): TCharge;
   }
 
   export namespace ValueRx {

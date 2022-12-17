@@ -136,31 +136,53 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     return this.#chargeRx;
   }
 
-  set(charge: TCharge): TCharge {
-    return charge;
+  add(_charge: TCharge): void {
+    // Ignore charge.
   }
 
-  setEntity(rawEntity: string): TCharge {
-    return this.set(this.#chargeRx.createEntity(rawEntity));
+  addEntity(rawEntity: string): void {
+    this.add(this.#chargeRx.createEntity(rawEntity));
   }
 
-  setValue(value: UcPrimitive | TValue, type: string): TCharge {
-    return this.set(this.#chargeRx.createValue(value, type));
+  addValue(value: UcPrimitive | TValue, type: string): void {
+    this.add(this.#chargeRx.createValue(value, type));
   }
 
-  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
-    return this.chargeRx.rxMap(parse);
+  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
+    this.chargeRx.rxMap(rx => {
+      const map = parse(rx);
+
+      this.add(map);
+
+      return map;
+    });
   }
 
-  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): TCharge {
-    return this.chargeRx.rxList(parse);
+  rxList(parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge): void {
+    this.chargeRx.rxList(rx => {
+      const list = parse(rx);
+
+      this.add(list);
+
+      return list;
+    });
   }
 
   rxDirective(
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
-    return this.#chargeRx.rxDirective(rawName, parse);
+  ): void {
+    this.#chargeRx.rxDirective(rawName, rx => {
+      const directive = parse(rx);
+
+      this.add(directive);
+
+      return directive;
+    });
+  }
+
+  end(): TCharge {
+    return this.#chargeRx.none;
   }
 
 }
@@ -179,7 +201,7 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
   }
 
   put(_key: string, _charge: TCharge): void {
-    // Ignore entity charge
+    // Ignore entity charge.
   }
 
   putEntity(key: string, rawEntity: string): void {
@@ -251,7 +273,7 @@ abstract class OpaqueURICharge$ItemsRx<
   }
 
   add(_charge: TCharge): void {
-    // Ignore item charge
+    // Ignore item charge.
   }
 
   addEntity(rawEntity: string): void {

@@ -6,7 +6,7 @@ export class UcValueBuilder<out TValue = UcPrimitive>
   implements URIChargeRx<TValue, UcValue<TValue>> {
 
   static get ValueRx(): UcValueBuilder.ValueRx.Constructor {
-    return OpaqueURIChargeRx.ValueRx;
+    return UcValueBuilder$ValueRx;
   }
 
   static get MapRx(): UcValueBuilder.MapRx.Constructor {
@@ -134,6 +134,81 @@ export namespace UcValueBuilder {
       rawName: string,
     ) => DirectiveRx<TValue, TRx>;
   }
+}
+
+const OpaqueValueRx = /*#__PURE__*/ OpaqueURIChargeRx.ValueRx;
+
+class UcValueBuilder$ValueRx<out TValue, out TRx extends UcValueBuilder<TValue>>
+  extends OpaqueValueRx<TValue, UcValue<TValue>, TRx>
+  implements UcValueBuilder.ValueRx<TValue, TRx> {
+
+  #value: UcValue$Builder<TValue> = UcValue$none;
+
+  override add(charge: UcValue<TValue>): void {
+    this.#value = this.#value.add(charge);
+  }
+
+  override end(): UcValue<TValue> {
+    return this.#value.build(this);
+  }
+
+}
+
+interface UcValue$Builder<TValue> {
+  add(value: UcValue<TValue>): UcValue$Builder<TValue>;
+  build(rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue>;
+}
+
+class UcValue$None<TValue> implements UcValue$Builder<TValue> {
+
+  add(value: UcValue<TValue>): UcValue$Single<TValue> {
+    return new UcValue$Single(value);
+  }
+
+  build(rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
+    return rx.chargeRx.none;
+  }
+
+}
+
+const UcValue$none: UcValue$Builder<any> = /*#__PURE__*/ new UcValue$None();
+
+class UcValue$Single<TValue> implements UcValue$Builder<TValue> {
+
+  readonly #value: UcValue<TValue>;
+
+  constructor(value: UcValue<TValue>) {
+    this.#value = value;
+  }
+
+  add(value: UcValue<TValue>): UcValue$List<TValue> {
+    return new UcValue$List([this.#value, value]);
+  }
+
+  build(_rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
+    return this.#value;
+  }
+
+}
+
+class UcValue$List<TValue> implements UcValue$Builder<TValue> {
+
+  readonly #list: UcList<TValue>;
+
+  constructor(list: UcList<TValue>) {
+    this.#list = list;
+  }
+
+  add(value: UcValue<TValue>): this {
+    this.#list.push(value);
+
+    return this;
+  }
+
+  build(_rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
+    return this.#list;
+  }
+
 }
 
 const OpaqueMapRx = /*#__PURE__*/ OpaqueURIChargeRx.MapRx;

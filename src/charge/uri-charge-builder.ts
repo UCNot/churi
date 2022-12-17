@@ -8,7 +8,7 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
   implements URIChargeRx<URIChargeItem<TValue>, URICharge<TValue>> {
 
   static get ValueRx(): URIChargeBuilder.ValueRx.Constructor {
-    return OpaqueURIChargeRx.ValueRx as unknown as URIChargeBuilder.ValueRx.Constructor;
+    return URIChargeBuilder$ValueRx;
   }
 
   static get MapRx(): URIChargeBuilder.MapRx.Constructor {
@@ -138,6 +138,83 @@ export namespace URIChargeBuilder {
       rawName: string,
     ) => DirectiveRx<TValue, TRx>;
   }
+}
+
+const OpaqueValueRx = /*#__PURE__*/ OpaqueURIChargeRx.ValueRx;
+
+class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
+  extends OpaqueValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
+  implements URIChargeBuilder.ValueRx<TValue, TRx> {
+
+  #builder: URIChargeValue$Builder<TValue> = URIChargeValue$none;
+
+  override add(charge: URICharge<TValue>): void {
+    if (charge.isSome()) {
+      this.#builder = this.#builder.add(charge);
+    }
+  }
+
+  override end(): URICharge<TValue> {
+    return this.#builder.build(this);
+  }
+
+}
+
+interface URIChargeValue$Builder<out TValue> {
+  add(value: URICharge.Some<TValue>): URIChargeValue$Builder<TValue>;
+  build(rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue>;
+}
+
+class URIChargeValue$None<TValue> implements URIChargeValue$Builder<TValue> {
+
+  add(value: URICharge.Some<TValue>): URIChargeValue$Single<TValue> {
+    return new URIChargeValue$Single(value);
+  }
+
+  build(rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
+    return rx.chargeRx.none;
+  }
+
+}
+
+const URIChargeValue$none: URIChargeValue$Builder<any> = /*#__PURE__*/ new URIChargeValue$None();
+
+class URIChargeValue$Single<TValue> implements URIChargeValue$Builder<TValue> {
+
+  readonly #value: URICharge.Some<TValue>;
+
+  constructor(value: URICharge.Some<TValue>) {
+    this.#value = value;
+  }
+
+  add(value: URICharge.Some<TValue>): URIChargeValue$List<TValue> {
+    return new URIChargeValue$List([this.#value, value]);
+  }
+
+  build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
+    return this.#value;
+  }
+
+}
+
+class URIChargeValue$List<TValue> implements URIChargeValue$Builder<TValue> {
+
+  readonly #list: URICharge.Some<TValue>[];
+
+  constructor(list: URICharge.Some<TValue>[]) {
+    this.#list = list;
+  }
+
+  add(value: URICharge.Some<TValue>): this {
+    this.#list.push(value);
+
+    return this;
+  }
+
+  build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
+    return new URICharge$List(this.#list);
+  }
+
 }
 
 const OpaqueMapRx = /*#__PURE__*/ OpaqueURIChargeRx.MapRx;

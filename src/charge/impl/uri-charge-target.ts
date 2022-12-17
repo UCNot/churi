@@ -23,47 +23,47 @@ export abstract class URIChargeTarget<
     return this.#ext;
   }
 
-  abstract set(rx: TRx, key: string, charge: TCharge): TCharge;
+  abstract add(rx: TRx, key: string, charge: TCharge): void;
 
-  setEntity(rx: TRx, key: string, rawEntity: string): TCharge {
+  addEntity(rx: TRx, key: string, rawEntity: string): void {
     const handler = this.#ext.forEntity(rawEntity);
 
     if (handler) {
-      return this.set(rx, key, handler(rawEntity));
+      this.add(rx, key, handler(rawEntity));
+    } else {
+      this._addEntity(rx, key, rawEntity);
     }
-
-    return this._setEntity(rx, key, rawEntity);
   }
 
-  protected abstract _setEntity(rx: TRx, key: string, rawEntity: string): TCharge;
+  protected abstract _addEntity(rx: TRx, key: string, rawEntity: string): void;
 
-  abstract setValue(rx: TRx, key: string, value: TValue | UcPrimitive, type: string): TCharge;
+  abstract addValue(rx: TRx, key: string, value: TValue | UcPrimitive, type: string): void;
 
   abstract rxMap(
     rx: TRx,
     key: string,
     parse: (rx: URIChargeRx.MapRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
-  ): TCharge;
+  ): void;
 
   abstract rxList(
     rx: TRx,
     key: string,
     parse: (rx: URIChargeRx.ListRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
-  ): TCharge;
+  ): void;
 
   rxDirective(
     rx: TRx,
     key: string,
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
+  ): void {
     const handler = this.#ext.forDirective(rawName);
 
     if (handler) {
-      return this.set(rx, key, handler(rawName, parse));
+      this.add(rx, key, handler(rawName, parse));
+    } else {
+      this._rxDirective(rx, key, rawName, parse);
     }
-
-    return this._rxDirective(rx, key, rawName, parse);
   }
 
   protected abstract _rxDirective(
@@ -71,7 +71,7 @@ export abstract class URIChargeTarget<
     key: string,
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): TCharge;
+  ): void;
 
 }
 
@@ -81,41 +81,41 @@ export class URIChargeValueTarget<out TValue, out TCharge> extends URIChargeTarg
   URIChargeRx.ValueRx<TValue, TCharge>
 > {
 
-  override set(rx: URIChargeRx.ValueRx<TValue, TCharge>, _key: string, charge: TCharge): TCharge {
-    return rx.set(charge);
+  override add(rx: URIChargeRx.ValueRx<TValue, TCharge>, _key: string, charge: TCharge): void {
+    rx.add(charge);
   }
 
-  override setValue(
+  override addValue(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
     value: TValue | UcPrimitive,
     type: string,
-  ): TCharge {
-    return rx.setValue(value, type);
+  ): void {
+    rx.addValue(value, type);
   }
 
   override rxMap(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
     parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
-    return rx.rxMap(parse);
+  ): void {
+    rx.rxMap(parse);
   }
 
   override rxList(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
     parse: (rx: URIChargeRx.ListRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
-    return rx.rxList(parse);
+  ): void {
+    rx.rxList(parse);
   }
 
-  protected override _setEntity(
+  protected override _addEntity(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     _key: string,
     rawEntity: string,
-  ): TCharge {
-    return rx.setEntity(rawEntity);
+  ): void {
+    rx.addEntity(rawEntity);
   }
 
   protected override _rxDirective(
@@ -123,8 +123,8 @@ export class URIChargeValueTarget<out TValue, out TCharge> extends URIChargeTarg
     _key: string,
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
-    return rx.rxDirective(rawName, parse);
+  ): void {
+    rx.rxDirective(rawName, parse);
   }
 
 }
@@ -135,11 +135,11 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
   URIChargeRx.MapRx<TValue>
 > {
 
-  override set(rx: URIChargeRx.MapRx<TValue>, key: string, charge: unknown): void {
+  override add(rx: URIChargeRx.MapRx<TValue>, key: string, charge: unknown): void {
     rx.put(key, charge);
   }
 
-  override setValue(
+  override addValue(
     rx: URIChargeRx.MapRx<TValue>,
     key: string,
     value: UcPrimitive | TValue,
@@ -164,7 +164,7 @@ export class URIChargeEntryTarget<out TValue> extends URIChargeTarget<
     rx.rxList(key, parse);
   }
 
-  protected override _setEntity(
+  protected override _addEntity(
     rx: URIChargeRx.MapRx<TValue>,
     key: string,
     rawEntity: string,
@@ -189,11 +189,11 @@ export class URIChargeItemTarget<out TValue> extends URIChargeTarget<
   URIChargeRx.ItemsRx<TValue>
 > {
 
-  override set(rx: URIChargeRx.ItemsRx<TValue>, _key: string, charge: unknown): void {
+  override add(rx: URIChargeRx.ItemsRx<TValue>, _key: string, charge: unknown): void {
     rx.add(charge);
   }
 
-  override setValue(
+  override addValue(
     rx: URIChargeRx.ItemsRx<TValue>,
     _key: string,
     value: UcPrimitive | TValue,
@@ -218,7 +218,7 @@ export class URIChargeItemTarget<out TValue> extends URIChargeTarget<
     rx.rxList(parse);
   }
 
-  protected override _setEntity(
+  protected override _addEntity(
     rx: URIChargeRx.ItemsRx<TValue>,
     _key: string,
     rawEntity: string,

@@ -114,7 +114,9 @@ describe('URIChargeExt', () => {
     }
 
     endDirective(): UcValue<UcPrimitive | TestValue> {
-      return this.#rx.set(this.#charge);
+      this.#rx.add(this.#charge);
+
+      return this.#rx.end();
     }
 
 }

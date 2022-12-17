@@ -5,26 +5,26 @@ export type UcValueDecoder = <TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-) => TCharge;
+) => void;
 
 export function decodeUcValue<TValue, TCharge>(
   to: URIChargeTarget<TValue, TCharge>,
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
+): void {
   if (!input) {
     // Empty string treated as is.
-    return to.setValue(rx, key, '', 'string');
+    to.addValue(rx, key, '', 'string');
+  } else {
+    const decoder = UC_VALUE_DECODERS[input[0]];
+
+    if (decoder) {
+      decoder(to, rx, key, input);
+    } else {
+      decodeStringUcValue(to, rx, key, input);
+    }
   }
-
-  const decoder = UC_VALUE_DECODERS[input[0]];
-
-  if (decoder) {
-    return decoder(to, rx, key, input);
-  }
-
-  return decodeStringUcValue(to, rx, key, input);
 }
 
 export function decodeUcDirectiveArg<TValue, TCharge>(
@@ -32,8 +32,8 @@ export function decodeUcDirectiveArg<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
-  return to.setEntity(rx, key, input);
+): void {
+  return to.addEntity(rx, key, input);
 }
 
 export type UcValuePrefix =
@@ -74,15 +74,14 @@ function decodeExclamationPrefixedUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
+): void {
   if (input.length === 1) {
-    return to.setValue(rx, key, true, 'boolean');
+    to.addValue(rx, key, true, 'boolean');
+  } else if (input === '!!') {
+    to.rxList(rx, key, listRx => listRx.endList());
+  } else {
+    to.addEntity(rx, key, input);
   }
-  if (input === '!!') {
-    return to.rxList(rx, key, listRx => listRx.endList());
-  }
-
-  return to.setEntity(rx, key, input);
 }
 
 function decodeMinusSignedUcValue<TValue, TCharge>(
@@ -90,21 +89,20 @@ function decodeMinusSignedUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
+): void {
   if (input.length === 1) {
-    return to.setValue(rx, key, false, 'boolean');
-  }
-  if (input === '--') {
-    return to.setValue(rx, key, null, 'null');
-  }
+    to.addValue(rx, key, false, 'boolean');
+  } else if (input === '--') {
+    to.addValue(rx, key, null, 'null');
+  } else {
+    const secondChar = input[1];
 
-  const secondChar = input[1];
-
-  if (secondChar >= '0' && secondChar <= '9') {
-    return decodeNumericUcValue(to, rx, key, input, 1, negate);
+    if (secondChar >= '0' && secondChar <= '9') {
+      decodeNumericUcValue(to, rx, key, input, 1, negate);
+    } else {
+      decodeStringUcValue(to, rx, key, input);
+    }
   }
-
-  return decodeStringUcValue(to, rx, key, input);
 }
 
 function decodeNumberUcValue<TValue, TCharge>(
@@ -112,8 +110,8 @@ function decodeNumberUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
-  return to.setValue(rx, key, Number(input), 'number');
+): void {
+  to.addValue(rx, key, Number(input), 'number');
 }
 
 function decodeQuotedUcValue<TValue, TCharge>(
@@ -121,8 +119,8 @@ function decodeQuotedUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
-  return to.setValue(rx, key, decodeURIComponent(input.slice(1)), 'string');
+): void {
+  to.addValue(rx, key, decodeURIComponent(input.slice(1)), 'string');
 }
 
 function decodeStringUcValue<TValue, TCharge>(
@@ -130,8 +128,8 @@ function decodeStringUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
-  return to.setValue(rx, key, decodeURIComponent(input), 'string');
+): void {
+  to.addValue(rx, key, decodeURIComponent(input), 'string');
 }
 
 function decodeUnsignedUcValue<TValue, TCharge>(
@@ -139,8 +137,8 @@ function decodeUnsignedUcValue<TValue, TCharge>(
   rx: AnyURIChargeRx<TValue, TCharge>,
   key: string,
   input: string,
-): TCharge {
-  return decodeNumericUcValue(to, rx, key, input, 0, asis);
+): void {
+  decodeNumericUcValue(to, rx, key, input, 0, asis);
 }
 
 function negate<T extends number | bigint>(value: T): T {
@@ -158,20 +156,20 @@ function decodeNumericUcValue<TValue, TCharge>(
   input: string,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
-): TCharge {
+): void {
   if (input[offset + 1] === 'n') {
-    return to.setValue(
+    to.addValue(
       rx,
       key,
       sign(input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2))),
       'bigint',
     );
+  } else {
+    to.addValue(
+      rx,
+      key,
+      sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))),
+      'number',
+    );
   }
-
-  return to.setValue(
-    rx,
-    key,
-    sign(input.length < offset + 3 ? 0 : Number(input.slice(offset))),
-    'number',
-  );
 }

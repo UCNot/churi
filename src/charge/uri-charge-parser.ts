@@ -23,21 +23,22 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   parse(input: string, rx?: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
     if (rx) {
-      return this.#parse(input, rx);
+      const end = this.#parse(input, rx);
+
+      return { charge: rx.end(), end };
     }
 
-    let result!: URIChargeParser.Result<TCharge>;
+    let end!: number;
+    const charge = this.chargeRx.rxValue(rx => {
+      end = this.#parse(input, rx);
 
-    this.chargeRx.rxValue(rx => {
-      result = this.#parse(input, rx);
-
-      return result.charge;
+      return rx.end();
     });
 
-    return result;
+    return { charge, end };
   }
 
-  #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
+  #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
     return parseUcValue(this.#ext.valueTarget, rx, '', decodeUcValue, input);
   }
 
