@@ -44,25 +44,25 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   parseArgs(
     input: string,
-    rx?: URIChargeRx.DirectiveRx<TValue, TCharge>,
+    rx?: URIChargeRx.ValueRx<TValue, TCharge>,
   ): URIChargeParser.Result<TCharge> {
     if (rx) {
       const end = this.#parseArgs(input, rx);
 
-      return { charge: rx.endDirective(), end };
+      return { charge: rx.end(), end };
     }
 
     let end!: number;
-    const charge = this.chargeRx.rxArgs(rx => {
+    const charge = this.chargeRx.rxValue(rx => {
       end = this.#parseArgs(input, rx);
 
-      return rx.endDirective();
+      return rx.end();
     });
 
     return { charge, end };
   }
 
-  #parseArgs(input: string, rx: URIChargeRx.DirectiveRx<TValue, TCharge>): number {
+  #parseArgs(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
     let offset = 0;
 
     if (input.startsWith('(')) {

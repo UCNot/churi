@@ -246,7 +246,7 @@ function parseUcDirective<TValue>(
 
 export function parseUcArgs<TValue>(
   to: URIChargeItemTarget<TValue>,
-  rx: URIChargeRx.DirectiveRx<TValue>,
+  rx: URIChargeRx.ValueRx<TValue>,
   firstValueInput: string,
 ): number {
   return parseUcListOrDirective(to, rx, decodeUcValue, firstValueInput);

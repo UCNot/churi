@@ -186,16 +186,4 @@ describe('OpaqueURIChargeRx', () => {
       });
     });
   });
-
-  describe('rxArgs', () => {
-    it('builds directive args', () => {
-      const charge = chargeRx.rxArgs(rx => {
-        rx.addValue('test', 'string');
-
-        return rx.endDirective();
-      });
-
-      expect(charge).toBe(NONE);
-    });
-  });
 });

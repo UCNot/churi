@@ -23,13 +23,9 @@ describe('createUcValueParser', () => {
       expect(parser.parseArgs('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
     });
     it('recognizes arg with custom receiver', () => {
-      const { rawName, value } = parser.chargeRx.rxDirective(
-        '!test',
-        rx => parser.parseArgs('Hello,%20World!', rx).charge,
-      ) as UcDirective;
-
-      expect(rawName).toBe('!test');
-      expect(value).toBe('Hello, World!');
+      expect(parser.chargeRx.rxValue(rx => parser.parseArgs('Hello,%20World!', rx).charge)).toBe(
+        'Hello, World!',
+      );
     });
     it('recognizes arg in parentheses', () => {
       expect(parser.parseArgs('(Hello,%20World!)')).toEqual({ charge: 'Hello, World!', end: 17 });

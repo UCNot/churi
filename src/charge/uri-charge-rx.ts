@@ -17,8 +17,6 @@ export interface URIChargeRx<out TValue = UcPrimitive, out TCharge = unknown> {
     rawName: string,
     parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
   ): TCharge;
-
-  rxArgs(parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge): TCharge;
 }
 
 export namespace URIChargeRx {

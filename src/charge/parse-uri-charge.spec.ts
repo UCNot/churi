@@ -23,13 +23,10 @@ describe('createURIChargeParser', () => {
     });
     it('builds args by custom parser', () => {
       const parser = createURIChargeParser();
-      const charge = parser.chargeRx.rxDirective(
-        '!test',
-        rx => parser.parseArgs('Hello,%20World!', rx).charge,
-      );
+      const charge = parser.chargeRx.rxValue(rx => parser.parseArgs('Hello,%20World!', rx).charge);
 
-      expect(charge).toBeURIChargeSingle('directive');
-      expect(charge).toHaveURIChargeItems({ rawName: '!test', value: 'Hello, World!' });
+      expect(charge).toBeURIChargeSingle('string');
+      expect(charge).toHaveURIChargeValue('Hello, World!');
     });
   });
 });
