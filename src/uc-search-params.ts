@@ -188,7 +188,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   toString(): string {
-    return this.#list.join('&');
+    return this.#list.join(this.separator);
   }
 
 }
