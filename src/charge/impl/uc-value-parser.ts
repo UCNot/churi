@@ -1,17 +1,11 @@
 import { decodeURIChargeKey } from '../uri-charge-codec.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { decodeUcDirectiveArg, decodeUcValue, UcValueDecoder } from './uc-value-decoder.js';
-import {
-  AnyURIChargeRx,
-  URIChargeEntryTarget,
-  URIChargeTarget,
-  URIChargeValueTarget,
-} from './uri-charge-target.js';
+import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
 export function parseUcValue<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
-  rx: AnyURIChargeRx<TValue, TCharge>,
-  key: string,
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
   decoder: UcValueDecoder,
   input: string,
 ): number {
@@ -19,27 +13,27 @@ export function parseUcValue<TValue, TCharge>(
 
   if (valueEnd < 0) {
     // Up to the end of input.
-    decoder(to, rx, key, input);
+    decoder(rx, ext, input);
 
     return input.length;
   }
   if (input[valueEnd] === ')') {
     // Up to closing parent.
-    decoder(to, rx, key, input.slice(0, valueEnd));
+    decoder(rx, ext, input.slice(0, valueEnd));
 
     return valueEnd;
   }
 
   // Opening parent.
   if (valueEnd) {
-    return parseUcMapOrDirective(to, rx, key, input.slice(0, valueEnd), input);
+    return parseUcMapOrDirective(rx, ext, input.slice(0, valueEnd), input);
   }
 
   // Empty key. Start nested list and parse first item.
   let end!: number;
 
-  to.rxList(rx, key, listRx => {
-    end = parseUcArgs(to.ext.valueTarget, listRx, input.slice(1)) + 1;
+  rx.rxList(listRx => {
+    end = parseUcArgs(listRx, ext, input.slice(1)) + 1;
 
     return listRx.end();
   });
@@ -50,14 +44,13 @@ export function parseUcValue<TValue, TCharge>(
 const PARENT_PATTERN = /[()]/;
 
 function parseUcMapOrDirective<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
-  rx: AnyURIChargeRx<TValue, TCharge>,
-  key: string,
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
   rawKey: string,
   input: string,
 ): number {
   if (rawKey.startsWith('!')) {
-    const emptyMapEnd = parseEmptyUcMap(to, rx, key, rawKey, input);
+    const emptyMapEnd = parseEmptyUcMap(rx, rawKey, input);
 
     if (emptyMapEnd) {
       return emptyMapEnd;
@@ -68,9 +61,8 @@ function parseUcMapOrDirective<TValue, TCharge>(
     const firstValueInput = input.slice(firstValueOffset);
     let end!: number;
 
-    to.rxDirective(rx, key, rawKey, directiveRx => {
-      end =
-        firstValueOffset + parseUcDirectiveArgs(to.ext.valueTarget, directiveRx, firstValueInput);
+    ext.rxDirective(rx, rawKey, directiveRx => {
+      end = firstValueOffset + parseUcDirective(directiveRx, ext, firstValueInput);
 
       return directiveRx.end();
     });
@@ -84,8 +76,8 @@ function parseUcMapOrDirective<TValue, TCharge>(
   const firstKey = decodeURIChargeKey(rawKey);
   let end!: number;
 
-  to.rxMap(rx, key, mapRx => {
-    end = firstValueOffset + parseUcMap(to.ext.entryTarget, mapRx, firstKey, firstValueInput);
+  rx.rxMap(mapRx => {
+    end = firstValueOffset + parseUcMap(mapRx, ext, firstKey, firstValueInput);
 
     return mapRx.endMap();
   });
@@ -96,9 +88,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
 const EMPTY_MAP = '!())';
 
 function parseEmptyUcMap<TValue, TCharge>(
-  to: URIChargeTarget<TValue, TCharge>,
-  rx: AnyURIChargeRx<TValue, TCharge>,
-  key: string,
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
   rawKey: string,
   input: string,
 ): number | undefined {
@@ -121,38 +111,43 @@ function parseEmptyUcMap<TValue, TCharge>(
     end = input.length;
   }
 
-  to.rxMap(rx, key, mapRx => mapRx.endMap());
+  rx.rxMap(mapRx => mapRx.endMap());
 
   return end;
 }
 
 function parseUcMap<TValue>(
-  to: URIChargeEntryTarget<TValue>,
-  rx: URIChargeRx.MapRx<TValue>,
+  mapRx: URIChargeRx.MapRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   key: string,
   firstValueInput: string,
 ): number {
   // Opening parent after key.
   // Parse first entry value.
-  const firstValueEnd = parseUcValue(to, rx, key, decodeUcValue, firstValueInput) + 1;
-  // After closing parent.
+  let firstEntryEnd!: number;
 
-  if (firstValueEnd >= firstValueInput.length) {
+  mapRx.rxEntry(key, rx => {
+    firstEntryEnd = parseUcMapEntry(rx, ext, firstValueInput);
+
+    return rx.end();
+  });
+
+  // After closing parent.
+  if (firstEntryEnd >= firstValueInput.length) {
     // End of input.
     return firstValueInput.length;
   }
-  if (firstValueInput[firstValueEnd] === ')') {
-    return firstValueEnd;
+  if (firstValueInput[firstEntryEnd] === ')') {
+    return firstEntryEnd;
   }
 
   // Parse the rest of the map entries.
-  return firstValueEnd + parseUcMapEntries(to, rx, key, firstValueInput.slice(firstValueEnd));
+  return firstEntryEnd + parseUcMapEntries(mapRx, ext, firstValueInput.slice(firstEntryEnd));
 }
 
 function parseUcMapEntries<TValue>(
-  to: URIChargeEntryTarget<TValue>,
-  rx: URIChargeRx.MapRx<TValue>,
-  key: string,
+  mapRx: URIChargeRx.MapRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;
@@ -161,18 +156,16 @@ function parseUcMapEntries<TValue>(
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      rx.addSuffix(decodeURIChargeKey(input));
+      mapRx.addSuffix(decodeURIChargeKey(input));
 
       return offset + input.length;
     }
-    if (keyEnd) {
-      // New key specified explicitly.
-      // Otherwise, the previous one reused. Thus, `key(value1)(value2)` is the same as `key(value1)key(value2)`.
-      key = decodeURIChargeKey(input.slice(0, keyEnd));
-    }
+
+    const key = decodeURIChargeKey(input.slice(0, keyEnd));
+
     if (input[keyEnd] === ')') {
       if (keyEnd) {
-        rx.addSuffix(key);
+        mapRx.addSuffix(key);
       }
 
       return offset + keyEnd;
@@ -180,18 +173,13 @@ function parseUcMapEntries<TValue>(
 
     let nextKeyStart!: number;
 
-    if (!keyEnd) {
-      // Convert entry value to list if not converted yet, and continue appending to it.
-      to.rxList(rx, key, listRx => {
-        nextKeyStart = parseUcMapEntryItems(to.ext.valueTarget, listRx, input);
+    input = input.slice(keyEnd + 1);
+    offset += keyEnd + 1;
+    mapRx.rxEntry(key, rx => {
+      nextKeyStart = parseUcMapEntry(rx, ext, input);
 
-        return listRx.end();
-      });
-    } else {
-      input = input.slice(keyEnd + 1);
-      offset += keyEnd + 1;
-      nextKeyStart = parseUcValue(to, rx, key, decodeUcValue, input) + 1;
-    }
+      return rx.end();
+    });
 
     if (nextKeyStart >= input.length) {
       return offset + input.length;
@@ -202,58 +190,54 @@ function parseUcMapEntries<TValue>(
   }
 }
 
-function parseUcMapEntryItems<TValue>(
-  to: URIChargeValueTarget<TValue>,
+function parseUcMapEntry<TValue>(
   rx: URIChargeRx.ValueRx<TValue>,
-  input: string /* never empty */,
+  ext: URIChargeExtParser<TValue>,
+  input: string,
 ): number {
   let offset = 0;
 
   for (;;) {
-    input = input.slice(1);
-    ++offset;
-
-    const nextTokenStart = parseUcValue(to, rx, '', decodeUcValue, input) + 1;
+    const nextTokenStart = parseUcValue(rx, ext, decodeUcValue, input) + 1;
 
     if (nextTokenStart >= input.length) {
       return offset + input.length;
     }
-
     if (input[nextTokenStart] !== '(') {
       // Not a next item.
       return offset + nextTokenStart;
     }
 
-    input = input.slice(nextTokenStart);
-    offset += nextTokenStart;
+    input = input.slice(nextTokenStart + 1);
+    offset += nextTokenStart + 1;
   }
 }
 
 export function parseUcArgs<TValue>(
-  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.ValueRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   firstValueInput: string,
 ): number {
-  return parseUcArgsWithDecoder(to, rx, decodeUcValue, firstValueInput);
+  return parseUcArgsWithDecoder(rx, ext, decodeUcValue, firstValueInput);
 }
 
-function parseUcDirectiveArgs<TValue>(
-  to: URIChargeValueTarget<TValue>,
+function parseUcDirective<TValue>(
   rx: URIChargeRx.ValueRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   firstValueInput: string,
 ): number {
-  return parseUcArgsWithDecoder(to, rx, decodeUcDirectiveArg, firstValueInput);
+  return parseUcArgsWithDecoder(rx, ext, decodeUcDirectiveArg, firstValueInput);
 }
 
 function parseUcArgsWithDecoder<TValue>(
-  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.ValueRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   decoder: UcValueDecoder,
   firstValueInput: string,
 ): number {
   // Opening parent without preceding key.
   // Parse first item value.
-  const firstValueEnd = parseUcValue(to, rx, '', decoder, firstValueInput) + 1;
+  const firstValueEnd = parseUcValue(rx, ext, decoder, firstValueInput) + 1;
   // After closing parent.
 
   if (firstValueEnd >= firstValueInput.length) {
@@ -268,13 +252,13 @@ function parseUcArgsWithDecoder<TValue>(
   // Parse the rest of list items.
   return (
     firstValueEnd
-    + parseUcListOrDirectiveItems(to, rx, decoder, firstValueInput.slice(firstValueEnd))
+    + parseUcListOrDirectiveItems(rx, ext, decoder, firstValueInput.slice(firstValueEnd))
   );
 }
 
 function parseUcListOrDirectiveItems<TValue>(
-  to: URIChargeValueTarget<TValue>,
   rx: URIChargeRx.ValueRx<TValue>,
+  ext: URIChargeExtParser<TValue>,
   decoder: UcValueDecoder,
   input: string /* never empty */,
 ): number {
@@ -286,7 +270,7 @@ function parseUcListOrDirectiveItems<TValue>(
     if (keyEnd < 0) {
       // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
-      to.rxMap(rx, '', suffixRx => {
+      rx.rxMap(suffixRx => {
         suffixRx.addSuffix(decodeURIChargeKey(input));
 
         return suffixRx.endMap();
@@ -299,7 +283,7 @@ function parseUcListOrDirectiveItems<TValue>(
       // New key specified explicitly.
       // Add map to trailing item and pass the rest of the input to added map.
       // Thus, `(value1)key(value2)` is the same as `(value1)(key(value2))`.
-      return offset + parseUcMapOrDirective(to, rx, '', input.slice(0, keyEnd), input);
+      return offset + parseUcMapOrDirective(rx, ext, input.slice(0, keyEnd), input);
     }
 
     if (input[0] === ')') {
@@ -309,7 +293,7 @@ function parseUcListOrDirectiveItems<TValue>(
     input = input.slice(1);
     ++offset;
 
-    const nextKeyStart = parseUcValue(to, rx, '', decoder, input) + 1;
+    const nextKeyStart = parseUcValue(rx, ext, decoder, input) + 1;
 
     if (nextKeyStart >= input.length) {
       return offset + input.length;

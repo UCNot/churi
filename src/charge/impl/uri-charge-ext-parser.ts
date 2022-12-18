@@ -1,7 +1,6 @@
 import { asArray } from '@proc7ts/primitives';
 import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeEntryTarget, URIChargeValueTarget } from './uri-charge-target.js';
 
 export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
@@ -10,9 +9,6 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
   #entities?: Map<string, URIChargeExt.EntityHandler<TCharge>>;
   #directives?: Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>;
-
-  #valueTarget?: URIChargeValueTarget<TValue, TCharge>;
-  #entryTarget?: URIChargeEntryTarget<TValue>;
 
   constructor(
     chargeRx: URIChargeRx<TValue, TCharge>,
@@ -46,24 +42,32 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  forEntity(rawEntity: string): URIChargeExt.EntityHandler<TCharge> | undefined {
+  parseEntity(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawEntity: string): void {
     this.#init();
 
-    return this.#entities!.get(rawEntity);
+    const handler = this.#entities!.get(rawEntity);
+
+    if (handler) {
+      rx.add(handler(rawEntity));
+    } else {
+      rx.addEntity(rawEntity);
+    }
   }
 
-  forDirective(rawName: string): URIChargeExt.DirectiveHandler<TValue, TCharge> | undefined {
+  rxDirective(
+    rx: URIChargeRx.ValueRx<TValue, TCharge>,
+    rawName: string,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
+  ): void {
     this.#init();
 
-    return this.#directives!.get(rawName);
-  }
+    const directive = this.#directives!.get(rawName);
 
-  get valueTarget(): URIChargeValueTarget<TValue, TCharge> {
-    return (this.#valueTarget ??= new URIChargeValueTarget(this));
-  }
-
-  get entryTarget(): URIChargeEntryTarget<TValue> {
-    return (this.#entryTarget ??= new URIChargeEntryTarget(this));
+    if (directive) {
+      rx.add(directive(rawName, parse));
+    } else {
+      rx.rxDirective(rawName, parse);
+    }
   }
 
 }

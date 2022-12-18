@@ -22,6 +22,30 @@ describe('OpaqueURIChargeRx', () => {
     });
   });
 
+  describe('rxList', () => {
+    it('ignores charge', () => {
+      expect(
+        chargeRx.rxList(rx => {
+          rx.add('value');
+
+          return rx.end();
+        }),
+      ).toBe(NONE);
+    });
+  });
+
+  describe('rxDirective', () => {
+    it('ignores charge', () => {
+      expect(
+        chargeRx.rxDirective('!test', rx => {
+          rx.add('value');
+
+          return rx.end();
+        }),
+      ).toBe(NONE);
+    });
+  });
+
   describe('ValueRx', () => {
     describe('addValue', () => {
       it('charges none', () => {
@@ -50,71 +74,11 @@ describe('OpaqueURIChargeRx', () => {
   });
 
   describe('MapRx', () => {
-    describe('put', () => {
-      it('ignores charge', () => {
-        expect(
-          chargeRx.rxMap(rx => {
-            rx.put('key', 'some');
-
-            return rx.endMap();
-          }),
-        ).toBe(NONE);
-      });
-    });
-
-    describe('putEntity', () => {
+    describe('rxEntry', () => {
       it('ignores entity', () => {
         expect(
           chargeRx.rxMap(rx => {
-            rx.putEntity('key', '!some');
-
-            return rx.endMap();
-          }),
-        ).toBe(NONE);
-      });
-    });
-
-    describe('putValue', () => {
-      it('ignores value', () => {
-        expect(
-          chargeRx.rxMap(rx => {
-            rx.putValue('key', 'some', 'string');
-
-            return rx.endMap();
-          }),
-        ).toBe(NONE);
-      });
-    });
-
-    describe('rxMap', () => {
-      it('ignores charge', () => {
-        expect(
-          chargeRx.rxMap(rx => {
-            rx.rxMap('key', nestedRx => nestedRx.endMap());
-
-            return rx.endMap();
-          }),
-        ).toBe(NONE);
-      });
-    });
-
-    describe('startList', () => {
-      it('ignores charge', () => {
-        expect(
-          chargeRx.rxMap(rx => {
-            rx.rxList('key', listRx => listRx.end());
-
-            return rx.endMap();
-          }),
-        ).toBe(NONE);
-      });
-    });
-
-    describe('startDirective', () => {
-      it('ignores charge', () => {
-        expect(
-          chargeRx.rxMap(rx => {
-            rx.rxDirective('key', '!test', directiveRx => directiveRx.end());
+            rx.rxEntry('key', rx => rx.end());
 
             return rx.endMap();
           }),

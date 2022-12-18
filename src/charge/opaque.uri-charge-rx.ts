@@ -111,36 +111,19 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
     return this.#chargeRx;
   }
 
-  put(_key: string, _charge: TCharge): void {
-    // Ignore entity charge.
-  }
-
-  putEntity(key: string, rawEntity: string): void {
-    this.put(key, this.#chargeRx.createEntity(rawEntity));
-  }
-
-  putValue(key: string, value: UcPrimitive | TValue, type: string): void {
-    this.put(key, this.#chargeRx.createValue(value, type));
-  }
-
-  rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
-    this.put(key, this.#chargeRx.rxMap(parse));
-  }
-
-  rxList(key: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
-    this.put(key, this.#chargeRx.rxList(parse));
-  }
-
-  rxDirective(
-    key: string,
-    rawName: string,
-    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
+  rxEntry(
+    _key: string,
+    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
   ): void {
-    this.put(key, this.#chargeRx.rxDirective(rawName, parse));
+    this.#chargeRx.rxValue(parse);
   }
 
   addSuffix(suffix: string): void {
-    this.putValue(suffix, '', 'string');
+    this.rxEntry(suffix, rx => {
+      rx.addValue('', 'string');
+
+      return rx.end();
+    });
   }
 
   endMap(): TCharge {

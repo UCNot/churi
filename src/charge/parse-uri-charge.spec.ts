@@ -341,11 +341,6 @@ describe('parseURICharge', () => {
       foo: { bar: { baz: 2, test: '' } },
     });
   });
-  it('concatenates lists', () => {
-    expect(parse('foo(bar)(baz)foo((bar1)(baz1))foo((bar2)(baz2))').charge).toHaveURIChargeItems({
-      foo: ['bar', 'baz', 'bar1', 'baz1', 'bar2', 'baz2'],
-    });
-  });
   it('overrides list', () => {
     expect(parse('foo(bar)(baz)foo(bar1)(baz1)foo(bar2)(baz2)').charge).toHaveURIChargeItems({
       foo: ['bar2', 'baz2'],

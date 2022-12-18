@@ -35,8 +35,11 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
     return new URICharge$Single(value, type);
   }
 
-  rxValue(parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>): URICharge<TValue> {
-    return parse(new this.ns.ValueRx(this));
+  rxValue(
+    parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
+    base?: URICharge.Some<TValue>,
+  ): URICharge<TValue> {
+    return parse(new this.ns.ValueRx(this, base));
   }
 
   rxMap(
@@ -46,11 +49,8 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
     return parse(new this.ns.MapRx(this, base));
   }
 
-  rxList(
-    parse: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>,
-    base?: URICharge.Some<TValue>,
-  ): URICharge<TValue> {
-    return parse(new this.ns.ListRx(this, base));
+  rxList(parse: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>): URICharge<TValue> {
+    return parse(new this.ns.ListRx(this));
   }
 
   rxDirective(
@@ -84,13 +84,14 @@ export namespace URIChargeBuilder {
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
     >(
       chargeRx: TRx,
+      base?: URICharge.Some<TValue>,
     ) => ValueRx<TValue, TRx>;
   }
 
-  export type MapRx<
-    TValue,
-    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
-  > = URIChargeRx.MapRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>;
+  export interface MapRx<TValue, TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>>
+    extends URIChargeRx.MapRx<URIChargeItem<TValue>, URICharge<TValue>, TRx> {
+    endMap(): URICharge.Map<TValue>;
+  }
 
   export namespace MapRx {
     export type Constructor = new <
@@ -102,10 +103,10 @@ export namespace URIChargeBuilder {
     ) => MapRx<TValue, TRx>;
   }
 
-  export type ListRx<
-    TValue,
-    TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
-  > = URIChargeRx.ValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>;
+  export interface ListRx<TValue, TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>>
+    extends URIChargeRx.ValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx> {
+    end(): URICharge.List<TValue>;
+  }
 
   export namespace ListRx {
     export type Constructor = new <
@@ -113,7 +114,6 @@ export namespace URIChargeBuilder {
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
     >(
       chargeRx: TRx,
-      base?: URICharge.Some<TValue>,
     ) => ListRx<TValue, TRx>;
   }
 }
@@ -124,11 +124,33 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
   extends OpaqueValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
   implements URIChargeBuilder.ValueRx<TValue, TRx> {
 
+  readonly #base: URICharge.Some<TValue> | undefined;
   #builder: URIChargeValue$Builder<TValue> = URIChargeValue$none;
+
+  constructor(chargeRx: TRx, base?: URICharge.Some<TValue>) {
+    super(chargeRx);
+    this.#base = base;
+  }
 
   override add(charge: URICharge<TValue>): void {
     if (charge.isSome()) {
       this.#builder = this.#builder.add(charge);
+    }
+  }
+
+  override rxMap(
+    parse: (
+      rx: URIChargeRx.MapRx<
+        URIChargeItem<TValue>,
+        URICharge<TValue>,
+        URIChargeRx<URIChargeItem<TValue>, URICharge<TValue>>
+      >,
+    ) => URICharge<TValue>,
+  ): void {
+    if (this.#base?.isMap()) {
+      this.add(this.chargeRx.rxMap(parse, this.#base));
+    } else {
+      super.rxMap(parse);
     }
   }
 
@@ -208,44 +230,15 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
     this.#map = new Map(base?.entries());
   }
 
-  override put(key: string, charge: URICharge<TValue>): void {
-    if (charge.isSome()) {
-      this.#map.set(key, charge);
+  override rxEntry(
+    key: string,
+    parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
+  ): void {
+    const map = this.chargeRx.rxValue(parse, this.#map.get(key));
+
+    if (map.isSome()) {
+      this.#map.set(key, map);
     }
-  }
-
-  override rxMap(
-    key: string,
-    parse: (rx: URIChargeBuilder.MapRx<TValue>) => URICharge<TValue>,
-  ): void {
-    const prevCharge = this.#map.get(key);
-
-    this.chargeRx.rxMap(
-      rx => {
-        const map = parse(rx);
-
-        this.put(key, map);
-
-        return map;
-      },
-
-      prevCharge && prevCharge.isMap() ? prevCharge : undefined,
-    );
-  }
-
-  override rxList(
-    key: string,
-    parse: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>,
-  ): void {
-    const prevCharge = this.#map.get(key);
-
-    this.chargeRx.rxList(rx => {
-      const list = parse(rx);
-
-      this.put(key, list);
-
-      return list;
-    }, prevCharge);
   }
 
   override endMap(): URICharge.Map<TValue> {
@@ -258,18 +251,7 @@ class URIChargeBuilder$ListRx<out TValue, out TRx extends URIChargeBuilder<TValu
   extends OpaqueValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
   implements URIChargeBuilder.ValueRx<TValue, TRx> {
 
-  readonly #list: URICharge.Some<TValue>[];
-
-  constructor(chargeRx: TRx, base?: URICharge.Some<TValue>) {
-    super(chargeRx);
-    if (base?.isList()) {
-      this.#list = [...base.list()];
-    } else if (base) {
-      this.#list = [base];
-    } else {
-      this.#list = [];
-    }
-  }
+  readonly #list: URICharge.Some<TValue>[] = [];
 
   override add(charge: URICharge<TValue>): void {
     if (charge.isSome()) {

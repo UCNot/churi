@@ -75,21 +75,7 @@ export namespace URIChargeRx {
   > {
     readonly chargeRx: TRx;
 
-    put(key: string, charge: TCharge): void;
-
-    putEntity(key: string, rawEntity: string): void;
-
-    putValue(key: string, value: UcPrimitive | TValue, type: string): void;
-
-    rxMap(key: string, parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void;
-
-    rxList(key: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
-
-    rxDirective(
-      key: string,
-      rawName: string,
-      parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-    ): void;
+    rxEntry(key: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
 
     addSuffix(suffix: string): void;
 

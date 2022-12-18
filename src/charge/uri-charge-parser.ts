@@ -39,7 +39,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
-    return parseUcValue(this.#ext.valueTarget, rx, '', decodeUcValue, input);
+    return parseUcValue(rx, this.#ext, decodeUcValue, input);
   }
 
   parseArgs(
@@ -70,7 +70,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
       input = input.slice(1);
     }
 
-    return offset + parseUcArgs(this.#ext.valueTarget, rx, input);
+    return offset + parseUcArgs(rx, this.#ext, input);
   }
 
 }

@@ -126,7 +126,11 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
 
     return chargeParser.chargeRx.rxMap(rx => {
       for (const entry of this.#map.values()) {
-        rx.put(entry.key, entry.getCharge(chargeParser));
+        rx.rxEntry(entry.key, rx => {
+          rx.add(entry.getCharge(chargeParser));
+
+          return rx.end();
+        });
       }
 
       return rx.endMap();
