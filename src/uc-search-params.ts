@@ -44,9 +44,9 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   /**
-   * Parameters splitter.
+   * Search parameters splitter.
    *
-   * @defaultValue Splitter that separates parameters by `"&" (U+0026)` symbol.
+   * Splits parameters separated by `"&" (U+0026)` symbol.
    */
   get splitter(): UcSearchParams.Splitter {
     return UcSearchParams$splitter;

@@ -16,6 +16,11 @@ export class UcMatrixParams<
   out TCharge = URICharge<TValue>,
 > extends UcSearchParams<TValue, TCharge> {
 
+  /**
+   * Matrix parameters splitter.
+   *
+   * Splits parameters separated by `";" (U+003B)` symbol.
+   */
   override get splitter(): UcSearchParams.Splitter {
     return UcMatrixParams$splitter;
   }
