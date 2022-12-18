@@ -1,5 +1,6 @@
 import { UcPrimitive } from './charge/uc-value.js';
 import { URICharge } from './charge/uri-charge.js';
+import { UcMatrixParams$splitter } from './impl/uc-search-params.splitter.js';
 import { UcSearchParams } from './uc-search-params.js';
 
 /**
@@ -15,8 +16,8 @@ export class UcMatrixParams<
   out TCharge = URICharge<TValue>,
 > extends UcSearchParams<TValue, TCharge> {
 
-  override get separator(): string {
-    return ';';
+  override get splitter(): UcSearchParams.Splitter {
+    return UcMatrixParams$splitter;
   }
 
 }

@@ -4,6 +4,7 @@ import { UcPrimitive } from './charge/uc-value.js';
 import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
+import { UcSearchParams$splitter } from './impl/uc-search-params.splitter.js';
 
 export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
   implements Iterable<[string, string]> {
@@ -43,12 +44,12 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   /**
-   * Parameters separator symbol.
+   * Parameters splitter.
    *
-   * @defaultValue `"&" (U+0026)`
+   * @defaultValue Splitter that separates parameters by `"&" (U+0026)` symbol.
    */
-  get separator(): string {
-    return '&';
+  get splitter(): UcSearchParams.Splitter {
+    return UcSearchParams$splitter;
   }
 
   get chargeParser(): URIChargeParser<TValue, TCharge> {
@@ -66,19 +67,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       return entries;
     }
 
-    for (const part of search.split(this.separator)) {
-      const valueStart = part.indexOf('=');
-      let rawKey: string;
-      let rawValue: string;
-
-      if (valueStart < 0) {
-        rawKey = part;
-        rawValue = '';
-      } else {
-        rawKey = part.slice(0, valueStart);
-        rawValue = part.slice(valueStart + 1);
-      }
-
+    for (const [rawKey, rawValue] of this.splitter.split(search)) {
       const key = decodeSearchParam(rawKey);
       const prev = entries.get(key);
 
@@ -188,9 +177,34 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   toString(): string {
-    return this.#list.join(this.separator);
+    return this.#list.join(this.splitter.joiner);
   }
 
+}
+
+export namespace UcSearchParams {
+  /**
+   * {@link UcSearchParams search parameters} splitter.
+   */
+  export interface Splitter {
+    /**
+     * Symbol used to join search parameters.
+     *
+     * @defaultValue `"&" (U+0026)`
+     */
+    readonly joiner: string;
+
+    /**
+     * Splits search string onto parameter key/value pairs.
+     *
+     * By default, splits `&`-separated
+     *
+     * @param search - Search string to split.
+     *
+     * @returns Iterable of URI-encoded key/value pairs.
+     */
+    split(search: string): Iterable<readonly [string, string]>;
+  }
 }
 
 class ChSearchParamValue {
