@@ -17,6 +17,59 @@ describe('UcSearchParams', () => {
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
   });
+  it('handles missing params', () => {
+    const input = 'a=1&&b=2&a=3&';
+    const params = new UcSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['a', '1'],
+      ['b', '2'],
+      ['a', '3'],
+    ]);
+    expect(String(params)).toBe('a=1&b=2&a=3');
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles missing value', () => {
+    const input = 'a&b=2';
+    const params = new UcSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['a', ''],
+      ['b', '2'],
+    ]);
+    expect(String(params)).toBe('a=&b=2');
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles value with `=`', () => {
+    const input = 'a==&b=2=3';
+    const params = new UcSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['a', '='],
+      ['b', '2=3'],
+    ]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    // expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles empty key', () => {
+    const input = '=1&=2';
+    const params = new UcSearchParams(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([
+      ['', '1'],
+      ['', '2'],
+    ]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
   it('treats `+` as space', () => {
     const input = 'key+foo=value+bar';
     const params = new UcSearchParams(input);
