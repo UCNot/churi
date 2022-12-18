@@ -23,45 +23,46 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   parse(input: string, rx?: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
     if (rx) {
-      return this.#parse(input, rx);
-    }
+      const end = this.#parse(input, rx);
 
-    let result!: URIChargeParser.Result<TCharge>;
-
-    this.chargeRx.rxValue(rx => {
-      result = this.#parse(input, rx);
-
-      return result.charge;
-    });
-
-    return result;
-  }
-
-  #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): URIChargeParser.Result<TCharge> {
-    return parseUcValue(this.#ext.valueTarget, rx, '', decodeUcValue, input);
-  }
-
-  parseArgs(
-    input: string,
-    rx?: URIChargeRx.DirectiveRx<TValue, TCharge>,
-  ): URIChargeParser.Result<TCharge> {
-    if (rx) {
-      const end = this.#parseArgs(input, rx);
-
-      return { charge: rx.endDirective(), end };
+      return { charge: rx.end(), end };
     }
 
     let end!: number;
-    const charge = this.chargeRx.rxArgs(rx => {
-      end = this.#parseArgs(input, rx);
+    const charge = this.chargeRx.rxValue(rx => {
+      end = this.#parse(input, rx);
 
-      return rx.endDirective();
+      return rx.end();
     });
 
     return { charge, end };
   }
 
-  #parseArgs(input: string, rx: URIChargeRx.DirectiveRx<TValue, TCharge>): number {
+  #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
+    return parseUcValue(rx, this.#ext, decodeUcValue, input);
+  }
+
+  parseArgs(
+    input: string,
+    rx?: URIChargeRx.ValueRx<TValue, TCharge>,
+  ): URIChargeParser.Result<TCharge> {
+    if (rx) {
+      const end = this.#parseArgs(input, rx);
+
+      return { charge: rx.end(), end };
+    }
+
+    let end!: number;
+    const charge = this.chargeRx.rxValue(rx => {
+      end = this.#parseArgs(input, rx);
+
+      return rx.end();
+    });
+
+    return { charge, end };
+  }
+
+  #parseArgs(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
     let offset = 0;
 
     if (input.startsWith('(')) {
@@ -69,7 +70,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
       input = input.slice(1);
     }
 
-    return offset + parseUcArgs(this.#ext.itemTarget, rx, input);
+    return offset + parseUcArgs(rx, this.#ext, input);
   }
 
 }

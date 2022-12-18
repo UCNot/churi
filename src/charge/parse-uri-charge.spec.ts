@@ -23,13 +23,10 @@ describe('createURIChargeParser', () => {
     });
     it('builds args by custom parser', () => {
       const parser = createURIChargeParser();
-      const charge = parser.chargeRx.rxDirective(
-        '!test',
-        rx => parser.parseArgs('Hello,%20World!', rx).charge,
-      );
+      const charge = parser.chargeRx.rxValue(rx => parser.parseArgs('Hello,%20World!', rx).charge);
 
-      expect(charge).toBeURIChargeSingle('directive');
-      expect(charge).toHaveURIChargeItems({ rawName: '!test', value: 'Hello, World!' });
+      expect(charge).toBeURIChargeSingle('string');
+      expect(charge).toHaveURIChargeValue('Hello, World!');
     });
   });
 });
@@ -331,7 +328,7 @@ describe('parseURICharge', () => {
       });
     });
     it('recognized without parameters', () => {
-      const charge = new URIChargeBuilder().rxDirective('!test', rx => rx.endDirective());
+      const charge = new URIChargeBuilder().rxDirective('!test', rx => rx.end());
 
       expect(charge).toHaveURIChargeValue({ rawName: '!test', value: undefined });
     });
@@ -342,11 +339,6 @@ describe('parseURICharge', () => {
       parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge,
     ).toHaveURIChargeItems({
       foo: { bar: { baz: 2, test: '' } },
-    });
-  });
-  it('concatenates lists', () => {
-    expect(parse('foo(bar)(baz)foo((bar1)(baz1))foo((bar2)(baz2))').charge).toHaveURIChargeItems({
-      foo: ['bar', 'baz', 'bar1', 'baz1', 'bar2', 'baz2'],
     });
   });
   it('overrides list', () => {

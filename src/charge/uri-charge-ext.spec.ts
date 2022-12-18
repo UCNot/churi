@@ -47,15 +47,12 @@ describe('URIChargeExt', () => {
         ext: (charge): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
           directives: {
             ['!test'](
-              rawName: string,
+              _rawName: string,
               parse: (
-                rx: URIChargeRx.DirectiveRx<
-                  UcPrimitive | TestValue,
-                  UcValue<UcPrimitive | TestValue>
-                >,
+                rx: URIChargeRx.ValueRx<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>,
               ) => UcValue<UcPrimitive | TestValue>,
             ): UcValue<UcPrimitive | TestValue> {
-              return charge.rxValue(rx => parse(new TestDirectiveRx(rx, rawName)));
+              return charge.rxValue(rx => parse(new TestDirectiveRx(rx)));
             },
           },
         }),
@@ -85,20 +82,17 @@ describe('URIChargeExt', () => {
     [test__symbol]: unknown;
   }
 
-  const OpaqueDirectiveRx = OpaqueURIChargeRx.DirectiveRx;
+  const OpaqueValueRx = OpaqueURIChargeRx.ValueRx;
 
   class TestDirectiveRx<
     TValue extends UcPrimitive | TestValue = UcPrimitive | TestValue,
-  > extends OpaqueDirectiveRx<TValue, UcValue<UcPrimitive | TestValue>> {
+  > extends OpaqueValueRx<TValue, UcValue<UcPrimitive | TestValue>> {
 
     readonly #rx: URIChargeRx.ValueRx<TValue, UcValue<UcPrimitive | TestValue>>;
     #charge: UcValue<UcPrimitive | TestValue>;
 
-    constructor(
-      rx: URIChargeRx.ValueRx<TValue, UcValue<UcPrimitive | TestValue>>,
-      rawName: string,
-    ) {
-      super(rx.chargeRx, rawName);
+    constructor(rx: URIChargeRx.ValueRx<TValue, UcValue<UcPrimitive | TestValue>>) {
+      super(rx.chargeRx);
       this.#rx = rx;
       this.#charge = rx.chargeRx.none;
     }
@@ -113,8 +107,10 @@ describe('URIChargeExt', () => {
       this.#charge = charge;
     }
 
-    endDirective(): UcValue<UcPrimitive | TestValue> {
-      return this.#rx.set(this.#charge);
+    end(): UcValue<UcPrimitive | TestValue> {
+      this.#rx.add(this.#charge);
+
+      return this.#rx.end();
     }
 
 }

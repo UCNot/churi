@@ -126,7 +126,11 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
 
     return chargeParser.chargeRx.rxMap(rx => {
       for (const entry of this.#map.values()) {
-        rx.put(entry.key, entry.getCharge(chargeParser));
+        rx.rxEntry(entry.key, rx => {
+          rx.add(entry.getCharge(chargeParser));
+
+          return rx.end();
+        });
       }
 
       return rx.endMap();
@@ -285,7 +289,7 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
         listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
       }
 
-      return listRx.endList();
+      return listRx.end();
     });
   }
 
@@ -345,7 +349,7 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
         listRx.addValue(value, 'string');
       }
 
-      return listRx.endList();
+      return listRx.end();
     });
   }
 

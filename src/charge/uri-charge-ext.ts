@@ -52,7 +52,7 @@ export namespace URIChargeExt {
   export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = {
     rxDirective(
       rawName: string,
-      parse: (rx: URIChargeRx.DirectiveRx<TValue, TCharge>) => TCharge,
+      parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
     ): TCharge;
   }['rxDirective'];
 }

@@ -23,13 +23,9 @@ describe('createUcValueParser', () => {
       expect(parser.parseArgs('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
     });
     it('recognizes arg with custom receiver', () => {
-      const { rawName, value } = parser.chargeRx.rxDirective(
-        '!test',
-        rx => parser.parseArgs('Hello,%20World!', rx).charge,
-      ) as UcDirective;
-
-      expect(rawName).toBe('!test');
-      expect(value).toBe('Hello, World!');
+      expect(parser.chargeRx.rxValue(rx => parser.parseArgs('Hello,%20World!', rx).charge)).toBe(
+        'Hello, World!',
+      );
     });
     it('recognizes arg in parentheses', () => {
       expect(parser.parseArgs('(Hello,%20World!)')).toEqual({ charge: 'Hello, World!', end: 17 });
@@ -369,7 +365,7 @@ describe('parseUcValue', () => {
     });
     it('recognized without parameters', () => {
       const builder = new UcValueBuilder();
-      const { rawName, value } = builder.rxDirective('!test', rx => rx.endDirective()) as UcDirective;
+      const { rawName, value } = builder.rxDirective('!test', rx => rx.end()) as UcDirective;
 
       expect(rawName).toBe('!test');
       expect(value).toBe(builder.none);
@@ -409,11 +405,6 @@ describe('parseUcValue', () => {
   it('merges maps', () => {
     expect(parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge).toEqual({
       foo: { bar: { baz: 2, test: '' } },
-    });
-  });
-  it('concatenates lists', () => {
-    expect(parse('foo(bar)(baz)foo((bar1)(baz1))foo((bar2)(baz2))').charge).toEqual({
-      foo: ['bar', 'baz', 'bar1', 'baz1', 'bar2', 'baz2'],
     });
   });
   it('overrides list', () => {
