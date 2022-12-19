@@ -38,11 +38,11 @@ Negative zero encoded as `-0`.
 
 Hexadecimal and binary formats are also supported. For that, the string should start with `0x`/`-0x` and `0b`/`-0b` respectively.
 
-Decimal digits also supported: `3.14159265359`, `0.1E-23`. Note that they can not omit leading `0`.
+Decimal digits also supported: `3.14159265359`, `0.1E-23`. Note that the leading `0` can not be omitted.
 
 ### BigInt
 
-[BigInt] values encoded as decimal string starting with `0n` or `-0n` prefix:
+[BigInt] values encoded as decimal string preceded by `0n` or `-0n` prefix:
 
 ```
 ?from=-0n12344543&to=0n4354354452354
@@ -55,23 +55,24 @@ Decimal digits also supported: `3.14159265359`, `0.1E-23`. Note that they can no
 
 ### Null
 
-`null` encoded as `--` - exactly two _exclamation marks_ `"!" (U+0021)`.
+`null` encoded as `--` - exactly two _hyphens_ (`"-" (U+002D)`).
 
 ### String
 
-String is represented as [percent-encoded] value.
+String represented as [percent-encoded] value.
 
 Additionally:
 
 - Since _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`) have special meaning within URI charge, they also should be
   [percent-encoded].
-- When string starts with _apostrophe_ `"'" (U+0027)`, this apostrophe is stripped, and the actual string value starts
-  from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
+- When encoded value starts with _apostrophe_ (`"'" (U+0027)`), the apostrophe is stripped, and the actual string value
+  starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
   that should be [percent-encoded].
-- Since _decimal digits_, `"!" (U+0021)`, `"'" (U+0027)`, and `"-" (U+002D)` symbols have special meaning when used as a
-  _first symbol_ of the string, they should be either [percent-encoded], or escaped with _apostrophe_ `"'" (U+0027)`.
+- Since _decimal digits_, `"!" (U+0021)`, `"'" (U+0027)`, and `"-" (U+002D)` symbols have special meaning when used as
+  the _first symbol_ of encoded value, they should be either [percent-encoded], or escaped with
+  _apostrophe_ (`"'" (U+0027)`).
 
-_Empty string_ may be encoded as is, or prefixed with _apostrophe_ `"'" (U+0027)`.
+_Empty string_ may be left as is, or encoded as single _apostrophe_ (`"'" (U+0027)`).
 
 ```
 ?first=John&middle='&last=Doe&birthday='1970-01-01
@@ -81,7 +82,7 @@ _Empty string_ may be encoded as is, or prefixed with _apostrophe_ `"'" (U+0027)
 
 ## List
 
-List corresponds to JavaScrip [array literal].
+List corresponds to JavaScript [array literal].
 
 List encoded as series of item values enclosed into _parentheses_.
 
@@ -97,7 +98,7 @@ represents an array like
 
 _Empty array_ has special representation: `!!`
 
-An item value is encoded in URI charge format. Thus it an be anything:
+An item value is encoded in URI charge format. Thus it can be anything:
 
 - boolean value: `(!)(-)`
 - number: `(-128)(127)`
@@ -110,7 +111,7 @@ An item value is encoded in URI charge format. Thus it an be anything:
 
 ## Map
 
-Map corresponds ro JavaScript [object literal].
+Map corresponds to JavaScript [object literal].
 
 Map encoded as series of key/value entries. Each entry encoded as key followed by value enclosed into _parentheses_.
 
@@ -139,7 +140,7 @@ An entry value is encoded in URI charge format. Thus it an be anything:
 - empty array: `foo(!!)`
 - empty string: `foo()`
 
-If entry value is an array (`foo((bar)(baz))`), it can be encoded in without enclosing parentheses form: `foo(bar)(baz)`.
+If entry value is an array (`foo((bar)(baz))`), it can be encoded without enclosing parentheses: `foo(bar)(baz)`.
 
 Entry key should be encoded and/or escaped like any string value, except _decimal digits_ and _hyphen_ have no special
 meaning for keys and can be left as is:
@@ -148,11 +149,25 @@ meaning for keys and can be left as is:
 --host(google.com)4(!)
 ```
 
+When entry key is empty, it has to be encoded as single _apostrophe_ (`"'" (U+0027)`):
+
+```
+'(foo)
+```
+
+corresponds to
+
+```json
+{
+  "": "foo"
+}
+```
+
 [object literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
 
 ### Map Suffix
 
-Map may have suffix. I.e. the last entry key without value. Such suffix is treated as an entry with empty string value.
+Map may have suffix. I.e. the last entry key without value. Such suffix is treated as entry with empty string value.
 So, the `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`)
 
 Map may follow the list. Such map is treated as the last item of the list.
