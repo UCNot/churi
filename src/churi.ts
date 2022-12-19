@@ -1,3 +1,7 @@
+import { createURIChargeParser } from './charge/parse-uri-charge.js';
+import { UcPrimitive } from './charge/uc-value.js';
+import { URIChargeParser } from './charge/uri-charge-parser.js';
+import { URICharge } from './charge/uri-charge.js';
 import { UcRoute } from './uc-route.js';
 import { UcSearchParams } from './uc-search-params.js';
 
@@ -16,23 +20,51 @@ import { UcSearchParams } from './uc-search-params.js';
  * [RFC3986]: https://www.rfc-editor.org/rfc/rfc3986
  * [URI]: https://ru.wikipedia.org/wiki/URI
  * [URL class]:https://developer.mozilla.org/en-US/docs/Web/API/URL
+ *
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
-export class ChURI {
+export class ChURI<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
 
   readonly #url: URL;
+  readonly #chargeParser: URIChargeParser<TValue, TCharge>;
   #scheme?: string;
-  #route?: UcRoute;
-  #searchParams?: UcSearchParams;
+  #route?: UcRoute<TValue, TCharge>;
+  #searchParams?: UcSearchParams<TValue, TCharge>;
 
   /**
    * Constructs charged URI.
    *
    * @param uri - Absolute URI string conforming to [RFC3986](https://www.rfc-editor.org/rfc/rfc3986).
+   * @param chargeParser - Parser to use to parse charges.
    */
-  constructor(uri: string) {
+  constructor(
+    uri: string,
+    ...chargeParser: UcPrimitive extends TValue
+      ? URICharge<TValue> extends TCharge
+        ? [URIChargeParser<TValue, TCharge>?]
+        : [URIChargeParser<TValue, TCharge>]
+      : [URIChargeParser<TValue, TCharge>]
+  );
+
+  constructor(
+    uri: string,
+    chargeParser: URIChargeParser<TValue, TCharge> = createURIChargeParser() as URIChargeParser<
+      TValue,
+      TCharge
+    >,
+  ) {
     const url = new URL(uri);
 
     this.#url = url;
+    this.#chargeParser = chargeParser;
+  }
+
+  /**
+   * Parser used to parse charges.
+   */
+  get chargeParser(): URIChargeParser<TValue, TCharge> {
+    return this.#chargeParser;
   }
 
   /**
@@ -120,8 +152,8 @@ export class ChURI {
    *
    * The returned {@link UcRoute} instance refers the first fragment of the path.
    */
-  get route(): UcRoute {
-    return (this.#route ??= new UcRoute(this.pathname));
+  get route(): UcRoute<TValue, TCharge> {
+    return (this.#route ??= new UcRoute(this.pathname, this.chargeParser));
   }
 
   /**
@@ -141,8 +173,8 @@ export class ChURI {
    *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): UcSearchParams {
-    return (this.#searchParams ??= new UcSearchParams(this.search));
+  get searchParams(): UcSearchParams<TValue, TCharge> {
+    return (this.#searchParams ??= new UcSearchParams(this.search, this.chargeParser));
   }
 
   /**
