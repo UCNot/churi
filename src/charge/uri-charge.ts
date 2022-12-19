@@ -1,6 +1,11 @@
 import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
+/**
+ * Generic URI charge representation.
+ *
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ */
 export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeEncodable {
 
   static get none(): URICharge.None {
