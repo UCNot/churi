@@ -2,7 +2,7 @@ import { encodeURICharge } from './uri-charge-codec.js';
 import { URIChargeEncodable } from './uri-charge-encodable.js';
 
 /**
- * URI charge value represented as native JavaScrip object.
+ * URI charge value represented as native JavaScript value.
  *
  * May be one of:
  *
@@ -50,7 +50,7 @@ export interface UcMap<out TValue = UcPrimitive> {
  * Unrecognized URI charge entity.
  *
  * This representation is used when entity is not recognized by {@link URIChargeParser parser},
- * charge {@link URIChargeRx receiver}, or one of {@link URIChargeEx extensions}.
+ * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
  */
 export class UcEntity implements URIChargeEncodable {
 
@@ -110,7 +110,7 @@ export class UcEntity implements URIChargeEncodable {
  * Unrecognized URI charge directive.
  *
  * This representation is used when directive is not recognized by {@link URIChargeParser parser},
- * charge {@link URIChargeRx receiver}, or one of {@link URIChargeEx extensions}.
+ * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
  *
  * @typeParam TCharge - Directive argument charge representation type.
  */

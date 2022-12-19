@@ -48,11 +48,11 @@ describe('URIChargeExt', () => {
           directives: {
             ['!test'](
               _rawName: string,
-              parse: (
+              build: (
                 rx: URIChargeRx.ValueRx<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>,
               ) => UcValue<UcPrimitive | TestValue>,
             ): UcValue<UcPrimitive | TestValue> {
-              return charge.rxValue(rx => parse(new TestDirectiveRx(rx)));
+              return charge.rxValue(rx => build(new TestDirectiveRx(rx)));
             },
           },
         }),

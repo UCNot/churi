@@ -4,17 +4,39 @@ import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 import { URICharge, URIChargeItem } from './uri-charge.js';
 
+/**
+ * URI charge builder.
+ *
+ * Builds {@link URICharge generic} URI charge representation out of received charges.
+ *
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ */
 export class URIChargeBuilder<out TValue = UcPrimitive>
   implements URIChargeRx<URIChargeItem<TValue>, URICharge<TValue>> {
 
+  /**
+   * URI charge values(s) builder.
+   *
+   * Builds {@link URICharge generic} URI charge representation out of received value charge(s).
+   */
   static get ValueRx(): URIChargeBuilder.ValueRx.Constructor {
     return URIChargeBuilder$ValueRx;
   }
 
+  /**
+   * URI charge map builder.
+   *
+   * Builds {@link URICharge.Map generic} URI charge map representation out of received entry charges.
+   */
   static get MapRx(): URIChargeBuilder.MapRx.Constructor {
     return URIChargeBuilder$MapRx;
   }
 
+  /**
+   * URI charge list builder.
+   *
+   * Builds {@link URICharge.List generic} URI charge list representation out of received item charge(s).
+   */
   static get ListRx(): URIChargeBuilder.ListRx.Constructor {
     return URIChargeBuilder$ListRx;
   }
@@ -36,29 +58,29 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
   }
 
   rxValue(
-    parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
+    build: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
     base?: URICharge.Some<TValue>,
   ): URICharge<TValue> {
-    return parse(new this.ns.ValueRx(this, base));
+    return build(new this.ns.ValueRx(this, base));
   }
 
   rxMap(
-    parse: (rx: URIChargeBuilder.MapRx<TValue>) => URICharge<TValue>,
+    build: (rx: URIChargeBuilder.MapRx<TValue>) => URICharge<TValue>,
     base?: URICharge.Map<TValue>,
   ): URICharge<TValue> {
-    return parse(new this.ns.MapRx(this, base));
+    return build(new this.ns.MapRx(this, base));
   }
 
-  rxList(parse: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>): URICharge<TValue> {
-    return parse(new this.ns.ListRx(this));
+  rxList(build: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>): URICharge<TValue> {
+    return build(new this.ns.ListRx(this));
   }
 
   rxDirective(
     rawName: string,
-    parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
+    build: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
   ): URICharge<TValue> {
     return this.rxValue(rx => {
-      const value = parse(rx);
+      const value = build(rx);
 
       return new URICharge$Single(new UcDirective(rawName, value), 'directive');
     });
@@ -73,12 +95,28 @@ export namespace URIChargeBuilder {
     readonly ListRx: ListRx.Constructor;
   }
 
+  /**
+   * URI charge values(s) builder.
+   *
+   * Builds {@link URICharge.Some generic} URI charge representation out of received value charge(s).
+   *
+   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+   * @typeParam TRx - Type of top-level URI charge builder.
+   */
   export type ValueRx<
     TValue,
     TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
   > = URIChargeRx.ValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>;
 
   export namespace ValueRx {
+    /**
+     * Constructs URI charge values(s) builder.
+     *
+     * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+     * @typeParam TRx - Type of top-level URI charge builder.
+     * @param chargeRx - Top-level URI charge builder.
+     * @param base - Base charge to replace or extend.
+     */
     export type Constructor = new <
       TValue,
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
@@ -88,12 +126,28 @@ export namespace URIChargeBuilder {
     ) => ValueRx<TValue, TRx>;
   }
 
+  /**
+   * URI charge map builder.
+   *
+   * Builds {@link URICharge.Map generic} URI charge map representation out of received entry charges.
+   *
+   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+   * @typeParam TRx - Type of top-level URI charge builder.
+   */
   export interface MapRx<TValue, TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>>
     extends URIChargeRx.MapRx<URIChargeItem<TValue>, URICharge<TValue>, TRx> {
     endMap(): URICharge.Map<TValue>;
   }
 
   export namespace MapRx {
+    /**
+     * Constructs URI charge map builder.
+     *
+     * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+     * @typeParam TRx - Type of top-level URI charge builder.
+     * @param chargeRx - Top-level URI charge builder.
+     * @param base - Base charge map to replace or extend.
+     */
     export type Constructor = new <
       TValue,
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
@@ -103,12 +157,27 @@ export namespace URIChargeBuilder {
     ) => MapRx<TValue, TRx>;
   }
 
+  /**
+   * URI charge list builder.
+   *
+   * Builds {@link URICharge.List generic} URI charge list representation out of received item charge(s).
+   *
+   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+   * @typeParam TRx - Type of top-level URI charge builder.
+   */
   export interface ListRx<TValue, TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>>
     extends URIChargeRx.ValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx> {
     end(): URICharge.List<TValue>;
   }
 
   export namespace ListRx {
+    /**
+     * Constructs URI charge list builder.
+     *
+     * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+     * @typeParam TRx - Type of top-level URI charge builder.
+     * @param chargeRx - Top-level URI charge builder.
+     */
     export type Constructor = new <
       TValue,
       TRx extends URIChargeBuilder<TValue> = URIChargeBuilder<TValue>,
@@ -139,7 +208,7 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
   }
 
   override rxMap(
-    parse: (
+    build: (
       rx: URIChargeRx.MapRx<
         URIChargeItem<TValue>,
         URICharge<TValue>,
@@ -148,9 +217,9 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
     ) => URICharge<TValue>,
   ): void {
     if (this.#base?.isMap()) {
-      this.add(this.chargeRx.rxMap(parse, this.#base));
+      this.add(this.chargeRx.rxMap(build, this.#base));
     } else {
-      super.rxMap(parse);
+      super.rxMap(build);
     }
   }
 
@@ -232,9 +301,9 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
 
   override rxEntry(
     key: string,
-    parse: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
+    build: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
   ): void {
-    const map = this.chargeRx.rxValue(parse, this.#map.get(key));
+    const map = this.chargeRx.rxValue(build, this.#map.get(key));
 
     if (map.isSome()) {
       this.#map.set(key, map);

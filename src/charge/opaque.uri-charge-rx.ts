@@ -1,13 +1,37 @@
 import { UcPrimitive } from './uc-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
+/**
+ * Opaque URI charge receiver implementation.
+ *
+ * Ignores charges and always results to {@link OpaqueURIChargeRx#none none}.
+ *
+ * Can be used as a base for other implementations.
+ *
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ * @typeParam TCharge - URI charge representation type.
+ */
 export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
+  /**
+   * Opaque URI charge values(s) receiver.
+   *
+   * Ignores charges and always results to {@link OpaqueURIChargeRx#none none}.
+   *
+   * Can be used as a base for other implementations.
+   */
   static get ValueRx(): URIChargeRx.ValueRx.Constructor {
     return OpaqueURICharge$ValueRx;
   }
 
+  /**
+   * Opaque URI charge map entries receiver.
+   *
+   * Ignores charges and always results to {@link OpaqueURIChargeRx#none none}.
+   *
+   * Can be used as a base for other implementations.
+   */
   static get MapRx(): URIChargeRx.MapRx.Constructor {
     return OpaqueURICharge$MapRx;
   }
@@ -34,23 +58,23 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return this.none;
   }
 
-  rxValue(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
-    return parse(new this.ns.ValueRx(this));
+  rxValue(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
+    return build(new this.ns.ValueRx(this));
   }
 
-  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
-    return parse(new this.ns.MapRx(this));
+  rxMap(build: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): TCharge {
+    return build(new this.ns.MapRx(this));
   }
 
-  rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
-    return this.rxValue(parse);
+  rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
+    return this.rxValue(build);
   }
 
   rxDirective(
     _rawName: string,
-    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
+    build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): TCharge {
-    return this.rxValue(parse);
+    return this.rxValue(build);
   }
 
 }
@@ -80,16 +104,16 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     this.add(this.#chargeRx.createValue(value, type));
   }
 
-  rxMap(parse: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
-    this.add(this.chargeRx.rxMap(parse));
+  rxMap(build: (rx: URIChargeRx.MapRx<TValue, TCharge>) => TCharge): void {
+    this.add(this.chargeRx.rxMap(build));
   }
 
-  rxList(parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
-    this.add(this.chargeRx.rxList(parse));
+  rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
+    this.add(this.chargeRx.rxList(build));
   }
 
-  rxDirective(rawName: string, parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
-    this.add(this.#chargeRx.rxDirective(rawName, parse));
+  rxDirective(rawName: string, build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
+    this.add(this.#chargeRx.rxDirective(rawName, build));
   }
 
   end(): TCharge {
@@ -113,9 +137,9 @@ class OpaqueURICharge$MapRx<out TValue, out TCharge, out TRx extends URIChargeRx
 
   rxEntry(
     _key: string,
-    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
+    build: (rx: URIChargeRx.ValueRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
   ): void {
-    this.#chargeRx.rxValue(parse);
+    this.#chargeRx.rxValue(build);
   }
 
   addSuffix(suffix: string): void {

@@ -6,7 +6,7 @@ import { UcSearchParams } from './uc-search-params.js';
 /**
  * Charged matrix URI parameters representation.
  *
- * In contrast to {@link UcSearchParameters search parameters}, uses `";" (U+003B)` as separator.
+ * In contrast to {@link UcSearchParams search parameters}, uses `";" (U+003B)` as separator.
  *
  * @typeParam TValue - Base value type contained in URI charge.
  * @typeParam TCharge - URI charge representation type.

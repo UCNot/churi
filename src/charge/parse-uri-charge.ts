@@ -8,6 +8,15 @@ const URIChargeBuilder$instance = /*#__PURE__*/ new URIChargeBuilder<any>();
 
 let URIChargeParser$default: URIChargeParser<any, any> | undefined;
 
+/**
+ * Creates {@link URIChargeParser parser} that represents parsed URI charge in {@link URICharge generic} way.
+ *
+ * Builds charge with {@link URIChargeBuilder} by default.
+ *
+ * @param options - Parser options.
+ *
+ * @returns Parser instance.
+ */
 export function createURIChargeParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, URICharge<TValue>>>,
 ): URIChargeParser<TValue, URICharge<TValue>> {
@@ -24,6 +33,15 @@ export function createURIChargeParser<TValue>(
   return new URIChargeParser({ rx, ext }) as URIChargeParser<TValue, URICharge<TValue>>;
 }
 
+/**
+ * Parses input containing URI charge and represents it in {@link URICharge generic} way.
+ *
+ * Builds charge with {@link URIChargeBuilder} by default.
+ *
+ * @param options - Parser options.
+ *
+ * @returns Parse result containing charge representation.
+ */
 export function parseURICharge<TValue = UcPrimitive>(
   input: string,
   options?: Partial<URIChargeParser.Options<TValue, URICharge<TValue>>>,

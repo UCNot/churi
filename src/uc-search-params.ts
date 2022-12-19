@@ -14,7 +14,7 @@ import { UcSearchParams$splitter } from './impl/uc-search-params.splitter.js';
  * Allows to parse parameter values as {@link URICharge URI charge}.
  *
  * By default, expects search parameters to be in `application/x-www-form-urlencoded` format. This can be
- * {@link UcSearchParams.#splitter customized to support e.g. {@link UcMatrixParams matrix parameters}.
+ * {@link UcSearchParams.splitter customized} to support e.g. {@link UcMatrixParams matrix parameters}.
  *
  * [URLSearchParams class]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
  *
@@ -34,7 +34,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
    *
    * @param search - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
    * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
-   * @param chargeParser - Parser to use to parse parameter {@link charges chargeOf}.
+   * @param chargeParser - Parser to use to parse parameter {@link chargeOf charges}.
    */
   constructor(
     search:
@@ -75,7 +75,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   /**
-   * Parser used to parse parameter {@link charges chargeOf}.
+   * Parser used to parse parameter {@link chargeOf charges}.
    */
   get chargeParser(): URIChargeParser<TValue, TCharge> {
     return this.#chargeParser;
