@@ -6,6 +6,21 @@ import { URICharge } from './charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
 import { UcSearchParams$splitter } from './impl/uc-search-params.splitter.js';
 
+/**
+ * Charged search parameters representing a {@link ChURI#search query string} of the URI.
+ *
+ * Resembles standard [URLSearchParams class] in its read-only part.
+ *
+ * Allows to parse parameter values as {@link URICharge URI charge}.
+ *
+ * By default, expects search parameters to be in `application/x-www-form-urlencoded` format. This can be
+ * {@link UcSearchParams.#splitter customized to support e.g. {@link UcMatrixParams matrix parameters}.
+ *
+ * [URLSearchParams class]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+ *
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+ */
 export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
   implements Iterable<[string, string]> {
 
@@ -14,6 +29,13 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
   #charge?: TCharge;
 
+  /**
+   * Constructs search parameters.
+   *
+   * @param search - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
+   * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
+   * @param chargeParser - Parser to use to parse parameter {@link charges chargeOf}.
+   */
   constructor(
     search:
       | string
@@ -52,6 +74,9 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
     return UcSearchParams$splitter;
   }
 
+  /**
+   * Parser used to parse parameter {@link charges chargeOf}.
+   */
   get chargeParser(): URIChargeParser<TValue, TCharge> {
     return this.#chargeParser;
   }
@@ -106,6 +131,12 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
     return entries;
   }
 
+  /**
+   * Combined charge representing all parameters.
+   *
+   * This is a {@link URICharge#isMap charge map} with parameter names as keys and their {@link chargeOf charges} as
+   * values.
+   */
   get charge(): TCharge {
     return this.#charge !== undefined ? this.#charge : (this.#charge = this.#parseCharge());
   }
@@ -126,56 +157,134 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
     });
   }
 
+  /**
+   * Checks whether a parameter with the specified name present.
+   *
+   * @param name - Target parameter name.
+   *
+   * @returns `true` if parameter present, or `false` otherwise.
+   *
+   * @see [URLSearchParams.has()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/has).
+   */
   has(name: string): boolean {
     return this.#map.has(name);
   }
 
+  /**
+   * Obtains the first value associated to the given search parameter.
+   *
+   * @param name - Target parameter name.
+   *
+   * @returns A string if the given search parameter is found; otherwise, `null`.
+   *
+   * @see [URLSearchParams.get()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/get).
+   */
   get(name: string): string | null {
     const entry = this.#map.get(name);
 
     return entry ? entry.values[0] : null;
   }
 
+  /**
+   * Obtains all the values associated with a given search parameter as an array.
+   *
+   * @param name - Target parameter name.
+   *
+   * @returns An array of strings. Empty array if parameter absent.
+   *
+   * @see [URLSearchParams.getAll()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/getAll).
+   */
   getAll(name: string): string[] {
     const entry = this.#map.get(name);
 
     return entry ? entry.values.slice() : [];
   }
 
+  /**
+   * Parses and obtains the named parameter charge.
+   *
+   * If parameter has {@link getAll multiple values}, the returned value will be a {@link URICharge#isList charge list}.
+   *
+   * @param name - Target parameter name.
+   *
+   * @returns Parameter value parsed as URI charge, or {@link URIChargeRx#none none} if parameter absent.
+   */
   chargeOf(name: string): TCharge {
     const entry = this.#map.get(name);
 
     return entry ? entry.getCharge(this.chargeParser) : this.chargeParser.chargeRx.none;
   }
 
+  /**
+   * Iterates over all keys contained in this object. The keys are string objects.
+   *
+   * @returns An iterable iterator of parameter names in order of their appearance. Note that the same parameter name
+   * may be reported multiple times.
+   *
+   * @see [URLSearchParams.keys()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/keys).
+   */
   *keys(): IterableIterator<string> {
     for (const { key } of this.#list) {
       yield key;
     }
   }
 
+  /**
+   * Iterates over all key/value pairs contained in this object. The key and value of each pair are string objects.
+   *
+   * @returns An iterable iterator of parameter name/value pairs in order of their appearance.
+   *
+   * @see [URLSearchParams.entries()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/entries).
+   */
   *entries(): IterableIterator<[string, string]> {
     for (const { key, value } of this.#list) {
       yield [key, value];
     }
   }
 
+  /**
+   * Iterates over all values values contained in this object. The values are string objects.
+   *
+   * @returns An iterable iterator of parameter values in order of their appearance.
+   *
+   * @see [URLSearchParams.values()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/values).
+   */
   *values(): IterableIterator<string> {
     for (const { value } of this.#list) {
       yield value;
     }
   }
 
+  /**
+   * Iterates over all values contained in this object via a callback function.
+   *
+   * @param callback - Function to execute on each element. Accepts parameter name, string parameter value, and `this`
+   * instance as arguments.
+   *
+   * @see [URLSearchParams.forEach()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/forEach).
+   */
   forEach(
     callback: (value: string, key: string, parent: UcSearchParams<TValue, TCharge>) => void,
   ): void {
     this.#list.forEach(({ key, value }) => callback(value, key, this));
   }
 
+  /**
+   * Iterates over all key/value pairs contained in this object. The key and value of each pair are string objects.
+   *
+   * The same as {@link entries}.
+   *
+   * @returns An iterable iterator of parameter name/value pairs in order of their appearance.
+   */
   [Symbol.iterator](): IterableIterator<[string, string]> {
     return this.entries();
   }
 
+  /**
+   * Builds a query string.
+   *
+   * @returns The string containing parameters joined with {@link UcSearchParams.Splitter#joiner joiner} symbol.
+   */
   toString(): string {
     return this.#list.join(this.splitter.joiner);
   }

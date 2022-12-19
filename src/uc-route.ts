@@ -8,11 +8,11 @@ import { UcMatrixParams } from './uc-matrix-params.js';
 /**
  * Route representing parsed URI {@link ChURI#pathname path}.
  *
- * Route consists of fragments separated by `"/" (U+002F)` symbols. Each fragment is represented by its own
- * {@link UcRoute} instance. Other fragments of the path are available by their {@link UcRoute#get indices}.
+ * Path consists of fragments separated by `"/" (U+002F)` symbols. An {@link UcRoute} instance refers to one of such
+ * fragments. Other fragments of the path may be accessed by their {@link UcRoute#get relative indices}.
  *
- * @typeParam TValue - Base value type contained in URI charge.
- * @typeParam TCharge - URI charge representation type.
+ * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
 
@@ -25,11 +25,10 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
   #matrix?: UcMatrixParams<TValue, TCharge>;
 
   /**
-   * Constructs the first fragment of the path.
+   * Constructs a route referring the very first fragment of the `path`.
    *
    * @param path - Full URI path.
-   * @param chargeParser - URI charge parser to use to parse route fragment {@link charge} and {@link matrix}
-   * parameters.
+   * @param chargeParser - Parser to use to parse fragment's {@link charge} and {@link matrix matrix parameter} charges.
    */
   constructor(
     path: string,
@@ -112,7 +111,7 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
   }
 
   /**
-   * The URI-decoded fragment under {@link index} of the {@link fullPath full path} this instance represents.
+   * The URI-decoded fragment of the {@link fullPath full path} this instance {@link index refers}.
    *
    * May contain leading slash for the first fragment if the path starts with `/`.
    *
@@ -123,7 +122,7 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
   }
 
   /**
-   * The URI-decoded fragment name under {@link index} of the {@link fullPath full path} this instance represents.
+   * The URI-decoded name of the {@link fragment} this instance refers.
    *
    * Unlike {@link fragment}, the name does not contain fragment {@link charge} or {@link matrix} parameters. It also
    * omits slashes.
@@ -146,7 +145,7 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
   }
 
   /**
-   * Zero-based index of the path fragment this instance represents.
+   * Zero-based index of the path fragment this instance refers.
    */
   get index(): number {
     return this.#index;
@@ -160,28 +159,28 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
   }
 
   /**
-   * Route fragment charge parsed with {@link chargeParser charge parser}.
+   * Referred fragment's charge parsed with {@link chargeParser charge parser}.
    */
   get charge(): TCharge {
     return this.#getCharge();
   }
 
   /**
-   * Matrix parameters of the route fragment.
+   * Matrix parameters of the path fragment.
    */
   get matrix(): UcMatrixParams<TValue, TCharge> {
     return (this.#matrix ??= new UcMatrixParams(this.#getParts().matrix ?? '', this.chargeParser));
   }
 
   /**
-   * URI charge parser used to parse route fragment {@link charge} and {@link matrix} parameters.
+   * Parser used to parse path fragment's {@link charge} and {@link matrix matrix parameters} charge.
    */
   get chargeParser(): URIChargeParser<TValue, TCharge> {
     return this.#data.chargeParser;
   }
 
   /**
-   * Obtains the fragment of the path with the given index.
+   * Obtains the fragment of the path by relative index.
    *
    * @param index - Index of target fragment relative to {@link index current one}.
    *

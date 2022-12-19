@@ -6,11 +6,11 @@ import { UcSearchParams } from './uc-search-params.js';
  *
  * Represents [URI] conforming to [RFC3986]. Resembles standard [URL class] in its read-only part.
  *
- * Supports [Matrix URI] format, as well as positional parameters within path part.
+ * Supports [Matrix URI] format by representing {@link ChURI#pathname path} as {@link ChURI#route route}.
  *
- * Provides access to {@link URICharge URI charge}, the data in specific format attached to various parts of the URI.
+ * Allows to parse {@link URICharge URI charge} attached to various parts of the URI.
  *
- * Extra info is parsed on demand only.
+ * Parses the data on demand, so it does not affect performance when not needed.
  *
  * [Matrix URI]: https://www.w3.org/DesignIssues/MatrixURIs.html
  * [RFC3986]: https://www.rfc-editor.org/rfc/rfc3986
@@ -118,7 +118,7 @@ export class ChURI {
   /**
    * Parsed path representing route.
    *
-   * The returned {@link UcRoute} instance represents the first fragment of the path.
+   * The returned {@link UcRoute} instance refers the first fragment of the path.
    */
   get route(): UcRoute {
     return (this.#route ??= new UcRoute(this.pathname));
