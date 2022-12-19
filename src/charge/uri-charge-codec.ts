@@ -124,13 +124,10 @@ function encodeURIChargeObject(
   if (Array.isArray(value)) {
     return encodeURIChargeList(value, placement);
   }
-  if (isURIChargeMap(value)) {
-    const entries = Object.entries(value);
 
-    return encodeURIChargeMap(entries, entries.length, placement);
-  }
+  const entries = Object.entries(value);
 
-  return encodeURICharge(JSON.parse(JSON.stringify(value)));
+  return encodeURIChargeMap(entries, entries.length, placement);
 }
 
 /** @internal */
@@ -187,10 +184,6 @@ function encodeURIChargeListTail(item: unknown): string {
   }
 
   return encoded != null ? `(${encoded})` : '(--)';
-}
-
-function isURIChargeMap(value: object): value is Record<string, unknown> {
-  return !value.constructor || value.constructor === Object;
 }
 
 /** @internal */
