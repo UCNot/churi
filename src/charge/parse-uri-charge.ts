@@ -1,4 +1,4 @@
-import { PredefinedUcExt } from './ext/predefined.uc-ext.js';
+import { StandardUcExt } from './ext/standard.uc-ext.js';
 import { UcPrimitive } from './uc-value.js';
 import { URIChargeBuilder } from './uri-charge-builder.js';
 import { URIChargeParser } from './uri-charge-parser.js';
@@ -11,7 +11,7 @@ let URIChargeParser$default: URIChargeParser<any, any> | undefined;
 export function createURIChargeParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, URICharge<TValue>>>,
 ): URIChargeParser<TValue, URICharge<TValue>> {
-  const { rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>, ext = PredefinedUcExt } =
+  const { rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>, ext = StandardUcExt } =
     options ?? {};
 
   if (!options) {
