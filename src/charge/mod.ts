@@ -11,8 +11,8 @@ export {
   encodeURIChargeKey,
   encodeURIChargeList,
 } from './uri-charge-codec.js';
-export * from './uri-charge-encodable.js';
 export * from './uri-charge-ext.js';
 export * from './uri-charge-parser.js';
 export * from './uri-charge-rx.js';
 export * from './uri-charge.js';
+export * from './uri-chargeable.js';

@@ -1,7 +1,7 @@
 /**
- * An interface to implement to customize object encoding within {@link encodeURICharge URI charge}.
+ * URI-chargeable value has custom encoding within {@link encodeURICharge URI charge}.
  */
-export interface URIChargeEncodable {
+export interface URIChargeable {
   /**
    * Encodes the value placed to URI charge.
    *
@@ -11,7 +11,7 @@ export interface URIChargeEncodable {
    *
    * @returns String with encoded value, or `undefined` if the value can not be encoded.
    */
-  encodeURICharge?(placement: URIChargeEncodable.Placement): string | undefined;
+  encodeURICharge?(placement: URIChargeable.Placement): string | undefined;
 
   /**
    * Represents the value as JSON.
@@ -23,7 +23,7 @@ export interface URIChargeEncodable {
   toJSON?(): unknown;
 }
 
-export namespace URIChargeEncodable {
+export namespace URIChargeable {
   /**
    * The supposed placement of encoded value.
    */

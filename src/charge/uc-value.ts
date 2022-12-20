@@ -1,5 +1,5 @@
 import { encodeURICharge } from './uri-charge-codec.js';
-import { URIChargeEncodable } from './uri-charge-encodable.js';
+import { URIChargeable } from './uri-chargeable.js';
 
 /**
  * URI charge value represented as native JavaScript value.
@@ -52,7 +52,7 @@ export interface UcMap<out TValue = UcPrimitive> {
  * This representation is used when entity is not recognized by {@link URIChargeParser parser},
  * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
  */
-export class UcEntity implements URIChargeEncodable {
+export class UcEntity implements URIChargeable {
 
   readonly #raw: string;
 
@@ -91,7 +91,7 @@ export class UcEntity implements URIChargeEncodable {
    *
    * @returns The entity {@link raw as is}.
    */
-  encodeURICharge(_placement: URIChargeEncodable.Placement): string {
+  encodeURICharge(_placement: URIChargeable.Placement): string {
     return this.#raw;
   }
 
@@ -114,7 +114,7 @@ export class UcEntity implements URIChargeEncodable {
  *
  * @typeParam TCharge - Directive argument charge representation type.
  */
-export class UcDirective<out TCharge = UcPrimitive> implements URIChargeEncodable {
+export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
 
   readonly #rawName: string;
   readonly #arg: TCharge;
@@ -155,7 +155,7 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeEncodabl
    *
    * @returns The encoded directive.
    */
-  encodeURICharge(_placement: URIChargeEncodable.Placement): string {
+  encodeURICharge(_placement: URIChargeable.Placement): string {
     let omitParentheses = false;
     const encodedValue =
       encodeURICharge(this.#arg, {

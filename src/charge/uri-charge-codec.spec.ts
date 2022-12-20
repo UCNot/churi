@@ -2,8 +2,8 @@ import { describe, expect, it } from '@jest/globals';
 import { parseURICharge } from './parse-uri-charge.js';
 import { UcDirective, UcEntity } from './uc-value.js';
 import { encodeURICharge } from './uri-charge-codec.js';
-import { URIChargeEncodable } from './uri-charge-encodable.js';
 import { URICharge } from './uri-charge.js';
+import { URIChargeable } from './uri-chargeable.js';
 
 describe('encodeURICharge', () => {
   describe('bigint value', () => {
@@ -39,7 +39,7 @@ describe('encodeURICharge', () => {
       expect(encodeURICharge(() => 1)).toBeUndefined();
     });
     it('uses custom encoder', () => {
-      const fn: URIChargeEncodable = () => 1;
+      const fn: URIChargeable = () => 1;
 
       fn.encodeURICharge = () => '!fn';
       fn.toJSON = () => '!fn.json';
@@ -47,7 +47,7 @@ describe('encodeURICharge', () => {
       expect(encodeURICharge(fn)).toBe('!fn');
     });
     it('uses JSON encoder', () => {
-      const fn: URIChargeEncodable = () => 1;
+      const fn: URIChargeable = () => 1;
 
       fn.toJSON = () => ({ fn: true });
 
@@ -144,7 +144,7 @@ describe('encodeURICharge', () => {
       expect(encodeURICharge(['', { foo: 'bar' }])).toBe('()foo(bar)');
     });
     it('uses custom encoder', () => {
-      const obj: URIChargeEncodable = {
+      const obj: URIChargeable = {
         encodeURICharge: () => '!obj',
         toJSON: () => '!obj.json',
       };
@@ -152,7 +152,7 @@ describe('encodeURICharge', () => {
       expect(encodeURICharge(obj)).toBe('!obj');
     });
     it('uses JSON encoder', () => {
-      const obj: URIChargeEncodable = {
+      const obj: URIChargeable = {
         toJSON: () => ({
           obj: 'json',
         }),

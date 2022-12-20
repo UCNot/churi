@@ -5,12 +5,12 @@ import {
   escapeUcValue,
 } from './impl/uc-string-escapes.js';
 import { UcMap } from './uc-value.js';
-import { URIChargeEncodable } from './uri-charge-encodable.js';
+import { URIChargeable } from './uri-chargeable.js';
 
 /**
  * Encodes arbitrary value to be placed to URI charge string.
  *
- * Handles primitive values, {@link URIChargeEncodable URI charge-encodable} values, as well as arbitrary
+ * Handles primitive values, {@link URIChargeable URI charge-encodable} values, as well as arbitrary
  * {@link UcList arrays} and {@link UcMap object literals}.
  *
  * @param value - The value to encode.
@@ -20,16 +20,13 @@ import { URIChargeEncodable } from './uri-charge-encodable.js';
  */
 export function encodeURICharge(
   value: unknown,
-  placement: URIChargeEncodable.Placement = {},
+  placement: URIChargeable.Placement = {},
 ): string | undefined {
   return URI_CHARGE_ENCODERS[typeof value]?.(value, placement);
 }
 
 const URI_CHARGE_ENCODERS: {
-  readonly [type in string]: (
-    value: any,
-    placement: URIChargeEncodable.Placement,
-  ) => string | undefined;
+  readonly [type in string]: (value: any, placement: URIChargeable.Placement) => string | undefined;
 } = {
   bigint: (value: bigint) => (value < 0n ? `-0n${-value}` : `0n${value}`),
   boolean: (value: boolean) => (value ? '!' : '-'),
@@ -48,7 +45,7 @@ const URI_CHARGE_ENCODERS: {
  *
  * @returns Encoded key.
  */
-export function encodeURIChargeKey(key: string, placement?: URIChargeEncodable.Placement): string {
+export function encodeURIChargeKey(key: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(key);
 
   return placement?.as === 'top' ? escapeUcTopLevelKey(encoded) : escapeUcKey(encoded);
@@ -73,10 +70,7 @@ export function decodeURIChargeKey(encoded: string): string {
  *
  * @returns Encoded string.
  */
-export function encodeURIChargeString(
-  value: string,
-  placement?: URIChargeEncodable.Placement,
-): string {
+export function encodeURIChargeString(value: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(value);
 
   return placement?.as === 'top' ? escapeUcTopLevelValue(encoded) : escapeUcValue(encoded);
@@ -94,8 +88,8 @@ function encodeURIChargeNumber(value: number): string {
 }
 
 function encodeURIChargeFunction(
-  value: URIChargeEncodable,
-  placement: URIChargeEncodable.Placement,
+  value: URIChargeable,
+  placement: URIChargeable.Placement,
 ): string | undefined {
   if (typeof value.encodeURICharge === 'function') {
     return value.encodeURICharge(placement);
@@ -108,8 +102,8 @@ function encodeURIChargeFunction(
 }
 
 function encodeURIChargeObject(
-  value: URIChargeEncodable,
-  placement: URIChargeEncodable.Placement,
+  value: URIChargeable,
+  placement: URIChargeable.Placement,
 ): string | undefined {
   if (!value) {
     // null
@@ -131,10 +125,7 @@ function encodeURIChargeObject(
 }
 
 /** @internal */
-export function encodeURIChargeList(
-  list: unknown[],
-  placement: URIChargeEncodable.Placement,
-): string {
+export function encodeURIChargeList(list: unknown[], placement: URIChargeable.Placement): string {
   if (list.length < 2) {
     if (!list.length) {
       return '!!';
@@ -190,19 +181,19 @@ function encodeURIChargeListTail(item: unknown): string {
 export function encodeURIChargeMap(
   entries: Iterable<[string, unknown]>,
   numEntries: number,
-  placement: URIChargeEncodable.Placement,
+  placement: URIChargeable.Placement,
 ): string {
   const isTail = placement.as === 'tail';
   const lastIndex = numEntries - 1;
 
   let omitParentheses: boolean;
-  const entryPlacement: URIChargeEncodable.Entry = {
+  const entryPlacement: URIChargeable.Entry = {
     as: 'entry',
     omitParentheses() {
       omitParentheses = true;
     },
   };
-  let keyPlacement: URIChargeEncodable.Placement | undefined = placement;
+  let keyPlacement: URIChargeable.Placement | undefined = placement;
   const encoded: string[] = [];
   let index = 0;
 
