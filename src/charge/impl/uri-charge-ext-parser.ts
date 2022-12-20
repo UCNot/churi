@@ -57,16 +57,16 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
   rxDirective(
     rx: URIChargeRx.ValueRx<TValue, TCharge>,
     rawName: string,
-    parse: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
+    build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
   ): void {
     this.#init();
 
     const directive = this.#directives!.get(rawName);
 
     if (directive) {
-      rx.add(directive(rawName, parse));
+      rx.add(directive(rawName, build));
     } else {
-      rx.rxDirective(rawName, parse);
+      rx.rxDirective(rawName, build);
     }
   }
 

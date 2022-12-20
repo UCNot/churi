@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "description": "Charged URI",
   "keywords": [
+    "charged-uri",
     "matrix-uri",
     "matrix-url",
     "rfc3986",
     "uri",
+    "uri-charge",
     "url"
   ],
   "homepage": "https://github.com/hatsyjs/churi",

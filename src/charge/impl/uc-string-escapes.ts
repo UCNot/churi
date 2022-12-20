@@ -44,10 +44,6 @@ export function escapeUcTopLevelValue(encoded: string): string {
   return encoded && escapeUcTopLevel(encoded, UC_VALUE_ESCAPE_MAP);
 }
 
-export function escapeUcTopLevelKey(encoded: string): string {
-  return encoded ? escapeUcTopLevel(encoded, UC_KEY_ESCAPE_MAP) : "'";
-}
-
 function escapeUcString(encoded: string, escapeMap: UcValueEscapeMap): string {
   return escapeUcSpecials(escapeMap[encoded[0]] ? `'${encoded}` : encoded);
 }
