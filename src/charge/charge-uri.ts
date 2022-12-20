@@ -20,6 +20,33 @@ export function chargeURI(
   return URI_CHARGE_ENCODERS[typeof value]?.(value, placement);
 }
 
+/**
+ * Encodes arbitrary value to be placed to URI charge string as argument(s). E.g. appended to {@link UcRoute#charge
+ * path fragment}.
+ *
+ * @param value - The value to encode.
+ * @param placement - The supposed placement of encoded value. {@link URIChargeable.Top Top-level by default}.
+ *
+ * @returns Either encoded value, or `undefined` if the value can not be encoded.
+ *
+ * @see {@link chargeURI}.
+ */
+export function chargeURIArgs(value: unknown): string | undefined {
+  let omitParentheses = false;
+  const encoded = chargeURI(value, {
+    as: 'arg',
+    omitParentheses() {
+      omitParentheses = true;
+    },
+  });
+
+  if (encoded === undefined) {
+    return;
+  }
+
+  return omitParentheses ? encoded : `(${encoded})`;
+}
+
 const TOP_CHARGE_PLACEMENT: URIChargeable.Top = { as: 'top' };
 const ANY_CHARGE_PLACEMENT: URIChargeable.Any = {};
 

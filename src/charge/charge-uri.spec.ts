@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { chargeURI } from './charge-uri.js';
+import { chargeURI, chargeURIArgs } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { UcDirective, UcEntity } from './uc-value.js';
 import { URICharge } from './uri-charge.js';
@@ -315,5 +315,38 @@ describe('chargeURI', () => {
       expect(String(URICharge.none)).toBe('!None');
       expect(chargeURI(URICharge.none)).toBeUndefined();
     });
+  });
+});
+
+describe('chargeURIArgs', () => {
+  it('encloses single value into parentheses', () => {
+    expect(chargeURIArgs('test')).toBe('(test)');
+  });
+  it('encloses `null` into parentheses', () => {
+    expect(chargeURIArgs(null)).toBe('(--)');
+  });
+  it('encloses empty map into parentheses', () => {
+    expect(chargeURIArgs({})).toBe('(!())');
+  });
+  it('encloses non-empty map into parentheses', () => {
+    expect(chargeURIArgs({ foo: 'bar' })).toBe('(foo(bar))');
+  });
+  it('appends suffix', () => {
+    expect(chargeURIArgs({ foo: 'bar', suffix: '' })).toBe('(foo(bar)suffix)');
+  });
+  it('does not append the only suffix', () => {
+    expect(chargeURIArgs({ suffix: '' })).toBe('(suffix())');
+  });
+  it('encloses empty list into parentheses', () => {
+    expect(chargeURIArgs([])).toBe('(!!)');
+  });
+  it('encloses list with one element into parentheses', () => {
+    expect(chargeURIArgs([1])).toBe('((1))');
+  });
+  it('does not enclose list with two elements into parentheses', () => {
+    expect(chargeURIArgs([1, 2])).toBe('(1)(2)');
+  });
+  it('does not encode unsupported values', () => {
+    expect(chargeURIArgs(Symbol('unsupported'))).toBeUndefined();
   });
 });
