@@ -9,16 +9,19 @@ import { URIChargeable } from './uri-chargeable.js';
  * {@link UcList arrays} and {@link UcMap object literals}.
  *
  * @param value - The value to encode.
- * @param placement - The supposed placement of encoded value.
+ * @param placement - The supposed placement of encoded value. {@link URIChargeable.Top Top-level by default}.
  *
  * @returns Either encoded value, or `undefined` if the value can not be encoded.
  */
 export function chargeURI(
   value: unknown,
-  placement: URIChargeable.Placement = {},
+  placement: URIChargeable.Placement = TOP_CHARGE_PLACEMENT,
 ): string | undefined {
   return URI_CHARGE_ENCODERS[typeof value]?.(value, placement);
 }
+
+const TOP_CHARGE_PLACEMENT: URIChargeable.Top = { as: 'top' };
+const ANY_CHARGE_PLACEMENT: URIChargeable.Any = {};
 
 const URI_CHARGE_ENCODERS: {
   readonly [type in string]: (value: any, placement: URIChargeable.Placement) => string | undefined;
@@ -59,14 +62,16 @@ export function unchargeURIKey(encoded: string): string {
  * Encodes URI charge string value.
  *
  * @param key - Entry key to encode.
- * @param placement - The supposed placement of encoded string.
+ * @param placement - The supposed placement of encoded string. {@link URIChargeable.Top Top-level by default}.
  *
  * @returns Encoded string.
  */
 export function chargeURIString(value: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(value);
 
-  return placement?.as === 'top' ? escapeUcTopLevelValue(encoded) : escapeUcValue(encoded);
+  return !placement || placement.as === 'top'
+    ? escapeUcTopLevelValue(encoded)
+    : escapeUcValue(encoded);
 }
 
 function chargeURINumber(value: number): string {
@@ -88,7 +93,7 @@ function chargeURIFunction(
     return value.chargeURI(placement);
   }
   if (typeof value.toJSON === 'function') {
-    return chargeURI(value.toJSON());
+    return chargeURI(value.toJSON(), placement);
   }
 
   return;
@@ -106,7 +111,7 @@ function chargeURIObject(
     return value.chargeURI(placement);
   }
   if (typeof value.toJSON === 'function') {
-    return chargeURI(value.toJSON());
+    return chargeURI(value.toJSON(), placement);
   }
   if (Array.isArray(value)) {
     return chargeURIArray(value, placement);
@@ -149,7 +154,7 @@ export function chargeURIArray(list: unknown[], placement: URIChargeable.Placeme
 }
 
 function chargeURIArrayItem(item: unknown): string {
-  const encoded = chargeURI(item);
+  const encoded = chargeURI(item, ANY_CHARGE_PLACEMENT);
 
   return encoded != null ? `(${encoded})` : '(--)';
 }

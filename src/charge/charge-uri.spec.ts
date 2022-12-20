@@ -77,19 +77,19 @@ describe('chargeURI', () => {
 
   describe('string value', () => {
     it('encoded as top-level value', () => {
-      expect(chargeURI('Hello, (World)!')).toBe('Hello%2C%20%28World%29!');
-      expect(chargeURI('-test')).toBe("'-test");
-      expect(chargeURI('-test', { as: 'top' })).toBe('%2Dtest');
+      expect(chargeURI('Hello, (World)!', {})).toBe('Hello%2C%20%28World%29!');
+      expect(chargeURI('-test', {})).toBe("'-test");
+      expect(chargeURI('-test')).toBe('%2Dtest');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29!)');
+      expect(chargeURI({ foo: 'Hello, (World)!' }, {})).toBe('foo(Hello%2C%20%28World%29!)');
+      expect(chargeURI({ foo: '-test' }, {})).toBe("foo('-test)");
       expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
-      expect(chargeURI({ foo: '-test' }, { as: 'top' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(chargeURI(['Hello, (World)!'])).toBe('(Hello%2C%20%28World%29!)');
+      expect(chargeURI(['Hello, (World)!'], {})).toBe('(Hello%2C%20%28World%29!)');
+      expect(chargeURI(['-test'], {})).toBe("('-test)");
       expect(chargeURI(['-test'])).toBe("('-test)");
-      expect(chargeURI(['-test'], { as: 'top' })).toBe("('-test)");
     });
   });
 
@@ -204,10 +204,10 @@ describe('chargeURI', () => {
 
   describe('empty object entry key', () => {
     it('escaped at top level', () => {
-      expect(chargeURI({ '': 1 }, { as: 'top' })).toBe("'(1)");
+      expect(chargeURI({ '': 1 })).toBe("'(1)");
     });
     it('escaped when nested', () => {
-      expect(chargeURI([{ '': 1 }], { as: 'top' })).toBe("('(1))");
+      expect(chargeURI([{ '': 1 }])).toBe("('(1))");
     });
   });
 
