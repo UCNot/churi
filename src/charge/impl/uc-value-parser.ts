@@ -1,4 +1,4 @@
-import { decodeURIChargeKey } from '../uri-charge-codec.js';
+import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { decodeUcDirectiveArg, decodeUcValue, UcValueDecoder } from './uc-value-decoder.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
@@ -73,7 +73,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
   // Start nested map and parse first entry.
   const firstValueOffset = rawKey.length + 1;
   const firstValueInput = input.slice(firstValueOffset);
-  const firstKey = decodeURIChargeKey(rawKey);
+  const firstKey = unchargeURIKey(rawKey);
   let end!: number;
 
   rx.rxMap(mapRx => {
@@ -156,12 +156,12 @@ function parseUcMapEntries<TValue>(
     const keyEnd = input.search(PARENT_PATTERN);
 
     if (keyEnd < 0) {
-      mapRx.addSuffix(decodeURIChargeKey(input));
+      mapRx.addSuffix(unchargeURIKey(input));
 
       return offset + input.length;
     }
 
-    const key = decodeURIChargeKey(input.slice(0, keyEnd));
+    const key = unchargeURIKey(input.slice(0, keyEnd));
 
     if (input[keyEnd] === ')') {
       if (keyEnd) {
@@ -271,7 +271,7 @@ function parseUcListOrDirectiveItems<TValue>(
       // Suffix treated as trailing item containing map with suffix.
       // Thus, `(value)suffix` is the same as `(value)(suffix())`.
       rx.rxMap(suffixRx => {
-        suffixRx.addSuffix(decodeURIChargeKey(input));
+        suffixRx.addSuffix(unchargeURIKey(input));
 
         return suffixRx.endMap();
       });

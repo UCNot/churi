@@ -1,4 +1,4 @@
-import { encodeURICharge } from './uri-charge-codec.js';
+import { chargeURI } from './charge-uri.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**
@@ -91,17 +91,17 @@ export class UcEntity implements URIChargeable {
    *
    * @returns The entity {@link raw as is}.
    */
-  encodeURICharge(_placement: URIChargeable.Placement): string {
+  chargeURI(_placement: URIChargeable.Placement): string {
     return this.#raw;
   }
 
   /**
    * String representation of the entity.
    *
-   * @returns The {@link encodeURICharge encoded} entity.
+   * @returns The {@link chargeURI encoded} entity.
    */
   toString(): string {
-    return this.encodeURICharge({});
+    return this.chargeURI({});
   }
 
 }
@@ -155,10 +155,10 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
    *
    * @returns The encoded directive.
    */
-  encodeURICharge(_placement: URIChargeable.Placement): string {
+  chargeURI(_placement: URIChargeable.Placement): string {
     let omitParentheses = false;
     const encodedValue =
-      encodeURICharge(this.#arg, {
+      chargeURI(this.#arg, {
         as: 'arg',
         omitParentheses() {
           omitParentheses = true;
@@ -173,10 +173,10 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
   /**
    * String representation of the directive.
    *
-   * @returns The {@link encodeURICharge encoded} directive.
+   * @returns The {@link chargeURI encoded} directive.
    */
   toString(): string {
-    return this.encodeURICharge({});
+    return this.chargeURI({});
   }
 
 }

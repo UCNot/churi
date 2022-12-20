@@ -1,5 +1,5 @@
 /**
- * URI-chargeable value has custom encoding within {@link encodeURICharge URI charge}.
+ * URI-chargeable value has custom encoding within {@link chargeURI URI charge}.
  */
 export interface URIChargeable {
   /**
@@ -11,12 +11,12 @@ export interface URIChargeable {
    *
    * @returns String with encoded value, or `undefined` if the value can not be encoded.
    */
-  encodeURICharge?(placement: URIChargeable.Placement): string | undefined;
+  chargeURI?(placement: URIChargeable.Placement): string | undefined;
 
   /**
    * Represents the value as JSON.
    *
-   * This method is called if {@link encodeURICharge} is absent. The result is encoded then.
+   * This method is called if {@link chargeURI} is absent. The result is encoded then.
    *
    * @returns The value to encode instead.
    */
@@ -44,7 +44,7 @@ export namespace URIChargeable {
    * At the top level, such string is escaped by percent-encoding the first symbol. This preserves string value for
    * users unaware of URI charge format.
    *
-   * This hint may affect string values and entry keys starting with symbols meaningful to URI charge.
+   * This hint makes sense only for string values.
    */
   export interface Top {
     readonly as: 'top';
@@ -73,7 +73,7 @@ export namespace URIChargeable {
   }
 
   /**
-   * The encoded value supposed to be placed as the last item of some list.
+   * The encoded value supposed to be placed as the last item of a list or last directive argument.
    *
    * This may affect a trailing item of the list containing a map. The enclosing parentheses may be omitted in this
    * case. So, the

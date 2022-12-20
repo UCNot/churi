@@ -148,7 +148,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns String with encoded value, or `undefined` for {@link URICharge.none absent charge}.
    */
-  abstract encodeURICharge(placement: URIChargeable.Placement): string | undefined;
+  abstract chargeURI(placement: URIChargeable.Placement): string | undefined;
 
 }
 
@@ -225,7 +225,7 @@ export namespace URICharge {
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
 
-    encodeURICharge(_placement: URIChargeable.Placement): undefined;
+    chargeURI(_placement: URIChargeable.Placement): undefined;
   }
 
   /**
@@ -237,7 +237,7 @@ export namespace URICharge {
     isNone(): false;
     isSome(): true;
 
-    encodeURICharge(placement: URIChargeable.Placement): string;
+    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -269,7 +269,7 @@ export namespace URICharge {
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
 
-    encodeURICharge(placement: URIChargeable.Placement): string;
+    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -287,7 +287,7 @@ export namespace URICharge {
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
 
-    encodeURICharge(placement: URIChargeable.Placement): string;
+    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -313,7 +313,7 @@ export namespace URICharge {
     at(index: number): this | None;
     list(): IterableIterator<this>;
 
-    encodeURICharge(placement: URIChargeable.Placement): string;
+    chargeURI(placement: URIChargeable.Placement): string;
   }
 }
 
@@ -375,7 +375,7 @@ class URICharge$None extends URICharge<undefined> implements URICharge.None {
     // Not a map.
   }
 
-  override encodeURICharge(_placement: URIChargeable.Placement): undefined {
+  override chargeURI(_placement: URIChargeable.Placement): undefined {
     return;
   }
 
