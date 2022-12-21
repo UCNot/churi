@@ -4,6 +4,7 @@ export {
   chargeURIKey as encodeURIChargeKey,
   unchargeURIKey as decodeURIChargeKey,
 } from './charge-uri.js';
+export * from './churi.tag.js';
 export * from './ext/mod.js';
 export * from './opaque.uri-charge-rx.js';
 export * from './parse-uc-value.js';
