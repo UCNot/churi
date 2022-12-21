@@ -33,7 +33,7 @@ const UC_KEY_ESCAPE_MAP: UcValueEscapeMap = {
 } satisfies { readonly [prefix in UcKeyEscaped]: string };
 
 export function escapeUcValue(encoded: string): string {
-  return encoded && escapeUcString(encoded, UC_VALUE_ESCAPE_MAP);
+  return escapeUcString(encoded, UC_VALUE_ESCAPE_MAP);
 }
 
 export function escapeUcKey(encoded: string): string {
@@ -41,7 +41,7 @@ export function escapeUcKey(encoded: string): string {
 }
 
 export function escapeUcTopLevelValue(encoded: string): string {
-  return encoded && escapeUcTopLevel(encoded, UC_VALUE_ESCAPE_MAP);
+  return escapeUcTopLevel(encoded, UC_VALUE_ESCAPE_MAP);
 }
 
 function escapeUcString(encoded: string, escapeMap: UcValueEscapeMap): string {
@@ -56,6 +56,6 @@ function escapeUcTopLevel(encoded: string, escapeMap: UcValueEscapeMap): string 
 
 const UC_SPECIALS_PATTERN = /*#__PURE__*/ /[()]/g;
 
-function escapeUcSpecials(encoded: string): string {
+export function escapeUcSpecials(encoded: string): string {
   return encoded.replace(UC_SPECIALS_PATTERN, special => UC_VALUE_ESCAPE_MAP[special]);
 }

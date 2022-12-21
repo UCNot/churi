@@ -1,4 +1,14 @@
-import { escapeUcKey, escapeUcTopLevelValue, escapeUcValue } from './impl/uc-string-escapes.js';
+import {
+  escapeUcKey,
+  escapeUcSpecials,
+  escapeUcTopLevelValue,
+  escapeUcValue,
+} from './impl/uc-string-escapes.js';
+import {
+  ANY_CHARGE_PLACEMENT,
+  OPAQUE_CHARGE_PLACEMENT,
+  TOP_CHARGE_PLACEMENT,
+} from './impl/uri-chargeable.placement.js';
 import { UcMap } from './uc-value.js';
 import { URIChargeable } from './uri-chargeable.js';
 
@@ -25,16 +35,17 @@ export function chargeURI(
  * path fragment}.
  *
  * @param value - The value to encode.
- * @param placement - The supposed placement of encoded value. {@link URIChargeable.Top Top-level by default}.
+ * @param opaque - Whether a charge expected to be {@link URIChargeable.Arg#opaque opaque}.
  *
  * @returns Either encoded value, or `undefined` if the value can not be encoded.
  *
  * @see {@link chargeURI}.
  */
-export function chargeURIArgs(value: unknown): string | undefined {
+export function chargeURIArgs(value: unknown, opaque?: boolean): string | undefined {
   let omitParentheses = false;
   const encoded = chargeURI(value, {
     as: 'arg',
+    opaque,
     omitParentheses() {
       omitParentheses = true;
     },
@@ -46,9 +57,6 @@ export function chargeURIArgs(value: unknown): string | undefined {
 
   return omitParentheses ? encoded : `(${encoded})`;
 }
-
-const TOP_CHARGE_PLACEMENT: URIChargeable.Top = { as: 'top' };
-const ANY_CHARGE_PLACEMENT: URIChargeable.Any = {};
 
 const URI_CHARGE_ENCODERS: {
   readonly [type in string]: (value: any, placement: URIChargeable.Placement) => string | undefined;
@@ -96,9 +104,14 @@ export function unchargeURIKey(encoded: string): string {
 export function chargeURIString(value: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(value);
 
-  return !placement || placement.as === 'top'
-    ? escapeUcTopLevelValue(encoded)
-    : escapeUcValue(encoded);
+  return (
+    encoded
+    && (!placement || placement.as === 'top'
+      ? escapeUcTopLevelValue(encoded)
+      : placement.opaque
+      ? escapeUcSpecials(encoded)
+      : escapeUcValue(encoded))
+  );
 }
 
 function chargeURINumber(value: number): string {
@@ -150,46 +163,54 @@ function chargeURIObject(
 }
 
 /** @internal */
-export function chargeURIArray(list: unknown[], placement: URIChargeable.Placement): string {
+export function chargeURIArray(
+  list: unknown[],
+  { as, omitParentheses, opaque }: URIChargeable.Placement,
+): string {
   if (list.length < 2) {
     if (!list.length) {
       return '!!';
     }
 
-    return chargeURIArrayItem(list[0]);
+    return chargeURIArrayItem(list[0], ANY_CHARGE_PLACEMENT);
   }
 
   let tailIndex: number;
+  let itemPlacement: URIChargeable.Any = ANY_CHARGE_PLACEMENT;
 
-  if (placement.as === 'entry') {
+  if (as === 'entry') {
     tailIndex = -1;
-    placement.omitParentheses();
-  } else if (placement.as === 'arg') {
+    omitParentheses();
+  } else if (as === 'arg') {
     tailIndex = list.length - 1;
-    placement.omitParentheses();
+    if (opaque) {
+      itemPlacement = OPAQUE_CHARGE_PLACEMENT;
+    }
+    omitParentheses();
   } else {
     tailIndex = list.length - 1;
   }
 
-  return list.reduce((prev: string, item: unknown, index: number) => {
-    if (index === tailIndex) {
-      return prev + chargeURIArrayTail(item);
-    }
-
-    return prev + chargeURIArrayItem(item);
-  }, '');
+  return list.reduce(
+    (prev: string, item: unknown, index: number) => prev
+      + (index === tailIndex
+        ? chargeURIArrayTail(item, itemPlacement.opaque)
+        : chargeURIArrayItem(item, itemPlacement)),
+    '',
+  );
 }
 
-function chargeURIArrayItem(item: unknown): string {
-  const encoded = chargeURI(item, ANY_CHARGE_PLACEMENT);
+function chargeURIArrayItem(item: unknown, placement: URIChargeable.Any): string {
+  const encoded = chargeURI(item, placement);
 
   return encoded != null ? `(${encoded})` : '(--)';
 }
 
-function chargeURIArrayTail(item: unknown): string {
+function chargeURIArrayTail(item: unknown, opaque?: boolean): string {
   let omitParentheses = false;
   const encoded = chargeURI(item, {
     as: 'tail',
+    opaque,
     omitParentheses: () => {
       omitParentheses = true;
     },
@@ -214,6 +235,7 @@ export function chargeURIMap(
   let omitParentheses: boolean;
   const entryPlacement: URIChargeable.Entry = {
     as: 'entry',
+    opaque: undefined,
     omitParentheses() {
       omitParentheses = true;
     },

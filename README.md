@@ -125,10 +125,35 @@ console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range')
 
 ## Charging
 
-The `ChURI` class is read-only. It disallows URI manipulations. Instead, a Charged URI string can be built with
-`chargeURI()` and `chargeURIArgs()` functions.
+The `ChURI` class is read-only. It disallows URI manipulations.
+
+To build Charge URI a tagged template can be used.
 
 The following code snipped can be used to reconstruct the URL from example above:
+
+```typescript
+import { churi } from '@hatsy/churi';
+
+console.debug(churi`
+  https://example.com
+    /api(!v(${'3.0'}))
+    /user;id=${302875106592253n}
+    /article;slug=${'hello-world'}
+    /comments
+    ?date=since(
+      !date${'1970-01-01'}
+    )till(
+      !now
+    )
+    &range=from(
+      ${10}
+    )to(
+      ${20}
+    )
+`);
+```
+
+Instead, a Charged URI string can be built with `chargeURI()` and `chargeURIArgs()` functions.
 
 ```typescript
 import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';

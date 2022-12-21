@@ -30,10 +30,46 @@ export namespace URIChargeable {
   export type Placement = Any | Top | Entry | Tail | Arg;
 
   /**
+   * Unknown placement of encoded value.
+   */
+  export interface Unknown {
+    /**
+     * Placement role.
+     */
+    readonly as?: string;
+
+    /**
+     * Whether a charge expected to be opaque.
+     *
+     * Directive arguments are opaque, i.e. it is up to directive how to treat them. Thus, proper string escaping is not
+     * needed.
+     *
+     * Makes sense only for string arguments.
+     */
+    readonly opaque?: boolean | undefined;
+
+    /**
+     * Informs the enclosing encoder that it may omit parentheses around encoded charge.
+     */
+    readonly omitParentheses?: ((this: void) => void) | undefined;
+  }
+
+  /**
    * The encoded value may be used placed as any part of URI charge.
    */
-  export interface Any {
+  export interface Any extends Unknown {
     readonly as?: undefined;
+
+    /**
+     * Whether a charge expected to be opaque.
+     *
+     * Directive arguments are opaque, i.e. it is up to directive how to treat them. Thus, proper string escaping is not
+     * needed.
+     *
+     * Makes sense only for string arguments.
+     */
+    readonly opaque?: boolean | undefined;
+
     readonly omitParentheses?: undefined;
   }
 
@@ -46,8 +82,11 @@ export namespace URIChargeable {
    *
    * This hint makes sense only for string values.
    */
-  export interface Top {
+  export interface Top extends Unknown {
     readonly as: 'top';
+
+    readonly opaque?: undefined;
+
     readonly omitParentheses?: undefined;
   }
 
@@ -63,11 +102,13 @@ export namespace URIChargeable {
    * foo(item1)(item2)
    * ```
    */
-  export interface Entry {
+  export interface Entry extends Unknown {
     readonly as: 'entry';
 
+    readonly opaque?: undefined;
+
     /**
-     * Informs the enclosing object encoder that it may omit parentheses around encoded entry value.
+     * Informs the enclosing map encoder that it may omit parentheses around encoded entry value.
      */
     readonly omitParentheses: (this: void) => void;
   }
@@ -85,7 +126,7 @@ export namespace URIChargeable {
    * (item1)(item2)foo(bar)
    * ```
    */
-  export interface Tail {
+  export interface Tail extends Unknown {
     readonly as: 'tail';
 
     /**
@@ -106,7 +147,7 @@ export namespace URIChargeable {
    !foo(arg1)(arg2)arg3(value)suffix
    * ```
    */
-  export interface Arg {
+  export interface Arg extends Unknown {
     readonly as: 'arg';
 
     /**
