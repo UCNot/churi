@@ -1,9 +1,4 @@
-export {
-  chargeURI as encodeURICharge,
-  chargeURIArray as encodeURIChargeList,
-  chargeURIKey as encodeURIChargeKey,
-  unchargeURIKey as decodeURIChargeKey,
-} from './charge-uri.js';
+export { chargeURI, chargeURIArgs, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 export * from './churi.tag.js';
 export * from './ext/mod.js';
 export * from './opaque.uri-charge-rx.js';
