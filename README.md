@@ -78,16 +78,14 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
 
 ## Usage
 
-### `ChURI`
-
-This library provides a `ChURI` class that can be used to parse. It resembles standard [URL class], except it is
-read-only. It also provides access to:
+This library represents Charged URI by `ChURI` class. The latter resembles standard [URL class], except it is read-only.
+It also provides access to:
 
 - query parameter charges,
-- path fragment charges,
+- path fragments and their charges,
 - matrix parameters and their charges.
 
-Everything is built on demand. So, the performance is not affected if some of the above is not needed.
+Everything is built on demand. Nothing is parsed until requested.
 
 Given the example above:
 
@@ -125,10 +123,10 @@ console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range')
 
 [url class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 
-### Encoding
+## Charging
 
-The `ChURI` class is read-only and does not allow URI manipulations. Instead, an URI string can be built with
-`chargeURI()` and `chargeURIArgs()` encoder functions.
+The `ChURI` class is read-only. It disallows URI manipulations. Instead, a Charged URI string can be built with
+`chargeURI()` and `chargeURIArgs()` functions.
 
 The following code snipped can be used to reconstruct the URL from example above:
 
@@ -154,9 +152,9 @@ console.debug(
 
 The `UcEntity` above used to avoid escaping and percent-encoding and should be used with care.
 
-Charge encoding can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not
-implemented, a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be used similar
-to JSON serialization.
+Charging can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not implemented,
+a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON
+serialization.
 
 ## URI Charge Processing
 
