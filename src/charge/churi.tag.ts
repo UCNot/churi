@@ -10,7 +10,7 @@ import { URIChargeable } from './uri-chargeable.js';
  * Tagged template for Charged URI string.
  *
  * - Removes leading and trailing whitespace.
- * - Removes whitespace preceding and following charges.
+ * - Removes whitespace around charges.
  * - Removes spaces around new lines within template strings.
  * - _Does not_ alter template strings otherwise. It is up to the user to URI-encode them.
  * - Applies {@link chargeURI} or {@link chargeURIArgs} to substituted values depending on placement.

@@ -145,11 +145,10 @@ console.debug(churi`
     )till(
       !now
     )
-    &range=from(
-      ${10}
-    )to(
-      ${20}
-    )
+    &range=${{
+      from: 10,
+      to: 20,
+    }}
 `);
 ```
 
