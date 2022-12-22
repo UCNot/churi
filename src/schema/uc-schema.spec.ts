@@ -1,75 +1,79 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 
 describe('UcSchema', () => {
   describe('optional', () => {
     it('is `false` by default', () => {
-      const schema: UcSchema.Mandatory<string> = new UcSchema({
-        library: 'test',
-        type: 'test',
-      });
+      const schema = new TestUcSchema();
 
       expect(schema.optional).toBe(false);
-    });
-    it('is `true` when overridden', () => {
-      const schema: UcSchema.Optional<string> = new UcSchema({
-        optional: true,
-        library: 'test',
-        type: 'test',
-      });
-
-      expect(schema.optional).toBe(true);
     });
   });
 
   describe('nullable', () => {
     it('is `false` by default', () => {
-      const schema: UcSchema.Mandatory<string> = new UcSchema({
-        library: 'test',
-        type: 'test',
-      });
+      const schema = new TestUcSchema();
 
       expect(schema.nullable).toBe(false);
     });
-    it('is `true` when overridden', () => {
-      const schema: UcSchema.Nullable<string> = new UcSchema({
-        nullable: true,
-        library: 'test',
-        type: 'test',
-      });
+  });
 
-      expect(schema.nullable).toBe(true);
+  describe('mandatory', () => {
+    it('is `true` by default', () => {
+      const schema = new TestUcSchema();
+
+      expect(schema.mandatory).toBe(true);
     });
   });
 
   describe('flags', () => {
-    it('is zero by default', () => {
-      expect(new UcSchema({ library: 'test', type: 'test' }).flags).toBe(0);
-    });
-    it('accepts custom value', () => {
-      expect(new UcSchema({ library: 'test', type: 'test', flags: UC_DATA_ENCODED }).flags).toBe(
-        UC_DATA_ENCODED,
-      );
+    it('zero by default', () => {
+      expect(new TestUcSchema().flags).toBe(0);
     });
   });
 
-  describe('type', () => {
-    it('accepts custom value', () => {
-      const schema: UcSchema.Mandatory<string> = new UcSchema({
-        library: 'test-library',
-        type: 'test-type',
-      });
+  describe('makeMandatory', () => {
+    let base: UcSchema<string>;
 
-      expect(schema.library).toBe('test-library');
-      expect(schema.type).toBe('test-type');
+    beforeAll(() => {
+      base = new TestUcSchema();
+    });
+
+    it('does not alter mandatory schema', () => {
+      const schema: UcSchema.Mandatory<string> = base.makeMandatory();
+
+      expect(schema).toBe(base);
+      expect(schema.mandatory).toBe(true);
+    });
+    it('makes optional schema non-optional', () => {
+      const optional: UcSchema.Optional<string> = base.makeOptional();
+      const schema: UcSchema.Mandatory<string> = optional.makeMandatory();
+
+      expect(schema).not.toBe(optional);
+      expect(schema.mandatory).toBe(true);
+      expect(schema.optional).toBe(false);
+    });
+    it('makes nullable schema non-nullable', () => {
+      const optional: UcSchema.Nullable<string> = base.makeNullable();
+      const schema: UcSchema.Mandatory<string> = optional.makeMandatory();
+
+      expect(schema).not.toBe(optional);
+      expect(schema.mandatory).toBe(true);
+      expect(schema.nullable).toBe(false);
+    });
+    it('does not alter schema', () => {
+      const schema: UcSchema.NonOptional<string> = base.makeOptional(false);
+
+      expect(schema).toBe(base);
+      expect(schema.optional).toBe(false);
     });
   });
 
   describe('makeOptional', () => {
-    let base: UcSchema.Mandatory<string>;
+    let base: UcSchema<string>;
 
     beforeAll(() => {
-      base = new UcSchema({ library: 'test', type: 'test' });
+      base = new TestUcSchema();
     });
 
     it('makes schema optional', () => {
@@ -79,13 +83,13 @@ describe('UcSchema', () => {
       expect(schema.optional).toBe(true);
     });
     it('makes optional schema non-optional', () => {
-      const schema: UcSchema.Mandatory<string> = base.makeOptional().makeOptional(false);
+      const schema: UcSchema.NonOptional<string> = base.makeOptional().makeOptional(false);
 
       expect(schema).not.toBe(base);
       expect(schema.optional).toBe(false);
     });
     it('does not alter schema', () => {
-      const schema: UcSchema.Mandatory<string> = base.makeOptional(false);
+      const schema: UcSchema.NonOptional<string> = base.makeOptional(false);
 
       expect(schema).toBe(base);
       expect(schema.optional).toBe(false);
@@ -93,10 +97,10 @@ describe('UcSchema', () => {
   });
 
   describe('makeNullable', () => {
-    let base: UcSchema.Mandatory<string>;
+    let base: UcSchema<string>;
 
     beforeAll(() => {
-      base = new UcSchema({ library: 'test', type: 'test' });
+      base = new TestUcSchema();
     });
 
     it('makes schema nullable', () => {
@@ -106,16 +110,28 @@ describe('UcSchema', () => {
       expect(schema.nullable).toBe(true);
     });
     it('makes nullable schema non-nullable', () => {
-      const schema: UcSchema.Mandatory<string> = base.makeNullable().makeNullable(false);
+      const schema: UcSchema.NonNullable<string> = base.makeNullable().makeNullable(false);
 
       expect(schema).not.toBe(base);
       expect(schema.nullable).toBe(false);
     });
     it('does not alter schema', () => {
-      const schema: UcSchema.Mandatory<string> = base.makeNullable(false);
+      const schema: UcSchema.NonNullable<string> = base.makeNullable(false);
 
       expect(schema).toBe(base);
       expect(schema.nullable).toBe(false);
     });
   });
+
+  class TestUcSchema extends UcSchema<string> {
+
+    override get library(): string {
+      return 'test-library';
+    }
+
+    override get type(): string {
+      return 'test-type';
+    }
+
+}
 });
