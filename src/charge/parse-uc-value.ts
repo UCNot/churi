@@ -1,5 +1,6 @@
 import { StandardUcExt } from '../ext/standard.uc-ext.js';
-import { UcPrimitive, UcValue } from '../schema/uc-value.js';
+import { UcPrimitive } from '../schema/uc-primitive.js';
+import { UcValue } from '../schema/uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 

@@ -1,6 +1,6 @@
 import { chargeURI } from '../charge/charge-uri.js';
 import { URIChargeable } from '../charge/uri-chargeable.js';
-import { UcPrimitive } from './uc-value.js';
+import { UcPrimitive } from './uc-primitive.js';
 
 /**
  * Unrecognized URI charge directive.

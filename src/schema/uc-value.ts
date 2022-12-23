@@ -2,6 +2,7 @@ import { UcDirective } from './uc-directive.js';
 import { UcEntity } from './uc-entity.js';
 import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
+import { UcPrimitive } from './uc-primitive.js';
 
 /**
  * URI charge value represented as native JavaScript value.
@@ -24,10 +25,3 @@ export type UcValue<TValue = UcPrimitive> =
   | UcMap<TValue>
   | UcList<TValue>
   | UcDirective<UcValue<TValue>>;
-
-/**
- * Primitive value that may be present within URI charge.
- *
- * Any JavaScript primitive, including `null`, and excluding `Symbol` and `undefined`.
- */
-export type UcPrimitive = bigint | boolean | number | string | null;

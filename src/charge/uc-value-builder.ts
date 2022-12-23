@@ -2,7 +2,8 @@ import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { UcList } from '../schema/uc-list.js';
 import { UcMap } from '../schema/uc-map.js';
-import { UcPrimitive, UcValue } from '../schema/uc-value.js';
+import { UcPrimitive } from '../schema/uc-primitive.js';
+import { UcValue } from '../schema/uc-value.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 

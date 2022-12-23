@@ -26,7 +26,6 @@ describe('UcMapSchema', () => {
       return this.#flags;
     }
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     asis(value: T): T {
       return value;
     }

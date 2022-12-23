@@ -2,7 +2,7 @@ import { lazyValue } from '@proc7ts/primitives';
 import { createURIChargeParser } from './charge/parse-uri-charge.js';
 import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';
-import { UcPrimitive } from './schema/uc-value.js';
+import { UcPrimitive } from './schema/uc-primitive.js';
 import { UcMatrixParams } from './uc-matrix-params.js';
 
 /**

@@ -1,4 +1,4 @@
-import { UcPrimitive } from '../schema/uc-value.js';
+import { UcPrimitive } from '../schema/uc-primitive.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 /**

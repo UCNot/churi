@@ -1,6 +1,7 @@
 import { asis } from '@proc7ts/primitives';
+import { UcPrimitive } from './uc-primitive.js';
 import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
-import { UcPrimitive, UcValue } from './uc-value.js';
+import { UcValue } from './uc-value.js';
 
 /**
  * URI charge map represented as JavaScript object.

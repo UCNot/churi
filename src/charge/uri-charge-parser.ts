@@ -1,4 +1,4 @@
-import { UcPrimitive } from '../schema/uc-value.js';
+import { UcPrimitive } from '../schema/uc-primitive.js';
 import { decodeUcValue } from './impl/uc-value-decoder.js';
 import { parseUcArgs, parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
