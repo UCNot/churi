@@ -1,6 +1,8 @@
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
+import { UcPrimitive } from '../schema/uc-value.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
-import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 import { URICharge, URIChargeItem } from './uri-charge.js';
 

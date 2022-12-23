@@ -1,15 +1,13 @@
+import { UcSchemaResolver } from './uc-schema-resolver.js';
+
 /**
- * Schema definition of URI-chargeable data.
+ * URI charge schema definition.
  *
- * Describes compatible value type and its serialization and deserialization rules.
+ * Describes data type along with its serialization format within URI charge.
  *
  * @typeParam T - Implied data type.
  */
-export abstract class UcSchema<T> {
-
-  #optional = false;
-  #nullable = false;
-
+export interface UcSchema<out T = unknown> {
   /**
    * Whether the data is optional.
    *
@@ -17,9 +15,7 @@ export abstract class UcSchema<T> {
    *
    * @defaultValue `false`, which means `undefined` data value prohibited.
    */
-  get optional(): boolean {
-    return this.#optional;
-  }
+  readonly optional?: boolean | undefined;
 
   /**
    * Whether the data is nullable.
@@ -28,32 +24,21 @@ export abstract class UcSchema<T> {
    *
    * @defaultValue `false`, which means `null` data value prohibited.
    */
-  get nullable(): boolean {
-    return this.#nullable;
-  }
+  readonly nullable?: boolean | undefined;
 
   /**
-   * Whether the data is mandatory.
-   *
-   * `true` when the data is both non-{@link optional} and non-{@link nullable}.
-   */
-  get mandatory(): boolean {
-    return !this.optional && !this.nullable;
-  }
-
-  /**
-   * The name of the library providing support for data processing.
+   * The source of {@link type} definition.
    *
    * This is typically an NPM module name.
    */
-  abstract get library(): string;
+  readonly from: string;
 
   /**
-   * The name of the type unique within {@link library}.
+   * The name of the type unique within the {@link from source}.
    *
    * Code generation is based on this name.
    */
-  abstract get type(): string;
+  readonly type: string;
 
   /**
    * Flags affecting code generation.
@@ -64,131 +49,14 @@ export abstract class UcSchema<T> {
    *
    * @defaultValue `0`.
    */
-  get flags(): number {
-    return 0;
-  }
+  readonly flags?: number;
 
   /**
-   * Makes {@link mandatory} schema out of this one.
+   * Returns the passed-in value.
    *
-   * @returns Either new schema instance, or this one if is is already mandatory.
+   * This is a marker method that needs to present in order the type inference to work properly.
    */
-  makeMandatory(mandatory?: true): UcSchema.Mandatory<T>;
-
-  /**
-   * Makes non-{@link mandatory} schema out of this one.
-   *
-   * @returns Either new schema instance, or this one if is is already non-mandatory.
-   */
-  makeMandatory(mandatory: false): UcSchema.NonMandatory<T>;
-
-  /**
-   * Makes {@link mandatory} schema out of this one.
-   *
-   * @param optional - Whether to make mandatory schema.
-   *
-   * @returns Either new schema instance, or this one if `mandatory` flag equals to {@link mandatory} property.
-   */
-  makeMandatory(mandatory: boolean): UcSchema<T>;
-
-  makeMandatory(mandatory = true): UcSchema<T> {
-    if (mandatory === this.mandatory) {
-      return this;
-    }
-
-    const clone = this.clone();
-
-    clone.#optional = clone.#nullable = !mandatory;
-
-    return clone;
-  }
-
-  /**
-   * Makes {@link optional} schema out of this one.
-   *
-   * @returns Either new schema instance, or this one if it is already optional.
-   */
-  makeOptional(optional?: true): UcSchema.Optional<T>;
-
-  /**
-   * Makes non-{@link optional} schema out of this one.
-   *
-   * @returns Either new schema instance, or this one if it is already non-optional.
-   */
-  makeOptional(optional: false): UcSchema.NonOptional<T>;
-
-  /**
-   * Makes {@link optional} schema out of this one.
-   *
-   * @param optional - Whether to make optional schema.
-   *
-   * @returns Either new schema instance, or this one if `optional` flag equals to {@link optional} property.
-   */
-  makeOptional(optional: boolean): UcSchema<T>;
-
-  makeOptional(optional = true): UcSchema<T> {
-    if (this.#optional === optional) {
-      return this;
-    }
-
-    const clone = this.clone();
-
-    clone.#optional = optional;
-
-    return clone as this & UcSchema<T>;
-  }
-
-  /**
-   * Makes {@link nullable} schema out of this one.
-   *
-   * @returns Either new schema instance, or this one if it is already nullable.
-   */
-  makeNullable(nullable?: true): UcSchema.Nullable<T>;
-
-  /**
-   * Makes non-{@link nullable} schema out of this one.
-   *
-   * @returns Either new schema instance, or this one if it is already non-{@link nullable}.
-   */
-  makeNullable(nullable: false): UcSchema.NonNullable<T>;
-
-  /**
-   * Makes {@link nullable} schema out of this one.
-   *
-   * @param nullable - Whether to make nullable schema.
-   *
-   * @returns Either new schema instance, or this one if `nullable` flag equals to {@link nullable} property.
-   */
-  makeNullable(nullable: boolean): UcSchema<T>;
-
-  makeNullable(nullable = true): UcSchema<T> {
-    if (this.#nullable === nullable) {
-      return this;
-    }
-
-    const clone = this.clone();
-
-    clone.#nullable = nullable;
-
-    return clone as this & UcSchema<T>;
-  }
-
-  /**
-   * Creates a clone of this schema.
-   *
-   * By default, calls this class constructor without parameters and copies its non-abstract properties.
-   *
-   * @returns Schema instance with all properties equal to the ones of this one.
-   */
-  protected clone(): UcSchema<T> {
-    const clone = new (this.constructor as new () => UcSchema<T>)();
-
-    clone.#optional = this.optional;
-    clone.#nullable = this.nullable;
-
-    return clone;
-  }
-
+  asis(value: T): T;
 }
 
 /**
@@ -198,18 +66,59 @@ export const UC_DATA_ENCODED = 1;
 
 export namespace UcSchema {
   /**
-   * Data type implied by particular schema.
+   * URI charge schema specifier.
    *
-   * @typeParam T - Schema type.
+   * Either a {@link UcSchema schema instance}, or {@link Ref schema reference}.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
    */
-  export type DataType<TSchema extends UcSchema<any>> = TSchema extends UcSchema<infer T>
-    ? TSchema extends { readonly optional: false }
-      ? TSchema extends { readonly nullable: false }
-        ? T
-        : T | null
-      : TSchema extends { readonly nullable: false }
-      ? T | undefined
-      : T | null | undefined
+  export type Spec<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> =
+    | TSchema
+    | Ref<T, TSchema>;
+
+  /**
+   * URI charge schema reference signature.
+   *
+   * Builds schema instance. Can be used as schema {@link Spec specifier}. Supposed to be
+   * {@link UcSchemaResolver#schemaOf resolved} to schema instance.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export type Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = (
+    resolver: UcSchemaResolver,
+  ) => TSchema;
+
+  /**
+   * URI charge schema type of the given specifier.
+   *
+   * @typeParam TSpec - Schema specifier type.
+   */
+  export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema> ? TSchema : TSpec;
+
+  /**
+   * Data type implied by particular URI charge schema.
+   *
+   * @typeParam TSpec - Schema specifier type.
+   */
+  export type DataType<TSpec extends Spec> =
+    | ImpliedTypeOf<TSpec>
+    | NullableTypeOf<Of<TSpec>>
+    | OptionalTypeOf<Of<TSpec>>;
+
+  type ImpliedTypeOf<TSpec extends Spec> = TSpec extends UcSchema<infer T>
+    ? T
+    : TSpec extends Ref<infer T>
+    ? T
+    : never;
+
+  type NullableTypeOf<TSchema extends UcSchema> = TSchema extends { readonly nullable: true }
+    ? null
+    : never;
+
+  type OptionalTypeOf<TSchema extends UcSchema> = TSchema extends { readonly optional: true }
+    ? undefined
     : never;
 
   /**
@@ -219,10 +128,6 @@ export namespace UcSchema {
    */
   export interface Optional<T> extends UcSchema<T> {
     readonly optional: true;
-
-    makeNullable(nullable?: true): UcSchema.Optional<T> & UcSchema.Nullable<T>;
-    makeNullable(nullable: false): UcSchema.Optional<T> & UcSchema.NonNullable<T>;
-    makeNullable(nullable: boolean): UcSchema.Optional<T>;
   }
 
   /**
@@ -232,10 +137,6 @@ export namespace UcSchema {
    */
   export interface NonOptional<T> extends UcSchema<T> {
     readonly optional: false;
-
-    makeNullable(nullable?: true): UcSchema.NonOptional<T> & UcSchema.Nullable<T>;
-    makeNullable(nullable: false): UcSchema.NonOptional<T> & UcSchema.NonNullable<T>;
-    makeNullable(nullable: boolean): UcSchema.NonOptional<T>;
   }
 
   /**
@@ -245,10 +146,6 @@ export namespace UcSchema {
    */
   export interface Nullable<T> extends UcSchema<T> {
     readonly nullable: true;
-
-    makeOptional(optional?: true): UcSchema.Nullable<T> & UcSchema.Optional<T>;
-    makeOptional(optional: false): UcSchema.Nullable<T> & UcSchema.NonOptional<T>;
-    makeOptional(optional: boolean): UcSchema.Nullable<T>;
   }
 
   /**
@@ -258,10 +155,6 @@ export namespace UcSchema {
    */
   export interface NonNullable<T> extends UcSchema<T> {
     readonly nullable: false;
-
-    makeOptional(optional?: true): UcSchema.NonNullable<T> & UcSchema.Optional<T>;
-    makeOptional(optional: false): UcSchema.NonNullable<T> & UcSchema.NonOptional<T>;
-    makeOptional(optional: boolean): UcSchema.NonNullable<T>;
   }
 
   /**
@@ -272,14 +165,6 @@ export namespace UcSchema {
   export interface Mandatory<T> extends UcSchema<T> {
     readonly optional: false;
     readonly nullable: false;
-
-    makeNullable(nullable?: true): UcSchema.NonOptional<T> & UcSchema.Nullable<T>;
-    makeNullable(nullable: false): UcSchema.Mandatory<T>;
-    makeNullable(nullable: boolean): UcSchema.NonOptional<T>;
-
-    makeOptional(optional?: true): UcSchema.NonNullable<T> & UcSchema.Optional<T>;
-    makeOptional(optional: false): UcSchema.Mandatory<T>;
-    makeOptional(optional: boolean): UcSchema.NonNullable<T>;
   }
 
   /**
@@ -290,13 +175,5 @@ export namespace UcSchema {
   export interface NonMandatory<T> extends UcSchema<T> {
     readonly optional: true;
     readonly nullable: true;
-
-    makeNullable(nullable?: true): UcSchema.NonMandatory<T>;
-    makeNullable(nullable: false): UcSchema.Optional<T> & UcSchema.NonNullable<T>;
-    makeNullable(nullable: boolean): UcSchema.Optional<T>;
-
-    makeOptional(optional?: true): UcSchema.NonMandatory<T>;
-    makeOptional(optional: false): UcSchema.NonOptional<T> & UcSchema.Nullable<T>;
-    makeOptional(optional: boolean): UcSchema.Nullable<T>;
   }
 }

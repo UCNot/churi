@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
+import { UcList } from '../schema/uc-list.js';
+import { UcPrimitive, UcValue } from '../schema/uc-value.js';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';
-import { UcDirective, UcEntity, UcList, UcPrimitive, UcValue } from './uc-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 describe('createUcValueParser', () => {

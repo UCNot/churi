@@ -1,5 +1,5 @@
-import { URIChargeExt } from '../uri-charge-ext.js';
-import { URIChargeRx } from '../uri-charge-rx.js';
+import { URIChargeExt } from '../charge/uri-charge-ext.js';
+import { URIChargeRx } from '../charge/uri-charge-rx.js';
 
 export function NumberValuesUcExt<TValue, TCharge>(
   charge: URIChargeRx<TValue, TCharge>,

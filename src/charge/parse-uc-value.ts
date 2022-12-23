@@ -1,6 +1,6 @@
-import { StandardUcExt } from './ext/standard.uc-ext.js';
+import { StandardUcExt } from '../ext/standard.uc-ext.js';
+import { UcPrimitive, UcValue } from '../schema/uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';
-import { UcPrimitive, UcValue } from './uc-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 
 const UcValueBuilder$instance = /*#__PURE__*/ new UcValueBuilder<any>();

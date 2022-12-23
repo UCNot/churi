@@ -1,4 +1,6 @@
-import { UcDirective, UcEntity, UcPrimitive } from './uc-value.js';
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
+import { UcPrimitive } from '../schema/uc-value.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**

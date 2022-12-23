@@ -1,6 +1,6 @@
-import { UcPrimitive } from './charge/uc-value.js';
 import { URICharge } from './charge/uri-charge.js';
 import { UcMatrixParams$splitter } from './impl/uc-search-params.splitter.js';
+import { UcPrimitive } from './schema/uc-value.js';
 import { UcSearchParams } from './uc-search-params.js';
 
 /**
