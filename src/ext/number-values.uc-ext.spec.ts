@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { parseUcValue } from '../parse-uc-value.js';
+import { parseUcValue } from '../charge/parse-uc-value.js';
 
 describe('NumberValuesUcExt', () => {
   describe('Infinity', () => {

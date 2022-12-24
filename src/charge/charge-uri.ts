@@ -1,3 +1,4 @@
+import { UcMap } from '../schema/uc-map.js';
 import {
   escapeUcKey,
   escapeUcSpecials,
@@ -9,7 +10,6 @@ import {
   OPAQUE_CHARGE_PLACEMENT,
   TOP_CHARGE_PLACEMENT,
 } from './impl/uri-chargeable.placement.js';
-import { UcMap } from './uc-value.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**

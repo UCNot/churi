@@ -1,4 +1,4 @@
-import { type UcPrimitive } from './uc-value.js';
+import { type UcPrimitive } from '../schema/uc-primitive.js';
 
 /**
  * URI charge receiver.

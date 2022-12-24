@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
-import { UcDirective, UcEntity } from '../charge/uc-value.js';
 import { URICharge, URIChargeItem } from '../charge/uri-charge.js';
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
 
 expect.extend({
   toBeURIChargeList,

@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
+import { UcPrimitive } from '../schema/uc-primitive.js';
+import { UcValue } from '../schema/uc-value.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { createUcValueParser } from './parse-uc-value.js';
-import { UcPrimitive, UcValue } from './uc-value.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeRx } from './uri-charge-rx.js';

@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
 import { chargeURI, chargeURIArgs } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
-import { UcDirective, UcEntity } from './uc-value.js';
 import { URICharge } from './uri-charge.js';
 import { URIChargeable } from './uri-chargeable.js';
 

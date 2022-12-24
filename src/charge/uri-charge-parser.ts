@@ -1,7 +1,7 @@
+import { UcPrimitive } from '../schema/uc-primitive.js';
 import { decodeUcValue } from './impl/uc-value-decoder.js';
 import { parseUcArgs, parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
-import { UcPrimitive } from './uc-value.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 

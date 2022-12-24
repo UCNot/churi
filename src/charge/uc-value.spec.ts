@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcDirective, UcEntity } from './uc-value.js';
+import { UcDirective } from '../schema/uc-directive.js';
+import { UcEntity } from '../schema/uc-entity.js';
 
 describe('UcEntity', () => {
   const entity = new UcEntity('!foo%20bar');
