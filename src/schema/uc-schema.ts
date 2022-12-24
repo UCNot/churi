@@ -66,7 +66,7 @@ export const UC_DATA_ENCODED = 1;
 
 export namespace UcSchema {
   /**
-   * URI charge schema specifier.
+   * Specifier of URI charge schema.
    *
    * Either a {@link UcSchema schema instance}, or {@link Ref schema reference}.
    *
@@ -78,13 +78,14 @@ export namespace UcSchema {
     | Ref<T, TSchema>;
 
   /**
-   * URI charge schema reference signature.
+   * Reference to URI charge schema.
    *
    * Builds schema instance. Can be used as schema {@link Spec specifier}. Supposed to be
    * {@link UcSchemaResolver#schemaOf resolved} to schema instance.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
+   * @param resolver -
    */
   export type Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = (
     resolver: UcSchemaResolver,
@@ -103,11 +104,11 @@ export namespace UcSchema {
    * @typeParam TSpec - Schema specifier type.
    */
   export type DataType<TSpec extends Spec> =
-    | ImpliedTypeOf<TSpec>
+    | ImpliedType<TSpec>
     | NullableTypeOf<Of<TSpec>>
     | OptionalTypeOf<Of<TSpec>>;
 
-  type ImpliedTypeOf<TSpec extends Spec> = TSpec extends UcSchema<infer T>
+  export type ImpliedType<TSpec extends Spec> = TSpec extends UcSchema<infer T>
     ? T
     : TSpec extends Ref<infer T>
     ? T

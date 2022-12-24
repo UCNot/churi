@@ -14,45 +14,49 @@ export interface UcMap<out TValue = UcPrimitive> {
 
 export namespace UcMap {
   /**
-   * URI charge schema definition for JavaScript {@link UcMap objects} serialized as map.
+   * URI charge schema definition for JavaScript {@link UcMap object} serialized as map.
    *
-   * @typeParam TSpec - Per-entry schema specifier type.
+   * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
-  export interface Schema<TSpec extends Schema.Entries.Spec> extends UcSchema<ObjectType<TSpec>> {
-    readonly entries: Schema.Entries<TSpec>;
+  export interface Schema<TEntriesSpec extends Schema.Entries.Spec>
+    extends UcSchema<ObjectType<TEntriesSpec>> {
+    readonly entries: Schema.Entries<TEntriesSpec>;
   }
 
   /**
-   * Type of object implied by URI charge map schema.
+   * Type of object implied by schema of URI charge map.
    *
-   * @typeParam TSpec - Per-entry schema specifier type.
+   * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
-  export type ObjectType<TSpec extends Schema.Entries.Spec> = {
-    -readonly [key in keyof TSpec]: UcSchema.DataType<TSpec[key]>;
+  export type ObjectType<TEntriesSpec extends Schema.Entries.Spec> = {
+    -readonly [key in keyof TEntriesSpec]: UcSchema.DataType<TEntriesSpec[key]>;
   };
 
   export namespace Schema {
     /**
-     * URI charge map schema specifier.
+     * Schema specifier of URI charge map.
      *
-     * @typeParam TSpec - Per-entry schema specifier type.
+     * @typeParam TEntriesSpec - Per-entry schema specifier type.
      */
-    export type Spec<TSpec extends Entries.Spec> = Schema<TSpec> | Ref<TSpec>;
+    export type Spec<TEntriesSpec extends Entries.Spec> = Schema<TEntriesSpec> | Ref<TEntriesSpec>;
 
     /**
-     * URI charge map schema reference signature.
+     * Reference to schema of URI charge map.
      *
-     * @typeParam TSpec - Per-entry schema specifier type.
+     * @typeParam TEntriesSpec - Per-entry schema specifier type.
      */
-    export type Ref<TSpec extends Entries.Spec> = UcSchema.Ref<ObjectType<TSpec>, Schema<TSpec>>;
+    export type Ref<TEntriesSpec extends Entries.Spec> = UcSchema.Ref<
+      ObjectType<TEntriesSpec>,
+      Schema<TEntriesSpec>
+    >;
 
     /**
      * Per-entry schema of URI charge map.
      *
-     * @typeParam TSpec - Per-entry schema specifier type.
+     * @typeParam TEntriesSpec - Per-entry schema specifier type.
      */
-    export type Entries<TSpec extends Entries.Spec> = {
-      readonly [key in keyof TSpec]: UcSchema.Of<TSpec[key]>;
+    export type Entries<TEntriesSpec extends Entries.Spec> = {
+      readonly [key in keyof TEntriesSpec]: UcSchema.Of<TEntriesSpec[key]>;
     };
 
     export namespace Entries {
@@ -69,15 +73,16 @@ export namespace UcMap {
 }
 
 /**
- * Creates URI charge schema reference for JavaScript {@link UcMap objects} serialized as map.
+ * Creates a reference to URI charge schema for JavaScript {@link UcMap object} serialized as map.
  *
+ * @typeParam TEntriesSpec - Per-entry schema specifier type.
  * @param entries - Per-entry schema entries spec.
  *
- * @returns URI charge map schema reference.
+ * @returns Reference to schema of URI charge map.
  */
-export function UcMap<TSpec extends UcMap.Schema.Entries.Spec>(
-  spec: TSpec,
-): UcMap.Schema.Ref<TSpec> {
+export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+  spec: TEntriesSpec,
+): UcMap.Schema.Ref<TEntriesSpec> {
   return resolver => {
     let flags = 0;
     const entries = Object.fromEntries(
@@ -88,7 +93,7 @@ export function UcMap<TSpec extends UcMap.Schema.Entries.Spec>(
 
         return [key, schema];
       }),
-    ) as UcMap.Schema.Entries<TSpec>;
+    ) as UcMap.Schema.Entries<TEntriesSpec>;
 
     return {
       from: '@hatsy/churi',

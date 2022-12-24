@@ -1,9 +1,9 @@
 import { UcSchema } from './uc-schema.js';
 
 /**
- * URI charge schema resolver.
+ * Resolver of URI charge {@link UcSchema.Ref schema references}.
  *
- * Used to resolve {@link UcSchema.Ref schema references}.
+ * Used to cache resolved schema instances and prevent their re-evaluation.
  */
 export class UcSchemaResolver {
 
@@ -12,10 +12,10 @@ export class UcSchemaResolver {
   /**
    * Resolves URI charge schema instance by the given specifier.
    *
-   * For schema {@link UcSchema instance} returns itself.
+   * For schema {@link UcSchema instance} just returns the schema itself.
    *
    * For schema {@link UcSchema.Ref reference}, builds the schema first, unless built already. Then caches the schema to
-   * return by subsequent calls.
+   * return from subsequent calls.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
