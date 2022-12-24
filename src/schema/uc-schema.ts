@@ -99,7 +99,8 @@ export namespace UcSchema {
   export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema> ? TSchema : TSpec;
 
   /**
-   * Data type implied by particular URI charge schema.
+   * Data type compatible with particular URI charge schema, including possible {@link UcSchema#nullable null} and
+   * {@link UcSchema#optional undefined} values.
    *
    * @typeParam TSpec - Schema specifier type.
    */
@@ -108,6 +109,13 @@ export namespace UcSchema {
     | NullableTypeOf<Of<TSpec>>
     | OptionalTypeOf<Of<TSpec>>;
 
+  /**
+   * Data type implied by particular URI charge schema.
+   *
+   * Does not include possible {@link UcSchema#nullable null} and {@link UcSchema#optional undefined} values.
+   *
+   * @typeParam TSpec - Schema specifier type.
+   */
   export type ImpliedType<TSpec extends Spec> = TSpec extends UcSchema<infer T>
     ? T
     : TSpec extends Ref<infer T>
@@ -137,7 +145,7 @@ export namespace UcSchema {
    * @typeParam T - Implied data type.
    */
   export interface NonOptional<T> extends UcSchema<T> {
-    readonly optional: false;
+    readonly optional?: false | undefined;
   }
 
   /**
@@ -155,17 +163,7 @@ export namespace UcSchema {
    * @typeParam T - Implied data type.
    */
   export interface NonNullable<T> extends UcSchema<T> {
-    readonly nullable: false;
-  }
-
-  /**
-   * Schema definition that prohibits both `undefined` and `null` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface Mandatory<T> extends UcSchema<T> {
-    readonly optional: false;
-    readonly nullable: false;
+    readonly nullable?: false | undefined;
   }
 
   /**

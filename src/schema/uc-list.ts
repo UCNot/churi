@@ -8,7 +8,6 @@ import { UcValue } from './uc-value.js';
  *
  * @typeParam TValue - List item value type.
  */
-
 export type UcList<TValue = UcPrimitive> = UcValue<TValue>[];
 
 export namespace UcList {

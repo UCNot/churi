@@ -24,7 +24,7 @@ export namespace UcMap {
   }
 
   /**
-   * Type of object implied by schema of URI charge map.
+   * Type of object compatible with schema of URI charge map.
    *
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
