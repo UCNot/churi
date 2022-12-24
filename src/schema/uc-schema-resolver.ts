@@ -1,18 +1,19 @@
+import { lazyValue } from '@proc7ts/primitives';
 import { UcSchema } from './uc-schema.js';
 
 /**
  * Resolver of URI charge {@link UcSchema.Ref schema references}.
  *
- * Used to cache resolved schema instances and prevent their re-evaluation.
+ * Used to cache resolved schema instances and prevent unnecessary re-evaluation.
  */
 export class UcSchemaResolver {
 
-  readonly #cache = new WeakMap<UcSchema.Ref, UcSchema>();
+  readonly #cache = new WeakMap<UcSchema.Ref, () => UcSchema>();
 
   /**
    * Resolves URI charge schema instance by the given specifier.
    *
-   * For schema {@link UcSchema instance} just returns the schema itself.
+   * For schema {@link UcSchema instance} just returns it.
    *
    * For schema {@link UcSchema.Ref reference}, builds the schema first, unless built already. Then caches the schema to
    * return from subsequent calls.
@@ -28,17 +29,17 @@ export class UcSchemaResolver {
       return spec;
     }
 
-    const cached = this.#cache.get(spec) as TSchema | undefined;
+    const cached = this.#cache.get(spec) as (() => TSchema) | undefined;
 
     if (cached) {
-      return cached;
+      return cached();
     }
 
-    const schema = spec(this);
+    const getSchema = lazyValue(() => spec(this)); // Prevent recursive calls.
 
-    this.#cache.set(spec, schema);
+    this.#cache.set(spec, getSchema);
 
-    return schema;
+    return getSchema();
   }
 
 }
