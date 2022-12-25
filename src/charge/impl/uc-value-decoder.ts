@@ -21,7 +21,14 @@ export function decodeUcValue<TValue, TCharge>(
     if (decoder) {
       decoder(rx, ext, input);
     } else {
-      decodeStringUcValue(rx, input);
+      const decoded = decodeURIComponent(input);
+      const decoder = UC_STRING_DECODERS[decoded[0]];
+
+      if (decoder) {
+        decoder(rx, ext, decoded);
+      } else {
+        rx.addValue(decoded, 'string');
+      }
     }
   }
 }
@@ -34,26 +41,9 @@ export function decodeUcDirectiveArg<TValue, TCharge>(
   return rx.addEntity(input);
 }
 
-export type UcValuePrefix =
-  | '!'
-  | "'"
-  | '-'
-  | '0'
-  | '1'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9';
-
-const UC_VALUE_DECODERS: {
+const UC_STRING_DECODERS: {
   readonly [prefix: string]: UcValueDecoder;
 } = {
-  '!': decodeExclamationPrefixedUcValue,
-  "'": decodeQuotedUcValue,
   '-': decodeMinusSignedUcValue,
   0: decodeUnsignedUcValue,
   1: decodeNumberUcValue,
@@ -65,7 +55,15 @@ const UC_VALUE_DECODERS: {
   7: decodeNumberUcValue,
   8: decodeNumberUcValue,
   9: decodeNumberUcValue,
-} satisfies { readonly [prefix in UcValuePrefix]: unknown };
+};
+
+const UC_VALUE_DECODERS: {
+  readonly [prefix: string]: UcValueDecoder;
+} = {
+  '!': decodeExclamationPrefixedUcValue,
+  "'": decodeQuotedUcValue,
+  ...UC_STRING_DECODERS,
+};
 
 function decodeExclamationPrefixedUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,

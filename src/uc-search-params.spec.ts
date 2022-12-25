@@ -301,7 +301,7 @@ describe('UcSearchParams', () => {
   });
 
   describe('toString', () => {
-    it('percent-encodes special prefixes', () => {
+    it('percent-encodes special symbols', () => {
       const urlParams = new URLSearchParams(
         "p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val&p=7val&p=8val&p=9val&p=!val!&p='val'&p=-val-&p=(foo(&p=)foo)",
       );
@@ -311,8 +311,8 @@ describe('UcSearchParams', () => {
       expect(String(new URLSearchParams(output))).toBe(String(urlParams));
       expect(String(new URLSearchParams([...urlParams.entries()]))).toBe(String(urlParams));
       expect(output).toBe(
-        'p=%30val&p=%31val&p=%32val&p=%33val&p=%34val&p=%35val&p=%36val'
-          + "&p=%37val&p=%38val&p=%39val&p=%21val!&p=%27val'&p=%2Dval-&p=%28foo%28&p=%29foo%29",
+        'p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val'
+          + "&p=7val&p=8val&p=9val&p=%21val!&p=%27val'&p=-val-&p=%28foo%28&p=%29foo%29",
       );
     });
   });
