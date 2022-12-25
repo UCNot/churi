@@ -78,18 +78,15 @@ describe('chargeURI', () => {
 
   describe('string value', () => {
     it('encoded as top-level value', () => {
-      expect(chargeURI('Hello, (World)!', {})).toBe('Hello%2C%20%28World%29!');
-      expect(chargeURI('-test', {})).toBe("'-test");
-      expect(chargeURI('-test')).toBe('%2Dtest');
+      expect(chargeURI('Hello, (World)!')).toBe('Hello%2C%20%28World%29!');
+      expect(chargeURI('-test')).toBe("'-test");
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: 'Hello, (World)!' }, {})).toBe('foo(Hello%2C%20%28World%29!)');
-      expect(chargeURI({ foo: '-test' }, {})).toBe("foo('-test)");
+      expect(chargeURI({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29!)');
       expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(chargeURI(['Hello, (World)!'], {})).toBe('(Hello%2C%20%28World%29!)');
-      expect(chargeURI(['-test'], {})).toBe("('-test)");
+      expect(chargeURI(['Hello, (World)!'])).toBe('(Hello%2C%20%28World%29!)');
       expect(chargeURI(['-test'])).toBe("('-test)");
     });
   });

@@ -106,8 +106,8 @@ export namespace UcSchema {
    */
   export type DataType<TSpec extends Spec> =
     | ImpliedType<TSpec>
-    | NullableTypeOf<Of<TSpec>>
-    | OptionalTypeOf<Of<TSpec>>;
+    | NullableType<Of<TSpec>>
+    | OptionalType<Of<TSpec>>;
 
   /**
    * Data type implied by particular URI charge schema.
@@ -122,11 +122,11 @@ export namespace UcSchema {
     ? T
     : never;
 
-  type NullableTypeOf<TSchema extends UcSchema> = TSchema extends { readonly nullable: true }
+  export type NullableType<TSchema extends UcSchema> = TSchema extends { readonly nullable: true }
     ? null
     : never;
 
-  type OptionalTypeOf<TSchema extends UcSchema> = TSchema extends { readonly optional: true }
+  export type OptionalType<TSchema extends UcSchema> = TSchema extends { readonly optional: true }
     ? undefined
     : never;
 

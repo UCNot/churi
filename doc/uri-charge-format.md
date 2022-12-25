@@ -34,6 +34,8 @@ Numbers encoded as is:
 - Any string started with _decimal digit_ (`"0" (U+OO30)` - `"9" (U+OO39)`) treated as positive number.
 - Any string starting with _hyphen_ (`"-" (U+002D)`) followed by decimal digit treated as negative number.
 
+The number string can be [percent-encoded].
+
 Negative zero encoded as `-0`.
 
 Hexadecimal and binary formats are also supported. For that, the string should start with `0x`/`-0x` and `0b`/`-0b` respectively.
@@ -69,8 +71,7 @@ Additionally:
   starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
   that should be [percent-encoded].
 - Since _decimal digits_, `"!" (U+0021)`, `"'" (U+0027)`, and `"-" (U+002D)` symbols have special meaning when used as
-  the _first symbol_ of encoded value, they should be either [percent-encoded], or escaped with
-  _apostrophe_ (`"'" (U+0027)`).
+  the _first symbol_ of encoded value, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
 
 _Empty string_ may be left as is, or encoded as single _apostrophe_ (`"'" (U+0027)`).
 

@@ -1,15 +1,10 @@
 import { UcMap } from '../schema/uc-map.js';
 import {
   escapeUcKey,
-  escapeUcSpecials,
-  escapeUcTopLevelValue,
+  escapeUcSpecials as encodeUcSpecials,
   escapeUcValue,
 } from './impl/uc-string-escapes.js';
-import {
-  ANY_CHARGE_PLACEMENT,
-  OPAQUE_CHARGE_PLACEMENT,
-  TOP_CHARGE_PLACEMENT,
-} from './impl/uri-chargeable.placement.js';
+import { ANY_CHARGE_PLACEMENT, OPAQUE_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**
@@ -19,13 +14,13 @@ import { URIChargeable } from './uri-chargeable.js';
  * {@link UcList arrays} and {@link UcMap object literals}.
  *
  * @param value - The value to encode.
- * @param placement - The supposed placement of encoded value. {@link URIChargeable.Top Top-level by default}.
+ * @param placement - The supposed placement of encoded value. {@link URIChargeable.Any Any by default}.
  *
  * @returns Either encoded value, or `undefined` if the value can not be encoded.
  */
 export function chargeURI(
   value: unknown,
-  placement: URIChargeable.Placement = TOP_CHARGE_PLACEMENT,
+  placement: URIChargeable.Placement = ANY_CHARGE_PLACEMENT,
 ): string | undefined {
   return URI_CHARGE_ENCODERS[typeof value]?.(value, placement);
 }
@@ -104,14 +99,7 @@ export function unchargeURIKey(encoded: string): string {
 export function chargeURIString(value: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(value);
 
-  return (
-    encoded
-    && (!placement || placement.as === 'top'
-      ? escapeUcTopLevelValue(encoded)
-      : placement.opaque
-      ? escapeUcSpecials(encoded)
-      : escapeUcValue(encoded))
-  );
+  return encoded && (placement?.opaque ? encodeUcSpecials(encoded) : escapeUcValue(encoded));
 }
 
 function chargeURINumber(value: number): string {

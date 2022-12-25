@@ -27,7 +27,7 @@ export namespace URIChargeable {
   /**
    * The supposed placement of encoded value.
    */
-  export type Placement = Any | Top | Entry | Tail | Arg;
+  export type Placement = Any | Entry | Tail | Arg;
 
   /**
    * Unknown placement of encoded value.
@@ -69,23 +69,6 @@ export namespace URIChargeable {
      * Makes sense only for string arguments.
      */
     readonly opaque?: boolean | undefined;
-
-    readonly omitParentheses?: undefined;
-  }
-
-  /**
-   * The encoded value supposed to be placed as top-level value.
-   *
-   * Normally, a string started with meaningful symbols (e.g. digits) is escaped by APOSTROPHE (U+0027).
-   * At the top level, such string is escaped by percent-encoding the first symbol. This preserves string value for
-   * users unaware of URI charge format.
-   *
-   * This hint makes sense only for string values.
-   */
-  export interface Top extends Unknown {
-    readonly as: 'top';
-
-    readonly opaque?: undefined;
 
     readonly omitParentheses?: undefined;
   }

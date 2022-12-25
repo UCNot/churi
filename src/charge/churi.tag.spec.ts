@@ -33,7 +33,7 @@ describe('churi tag', () => {
   it('escapes top-level string', () => {
     const string = '13';
 
-    expect(churi`${string}`).toBe('%313');
+    expect(churi`${string}`).toBe("'13");
   });
   it('escapes top-level argument', () => {
     const prefix = '11';
@@ -54,7 +54,7 @@ describe('churi tag', () => {
   it('escapes parameter value', () => {
     const string = '13';
 
-    expect(churi`?p=${string}`).toBe('?p=%313');
+    expect(churi`?p=${string}`).toBe("?p='13");
   });
   it('escapes list item values', () => {
     const first = '11';

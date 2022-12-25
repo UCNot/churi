@@ -1,9 +1,5 @@
 import { chargeURI, chargeURIArgs } from './charge-uri.js';
-import {
-  ANY_CHARGE_PLACEMENT,
-  OPAQUE_CHARGE_PLACEMENT,
-  TOP_CHARGE_PLACEMENT,
-} from './impl/uri-chargeable.placement.js';
+import { ANY_CHARGE_PLACEMENT, OPAQUE_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**
@@ -25,7 +21,7 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
   let uri = '';
   let index = 0;
-  let placement: URIChargeable.Placement = TOP_CHARGE_PLACEMENT;
+  let placement: URIChargeable.Placement = ANY_CHARGE_PLACEMENT;
   let args = false;
 
   for (const value of values) {
@@ -33,13 +29,8 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
     const nextIndex = index + 1;
 
     const handleTopLevel = (): void => {
-      if (nextIndex >= values.length || templates[nextIndex]) {
-        args = false;
-        placement = TOP_CHARGE_PLACEMENT;
-      } else {
-        args = true;
-        placement = ANY_CHARGE_PLACEMENT;
-      }
+      args = nextIndex < values.length && !templates[nextIndex];
+      placement = ANY_CHARGE_PLACEMENT;
     };
 
     uri += prefix;
