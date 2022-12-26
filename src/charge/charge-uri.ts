@@ -85,7 +85,7 @@ export function chargeURIKey(key: string): string {
  * @returns Decoded key.
  */
 export function unchargeURIKey(encoded: string): string {
-  return decodeURIComponent(encoded.startsWith("'") ? encoded.slice(1) : encoded);
+  return decodeURIComponent(encoded.startsWith('$') ? encoded.slice(1) : encoded);
 }
 
 /**

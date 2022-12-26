@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
-import { chargeURI, chargeURIArgs } from './charge-uri.js';
+import { chargeURI, chargeURIArgs, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { URICharge } from './uri-charge.js';
 import { URIChargeable } from './uri-chargeable.js';
@@ -88,6 +88,22 @@ describe('chargeURI', () => {
     it('encoded as list item value', () => {
       expect(chargeURI(['Hello, (World)!'])).toBe('(Hello%2C%20%28World%29!)');
       expect(chargeURI(['-test'])).toBe("('-test)");
+    });
+    it('escapes special prefixes', () => {
+      expect(chargeURI('!foo')).toBe("'!foo");
+      expect(chargeURI('$foo')).toBe('%24foo');
+      expect(chargeURI("'foo")).toBe("''foo");
+      expect(chargeURI('-foo')).toBe("'-foo");
+      expect(chargeURI('0foo')).toBe("'0foo");
+      expect(chargeURI('1foo')).toBe("'1foo");
+      expect(chargeURI('2foo')).toBe("'2foo");
+      expect(chargeURI('3foo')).toBe("'3foo");
+      expect(chargeURI('4foo')).toBe("'4foo");
+      expect(chargeURI('5foo')).toBe("'5foo");
+      expect(chargeURI('6foo')).toBe("'6foo");
+      expect(chargeURI('7foo')).toBe("'7foo");
+      expect(chargeURI('8foo')).toBe("'8foo");
+      expect(chargeURI('9foo')).toBe("'9foo");
     });
   });
 
@@ -193,19 +209,19 @@ describe('chargeURI', () => {
 
   describe('object entry key', () => {
     it('escaped', () => {
-      expect(chargeURI({ '!foo(baz)': 1, '!bar': 2 })).toBe("'!foo%28baz%29(1)'!bar(2)");
+      expect(chargeURI({ '!foo(baz)': 1, '!bar': 2 })).toBe('$!foo%28baz%29(1)$!bar(2)');
     });
     it('escaped when empty', () => {
-      expect(chargeURI({ '': 1 })).toBe("'(1)");
+      expect(chargeURI({ '': 1 })).toBe('$(1)');
     });
   });
 
   describe('empty object entry key', () => {
     it('escaped at top level', () => {
-      expect(chargeURI({ '': 1 })).toBe("'(1)");
+      expect(chargeURI({ '': 1 })).toBe('$(1)');
     });
     it('escaped when nested', () => {
-      expect(chargeURI([{ '': 1 }])).toBe("('(1))");
+      expect(chargeURI([{ '': 1 }])).toBe('($(1))');
     });
   });
 
@@ -346,5 +362,42 @@ describe('chargeURIArgs', () => {
   });
   it('does not encode unsupported values', () => {
     expect(chargeURIArgs(Symbol('unsupported'))).toBeUndefined();
+  });
+});
+
+describe('chargeURIKey', () => {
+  it('escapes special prefixes', () => {
+    expect(chargeURIKey('!foo')).toBe('$!foo');
+    expect(chargeURIKey('$foo')).toBe('%24foo');
+    expect(chargeURIKey("'foo")).toBe("$'foo");
+  });
+  it('does not escape special prefixes allowed within keys', () => {
+    expect(chargeURIKey('-foo')).toBe('-foo');
+    expect(chargeURIKey('0foo')).toBe('0foo');
+    expect(chargeURIKey('1foo')).toBe('1foo');
+    expect(chargeURIKey('2foo')).toBe('2foo');
+    expect(chargeURIKey('3foo')).toBe('3foo');
+    expect(chargeURIKey('4foo')).toBe('4foo');
+    expect(chargeURIKey('5foo')).toBe('5foo');
+    expect(chargeURIKey('6foo')).toBe('6foo');
+    expect(chargeURIKey('7foo')).toBe('7foo');
+    expect(chargeURIKey('8foo')).toBe('8foo');
+    expect(chargeURIKey('9foo')).toBe('9foo');
+  });
+  it('escapes too long key', () => {
+    const key = 'abcd' + '\u001a'.repeat(20);
+
+    expect(chargeURIKey(key)).toBe(`$${encodeURIComponent(key)}`);
+  });
+  it('does not escapes 63-octet key', () => {
+    const key = 'abc' + '\u001a'.repeat(20);
+
+    expect(chargeURIKey(key)).toBe(encodeURIComponent(key));
+  });
+});
+
+describe('unchargeURIKey', () => {
+  it('un-escapes prefix', () => {
+    expect(unchargeURIKey('$foo%20bar')).toBe('foo bar');
   });
 });

@@ -280,11 +280,11 @@ describe('parseUcValue', () => {
     it('recognized with percent-encoded key', () => {
       expect(parse('%27foo%27(13)').charge).toEqual({ "'foo'": 13 });
     });
-    it('recognized with quoted key', () => {
-      expect(parse("'foo'(13)").charge).toEqual({ "foo'": 13 });
+    it('recognized with escaped key', () => {
+      expect(parse('$foo$(13)').charge).toEqual({ foo$: 13 });
     });
     it('recognized with empty key', () => {
-      expect(parse("'(13)").charge).toEqual({ '': 13 });
+      expect(parse('$(13)').charge).toEqual({ '': 13 });
     });
     it('recognized after preceding one', () => {
       expect(parse('foo(1)bar(test)baz()suffix').charge).toEqual({
