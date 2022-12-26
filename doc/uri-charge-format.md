@@ -148,13 +148,13 @@ The following rules apply to entry keys:
 
 - Since _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`) have special meaning within URI charge, they should be
   [percent-encoded].
-- When encoded value starts with _dollar sign_ (`"!" (U+0021)`), the dollar sign is stripped, and the actual key
+- When encoded value starts with _dollar sign_ (`"$" (U+0024)`), the dollar sign is stripped, and the actual key value
   starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
   that should be [percent-encoded].
 - Since `"!" (U+0021)`, `"$" (U+0024)`, and `"'" (U+0027)` prefixes have special meaning, they should be escaped
-  with _dollar sign_ (`"!" (U+0021)`).
-- When key has more than 63 octets, it has to be escaped with _dollar sign_ (`"!" (U+0021)`). Otherwise, the whole
-  string is treated as string. This requirement simplifies URI charge stream processing.
+  with _dollar sign_ (`"$" (U+0024)`).
+- **A non-escaped key having more than 63 octets is illegal**. It is up to the parser how to treat it, or raise an error
+  instead. This requirement simplifies processing of streams containing URI charge.
 
 If entry value is an array (`foo((bar)(baz))`), it can be encoded without enclosing parentheses: `foo(bar)(baz)`.
 
