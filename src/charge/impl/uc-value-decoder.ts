@@ -1,11 +1,6 @@
+import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { URIChargeExtParser } from './uri-charge-ext-parser.js';
-
-export type UcValueDecoder = <TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
-  input: string,
-) => void;
 
 export function decodeUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
@@ -33,13 +28,11 @@ export function decodeUcValue<TValue, TCharge>(
   }
 }
 
-export function decodeUcDirectiveArg<TValue, TCharge>(
+type UcValueDecoder = <TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
-): void {
-  return rx.addEntity(input);
-}
+) => void;
 
 const UC_STRING_DECODERS: {
   readonly [prefix: string]: UcValueDecoder;
@@ -61,7 +54,7 @@ const UC_VALUE_DECODERS: {
   readonly [prefix: string]: UcValueDecoder;
 } = {
   '!': decodeExclamationPrefixedUcValue,
-  "'": decodeQuotedUcValue,
+  $: decodeDollarPrefixedUcValue,
   ...UC_STRING_DECODERS,
 };
 
@@ -77,6 +70,21 @@ function decodeExclamationPrefixedUcValue<TValue, TCharge>(
   } else {
     ext.parseEntity(rx, input);
   }
+}
+
+function decodeDollarPrefixedUcValue<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  _ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): void {
+  rx.rxMap(mapRx => {
+    if (input.length > 1) {
+      // `$` treated as empty object.
+      mapRx.addSuffix(unchargeURIKey(input));
+    }
+
+    return mapRx.endMap();
+  });
 }
 
 function decodeMinusSignedUcValue<TValue, TCharge>(
@@ -105,14 +113,6 @@ function decodeNumberUcValue<TValue, TCharge>(
   input: string,
 ): void {
   rx.addValue(Number(input), 'number');
-}
-
-function decodeQuotedUcValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
-  input: string,
-): void {
-  rx.addValue(decodeURIComponent(input.slice(1)), 'string');
 }
 
 function decodeStringUcValue<TValue, TCharge>(

@@ -1,44 +1,41 @@
 import { chargeURI } from '../charge/charge-uri.js';
 import { URIChargeable } from '../charge/uri-chargeable.js';
-import { UcPrimitive } from './uc-primitive.js';
 
 /**
  * Unrecognized URI charge directive.
  *
  * This representation is used when directive is not recognized by {@link URIChargeParser parser},
  * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
- *
- * @typeParam TCharge - Directive argument charge representation type.
  */
 
-export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
+export class UcDirective implements URIChargeable {
 
   readonly #rawName: string;
-  readonly #arg: TCharge;
+  readonly #rawArg: string;
 
   /**
    * Constructs unrecognized URI directive.
    *
-   * @param rawName - Directive name as is, with leading `!` and _not_ URI-decoded.
-   * @param args - Directive argument charge.
+   * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
+   * @param rawArg - Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
    */
-  constructor(rawName: string, args: TCharge) {
+  constructor(rawName: string, rawArg: string) {
     this.#rawName = rawName;
-    this.#arg = args;
+    this.#rawArg = rawArg;
   }
 
   /**
-   * Directive name as is, with leading `!` and _not_ URI-decoded.
+   * Directive name as is, with leading `!`. _Not_ URI-decoded.
    */
   get rawName(): string {
     return this.#rawName;
   }
 
   /**
-   * Directive argument charge.
+   * Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
    */
-  get arg(): TCharge {
-    return this.#arg;
+  get rawArg(): string {
+    return this.#rawArg;
   }
 
   get [Symbol.toStringTag](): string {
@@ -53,18 +50,7 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
    * @returns The encoded directive.
    */
   chargeURI(_placement: URIChargeable.Placement): string {
-    let omitParentheses = false;
-    const encodedValue =
-      chargeURI(this.#arg, {
-        as: 'arg',
-        omitParentheses() {
-          omitParentheses = true;
-        },
-      }) ?? '--';
-
-    return omitParentheses
-      ? `${this.#rawName}${encodedValue}`
-      : `${this.#rawName}(${encodedValue})`;
+    return this.#rawName + this.#rawArg;
   }
 
   /**

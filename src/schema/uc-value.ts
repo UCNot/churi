@@ -14,7 +14,7 @@ import { UcPrimitive } from './uc-primitive.js';
  * - object representing {@link UcMap map},
  * - array representing {@link UcList list},
  * - unrecognized {@link UcEntity entity},
- * - unrecognized {@link UcDirective directive} containing charge value.
+ * - unrecognized {@link UcDirective directive}.
  *
  * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  */
@@ -24,4 +24,4 @@ export type UcValue<TValue = UcPrimitive> =
   | UcEntity
   | UcMap<TValue>
   | UcList<TValue>
-  | UcDirective<UcValue<TValue>>;
+  | UcDirective;

@@ -1,6 +1,4 @@
 import { chargeURI, chargeURIArgs } from './charge-uri.js';
-import { ANY_CHARGE_PLACEMENT, OPAQUE_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
-import { URIChargeable } from './uri-chargeable.js';
 
 /**
  * Tagged template for Charged URI string.
@@ -21,7 +19,6 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
   let uri = '';
   let index = 0;
-  let placement: URIChargeable.Placement = ANY_CHARGE_PLACEMENT;
   let args = false;
 
   for (const value of values) {
@@ -30,7 +27,6 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
     const handleTopLevel = (): void => {
       args = nextIndex < values.length && !templates[nextIndex];
-      placement = ANY_CHARGE_PLACEMENT;
     };
 
     uri += prefix;
@@ -44,27 +40,20 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
           if (prefix !== ')(') {
             if (nextIndex < values.length && !templates[nextIndex]) {
               args = true;
-              placement = ANY_CHARGE_PLACEMENT;
             } else {
               args = false;
-              placement = DIRECTIVE_NAME_PATTERN.test(prefix)
-                ? OPAQUE_CHARGE_PLACEMENT
-                : ANY_CHARGE_PLACEMENT;
             }
           }
 
           break;
         default:
           args = true;
-          placement = DIRECTIVE_NAME_PATTERN.test(prefix)
-            ? OPAQUE_CHARGE_PLACEMENT
-            : ANY_CHARGE_PLACEMENT;
       }
     } else if (!index) {
       handleTopLevel();
     }
 
-    uri += args ? chargeURIArgs(value, placement.opaque) : chargeURI(value, placement);
+    uri += args ? chargeURIArgs(value) : chargeURI(value);
     index = nextIndex;
   }
 
@@ -72,4 +61,3 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 }
 
 const SPACES_AROUND_NL_PATTERN = /\s*[\r\n]+\s*/g;
-const DIRECTIVE_NAME_PATTERN = /![^/?#()=&,;]*\(?$/;

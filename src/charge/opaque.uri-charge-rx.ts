@@ -50,6 +50,10 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return this.#none;
   }
 
+  createDirective(_rawName: string, _rawArg: string): TCharge {
+    return this.none;
+  }
+
   createEntity(_rawEntity: string): TCharge {
     return this.none;
   }
@@ -67,13 +71,6 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   }
 
   rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge {
-    return this.rxValue(build);
-  }
-
-  rxDirective(
-    _rawName: string,
-    build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-  ): TCharge {
     return this.rxValue(build);
   }
 
@@ -96,6 +93,10 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
     // Ignore charge.
   }
 
+  addDirective(rawName: string, rawArg: string): void {
+    this.add(this.#chargeRx.createDirective(rawName, rawArg));
+  }
+
   addEntity(rawEntity: string): void {
     this.add(this.#chargeRx.createEntity(rawEntity));
   }
@@ -110,10 +111,6 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
 
   rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
     this.add(this.chargeRx.rxList(build));
-  }
-
-  rxDirective(rawName: string, build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
-    this.add(this.#chargeRx.rxDirective(rawName, build));
   }
 
   end(): TCharge {

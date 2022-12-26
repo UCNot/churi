@@ -10,9 +10,9 @@ describe('OpaqueURIChargeRx', () => {
     chargeRx = new OpaqueURIChargeRx({ none: NONE });
   });
 
-  describe('createValue', () => {
-    it('charges none', () => {
-      expect(chargeRx.createValue(123, 'number')).toBe(NONE);
+  describe('createDirective', () => {
+    it('ignores charge', () => {
+      expect(chargeRx.createDirective('!test', '(arg)')).toBe(NONE);
     });
   });
 
@@ -22,22 +22,16 @@ describe('OpaqueURIChargeRx', () => {
     });
   });
 
+  describe('createValue', () => {
+    it('charges none', () => {
+      expect(chargeRx.createValue(123, 'number')).toBe(NONE);
+    });
+  });
+
   describe('rxList', () => {
     it('ignores charge', () => {
       expect(
         chargeRx.rxList(rx => {
-          rx.add('value');
-
-          return rx.end();
-        }),
-      ).toBe(NONE);
-    });
-  });
-
-  describe('rxDirective', () => {
-    it('ignores charge', () => {
-      expect(
-        chargeRx.rxDirective('!test', rx => {
           rx.add('value');
 
           return rx.end();

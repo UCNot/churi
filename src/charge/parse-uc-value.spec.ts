@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
-import { UcList } from '../schema/uc-list.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
@@ -39,6 +38,15 @@ describe('createUcValueParser', () => {
         charge: ['Hello, World!', { foo: 'bar', suffix: '' }],
         end: 31,
       });
+    });
+  });
+
+  describe('rxValue', () => {
+    it('builds none without values', () => {
+      const builder = new UcValueBuilder();
+      const value = builder.rxValue(rx => rx.end());
+
+      expect(value).toBe(builder.none);
     });
   });
 });
@@ -132,13 +140,13 @@ describe('parseUcValue', () => {
 
   describe('empty map', () => {
     it('recognized as top-level value', () => {
-      expect(parse('!()')).toEqual({ charge: {}, end: 3 });
+      expect(parse('$')).toEqual({ charge: {}, end: 1 });
     });
     it('recognized as map entry value', () => {
-      expect(parse('foo(!())').charge).toEqual({ foo: {} });
+      expect(parse('foo($)').charge).toEqual({ foo: {} });
     });
     it('recognized as list item value', () => {
-      expect(parse('(!())').charge).toEqual([{}]);
+      expect(parse('($)').charge).toEqual([{}]);
     });
   });
 
@@ -280,11 +288,14 @@ describe('parseUcValue', () => {
     it('recognized with percent-encoded key', () => {
       expect(parse('%27foo%27(13)').charge).toEqual({ "'foo'": 13 });
     });
-    it('recognized with quoted key', () => {
-      expect(parse("'foo'(13)").charge).toEqual({ "foo'": 13 });
+    it('recognized with escaped key', () => {
+      expect(parse('$foo$(13)').charge).toEqual({ foo$: 13 });
     });
     it('recognized with empty key', () => {
-      expect(parse("'(13)").charge).toEqual({ '': 13 });
+      expect(parse('$(13)').charge).toEqual({ '': 13 });
+    });
+    it('recognized with key only', () => {
+      expect(parse('$foo').charge).toEqual({ foo: '' });
     });
     it('recognized after preceding one', () => {
       expect(parse('foo(1)bar(test)baz()suffix').charge).toEqual({
@@ -345,70 +356,26 @@ describe('parseUcValue', () => {
 
   describe('unknown directive', () => {
     it('recognized as top-level value', () => {
-      const { rawName, arg: value } = parse('!bar%20baz(foo%20bar)((1))test')
-        .charge as UcDirective<UcList>;
+      const { rawName, rawArg } = parse('!bar%20baz(foo%20bar)((1))test').charge as UcDirective;
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toHaveLength(3);
-      expect(value[0]).toBeInstanceOf(UcEntity);
-      expect((value[0] as UcEntity).raw).toBe('foo%20bar');
-      expect(value[1]).toEqual([1]);
-      expect(value[2]).toEqual({ test: '' });
+      expect(rawArg).toBe('(foo%20bar)((1))test');
     });
     it('recognized as map entry value', () => {
       const {
-        foo: { rawName, arg: value },
+        foo: { rawName, rawArg },
       } = parse('foo(!bar%20baz(1))').charge as {
-        foo: UcDirective<UcEntity>;
+        foo: UcDirective;
       };
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(UcEntity);
-      expect(value.raw).toBe('1');
+      expect(rawArg).toBe('(1)');
     });
     it('recognized as list item value', () => {
-      const [{ rawName, arg: value }] = parse('(!bar%20baz())').charge as [UcDirective<UcEntity>];
+      const [{ rawName, rawArg }] = parse('(!bar%20baz())').charge as [UcDirective];
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(UcEntity);
-      expect(value.raw).toBe('');
-    });
-    it('recognized without parameters', () => {
-      const builder = new UcValueBuilder();
-      const { rawName, arg: value } = builder.rxDirective('!test', rx => rx.end()) as UcDirective;
-
-      expect(rawName).toBe('!test');
-      expect(value).toBe(builder.none);
-    });
-  });
-
-  describe('directive `!`', () => {
-    it('recognized when followed by entity', () => {
-      const { rawName, arg: value } = parse('!()bar(test)').charge as UcDirective<UcList>;
-
-      expect(rawName).toBe('!');
-      expect((value[0] as UcEntity).raw).toBe('');
-      expect(value[1]).toEqual({ bar: 'test' });
-    });
-    it('recognized when followed by another item', () => {
-      const { rawName, arg: value } = parse('!()(bar%20baz)test').charge as UcDirective<UcList>;
-
-      expect(rawName).toBe('!');
-      expect((value[0] as UcEntity).raw).toBe('');
-      expect((value[1] as UcEntity).raw).toBe('bar%20baz');
-      expect(value[2]).toEqual({ test: '' });
-    });
-    it('recognized when has value', () => {
-      const { rawName, arg: value } = parse('!(test)').charge as UcDirective<UcEntity>;
-
-      expect(rawName).toBe('!');
-      expect(value.raw).toBe('test');
-    });
-    it('recognized when has incomplete value', () => {
-      const { rawName, arg: value } = parse('!(t').charge as UcDirective<UcEntity>;
-
-      expect(rawName).toBe('!');
-      expect(value.raw).toBe('t');
+      expect(rawArg).toBe('()');
     });
   });
 

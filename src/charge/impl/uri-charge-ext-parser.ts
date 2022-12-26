@@ -8,7 +8,7 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
   readonly #specs: URIChargeExt.Factory<TValue, TCharge>[];
 
   #entities?: Map<string, URIChargeExt.EntityHandler<TCharge>>;
-  #directives?: Map<string, URIChargeExt.DirectiveHandler<TValue, TCharge>>;
+  #directives?: Map<string, URIChargeExt.DirectiveHandler<TCharge>>;
 
   constructor(
     chargeRx: URIChargeRx<TValue, TCharge>,
@@ -54,19 +54,15 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  rxDirective(
-    rx: URIChargeRx.ValueRx<TValue, TCharge>,
-    rawName: string,
-    build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-  ): void {
+  parseDirective(rx: URIChargeRx.ValueRx<TValue, TCharge>, rawName: string, rawArg: string): void {
     this.#init();
 
     const directive = this.#directives!.get(rawName);
 
     if (directive) {
-      rx.add(directive(rawName, build));
+      rx.add(directive(rawName, rawArg));
     } else {
-      rx.rxDirective(rawName, build);
+      rx.addDirective(rawName, rawArg);
     }
   }
 

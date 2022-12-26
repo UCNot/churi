@@ -52,6 +52,10 @@ export class UcValueBuilder<out TValue = UcPrimitive>
     return null;
   }
 
+  createDirective(rawName: string, rawArg: string): UcValue<TValue> {
+    return new UcDirective(rawName, rawArg);
+  }
+
   createEntity(rawEntity: string): UcValue<TValue> {
     return new UcEntity(rawEntity);
   }
@@ -76,13 +80,6 @@ export class UcValueBuilder<out TValue = UcPrimitive>
 
   rxList(build: (rx: UcValueBuilder.ListRx<TValue>) => UcValue<TValue>): UcValue<TValue> {
     return build(new this.ns.ListRx(this));
-  }
-
-  rxDirective(
-    rawName: string,
-    build: (rx: UcValueBuilder.ValueRx<TValue>) => UcValue<TValue>,
-  ): UcValue<TValue> {
-    return this.rxValue(rx => new UcDirective(rawName, build(rx)));
   }
 
 }

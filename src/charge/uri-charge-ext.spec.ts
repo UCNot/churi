@@ -45,15 +45,14 @@ describe('URIChargeExt', () => {
 
     beforeAll(() => {
       parser = createUcValueParser({
-        ext: (charge): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
+        ext: (
+          chargeRx,
+        ): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
           directives: {
-            ['!test'](
-              _rawName: string,
-              build: (
-                rx: URIChargeRx.ValueRx<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>,
-              ) => UcValue<UcPrimitive | TestValue>,
-            ): UcValue<UcPrimitive | TestValue> {
-              return charge.rxValue(rx => build(new TestDirectiveRx(rx)));
+            ['!test'](_rawName: string, rawArg: string): UcValue<UcPrimitive | TestValue> {
+              return chargeRx.rxValue(
+                rx => parser.parseArgs(rawArg, new TestDirectiveRx(rx)).charge,
+              );
             },
           },
         }),
@@ -61,7 +60,7 @@ describe('URIChargeExt', () => {
     });
 
     it('recognized at top level', () => {
-      expect(parser.parse("!test('foo)")).toEqual({ charge: { [test__symbol]: "'foo" }, end: 11 });
+      expect(parser.parse("!test('foo)")).toEqual({ charge: { [test__symbol]: 'foo' }, end: 11 });
     });
     it('recognized as map entry value', () => {
       expect(parser.parse('foo(!test(bar))')).toEqual({
@@ -98,14 +97,14 @@ describe('URIChargeExt', () => {
       this.#charge = rx.chargeRx.none;
     }
 
-    override addEntity(rawEntity: UcPrimitive | TValue): void {
-      const charge: TestValue = { [test__symbol]: rawEntity };
-
-      this.add(charge);
-    }
-
     override add(charge: UcValue<UcPrimitive | TestValue>): void {
       this.#charge = charge;
+    }
+
+    override addValue(value: TValue | UcPrimitive, _type: string): void {
+      const charge: TestValue = { [test__symbol]: value };
+
+      this.add(charge);
     }
 
     end(): UcValue<UcPrimitive | TestValue> {

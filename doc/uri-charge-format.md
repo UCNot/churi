@@ -70,8 +70,11 @@ Additionally:
 - When encoded value starts with _apostrophe_ (`"'" (U+0027)`), the apostrophe is stripped, and the actual string value
   starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
   that should be [percent-encoded].
-- Since _decimal digits_, `"!" (U+0021)`, `"'" (U+0027)`, and `"-" (U+002D)` symbols have special meaning when used as
-  the _first symbol_ of encoded value, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
+- Since _decimal digits_, `"!" (U+0021)`, `"$" (U+0024)`, `"'" (U+0027)`, and `"-" (U+002D)` prefixes have special
+  meaning, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
+- When string escaped with _apostrophe_, it may include balanced set of _parentheses_ (`"(" (U+0028)`
+  and `")" (U+0029)`). I.e. _closing parenthesis_ should match an _opening_ one preceding it.
+  This may be used to place _unchanged_ URI charge as a string value.
 
 _Empty string_ may be left as is, or encoded as single _apostrophe_ (`"'" (U+0027)`).
 
@@ -129,22 +132,40 @@ represents an object like
 }
 ```
 
-_Empty map_ has special representation: `!()`
+_Empty map_ has special representation: `$`
 
-An entry value is encoded in URI charge format. Thus it an be anything:
+An entry value is encoded in URI charge format. Thus it can be anything:
 
 - boolean value: `foo(!)bar(-)`
 - number: `from(-128)to(127)`
 - `null`: `is-null(--)`
 - nested map: `foo(bar(baz))`
-- nested empty map: `foo(!())`
+- nested empty map: `foo($)`
 - empty array: `foo(!!)`
 - empty string: `foo()`
 
+The following rules apply to entry keys:
+
+- Since _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`) have special meaning within URI charge, they should be
+  [percent-encoded].
+- When encoded value starts with _dollar sign_ (`"!" (U+0021)`), the dollar sign is stripped, and the actual key
+  starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
+  that should be [percent-encoded].
+- Since `"!" (U+0021)`, `"$" (U+0024)`, and `"'" (U+0027)` prefixes have special meaning, they should be escaped
+  with _dollar sign_ (`"!" (U+0021)`).
+- When key has more than 63 octets, it has to be escaped with _dollar sign_ (`"!" (U+0021)`). Otherwise, the whole
+  string is treated as string. This requirement simplifies URI charge stream processing.
+
 If entry value is an array (`foo((bar)(baz))`), it can be encoded without enclosing parentheses: `foo(bar)(baz)`.
 
-Entry key should be encoded and/or escaped like any string value, except _decimal digits_ and _hyphen_ have no special
-meaning for keys and can be left as is:
+Special prefixes (`"!" (U+0021)`, `"$" (U+0024)`, `"'" (U+0027)`) have to be escaped with _dollar sign_
+(`"!" (U+0021)`).
+
+\*\*An entry key has to be prefixed with _dollar sign_
+
+A special case when key prefixed with _dollar key_ is not followed by value is treated as entry with empty string value.
+I.e. `$key` is the same as `$key()`. Note that this rule does not work for single `$` symbol, which stands for empty
+object. The `$()` has to be used for object with empty key and empty value (`{ '': '' }`).
 
 ```
 --host(google.com)4(!)
