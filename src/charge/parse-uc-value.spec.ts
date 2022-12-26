@@ -356,30 +356,26 @@ describe('parseUcValue', () => {
 
   describe('unknown directive', () => {
     it('recognized as top-level value', () => {
-      const { rawName, arg: value } = parse('!bar%20baz(foo%20bar)((1))test')
-        .charge as UcDirective<UcEntity>;
+      const { rawName, rawArg } = parse('!bar%20baz(foo%20bar)((1))test').charge as UcDirective;
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(UcEntity);
-      expect(value.raw).toBe('(foo%20bar)((1))test');
+      expect(rawArg).toBe('(foo%20bar)((1))test');
     });
     it('recognized as map entry value', () => {
       const {
-        foo: { rawName, arg: value },
+        foo: { rawName, rawArg },
       } = parse('foo(!bar%20baz(1))').charge as {
-        foo: UcDirective<UcEntity>;
+        foo: UcDirective;
       };
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(UcEntity);
-      expect(value.raw).toBe('(1)');
+      expect(rawArg).toBe('(1)');
     });
     it('recognized as list item value', () => {
-      const [{ rawName, arg: value }] = parse('(!bar%20baz())').charge as [UcDirective<UcEntity>];
+      const [{ rawName, rawArg }] = parse('(!bar%20baz())').charge as [UcDirective];
 
       expect(rawName).toBe('!bar%20baz');
-      expect(value).toBeInstanceOf(UcEntity);
-      expect(value.raw).toBe('()');
+      expect(rawArg).toBe('()');
     });
   });
 

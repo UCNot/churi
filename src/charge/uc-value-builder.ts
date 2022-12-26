@@ -53,7 +53,7 @@ export class UcValueBuilder<out TValue = UcPrimitive>
   }
 
   createDirective(rawName: string, rawArg: string): UcValue<TValue> {
-    return new UcDirective(rawName, this.createEntity(rawArg), true);
+    return new UcDirective(rawName, rawArg);
   }
 
   createEntity(rawEntity: string): UcValue<TValue> {

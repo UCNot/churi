@@ -52,10 +52,7 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
   }
 
   createDirective(rawName: string, rawArg: string): URICharge.Single<TValue> {
-    return new URICharge$Single<TValue>(
-      new UcDirective(rawName, this.createEntity(rawArg), true),
-      'directive',
-    );
+    return new URICharge$Single<TValue>(new UcDirective(rawName, rawArg), 'directive');
   }
 
   createEntity(rawEntity: string): URICharge.Single<TValue> {

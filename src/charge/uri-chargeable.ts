@@ -97,7 +97,7 @@ export namespace URIChargeable {
   }
 
   /**
-   * The encoded value supposed to be placed as a directive argument value after opening parent.
+   * The encoded value supposed to be placed as an argument value after opening parent.
    *
    * This may affect a list. If it has two or more items, the enclosing parentheses may be omitted. So, the
    * ```

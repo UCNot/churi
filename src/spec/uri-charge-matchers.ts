@@ -198,7 +198,7 @@ function extractURIChargeValue(charge: URICharge): URIChargeValue {
   const { value } = charge;
 
   if (value instanceof UcDirective) {
-    return { rawName: value.rawName, arg: extractURIChargeItem(value.arg) };
+    return { rawName: value.rawName, rawArg: value.rawArg };
   }
   if (value instanceof UcEntity) {
     return { raw: value.raw };

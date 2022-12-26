@@ -159,11 +159,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
  *
  * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  */
-export type URIChargeItem<TValue = UcPrimitive> =
-  | TValue
-  | UcPrimitive
-  | UcEntity
-  | UcDirective<URICharge<TValue>>;
+export type URIChargeItem<TValue = UcPrimitive> = TValue | UcPrimitive | UcEntity | UcDirective;
 
 export namespace URICharge {
   /**

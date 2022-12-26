@@ -293,22 +293,13 @@ describe('chargeURI', () => {
 
   describe('unknown directive value', () => {
     it('encoded as top-level value', () => {
-      expect(chargeURI(new UcDirective('!test', 'foo'))).toBe('!test(foo)');
+      expect(chargeURI(new UcDirective('!test', '(foo)'))).toBe('!test(foo)');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: new UcDirective('!test', 'bar') })).toBe('foo(!test(bar))');
+      expect(chargeURI({ foo: new UcDirective('!test', '(bar)') })).toBe('foo(!test(bar))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([new UcDirective('!test', 'foo')])).toBe('(!test(foo))');
-    });
-    it('encoded with array value', () => {
-      expect(chargeURI(new UcDirective('!test', ['foo', 'bar']))).toBe('!test(foo)(bar)');
-    });
-    it('encoded with suffix', () => {
-      expect(chargeURI(new UcDirective('!test', ['foo', { suffix: '' }]))).toBe('!test(foo)suffix');
-    });
-    it('encoded with missing value', () => {
-      expect(chargeURI(new UcDirective('!test', undefined!))).toBe('!test(--)');
+      expect(chargeURI([new UcDirective('!test', '(foo)')])).toBe('(!test(foo))');
     });
   });
 

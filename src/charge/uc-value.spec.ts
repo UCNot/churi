@@ -18,11 +18,17 @@ describe('UcEntity', () => {
 });
 
 describe('UcDirective', () => {
-  const directive = new UcDirective('!foo%20bar', { foo: 'bar' });
+  const directive = new UcDirective('!foo%20bar', '(bar)');
 
   describe('rawName', () => {
     it('contains raw encoded name', () => {
       expect(directive.rawName).toBe('!foo%20bar');
+    });
+  });
+
+  describe('rawArg', () => {
+    it('contains raw encoded argument', () => {
+      expect(directive.rawArg).toBe('(bar)');
     });
   });
 
@@ -32,9 +38,7 @@ describe('UcDirective', () => {
 
   describe('toString', () => {
     it('reflects directive contents', () => {
-      expect(String(new UcDirective('!test', ['arg1', 'arg2', { foo: 'bar', suffix: '' }]))).toBe(
-        '!test(arg1)(arg2)foo(bar)suffix',
-      );
+      expect(String(new UcDirective('!test', '(arg)'))).toBe('!test(arg)');
     });
   });
 });
