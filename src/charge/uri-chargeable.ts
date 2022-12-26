@@ -39,16 +39,6 @@ export namespace URIChargeable {
     readonly as?: string;
 
     /**
-     * Whether a charge expected to be opaque.
-     *
-     * Directive arguments are opaque, i.e. it is up to directive how to treat them. Thus, proper string escaping is not
-     * needed.
-     *
-     * Makes sense only for string arguments.
-     */
-    readonly opaque?: boolean | undefined;
-
-    /**
      * Informs the enclosing encoder that it may omit parentheses around encoded charge.
      */
     readonly omitParentheses?: ((this: void) => void) | undefined;
@@ -59,16 +49,6 @@ export namespace URIChargeable {
    */
   export interface Any extends Unknown {
     readonly as?: undefined;
-
-    /**
-     * Whether a charge expected to be opaque.
-     *
-     * Directive arguments are opaque, i.e. it is up to directive how to treat them. Thus, proper string escaping is not
-     * needed.
-     *
-     * Makes sense only for string arguments.
-     */
-    readonly opaque?: boolean | undefined;
 
     readonly omitParentheses?: undefined;
   }
@@ -87,8 +67,6 @@ export namespace URIChargeable {
    */
   export interface Entry extends Unknown {
     readonly as: 'entry';
-
-    readonly opaque?: undefined;
 
     /**
      * Informs the enclosing map encoder that it may omit parentheses around encoded entry value.

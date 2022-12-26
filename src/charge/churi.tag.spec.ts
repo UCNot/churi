@@ -74,22 +74,22 @@ describe('churi tag', () => {
 
     expect(churi`?p=foo${first}${second}`).toBe("?p=foo('11)('22)");
   });
-  it('does not escape directive args', () => {
+  it('escapes directive args', () => {
     const first = '11';
     const second = '22';
 
-    expect(churi`?p=!dir${first}${second}`).toBe('?p=!dir(11)(22)');
+    expect(churi`?p=!dir${first}${second}`).toBe("?p=!dir('11)('22)");
   });
-  it('does not escape directive args in parentheses', () => {
+  it('escapes directive args in parentheses', () => {
     const first = '11';
     const second = '22';
 
-    expect(churi`?p=!dir(${first})(${second})`).toBe('?p=!dir(11)(22)');
+    expect(churi`?p=!dir(${first})(${second})`).toBe("?p=!dir('11)('22)");
   });
-  it('does not escape directive arg list', () => {
+  it('escapes directive arg list', () => {
     const args = ['11', '22'];
 
-    expect(churi`?p=!dir${args}`).toBe('?p=!dir(11)(22)');
+    expect(churi`?p=!dir${args}`).toBe("?p=!dir('11)('22)");
   });
   it('escapes directive list arg items', () => {
     const args = ['11', '22'];

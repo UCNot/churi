@@ -8,23 +8,26 @@ import { UcPrimitive } from './uc-primitive.js';
  * This representation is used when directive is not recognized by {@link URIChargeParser parser},
  * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
  *
- * @typeParam TCharge - Directive argument charge representation type.
+ * @typeParam TArg - Directive argument type.
  */
 
-export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
+export class UcDirective<out TArg = UcPrimitive> implements URIChargeable {
 
   readonly #rawName: string;
-  readonly #arg: TCharge;
+  readonly #arg: TArg;
+  readonly #rawArg: boolean;
 
   /**
    * Constructs unrecognized URI directive.
    *
    * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
    * @param arg - Directive argument charge.
+   * @param rawArg - Whether directive argument is raw. If so, the argument won't be enclosed into parentheses.
    */
-  constructor(rawName: string, arg: TCharge) {
+  constructor(rawName: string, arg: TArg, rawArg = false) {
     this.#rawName = rawName;
     this.#arg = arg;
+    this.#rawArg = rawArg;
   }
 
   /**
@@ -37,7 +40,7 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
   /**
    * Directive argument charge.
    */
-  get arg(): TCharge {
+  get arg(): TArg {
     return this.#arg;
   }
 
@@ -62,7 +65,7 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
         },
       }) ?? '--';
 
-    return omitParentheses
+    return omitParentheses || this.#rawArg
       ? `${this.#rawName}${encodedValue}`
       : `${this.#rawName}(${encodedValue})`;
   }
