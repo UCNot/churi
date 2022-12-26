@@ -1,9 +1,5 @@
 import { UcMap } from '../schema/uc-map.js';
-import {
-  escapeUcKey,
-  escapeUcSpecials as encodeUcSpecials,
-  escapeUcValue,
-} from './impl/uc-string-escapes.js';
+import { escapeUcKey, escapeUcSpecials, escapeUcValue } from './impl/uc-string-escapes.js';
 import { ANY_CHARGE_PLACEMENT, OPAQUE_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
 import { URIChargeable } from './uri-chargeable.js';
 
@@ -74,7 +70,7 @@ const URI_CHARGE_ENCODERS: {
  * @returns Encoded key.
  */
 export function chargeURIKey(key: string): string {
-  return escapeUcKey(encodeURIComponent(key));
+  return key ? escapeUcKey(encodeURIComponent(key)) : '$';
 }
 
 /**
@@ -99,7 +95,7 @@ export function unchargeURIKey(encoded: string): string {
 export function chargeURIString(value: string, placement?: URIChargeable.Placement): string {
   const encoded = encodeURIComponent(value);
 
-  return encoded && (placement?.opaque ? encodeUcSpecials(encoded) : escapeUcValue(encoded));
+  return encoded && (placement?.opaque ? escapeUcSpecials(encoded) : escapeUcValue(encoded));
 }
 
 function chargeURINumber(value: number): string {

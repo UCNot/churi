@@ -28,7 +28,7 @@ export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
    */
   readonly directives?:
     | {
-        readonly [rawName: string]: URIChargeExt.DirectiveHandler<TValue, TCharge>;
+        readonly [rawName: string]: URIChargeExt.DirectiveHandler<TCharge>;
       }
     | undefined;
 }
@@ -47,7 +47,7 @@ export function URIChargeExt<TValue, TCharge>(
 ): URIChargeExt.Factory<TValue, TCharge> {
   return (chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
     const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
-    const directives: Record<string, URIChargeExt.DirectiveHandler<TValue, TCharge>> = {};
+    const directives: Record<string, URIChargeExt.DirectiveHandler<TCharge>> = {};
 
     for (const factory of asArray(spec)) {
       const ext = factory(chargeRx);
@@ -95,10 +95,10 @@ export namespace URIChargeExt {
   /**
    * Custom entity handler.
    *
-   * Creates an entity charge out of raw string.
+   * Creates entity charge out of raw string.
    *
    * @typeParam TCharge - URI charge representation type.
-   * @param rawEntity - The entity as is, with leading `!` and _not_ URI-decoded.
+   * @param rawEntity - The entity as is, with leading `!`. _Not_ URI-decoded.
    *
    * @returns URI charge representing entity.
    */
@@ -109,19 +109,15 @@ export namespace URIChargeExt {
   /**
    * Custom directive handler.
    *
-   * Builds a charge out of visited directive arguments.
+   * Creates directive charge out of directive name and argument.
    *
-   * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.
-   * @param rawName - Directive name as is, with leading `!` and _not_ URI-decoded.
-   * @param build - Charge builder function accepting directive arguments receiver and building a charge with it.
+   * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
+   * @param rawArg - Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
    *
-   * @returns Built charge.
+   * @returns URI charge representing directive.
    */
-  export type DirectiveHandler<out TValue = unknown, out TCharge = unknown> = {
-    rxDirective(
-      rawName: string,
-      build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-    ): TCharge;
-  }['rxDirective'];
+  export type DirectiveHandler<out TCharge = unknown> = {
+    createDirective(rawName: string, rawArg: string): TCharge;
+  }['createDirective'];
 }

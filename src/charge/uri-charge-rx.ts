@@ -18,9 +18,19 @@ export interface URIChargeRx<out TValue = UcPrimitive, out TCharge = unknown> {
   readonly none: TCharge;
 
   /**
+   * Creates directive charge out of directive name and argument.
+   *
+   * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
+   * @param rawArg - Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
+   *
+   * @returns Built charge.
+   */
+  createDirective(rawName: string, rawArg: string): TCharge;
+
+  /**
    * Creates an entity charge out of raw string.
    *
-   * @param rawEntity - The entity as is, with leading `!` and _not_ URI-decoded.
+   * @param rawEntity - The entity as is, with leading `!`. _Not_ URI-decoded.
    *
    * @returns URI charge representing entity.
    */
@@ -62,19 +72,6 @@ export interface URIChargeRx<out TValue = UcPrimitive, out TCharge = unknown> {
    * @returns Built charge.
    */
   rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): TCharge;
-
-  /**
-   * Builds a charge out of visited directive arguments.
-   *
-   * @param rawName - Directive name as is, with leading `!` and _not_ URI-decoded.
-   * @param build - Charge builder function accepting directive arguments receiver and building a charge with it.
-   *
-   * @returns Built charge.
-   */
-  rxDirective(
-    rawName: string,
-    build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-  ): TCharge;
 }
 
 export namespace URIChargeRx {
@@ -126,9 +123,17 @@ export namespace URIChargeRx {
     add(charge: TCharge): void;
 
     /**
+     * Adds directive.
+     *
+     * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
+     * @param rawArg - Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
+     */
+    addDirective(rawName: string, rawArg: string): void;
+
+    /**
      * Adds the entity.
      *
-     * @param rawEntity - The entity as is, with leading `!` and _not_ URI-decoded.
+     * @param rawEntity - The entity as is, with leading `!`. _Not_ URI-decoded.
      */
     addEntity(rawEntity: string): void;
 
@@ -153,17 +158,6 @@ export namespace URIChargeRx {
      * @param build - Charge builder function accepting list items receiver and building a charge with it.
      */
     rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
-
-    /**
-     * Adds a charge built out of visited directive arguments.
-     *
-     * @param rawName - Directive name as is, with leading `!` and _not_ URI-decoded.
-     * @param build - Charge builder function accepting directive arguments receiver and building a charge with it.
-     */
-    rxDirective(
-      rawName: string,
-      build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge,
-    ): void;
 
     /**
      * Ends receiving charges and creates the result charge.

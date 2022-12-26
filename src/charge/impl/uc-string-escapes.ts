@@ -1,28 +1,16 @@
 import { ASCIICharSet } from './ascii-char-set.js';
 
 export function escapeUcValue(encoded: string): string {
-  return escapeUcString(encoded);
-}
-
-const UC_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'-0123456789");
-
-function escapeUcString(encoded: string): string {
-  if (!encoded) {
-    return '';
-  }
-
   const escaped = escapeUcSpecials(encoded);
 
   return UC_ESCAPED.prefixes(escaped) ? `'${escaped}` : escaped;
 }
 
+const UC_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'-0123456789");
+
 const UC_KEY_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'");
 
 export function escapeUcKey(encoded: string): string {
-  if (!encoded) {
-    return '$';
-  }
-
   const escaped = escapeUcSpecials(encoded);
 
   return escaped.length > 63 || UC_KEY_ESCAPED.prefixes(escaped) ? `$${escaped}` : escaped;

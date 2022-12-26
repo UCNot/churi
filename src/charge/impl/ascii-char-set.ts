@@ -29,8 +29,6 @@ export class ASCIICharSet {
       && firstCode >= this.#min
       && this.#mask & (1 << (firstCode - this.#min))
     );
-
-    return 0;
   }
 
 }

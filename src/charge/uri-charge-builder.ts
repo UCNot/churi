@@ -51,6 +51,13 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
     return URICharge.none;
   }
 
+  createDirective(rawName: string, rawArg: string): URICharge.Single<TValue> {
+    return new URICharge$Single<TValue>(
+      new UcDirective(rawName, this.createEntity(rawArg)),
+      'directive',
+    );
+  }
+
   createEntity(rawEntity: string): URICharge.Single<TValue> {
     return new URICharge$Single<TValue>(new UcEntity(rawEntity), 'entity');
   }
@@ -75,17 +82,6 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
 
   rxList(build: (rx: URIChargeBuilder.ListRx<TValue>) => URICharge<TValue>): URICharge<TValue> {
     return build(new this.ns.ListRx(this));
-  }
-
-  rxDirective(
-    rawName: string,
-    build: (rx: URIChargeBuilder.ValueRx<TValue>) => URICharge<TValue>,
-  ): URICharge<TValue> {
-    return this.rxValue(rx => {
-      const value = build(rx);
-
-      return new URICharge$Single(new UcDirective(rawName, value), 'directive');
-    });
   }
 
 }

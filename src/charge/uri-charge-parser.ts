@@ -1,5 +1,4 @@
 import { UcPrimitive } from '../schema/uc-primitive.js';
-import { decodeUcValue } from './impl/uc-value-decoder.js';
 import { parseUcArgs, parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
 import { URIChargeExt } from './uri-charge-ext.js';
@@ -61,7 +60,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
-    return parseUcValue(rx, this.#ext, decodeUcValue, input);
+    return parseUcValue(rx, this.#ext, input);
   }
 
   /**

@@ -19,12 +19,12 @@ export class UcDirective<out TCharge = UcPrimitive> implements URIChargeable {
   /**
    * Constructs unrecognized URI directive.
    *
-   * @param rawName - Directive name as is, with leading `!` and _not_ URI-decoded.
-   * @param args - Directive argument charge.
+   * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
+   * @param arg - Directive argument charge.
    */
-  constructor(rawName: string, args: TCharge) {
+  constructor(rawName: string, arg: TCharge) {
     this.#rawName = rawName;
-    this.#arg = args;
+    this.#arg = arg;
   }
 
   /**
