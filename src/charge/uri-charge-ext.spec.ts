@@ -45,13 +45,11 @@ describe('URIChargeExt', () => {
 
     beforeAll(() => {
       parser = createUcValueParser({
-        ext: (
-          chargeRx,
-        ): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
+        ext: (target): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
           directives: {
             ['!test'](_rawName: string, rawArg: string): UcValue<UcPrimitive | TestValue> {
-              return chargeRx.rxValue(
-                rx => parser.parseArgs(rawArg, new TestDirectiveRx(rx)).charge,
+              return target.chargeRx.rxValue(
+                rx => target.parseArgs(rawArg, new TestDirectiveRx(rx)).charge,
               );
             },
           },

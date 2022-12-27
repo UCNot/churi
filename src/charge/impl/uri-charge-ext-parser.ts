@@ -4,17 +4,17 @@ import { URIChargeRx } from '../uri-charge-rx.js';
 
 export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 
-  readonly #chargeRx: URIChargeRx<TValue, TCharge>;
+  readonly #target: URIChargeExt.Target<TValue, TCharge>;
   readonly #specs: URIChargeExt.Factory<TValue, TCharge>[];
 
   #entities?: Map<string, URIChargeExt.EntityHandler<TCharge>>;
   #directives?: Map<string, URIChargeExt.DirectiveHandler<TCharge>>;
 
   constructor(
-    chargeRx: URIChargeRx<TValue, TCharge>,
+    target: URIChargeExt.Target<TValue, TCharge>,
     spec: URIChargeExt.Spec<TValue, TCharge> | undefined,
   ) {
-    this.#chargeRx = chargeRx;
+    this.#target = target;
     this.#specs = asArray(spec);
   }
 
@@ -26,7 +26,7 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     this.#entities = new Map();
     this.#directives = new Map();
 
-    const exts = this.#specs.map(spec => spec(this.#chargeRx));
+    const exts = this.#specs.map(spec => spec(this.#target));
 
     for (const { entities, directives } of exts) {
       if (entities) {

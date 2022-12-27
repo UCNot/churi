@@ -24,7 +24,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
     const { rx, ext } = options;
 
     this.#rx = rx;
-    this.#ext = new URIChargeExtParser(rx, ext);
+    this.#ext = new URIChargeExtParser(this, ext);
   }
 
   /**
@@ -35,7 +35,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
   }
 
   /**
-   * Parse URI charge from the given input.
+   * Parses URI charge from the given input.
    *
    * @param input - Input string containing encoded URI charge.
    * @param rx - Optional URI charge value receiver. New one will be {@link URIChargeRx.rxValue created} if omitted.

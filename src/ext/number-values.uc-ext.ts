@@ -1,21 +1,31 @@
 import { URIChargeExt } from '../charge/uri-charge-ext.js';
-import { URIChargeRx } from '../charge/uri-charge-rx.js';
 
+/**
+ * URI charge extension that add support for:
+ *
+ * - `!Infinity` entity for `Infinity` value,
+ * - `!-Infinity` entity for negative `Infinity` value,
+ * - `!NaN` entity for `NaN` value.
+ */
 export function NumberValuesUcExt<TValue, TCharge>(
-  charge: URIChargeRx<TValue, TCharge>,
-): URIChargeExt<TValue, TCharge> {
+  target: URIChargeExt.Target<TValue, TCharge>,
+): URIChargeExt<TValue, TCharge>;
+
+export function NumberValuesUcExt<TValue, TCharge>({
+  chargeRx,
+}: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> {
   return {
     entities: {
       ['!Infinity'](): TCharge {
-        return charge.createValue(Infinity, 'number');
+        return chargeRx.createValue(Infinity, 'number');
       },
 
       ['!-Infinity'](): TCharge {
-        return charge.createValue(-Infinity, 'number');
+        return chargeRx.createValue(-Infinity, 'number');
       },
 
       ['!NaN'](): TCharge {
-        return charge.createValue(NaN, 'number');
+        return chargeRx.createValue(NaN, 'number');
       },
     },
   };

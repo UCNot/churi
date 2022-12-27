@@ -1,4 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
+import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 /**
@@ -45,12 +46,12 @@ export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
 export function URIChargeExt<TValue, TCharge>(
   spec: URIChargeExt.Spec<TValue, TCharge>,
 ): URIChargeExt.Factory<TValue, TCharge> {
-  return (chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
+  return (target: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
     const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
     const directives: Record<string, URIChargeExt.DirectiveHandler<TCharge>> = {};
 
     for (const factory of asArray(spec)) {
-      const ext = factory(chargeRx);
+      const ext = factory(target);
 
       Object.assign(entities, ext.entities);
       Object.assign(directives, ext.directives);
@@ -84,13 +85,58 @@ export namespace URIChargeExt {
    *
    * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.
-   * @param chargeRx - Target URI charge receiver.
+   * @param target - Extension target. This is typically a {@link URIChargeParser parser} instance.
    *
    * @returns Extension instance.
    */
   export type Factory<out TValue = unknown, out TCharge = unknown> = {
-    extendCharge(chargeRx: URIChargeRx<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
+    extendCharge(target: Target<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
   }['extendCharge'];
+
+  /**
+   * URI charge extension target.
+   *
+   * Passed to {@link Factory extension factory} when creating extension.
+   *
+   * @typeParam TValue - Base value type contained in URI charge.
+   * @typeParam TCharge - URI charge representation type.
+   */
+  export interface Target<out TValue = unknown, out TCharge = unknown> {
+    /**
+     * Target URI charge receiver.
+     */
+    readonly chargeRx: URIChargeRx<TValue, TCharge>;
+
+    /**
+     * Parses URI charge from the given input.
+     *
+     * @param input - Input string containing encoded URI charge.
+     * @param rx - Optional URI charge value receiver. New one will be {@link URIChargeRx.rxValue created} if omitted.
+     *
+     * @returns Parse result containing charge representation.
+     */
+    parse(
+      input: string,
+      rx?: URIChargeRx.ValueRx<TValue, TCharge>,
+    ): URIChargeParser.Result<TCharge>;
+
+    /**
+     * Parses the given input as if it contains arguments attached to some URI charge.
+     *
+     * Thus, the leading `(` is not recognized as list, but rather as entry value.
+     *
+     * This is used e.g. to parse {@link UcRoute.charge path fragment charge}.
+     *
+     * @param input - Input string containing encoded URI charge.
+     * @param rx - Optional URI charge value receiver. New one will be {@link URIChargeRx.rxValue created} if omitted.
+     *
+     * @returns Parse result containing charge representation.
+     */
+    parseArgs(
+      input: string,
+      rx?: URIChargeRx.ValueRx<TValue, TCharge>,
+    ): URIChargeParser.Result<TCharge>;
+  }
 
   /**
    * Custom entity handler.
