@@ -118,7 +118,7 @@ function parseUcMap<TValue>(
   let firstEntryEnd!: number;
 
   mapRx.rxEntry(key, rx => {
-    firstEntryEnd = parseUcMapEntry(rx, ext, firstValueInput);
+    firstEntryEnd = parseUcEntry(rx, ext, firstValueInput);
 
     return rx.end();
   });
@@ -133,10 +133,10 @@ function parseUcMap<TValue>(
   }
 
   // Parse the rest of the map entries.
-  return firstEntryEnd + parseUcMapEntries(mapRx, ext, firstValueInput.slice(firstEntryEnd));
+  return firstEntryEnd + parseUcEntries(mapRx, ext, firstValueInput.slice(firstEntryEnd));
 }
 
-function parseUcMapEntries<TValue>(
+function parseUcEntries<TValue>(
   mapRx: URIChargeRx.MapRx<TValue>,
   ext: URIChargeExtParser<TValue>,
   input: string /* never empty */,
@@ -167,7 +167,7 @@ function parseUcMapEntries<TValue>(
     input = input.slice(keyEnd + 1);
     offset += keyEnd + 1;
     mapRx.rxEntry(key, rx => {
-      nextKeyStart = parseUcMapEntry(rx, ext, input);
+      nextKeyStart = parseUcEntry(rx, ext, input);
 
       return rx.end();
     });
@@ -181,7 +181,7 @@ function parseUcMapEntries<TValue>(
   }
 }
 
-function parseUcMapEntry<TValue>(
+function parseUcEntry<TValue>(
   rx: URIChargeRx.ValueRx<TValue>,
   ext: URIChargeExtParser<TValue>,
   input: string,
@@ -224,10 +224,10 @@ export function parseUcArgs<TValue>(
   }
 
   // Parse the rest of list items.
-  return firstValueEnd + parseUcListOrDirectiveItems(rx, ext, firstValueInput.slice(firstValueEnd));
+  return firstValueEnd + parseUcItems(rx, ext, firstValueInput.slice(firstValueEnd));
 }
 
-function parseUcListOrDirectiveItems<TValue>(
+function parseUcItems<TValue>(
   rx: URIChargeRx.ValueRx<TValue>,
   ext: URIChargeExtParser<TValue>,
   input: string /* never empty */,
