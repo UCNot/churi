@@ -24,8 +24,14 @@
   "type": "module",
   "types": "./dist/churi.d.ts",
   "exports": {
-    "types": "./dist/churi.d.ts",
-    "default": "./dist/churi.js"
+    ".": {
+      "types": "./dist/churi.d.ts",
+      "default": "./dist/churi.js"
+    },
+    "./codegen": {
+      "types": "./dist/churi.codegen.d.ts",
+      "default": "./dist/churi.codegen.js"
+    }
   },
   "dependencies": {
     "@proc7ts/primitives": "^4.0.0"

@@ -1,4 +1,5 @@
 import { asis } from '@proc7ts/primitives';
+import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
@@ -96,7 +97,7 @@ export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
     ) as UcMap.Schema.Entries<TEntriesSpec>;
 
     return {
-      from: '@hatsy/churi',
+      from: CHURI_MODULE,
       type: 'map',
       flags,
       entries,

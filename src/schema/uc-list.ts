@@ -1,4 +1,5 @@
 import { asis } from '@proc7ts/primitives';
+import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { UcSchema } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
@@ -58,7 +59,7 @@ export function UcList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
     const item = resolver.schemaOf(itemSpec) as UcSchema.Of<TItemSpec>;
 
     return {
-      from: '@hatsy/churi',
+      from: CHURI_MODULE,
       type: 'list',
       flags: item.flags,
       item,

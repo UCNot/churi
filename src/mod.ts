@@ -1,3 +1,6 @@
+/**
+ * @module @hatsy/churi
+ */
 export * from './charge/mod.js';
 export * from './churi.js';
 export * from './ext/mod.js';
