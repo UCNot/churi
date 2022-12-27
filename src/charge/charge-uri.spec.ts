@@ -380,6 +380,11 @@ describe('chargeURIKey', () => {
 
     expect(chargeURIKey(key)).toBe(`$${encodeURIComponent(key)}`);
   });
+  it('does not escape long subsequent key', () => {
+    const key = 'abcd' + '\u001a'.repeat(20);
+
+    expect(chargeURIKey(key, true)).toBe(encodeURIComponent(key));
+  });
   it('does not escapes 63-octet key', () => {
     const key = 'abc' + '\u001a'.repeat(20);
 

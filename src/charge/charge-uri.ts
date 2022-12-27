@@ -62,13 +62,15 @@ const URI_CHARGE_ENCODERS: {
 /**
  * Encodes key of URI charge map entry.
  *
+ * When initial key encoded (by default), it is escaped with `$` if its encoded length is more than 63 octets.
+ *
  * @param key - Entry key to encode.
- * @param placement - The supposed placement of encoded key.
+ * @param subsequent - Whether the key is subsequent. `false` by default, which means the key is initial.
  *
  * @returns Encoded key.
  */
-export function chargeURIKey(key: string): string {
-  return key ? escapeUcKey(encodeURIComponent(key)) : '$';
+export function chargeURIKey(key: string, subsequent = false): string {
+  return key ? escapeUcKey(encodeURIComponent(key), subsequent) : '$';
 }
 
 /**
@@ -223,7 +225,7 @@ export function chargeURIMap(
     const encodedValue = chargeURI(value, entryPlacement);
 
     if (encodedValue != null) {
-      const encodedKey = chargeURIKey(key);
+      const encodedKey = chargeURIKey(key, index > 0);
 
       if (!encodedValue && index === lastIndex && (encoded.length || isTail)) {
         // Suffix.

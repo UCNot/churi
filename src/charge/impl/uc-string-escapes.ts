@@ -10,10 +10,12 @@ const UC_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'-0123456789");
 
 const UC_KEY_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'");
 
-export function escapeUcKey(encoded: string): string {
+export function escapeUcKey(encoded: string, subsequent: boolean): string {
   const escaped = escapeUcSpecials(encoded);
 
-  return escaped.length > 63 || UC_KEY_ESCAPED.prefixes(escaped) ? `$${escaped}` : escaped;
+  return (!subsequent && escaped.length > 63) || UC_KEY_ESCAPED.prefixes(escaped)
+    ? `$${escaped}`
+    : escaped;
 }
 
 const UC_SPECIALS_PATTERN = /*#__PURE__*/ /[()]/g;

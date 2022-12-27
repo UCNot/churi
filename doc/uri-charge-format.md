@@ -153,8 +153,9 @@ The following rules apply to entry keys:
   that should be [percent-encoded].
 - Since `"!" (U+0021)`, `"$" (U+0024)`, and `"'" (U+0027)` prefixes have special meaning, they should be escaped
   with _dollar sign_ (`"$" (U+0024)`).
-- **A non-escaped key having more than 63 octets is illegal**. It is up to the parser how to treat it, or raise an error
-  instead. This requirement simplifies processing of streams containing URI charge.
+- **A non-escaped key having more than 63 octets is illegal at initial position**. It is up to the parser how to treat
+  it, or raise an error instead. This requirement allows to quickly distinguish strings and maps when processing a
+  stream. This rule makes sense only for initial key and not applied to subsequent ones.
 
 If entry value is an array (`foo((bar)(baz))`), it can be encoded without enclosing parentheses: `foo(bar)(baz)`.
 
