@@ -1,11 +1,11 @@
 import { URIChargeExt } from '../charge/uri-charge-ext.js';
-import { NumberValuesUcExt } from './number-values.uc-ext.js';
+import { NonFiniteUcExt } from './non-finite.uc-ext.js';
 
 /**
  * Standard URI charge extension used by default.
  *
- * Enables:
+ * Enables support for:
  *
- * - {@link NumberValuesUcExt Number Values}.
+ * - {@link NonFiniteUcExt non-finite numbers}.
  */
-export const StandardUcExt: URIChargeExt.Factory = /*#__PURE__*/ URIChargeExt(NumberValuesUcExt);
+export const StandardUcExt: URIChargeExt.Factory = /*#__PURE__*/ URIChargeExt(NonFiniteUcExt);

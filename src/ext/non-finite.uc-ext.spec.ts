@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { parseUcValue } from '../charge/parse-uc-value.js';
 
-describe('NumberValuesUcExt', () => {
+describe('NonFiniteUcExt', () => {
   describe('Infinity', () => {
     it('recognized as top-level value', () => {
       expect(parseUcValue('!Infinity').charge).toBe(Infinity);

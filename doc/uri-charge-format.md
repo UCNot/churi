@@ -205,7 +205,7 @@ recognized by custom parser.
 
 Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by entity name. It is up to the parser how to treat it.
 
-For example, the following entities supported by standard "Number Values" extension:
+For example, the following entities supported by standard "Non-Finite Numbers" extension:
 
 - `!Infinity` is treated as `Infinity` (positive infinity) numeric value.
 - `!-Infinity` is treated as `-Infinity` (negative infinity) numeric value.
