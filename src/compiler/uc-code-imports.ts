@@ -22,7 +22,7 @@ export class UcCodeImports implements Iterable<[from: string, name: string, alia
       moduleImports = new Map();
     }
 
-    const alias = this.#aliases.alias(name);
+    const alias = this.#aliases.aliasFor(name);
 
     moduleImports.set(name, alias);
 

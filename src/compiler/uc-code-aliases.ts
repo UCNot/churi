@@ -6,7 +6,7 @@ export class UcCodeAliases {
     this.#aliases = new Map(reserved.map(reserved => [reserved, [reserved]]));
   }
 
-  alias(name: string): string {
+  aliasFor(name: string): string {
     let alias: string;
     const aliases = this.#aliases.get(name);
 

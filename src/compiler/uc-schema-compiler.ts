@@ -1,115 +1,79 @@
-import { asArray } from '@proc7ts/primitives';
 import { UcSchema } from '../schema/uc-schema.js';
-import { DefaultUcSchemaDefinitions } from './default.uc-schema-definitions.js';
-import { UcCodeAliases } from './impl/uc-code-aliases.js';
-import { UcCodeDeclarations } from './impl/uc-code-declarations.js';
-import { UcCodeImports } from './impl/uc-code-imports.js';
-import { UcSchemaDefinitions } from './uc-schema-definitions.js';
-import { UcSerializer } from './uc-serializer.js';
+import { UcCodeAliases } from './uc-code-aliases.js';
+import { UcCodeBuilder } from './uc-code-builder.js';
+import { UcCodeDeclarations } from './uc-code-declarations.js';
+import { UcLibCompiler } from './uc-lib-compiler.js';
 
-export class UcSchemaCompiler<in out T = unknown> {
+export class UcSchemaCompiler<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
-  readonly #aliases: UcCodeAliases;
-  readonly #imports: UcCodeImports;
+  readonly #lib: UcLibCompiler;
+  readonly #schema: TSchema;
+  readonly #serializerName: string;
   readonly #declarations: UcCodeDeclarations;
-  readonly #schema: UcSchema<T>;
-  readonly #definitions: Map<string, UcSchemaDefinitions>;
-  #written = false;
-  #code = '';
 
-  constructor(schema: UcSchema<T>, options: UcSchemaCompiler.Options);
+  #compiled = false;
+  readonly #code = new UcCodeBuilder();
 
-  constructor(
-    readonly schema: UcSchema<T>,
-    { definitions = DefaultUcSchemaDefinitions }: UcSchemaCompiler.Options = {},
-  ) {
-    this.#aliases = new UcCodeAliases('value', 'writer');
-    this.#imports = new UcCodeImports(this.#aliases);
-    this.#declarations = new UcCodeDeclarations(this.#aliases);
+  constructor(options: UcSchemaCompiler.Options<T, TSchema>);
+  constructor({ lib, schema, serializerName }: UcSchemaCompiler.Options<T, TSchema>) {
+    this.#lib = lib;
     this.#schema = schema;
+    this.#serializerName = serializerName;
 
-    this.#definitions = new Map(
-      asArray(definitions).map(definitions => [definitions.from, definitions]),
-    );
+    this.#declarations = new UcCodeDeclarations(this.aliases);
+    this.#schema = schema;
   }
 
-  import(from: string, name: string): string {
-    return this.#imports.import(from, name);
+  get lib(): UcLibCompiler {
+    return this.#lib;
+  }
+
+  get schema(): TSchema {
+    return this.#schema;
+  }
+
+  get serializerName(): string {
+    return this.#serializerName;
+  }
+
+  get aliases(): UcCodeAliases {
+    return this.#lib.aliases;
+  }
+
+  get declarations(): UcCodeDeclarations {
+    return this.#declarations;
+  }
+
+  get code(): UcCodeBuilder {
+    return this.#code;
   }
 
   declare(name: string, code: string): string {
-    return this.#declarations.declare(name, code);
+    return this.declarations.declare(name, code);
+  }
+
+  write(...code: (string | Iterable<string>)[]): void {
+    this.code.write(...code);
   }
 
   serialize(schema: UcSchema, value: string): void {
-    const coder = this.#definitions.get(schema.from);
-
-    if (!coder) {
-      throw new TypeError(`Unknown source of "${schema.type}" type definition: "${schema.from}"`);
-    }
-
-    coder.write(this as UcSchemaCompiler, schema, value);
+    this.lib.definitionsFor(schema).write(this as UcSchemaCompiler, schema, value);
   }
 
-  write(code: string): void {
-    this.#code += `${code}\n`;
+  compile(code: UcCodeBuilder): void {
+    this.#compile();
+
+    code
+      .write(`async function ${this.serializerName}(value, writer) {`)
+      .indent(code => {
+        code.write(this.declarations, this.code);
+      })
+      .write('}');
   }
 
-  async generateFunction(functionName = ''): Promise<UcSerializer<T>> {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(`
-return (async () => {
-${this.#dynamicImports()}
-
-return ${this.#fn(functionName)};
-})();
-`) as () => Promise<UcSerializer<T>>;
-
-    return await factory();
-  }
-
-  #dynamicImports(): string {
-    let imports = '';
-
-    for (const [from, name, alias] of this.#imports) {
-      imports += `const { ${name}: ${alias} } = await import('${from}');\n`;
-    }
-
-    return imports;
-  }
-
-  generateModule(functionName: string): string {
-    return `
-${this.#importStatements()}
-
-export ${this.#fn(functionName)};
-`;
-  }
-
-  #importStatements(): string {
-    let imports = '';
-
-    for (const [from, name, alias] of this.#imports) {
-      imports += `import { ${name} as ${alias} } from '${from}';\n`;
-    }
-
-    return imports;
-  }
-
-  #fn(name: string): string {
-    this.#write();
-
-    return `
-async function ${name}(value, writer) {
-${this.#declarations}
-${this.#code}
-}
-`;
-  }
-
-  #write(): void {
-    if (!this.#written) {
-      this.#written = true;
+  #compile(): void {
+    if (!this.#compiled) {
+      this.#compiled = true;
       this.serialize(this.#schema, 'value');
     }
   }
@@ -117,7 +81,9 @@ ${this.#code}
 }
 
 export namespace UcSchemaCompiler {
-  export interface Options {
-    readonly definitions?: UcSchemaDefinitions | readonly UcSchemaDefinitions[] | undefined;
+  export interface Options<out T, out TSchema extends UcSchema<T>> {
+    readonly lib: UcLibCompiler;
+    readonly schema: TSchema;
+    readonly serializerName: string;
   }
 }

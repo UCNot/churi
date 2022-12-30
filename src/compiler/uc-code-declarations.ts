@@ -1,10 +1,11 @@
 import { UcCodeAliases } from './uc-code-aliases.js';
+import { UcCodeBuilder } from './uc-code-builder.js';
 
-export class UcCodeDeclarations {
+export class UcCodeDeclarations implements Iterable<string> {
 
   readonly #aliases: UcCodeAliases;
   readonly #snippets = new Map<string, string>();
-  #code = '';
+  readonly #code = new UcCodeBuilder();
 
   constructor(aliases: UcCodeAliases) {
     this.#aliases = aliases;
@@ -17,15 +18,15 @@ export class UcCodeDeclarations {
       return alias;
     }
 
-    alias = this.#aliases.alias(name);
+    alias = this.#aliases.aliasFor(name);
 
-    this.#code += `const ${alias} = ${initializer};\n`;
+    this.#code.write(`const ${alias} = ${initializer};`);
 
     return alias;
   }
 
-  toString(): string {
-    return this.#code;
+  *[Symbol.iterator](): IterableIterator<string> {
+    yield* this.#code;
   }
 
 }
