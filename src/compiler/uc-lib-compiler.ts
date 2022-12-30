@@ -28,14 +28,18 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
     this.#aliases = new UcCodeAliases('value', 'writer');
     this.#imports = new UcCodeImports(this.#aliases);
     this.#schemaCompilers = new Map(
-      Object.entries(schemae).map(([serializerName, schema]) => [
-        schema,
-        new UcSchemaCompiler({
-          lib: this as UcLibCompiler<any>,
-          schema,
-          serializerName: this.aliases.aliasFor(serializerName),
-        }),
-      ]),
+      Object.entries(schemae).map(([serializerName, schema]) => {
+        const { like = schema } = schema;
+
+        return [
+          like,
+          new UcSchemaCompiler({
+            lib: this as UcLibCompiler<any>,
+            schema: like,
+            serializerName: this.aliases.aliasFor(serializerName),
+          }),
+        ];
+      }),
     );
   }
 
@@ -54,7 +58,8 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
   compilerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcSchemaCompiler<T, TSchema> {
-    const found = this.#schemaCompilers.get(schema) as UcSchemaCompiler<T, TSchema> | undefined;
+    const { like = schema } = schema;
+    const found = this.#schemaCompilers.get(like) as UcSchemaCompiler<T, TSchema> | undefined;
 
     if (found) {
       return found;
@@ -63,11 +68,11 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
     const serializerName = this.aliases.aliasFor('serialize');
     const schemaCompiler = new UcSchemaCompiler<T, TSchema>({
       lib: this as UcLibCompiler<any>,
-      schema,
+      schema: like as TSchema,
       serializerName,
     });
 
-    this.#schemaCompilers.set(schema, schemaCompiler as UcSchemaCompiler);
+    this.#schemaCompilers.set(like, schemaCompiler as UcSchemaCompiler);
 
     return schemaCompiler;
   }
@@ -82,7 +87,7 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
     return definitions;
   }
 
-  async compile(): Promise<UcLibCompiler.Exports<TSchemae>> {
+  async compile(): Promise<UcLibCompiler.Serializers<TSchemae>> {
     const code = new UcCodeBuilder();
 
     code
@@ -96,7 +101,7 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
       .write('})();');
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code.toString()) as () => Promise<UcLibCompiler.Exports<TSchemae>>;
+    const factory = Function(code.toString()) as () => Promise<UcLibCompiler.Serializers<TSchemae>>;
 
     return await factory();
   }
@@ -174,7 +179,7 @@ export namespace UcLibCompiler {
     readonly [writer: string]: UcSchema;
   }
 
-  export type Exports<TSchemae extends Schemae> = {
-    readonly [writer in keyof TSchemae]: UcSerializer<TSchemae[writer]>;
+  export type Serializers<TSchemae extends Schemae> = {
+    readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.ImpliedType<TSchemae[writer]>>;
   };
 }
