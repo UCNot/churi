@@ -9,3 +9,4 @@ export * from './uc-lib-compiler.js';
 export * from './uc-schema-compiler.js';
 export * from './uc-schema-definitions.js';
 export * from './uc-serializer.js';
+export * from './unsupported-uc-schema.js';

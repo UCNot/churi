@@ -77,14 +77,8 @@ export class UcLibCompiler<TSchemae extends UcLibCompiler.Schemae = UcLibCompile
     return schemaCompiler;
   }
 
-  definitionsFor(schema: UcSchema): UcSchemaDefinitions {
-    const definitions = this.#definitions.get(schema.from);
-
-    if (!definitions) {
-      throw new TypeError(`Unknown source of "${schema.type}" type definition: "${schema.from}"`);
-    }
-
-    return definitions;
+  definitionsFor(schema: UcSchema): UcSchemaDefinitions | undefined {
+    return this.#definitions.get(schema.from);
   }
 
   async compile(): Promise<UcLibCompiler.Serializers<TSchemae>> {

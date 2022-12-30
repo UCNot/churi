@@ -1,7 +1,13 @@
 import { UcSchema } from '../schema/uc-schema.js';
+import { UcCodeBuilder } from './uc-code-builder.js';
 import { UcSchemaCompiler } from './uc-schema-compiler.js';
 
 export interface UcSchemaDefinitions {
   readonly from: string;
-  write(generator: UcSchemaCompiler, schema: UcSchema, value: string): void;
+  write(
+    compiler: UcSchemaCompiler,
+    schema: UcSchema,
+    value: string,
+    code: UcCodeBuilder,
+  ): boolean | void;
 }

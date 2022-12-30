@@ -3,6 +3,7 @@ import { UcCodeAliases } from './uc-code-aliases.js';
 import { UcCodeBuilder } from './uc-code-builder.js';
 import { UcCodeDeclarations } from './uc-code-declarations.js';
 import { UcLibCompiler } from './uc-lib-compiler.js';
+import { UnsupportedUcSchema } from './unsupported-uc-schema.js';
 
 export class UcSchemaCompiler<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -10,9 +11,6 @@ export class UcSchemaCompiler<out T = unknown, out TSchema extends UcSchema<T> =
   readonly #schema: TSchema;
   readonly #serializerName: string;
   readonly #declarations: UcCodeDeclarations;
-
-  #compiled = false;
-  readonly #code = new UcCodeBuilder();
 
   constructor(options: UcSchemaCompiler.Options<T, TSchema>);
   constructor({ lib, schema, serializerName }: UcSchemaCompiler.Options<T, TSchema>) {
@@ -44,38 +42,32 @@ export class UcSchemaCompiler<out T = unknown, out TSchema extends UcSchema<T> =
     return this.#declarations;
   }
 
-  get code(): UcCodeBuilder {
-    return this.#code;
-  }
-
   declare(name: string, code: string): string {
     return this.declarations.declare(name, code);
   }
 
-  write(...code: (string | Iterable<string>)[]): void {
-    this.code.write(...code);
-  }
+  serialize(schema: UcSchema, value: string, code: UcCodeBuilder): void {
+    const definitions = this.lib.definitionsFor(schema);
 
-  serialize(schema: UcSchema, value: string): void {
-    this.lib.definitionsFor(schema).write(this as UcSchemaCompiler, schema, value);
+    if (
+      !definitions
+      || definitions.write(this as UcSchemaCompiler, schema, value, code) === false
+    ) {
+      throw new UnsupportedUcSchema(
+        schema,
+        `Can not serialize type "${schema.type} from "${schema.from}"`,
+      );
+    }
   }
 
   compile(code: UcCodeBuilder): void {
-    this.#compile();
-
     code
       .write(`async function ${this.serializerName}(value, writer) {`)
       .indent(code => {
-        code.write(this.declarations, this.code);
+        code.write(this.declarations);
+        this.serialize(this.#schema, 'value', code);
       })
       .write('}');
-  }
-
-  #compile(): void {
-    if (!this.#compiled) {
-      this.#compiled = true;
-      this.serialize(this.#schema, 'value');
-    }
   }
 
 }
