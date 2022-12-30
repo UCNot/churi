@@ -1,6 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
 import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
-import { UC_DATA_ENCODED } from './uc-schema.js';
 
 describe('UcBigInt', () => {
   it('is defined', () => {
@@ -34,7 +33,6 @@ describe('UcString', () => {
     expect(UcString).toMatchObject({
       from: '@hatsy/churi',
       type: 'string',
-      flags: UC_DATA_ENCODED,
     });
   });
 });

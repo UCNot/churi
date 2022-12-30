@@ -1,6 +1,6 @@
 import { asis } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../impl/module-names.js';
-import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 
 /**
  * Primitive value that may be present within URI charge.
@@ -42,6 +42,5 @@ export const UcNumber: UcSchema<number> = {
 export const UcString: UcSchema<string> = {
   from: CHURI_MODULE,
   type: 'string',
-  flags: UC_DATA_ENCODED,
   asis,
 };

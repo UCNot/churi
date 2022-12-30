@@ -61,11 +61,11 @@ class Default$UcSchemaDefinitions implements UcSchemaDefinitions {
     value: string,
     extraArgs = '',
   ): void {
-    const write = generator.import(fn, URI_CHARGE_MODULE);
+    const write = generator.lib.import(fn, URI_CHARGE_MODULE);
     const code = `${write}(writer, ${value}${extraArgs})`;
 
     if (schema.nullable) {
-      const writeNull = generator.import('writeUcNull', URI_CHARGE_MODULE);
+      const writeNull = generator.lib.import('writeUcNull', URI_CHARGE_MODULE);
       const checkNullCode = `await ${value} != null ? ${code} : ${writeNull}(writer, ${value})`;
 
       generator.write(

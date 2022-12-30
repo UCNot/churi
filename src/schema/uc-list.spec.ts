@@ -26,10 +26,4 @@ describe('UcList', () => {
       expect(schema.type).toBe('list');
     });
   });
-
-  describe('flags', () => {
-    it('set to item flags', () => {
-      expect(schema.flags).toBe(UcString.flags);
-    });
-  });
 });

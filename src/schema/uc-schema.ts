@@ -41,28 +41,12 @@ export interface UcSchema<out T = unknown> {
   readonly type: string;
 
   /**
-   * Flags affecting code generation.
-   *
-   * A bitmask constructed of `UC_DATA_XXX` bit flags.
-   *
-   * For compound schema (e.g. list or map) combines flags of nested schemas.
-   *
-   * @defaultValue `0`.
-   */
-  readonly flags?: number;
-
-  /**
    * Returns the passed-in value.
    *
    * This is a marker method that needs to present in order the type inference to work properly.
    */
   asis(value: T): T;
 }
-
-/**
- * Whether the data value contains text to be encoded/decoded.
- */
-export const UC_DATA_ENCODED = 1;
 
 export namespace UcSchema {
   /**

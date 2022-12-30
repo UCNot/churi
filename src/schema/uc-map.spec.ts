@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcMap } from './uc-map.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 
 describe('UcMapSchema', () => {
   class EntrySchema<out T> implements UcSchema<T> {
@@ -55,29 +55,6 @@ describe('UcMapSchema', () => {
     it('is set to `map`', () => {
       expect(schema.from).toBe('@hatsy/churi');
       expect(schema.type).toBe('map');
-    });
-  });
-
-  describe('flags', () => {
-    it('ignores irrelevant flags', () => {
-      const schema = resolver.schemaOf(
-        UcMap({
-          foo: new EntrySchema<string>('test-string', 0b1000000),
-          bar: new EntrySchema<number>('test-number', 0b1111000000),
-        }),
-      );
-
-      expect(schema.flags).toBe(0);
-    });
-    it('combines flags', () => {
-      const schema = resolver.schemaOf(
-        UcMap({
-          foo: new EntrySchema<string>('test-string', 0b1000000),
-          bar: new EntrySchema<number>('test-number', UC_DATA_ENCODED),
-        }),
-      );
-
-      expect(schema.flags).toBe(UC_DATA_ENCODED);
     });
   });
 });

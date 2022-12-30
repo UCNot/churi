@@ -61,7 +61,6 @@ export function UcList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
     return {
       from: CHURI_MODULE,
       type: 'list',
-      flags: item.flags,
       item,
       asis,
     };

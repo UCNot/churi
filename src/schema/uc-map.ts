@@ -1,7 +1,7 @@
 import { asis } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcPrimitive } from './uc-primitive.js';
-import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
 
 /**
@@ -84,24 +84,16 @@ export namespace UcMap {
 export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
-  return resolver => {
-    let flags = 0;
-    const entries = Object.fromEntries(
-      Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
-        const schema = resolver.schemaOf(spec);
-
-        flags |= (schema.flags ?? 0) & UC_DATA_ENCODED;
-
-        return [key, schema];
-      }),
-    ) as UcMap.Schema.Entries<TEntriesSpec>;
-
-    return {
+  return resolver => ({
       from: CHURI_MODULE,
       type: 'map',
-      flags,
-      entries,
+      entries: Object.fromEntries(
+        Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
+          const schema = resolver.schemaOf(spec);
+
+          return [key, schema];
+        }),
+      ) as UcMap.Schema.Entries<TEntriesSpec>,
       asis,
-    };
-  };
+    });
 }
