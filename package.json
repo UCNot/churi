@@ -29,8 +29,8 @@
       "default": "./dist/churi.js"
     },
     "./codegen": {
-      "types": "./dist/churi.codegen.d.ts",
-      "default": "./dist/churi.codegen.js"
+      "types": "./dist/churi.compiler.d.ts",
+      "default": "./dist/churi.compiler.js"
     }
   },
   "dependencies": {

@@ -1,37 +1,36 @@
+import { asArray } from '@proc7ts/primitives';
 import { UcSchema } from '../schema/uc-schema.js';
-import { DefaultUcDefinitions } from './impl/default.uc-definitions.js';
+import { DefaultUcSchemaDefinitions } from './default.uc-schema-definitions.js';
 import { UcCodeAliases } from './impl/uc-code-aliases.js';
 import { UcCodeDeclarations } from './impl/uc-code-declarations.js';
 import { UcCodeImports } from './impl/uc-code-imports.js';
-import { UcDefinitions } from './uc-definitions.js';
-import { UcWriter } from './uc-writer.js';
+import { UcSchemaDefinitions } from './uc-schema-definitions.js';
+import { UcSerializer } from './uc-serializer.js';
 
-export class UcWriterGenerator<in out T = unknown> {
+export class UcSchemaCompiler<in out T = unknown> {
 
-  readonly #coders = new Map<string, UcDefinitions>();
   readonly #aliases: UcCodeAliases;
   readonly #imports: UcCodeImports;
   readonly #declarations: UcCodeDeclarations;
   readonly #schema: UcSchema<T>;
+  readonly #definitions: Map<string, UcSchemaDefinitions>;
   #written = false;
   #code = '';
 
-  constructor(options: UcWriter.Options<T>) {
+  constructor(schema: UcSchema<T>, options: UcSchemaCompiler.Options);
+
+  constructor(
+    readonly schema: UcSchema<T>,
+    { definitions = DefaultUcSchemaDefinitions }: UcSchemaCompiler.Options = {},
+  ) {
     this.#aliases = new UcCodeAliases('value', 'writer');
     this.#imports = new UcCodeImports(this.#aliases);
     this.#declarations = new UcCodeDeclarations(this.#aliases);
-    this.#schema = options.schema;
+    this.#schema = schema;
 
-    this.#addCoder(DefaultUcDefinitions);
-    if (options.definitions) {
-      for (const coder of options.definitions) {
-        this.#addCoder(coder);
-      }
-    }
-  }
-
-  #addCoder(coder: UcDefinitions): void {
-    this.#coders.set(coder.from, coder);
+    this.#definitions = new Map(
+      asArray(definitions).map(definitions => [definitions.from, definitions]),
+    );
   }
 
   import(from: string, name: string): string {
@@ -43,20 +42,20 @@ export class UcWriterGenerator<in out T = unknown> {
   }
 
   serialize(schema: UcSchema, value: string): void {
-    const coder = this.#coders.get(schema.from);
+    const coder = this.#definitions.get(schema.from);
 
     if (!coder) {
       throw new TypeError(`Unknown source of "${schema.type}" type definition: "${schema.from}"`);
     }
 
-    coder.write(this as UcWriterGenerator, schema, value);
+    coder.write(this as UcSchemaCompiler, schema, value);
   }
 
   write(code: string): void {
     this.#code += `${code}\n`;
   }
 
-  async generateFunction(functionName = ''): Promise<UcWriter<T>> {
+  async generateFunction(functionName = ''): Promise<UcSerializer<T>> {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(`
 return (async () => {
@@ -64,7 +63,7 @@ ${this.#dynamicImports()}
 
 return ${this.#fn(functionName)};
 })();
-`) as () => Promise<UcWriter<T>>;
+`) as () => Promise<UcSerializer<T>>;
 
     return await factory();
   }
@@ -115,4 +114,10 @@ ${this.#code}
     }
   }
 
+}
+
+export namespace UcSchemaCompiler {
+  export interface Options {
+    readonly definitions?: UcSchemaDefinitions | readonly UcSchemaDefinitions[] | undefined;
+  }
 }

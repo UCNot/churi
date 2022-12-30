@@ -1,11 +1,11 @@
-import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
-import { UcSchema } from '../../schema/uc-schema.js';
-import { UcDefinitions } from '../uc-definitions.js';
-import { UcWriterGenerator } from '../uc-writer-generator.js';
+import { CHURI_MODULE, URI_CHARGE_MODULE } from '../impl/module-names.js';
+import { UcSchema } from '../schema/uc-schema.js';
+import { UcSchemaCompiler } from './uc-schema-compiler.js';
+import { UcSchemaDefinitions } from './uc-schema-definitions.js';
 
-class Default$UcDefinitions implements UcDefinitions {
+class Default$UcSchemaDefinitions implements UcSchemaDefinitions {
 
-  readonly #byType: { readonly [type: string]: UcDefinitions['write'] };
+  readonly #byType: { readonly [type: string]: UcSchemaDefinitions['write'] };
 
   constructor() {
     this.#byType = {
@@ -20,7 +20,7 @@ class Default$UcDefinitions implements UcDefinitions {
     return CHURI_MODULE;
   }
 
-  write(generator: UcWriterGenerator, schema: UcSchema, value: string): void {
+  write(generator: UcSchemaCompiler, schema: UcSchema, value: string): void {
     const coder = this.#byType[schema.type];
 
     if (!coder) {
@@ -32,30 +32,30 @@ class Default$UcDefinitions implements UcDefinitions {
     coder(generator, schema, value);
   }
 
-  #writeBigInt(generator: UcWriterGenerator, schema: UcSchema, value: string): void {
+  #writeBigInt(generator: UcSchemaCompiler, schema: UcSchema, value: string): void {
     this.#writeWith(generator, schema, 'writeUcBigInt', value);
   }
 
-  #writeBoolean(generator: UcWriterGenerator, schema: UcSchema, value: string): void {
+  #writeBoolean(generator: UcSchemaCompiler, schema: UcSchema, value: string): void {
     this.#writeWith(generator, schema, 'writeUcBoolean', value);
   }
 
-  #writeNumber(generator: UcWriterGenerator, schema: UcSchema, value: string): void {
+  #writeNumber(generator: UcSchemaCompiler, schema: UcSchema, value: string): void {
     this.#writeWith(generator, schema, 'writeUcNumber', value);
   }
 
-  #writeString(generator: UcWriterGenerator, schema: UcSchema, value: string): void {
+  #writeString(generator: UcSchemaCompiler, schema: UcSchema, value: string): void {
     const encoder = this.#declareEncoder(generator);
 
     this.#writeWith(generator, schema, 'writeUcString', value, `, ${encoder}`);
   }
 
-  #declareEncoder(generator: UcWriterGenerator): string {
+  #declareEncoder(generator: UcSchemaCompiler): string {
     return generator.declare('encoder', 'new TextEncoder()');
   }
 
   #writeWith(
-    generator: UcWriterGenerator,
+    generator: UcSchemaCompiler,
     schema: UcSchema,
     fn: string,
     value: string,
@@ -80,4 +80,4 @@ class Default$UcDefinitions implements UcDefinitions {
 
 }
 
-export const DefaultUcDefinitions = /*#__PURE__*/ new Default$UcDefinitions();
+export const DefaultUcSchemaDefinitions = /*#__PURE__*/ new Default$UcSchemaDefinitions();
