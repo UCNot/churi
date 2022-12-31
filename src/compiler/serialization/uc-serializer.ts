@@ -1,4 +1,4 @@
 export type UcSerializer<T> = (
-  value: T,
   writer: WritableStreamDefaultWriter<Uint8Array>,
+  value: T,
 ) => Promise<void>;

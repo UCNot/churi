@@ -1,10 +1,6 @@
-export class UcCodeAliases {
+export class UccAliases {
 
-  readonly #aliases: Map<string, string[]>;
-
-  constructor(...reserved: string[]) {
-    this.#aliases = new Map(reserved.map(reserved => [reserved, [reserved]]));
-  }
+  readonly #aliases = new Map<string, string[]>();
 
   aliasFor(name: string): string {
     let alias: string;

@@ -1,12 +1,8 @@
 /**
  * @module @hatsy/churi/compiler
  */
-export * from './default.uc-schema-definitions.js';
-export * from './uc-code-aliases.js';
-export * from './uc-code-declarations.js';
-export * from './uc-code-imports.js';
-export * from './uc-lib-compiler.js';
-export * from './uc-schema-compiler.js';
-export * from './uc-schema-definitions.js';
-export * from './uc-serializer.js';
+export * from './serialization/mod.js';
+export * from './ucc-aliases.js';
+export * from './ucc-declarations.js';
+export * from './ucc-imports.js';
 export * from './unsupported-uc-schema.js';

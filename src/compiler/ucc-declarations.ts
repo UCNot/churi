@@ -1,13 +1,13 @@
-import { UcCodeAliases } from './uc-code-aliases.js';
-import { UcCodeBuilder } from './uc-code-builder.js';
+import { UccAliases } from './ucc-aliases.js';
+import { UccCode } from './ucc-code.js';
 
-export class UcCodeDeclarations implements Iterable<string> {
+export class UccDeclarations implements UccCode.Fragment {
 
-  readonly #aliases: UcCodeAliases;
+  readonly #aliases: UccAliases;
   readonly #snippets = new Map<string, string>();
-  readonly #code = new UcCodeBuilder();
+  readonly #code = new UccCode();
 
-  constructor(aliases: UcCodeAliases) {
+  constructor(aliases: UccAliases) {
     this.#aliases = aliases;
   }
 
@@ -25,8 +25,8 @@ export class UcCodeDeclarations implements Iterable<string> {
     return alias;
   }
 
-  *[Symbol.iterator](): IterableIterator<string> {
-    yield* this.#code;
+  async toCode(code: UccCode): Promise<void> {
+    await this.#code.toCode(code);
   }
 
 }
