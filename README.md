@@ -127,9 +127,9 @@ console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range')
 
 The `ChURI` class is read-only. It disallows URI manipulations.
 
-To build Charge URI a tagged template can be used.
+To build Charged URI a tagged template can be used.
 
-The following code snipped can be used to reconstruct the URL from example above:
+The following code reconstructs the URI from example above:
 
 ```typescript
 import { churi } from '@hatsy/churi';
@@ -159,7 +159,7 @@ import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';
 
 console.debug(
   'https://example.com' +
-    `/api(${chargeURIArgs(new UcDirective('!v', '(3.0)'))}` +
+    `/api${chargeURIArgs(new UcDirective('!v', '(3.0)'))}` +
     `/user;id=${chargeURI(302875106592253n)}` +
     `/article;slug=${chargeURI('hello-world')}` +
     '/comments' +
