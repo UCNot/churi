@@ -1,5 +1,5 @@
 import { chargeURIKey } from '../../charge/charge-uri.js';
-import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { ucNullable, ucOptional, UcSchema } from '../../schema/uc-schema.js';
@@ -58,7 +58,7 @@ class Default$UcsDefs implements UcsDefs {
   }
 
   #writeASCII(fn: UcsFunction, code: UccCode, value: string): void {
-    const writeASCII = fn.lib.import(URI_CHARGE_MODULE, 'writeUcASCII');
+    const writeASCII = fn.lib.import(SERIALIZER_MODULE, 'writeUcASCII');
 
     code.write(`await ${writeASCII}(${value});`);
   }
@@ -240,11 +240,11 @@ class Default$UcsDefs implements UcsDefs {
     extraArgs = '',
   ): void {
     const { lib } = fn;
-    const serializerAlias = fn.lib.import(serializer, URI_CHARGE_MODULE);
+    const serializerAlias = fn.lib.import(serializer, SERIALIZER_MODULE);
     const write = `${serializerAlias}(${fn.args.writer}, ${value}${extraArgs})`;
 
     if (schema.nullable) {
-      const writeASCII = lib.import(URI_CHARGE_MODULE, 'writeUcASCII');
+      const writeASCII = lib.import(SERIALIZER_MODULE, 'writeUcASCII');
       const writeNull = `${writeASCII}(${fn.args.writer}, '--')`;
 
       if (schema.optional) {

@@ -1,2 +1,2 @@
 export const CHURI_MODULE = '@hatsy/churi';
-export const URI_CHARGE_MODULE = '@hatsy/churi/uri-charge';
+export const SERIALIZER_MODULE = '@hatsy/churi/serializer';
