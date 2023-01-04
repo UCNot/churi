@@ -11,6 +11,10 @@ export class UcsWriter {
     this.#writer = stream.getWriter();
   }
 
+  get ready(): Promise<void> {
+    return this.#writer.ready;
+  }
+
   get writer(): WritableStreamDefaultWriter {
     return this.#writer;
   }
@@ -21,6 +25,10 @@ export class UcsWriter {
 
   get encoder(): TextEncoder {
     return (this.#encoder ??= new TextEncoder());
+  }
+
+  write(chunk: Uint8Array): void {
+    this.whenWritten(this.#writer.write(chunk));
   }
 
   whenWritten(written: Promise<void>): void {

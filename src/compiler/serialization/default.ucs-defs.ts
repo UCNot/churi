@@ -83,15 +83,12 @@ class Default$UcsDefs implements UcsDefs {
             code
               .write(`if (!${itemWritten}) {`)
               .indent(
-                `await ${args.writer}.writer.ready;`,
-                `${args.writer}.whenWritten(${args.writer}.writer.write(${openingParenthesis}));`,
+                `await ${args.writer}.ready;`,
+                `${args.writer}.write(${openingParenthesis});`,
                 `${itemWritten} = true;`,
               )
               .write('} else {')
-              .indent(
-                `await ${args.writer}.writer.ready;`,
-                `${args.writer}.whenWritten(${args.writer}.writer.write(${listItemSeparator}));`,
-              )
+              .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${listItemSeparator});`)
               .write('}');
             try {
               const serializer = fn.serializerFor(itemSchema);
@@ -107,9 +104,8 @@ class Default$UcsDefs implements UcsDefs {
           })
           .write(`}`);
         code.write(
-          `await ${args.writer}.writer.ready;`,
-          `${args.writer}.whenWritten(`
-            + `${args.writer}.writer.write(${itemWritten} ? ${closingParenthesis} : ${emptyList}));`,
+          `await ${args.writer}.ready;`,
+          `${args.writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
         );
       }),
     );
@@ -150,10 +146,7 @@ class Default$UcsDefs implements UcsDefs {
               entrySchema,
               entryValue,
               code => {
-                code.write(
-                  `await ${args.writer}.writer.ready;`,
-                  `${args.writer}.whenWritten(${args.writer}.writer.write(${entryPrefix}))`,
-                );
+                code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${entryPrefix})`);
                 try {
                   const serializer = fn.serializerFor(
                     ucOptional(ucNullable(entrySchema, false), false),
@@ -168,18 +161,18 @@ class Default$UcsDefs implements UcsDefs {
                   );
                 }
                 code.write(
-                  `await ${args.writer}.writer.ready;`,
-                  `${args.writer}.whenWritten(${args.writer}.writer.write(${closingParenthesis}));`,
+                  `await ${args.writer}.ready;`,
+                  `${args.writer}.write(${closingParenthesis});`,
+                  `${entryWritten} = true;`,
                 );
-                code.write(`${entryWritten} = true;`);
               },
               code => {
                 code.write(
-                  `await ${args.writer}.writer.ready;`,
-                  `${args.writer}.whenWritten(${args.writer}.writer.write(${entryPrefix}))`,
-                  `${args.writer}.whenWritten(${args.writer}.writer.write(${nullEntryValue}))`,
+                  `await ${args.writer}.ready;`,
+                  `${args.writer}.write(${entryPrefix})`,
+                  `${args.writer}.write(${nullEntryValue})`,
+                  `${entryWritten} = true;`,
                 );
-                code.write(`${entryWritten} = true;`);
               },
             ),
           );
@@ -187,10 +180,7 @@ class Default$UcsDefs implements UcsDefs {
 
         code
           .write(`if (!${entryWritten}) {`)
-          .indent(
-            `await ${args.writer}.writer.ready;`,
-            `${args.writer}.whenWritten(${args.writer}.writer.write(${emptyMap}));`,
-          )
+          .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${emptyMap});`)
           .write('}');
       }),
     );
@@ -213,49 +203,28 @@ class Default$UcsDefs implements UcsDefs {
 
     return code => {
       if (schema.nullable) {
-        code.write(`if (${value} != null) {`).indent(code => {
-          build(code);
-        });
+        code.write(`if (${value} != null) {`).indent(build);
         if (schema.optional) {
-          code.write(`} else if (${value} === null) {`).indent(code => {
-            if (buildNull) {
-              buildNull(code);
-            } else {
-              code.write(
-                `await ${args.writer}.writer.ready;`,
-                `${args.writer}.whenWritten(${args.writer}.writer.write(${ucsNull}))`,
-              );
-            }
-          });
+          code
+            .write(`} else if (${value} === null) {`)
+            .indent(buildNull ?? `await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
           if (buildUndefined) {
-            code.write(`} else {`).indent(code => {
-              buildUndefined(code);
-            });
+            code.write(`} else {`).indent(buildUndefined);
           }
         } else {
-          code.write(`} else {`).indent(code => {
-            if (buildNull) {
-              buildNull(code);
-            } else {
-              code.write(
-                `await ${args.writer}.writer.ready;`,
-                `${args.writer}.whenWritten(${args.writer}.writer.write(${ucsNull}))`,
-              );
-            }
-          });
+          code
+            .write(`} else {`)
+            .indent(buildNull ?? `await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
         }
         code.write('}');
       } else if (schema.optional) {
-        code.write(`if (${value} != null) {`).indent(code => {
-          build(code);
-        });
+        code.write(`if (${value} != null) {`).indent(build);
         if (buildUndefined) {
-          code.write(`} else {`);
-          buildUndefined(code);
+          code.write(`} else {`).indent(buildUndefined);
         }
         code.write(`}`);
       } else {
-        build(code);
+        code.write(build);
       }
     };
   }

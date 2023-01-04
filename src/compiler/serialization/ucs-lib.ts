@@ -113,13 +113,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   #toFactoryCode(): UccCode.Builder {
     return code => code
         .write('return (async () => {')
-        .indent(code => {
-          code
-            .write(this.imports.asDynamic())
-            .write(this.#compileSerializers())
-            .write()
-            .write(this.#returnSerializers());
-        })
+        .indent(this.imports.asDynamic(), this.#compileSerializers(), this.#returnSerializers())
         .write('})();');
   }
 
@@ -155,13 +149,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #toModuleCode(): UccCode.Builder {
-    return code => {
-      code
-        .write(this.#imports.asStatic())
-        .write(this.#compileSerializers())
-        .write()
-        .write(this.#exportSerializers());
-    };
+    return code => code.write(this.#imports.asStatic(), this.#compileSerializers(), this.#exportSerializers());
   }
 
   #exportSerializers(): UccCode.Builder {
@@ -180,14 +168,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #compileSerializers(): UccCode.Builder {
-    return code => {
-      code.write(
-        ...[...this.#serializers.values()].map(serializer => (code: UccCode) => {
-          code.write();
-          code.write(serializer);
-        }),
-      );
-    };
+    return code => code.write(...this.#serializers.values());
   }
 
 }
