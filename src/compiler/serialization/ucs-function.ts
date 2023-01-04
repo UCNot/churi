@@ -3,7 +3,6 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
 import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
-import { UcsDefs } from './ucs-defs.js';
 import { UcsLib } from './ucs-lib.js';
 
 export class UcsFunction<
@@ -25,7 +24,7 @@ export class UcsFunction<
 
     this.#schema = schema;
 
-    this.write(code => this.serializerFor(this.schema)(code, this.args.value));
+    this.write(this.serialize(this.schema, this.args.value));
   }
 
   get lib(): UcsLib {
@@ -48,10 +47,10 @@ export class UcsFunction<
     return this.#lib.aliases;
   }
 
-  serializerFor(schema: UcSchema): UcsDefs.Serializer {
-    const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema);
+  serialize(schema: UcSchema, value: string): UccCode.Source {
+    const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema, value);
 
-    if (!serializer) {
+    if (serializer == null) {
       throw new UnsupportedUcSchema(
         schema,
         `${this.name}: Can not serialize type "${schema.type} from "${schema.from}"`,

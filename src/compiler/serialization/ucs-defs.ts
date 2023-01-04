@@ -4,9 +4,5 @@ import { UcsFunction } from './ucs-function.js';
 
 export interface UcsDefs {
   readonly from: string;
-  serialize(serializer: UcsFunction, schema: UcSchema): UcsDefs.Serializer | undefined;
-}
-
-export namespace UcsDefs {
-  export type Serializer = (code: UccCode, value: string) => void | PromiseLike<void>;
+  serialize(serializer: UcsFunction, schema: UcSchema, value: string): UccCode.Source | undefined;
 }

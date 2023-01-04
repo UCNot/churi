@@ -7,7 +7,7 @@ export class UccCode implements UccCode.Fragment {
     this.#indent = parent ? parent.#indent + '  ' : '';
   }
 
-  write(...fragments: (string | UccCode.Fragment<this> | UccCode.Builder<this>)[]): this {
+  write(...fragments: (UccCode.Source<this> | UccCode.Fragment<this>)[]): this {
     for (const fragment of fragments) {
       if (typeof fragment === 'string') {
         this.#parts.push(new UccCode$Line(`${this.#indent}${fragments}\n`));
@@ -28,7 +28,7 @@ export class UccCode implements UccCode.Fragment {
     return this;
   }
 
-  indent(...fragments: (string | UccCode.Fragment | UccCode.Builder)[]): this {
+  indent(...fragments: (UccCode.Source | UccCode.Fragment)[]): this {
     this.#parts.push(new UccCode(this).write(...fragments));
 
     return this;
@@ -89,8 +89,10 @@ class UccCode$Fragment implements UccCode$Part {
 }
 
 export namespace UccCode {
+  export type Source<TCode extends UccCode = UccCode> = string | Builder<TCode>;
+
   export interface Fragment<out TCode extends UccCode = UccCode> {
-    toCode(): string | Builder<TCode>;
+    toCode(): string | Source<TCode>;
   }
 
   export type Builder<in TCode extends UccCode = UccCode> = {
