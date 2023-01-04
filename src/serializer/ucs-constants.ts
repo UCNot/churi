@@ -9,6 +9,8 @@ export const UCS_NULL_ENTRY_VALUE = /*#__PURE__*/ new Uint8Array([0x2d, 0x2d, 0x
 export const UCS_NAN_ENTITY = /*#__PURE__*/ asciiToBin('!NaN');
 export const UCS_INFINITY_ENTITY = /*#__PURE__*/ asciiToBin('!Infinity');
 export const UCS_NEGATIVE_INFINITY_ENTITY = /*#__PURE__*/ asciiToBin('!-Infinity');
+export const UCS_TRUE = /*#__PURE__*/ new Uint8Array([0x21]); // `!`
+export const UCS_FALSE = /*#__PURE__*/ new Uint8Array([0x2d]); // `-`
 
 function asciiToBin(value: string): Uint8Array {
   return new Uint8Array(value.split('').map(char => char.charCodeAt(0)));

@@ -50,7 +50,18 @@ class Default$UcsDefs implements UcsDefs {
   }
 
   #writeBoolean(fn: UcsFunction, schema: UcSchema, code: UccCode, value: string): void {
-    this.#writeWith(fn, schema, code, 'writeUcBoolean', value);
+    const { lib, args } = fn;
+    const ucsTrue = lib.import(SERIALIZER_MODULE, 'UCS_TRUE');
+    const ucsFalse = lib.import(SERIALIZER_MODULE, 'UCS_FALSE');
+
+    code.write(
+      this.#checkConstraints(fn, schema, value, code => {
+        code.write(
+          `await ${args.writer}.ready;`,
+          `${args.writer}.write(${value} ? ${ucsTrue} : ${ucsFalse});`,
+        );
+      }),
+    );
   }
 
   #writeNumber(fn: UcsFunction, schema: UcSchema, code: UccCode, value: string): void {
