@@ -1,5 +1,5 @@
+import { escapeUcKey, escapeUcValue } from '../impl/uc-string-escapes.js';
 import { UcMap } from '../schema/uc-map.js';
-import { escapeUcKey, escapeUcValue } from './impl/uc-string-escapes.js';
 import { ANY_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
 import { URIChargeable } from './uri-chargeable.js';
 

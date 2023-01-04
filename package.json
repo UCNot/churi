@@ -28,9 +28,13 @@
       "types": "./dist/churi.d.ts",
       "default": "./dist/churi.js"
     },
-    "./codegen": {
+    "./compiler": {
       "types": "./dist/churi.compiler.d.ts",
       "default": "./dist/churi.compiler.js"
+    },
+    "./serializer": {
+      "types": "./dist/churi.serializer.d.ts",
+      "default": "./dist/churi.serializer.js"
     }
   },
   "dependencies": {

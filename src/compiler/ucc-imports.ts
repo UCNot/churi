@@ -10,15 +10,31 @@ export class UccImports {
     this.#aliases = aliases;
   }
 
-  asStatic(): UccCode.Fragment {
-    return {
-      toCode: this.#toStaticImports.bind(this),
+  asStatic(): UccCode.Builder {
+    return code => {
+      for (const [from, moduleImports] of this.#imports) {
+        for (const [name, alias] of moduleImports) {
+          if (name === alias) {
+            code.write(`import { ${name} } from '${from}';`);
+          } else {
+            code.write(`import { ${name} as ${alias} } from '${from}';`);
+          }
+        }
+      }
     };
   }
 
-  asDynamic(): UccCode.Fragment {
-    return {
-      toCode: this.#toDynamicImports.bind(this),
+  asDynamic(): UccCode.Builder {
+    return code => {
+      for (const [from, moduleImports] of this.#imports) {
+        for (const [name, alias] of moduleImports) {
+          if (name === alias) {
+            code.write(`const ${name} = await import('${from}');`);
+          } else {
+            code.write(`const { ${name}: ${alias} } = await import('${from}');`);
+          }
+        }
+      }
     };
   }
 
@@ -40,30 +56,6 @@ export class UccImports {
     moduleImports.set(name, alias);
 
     return alias;
-  }
-
-  #toStaticImports(code: UccCode): void {
-    for (const [from, moduleImports] of this.#imports) {
-      for (const [name, alias] of moduleImports) {
-        if (name === alias) {
-          code.write(`import { ${name} } from '${from}';`);
-        } else {
-          code.write(`import { ${name} as ${alias} } from '${from}';`);
-        }
-      }
-    }
-  }
-
-  #toDynamicImports(code: UccCode): void {
-    for (const [from, moduleImports] of this.#imports) {
-      for (const [name, alias] of moduleImports) {
-        if (name === alias) {
-          code.write(`const ${name} = await import('${from}');`);
-        } else {
-          code.write(`const { ${name}: ${alias} } = await import('${from}');`);
-        }
-      }
-    }
   }
 
 }

@@ -1,7 +1,7 @@
+import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
-import { UccDeclarations } from '../ucc-declarations.js';
 import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
 import { UcsDefs } from './ucs-defs.js';
 import { UcsLib } from './ucs-lib.js';
@@ -14,7 +14,6 @@ export class UcsFunction<
   readonly #lib: UcsLib;
   readonly #schema: TSchema;
   readonly #name: string;
-  readonly #declarations: UccDeclarations;
 
   constructor(options: UcsFunction.Options<T, TSchema>);
   constructor({ lib, schema, name }: UcsFunction.Options<T, TSchema>) {
@@ -24,10 +23,8 @@ export class UcsFunction<
     this.#schema = schema;
     this.#name = name;
 
-    this.#declarations = new UccDeclarations(this.aliases);
     this.#schema = schema;
 
-    this.write(this.declarations);
     this.write(code => this.serializerFor(this.schema)(code, this.args.value));
   }
 
@@ -51,14 +48,6 @@ export class UcsFunction<
     return this.#lib.aliases;
   }
 
-  get declarations(): UccDeclarations {
-    return this.#declarations;
-  }
-
-  declare(name: string, code: string): string {
-    return this.declarations.declare(name, code);
-  }
-
   serializerFor(schema: UcSchema): UcsDefs.Serializer {
     const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema);
 
@@ -72,14 +61,23 @@ export class UcsFunction<
     return serializer;
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  override async toCode(code: UccCode): Promise<void> {
-    code
-      .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
-      .indent(code => {
-        code.write(super.toCode.bind(this));
-      })
-      .write('}');
+  override toCode(): UccCode.Builder {
+    return code => code
+        .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
+        .indent(super.toCode())
+        .write('}');
+  }
+
+  toUcsSerializer(value: string): UccCode.Builder {
+    const UcsWriter = this.lib.import(SERIALIZER_MODULE, 'UcsWriter');
+
+    return code => code
+        .write(`const writer = new ${UcsWriter}(stream);`)
+        .write(`try {`)
+        .indent(`await ${this.name}(writer, ${value});`)
+        .write(`} finally {`)
+        .indent(`await writer.done();`)
+        .write(`}`);
   }
 
 }

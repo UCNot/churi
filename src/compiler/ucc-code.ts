@@ -15,7 +15,11 @@ export class UccCode implements UccCode.Fragment {
         this.#parts.push(
           new UccCode$Fragment(
             this,
-            typeof fragment === 'function' ? fragment : fragment.toCode.bind(fragment),
+            typeof fragment === 'function'
+              ? fragment
+              : (code: UccCode) => {
+                  code.write(fragment);
+                },
           ),
         );
       }
@@ -24,26 +28,20 @@ export class UccCode implements UccCode.Fragment {
     return this;
   }
 
-  indent(write: (code: UccCode) => void): this {
-    const code = new UccCode(this);
-
-    this.#parts.push(code);
-
-    write(code);
+  indent(...fragments: (string | UccCode.Fragment | UccCode.Builder)[]): this {
+    this.#parts.push(new UccCode(this).write(...fragments));
 
     return this;
   }
 
-  async toCode(code: UccCode): Promise<void> {
-    for (const fragment of this.#parts) {
-      await fragment.toCode(code);
-    }
+  toCode(): UccCode.Builder {
+    return code => code.write(...this.#parts.map(part => part.toCode()));
   }
 
   async print(): Promise<string> {
-    const lines = await Promise.all(this.#parts.map(async fragment => await fragment.print()));
+    const fragments = await Promise.all(this.#parts.map(async fragment => await fragment.print()));
 
-    return lines.join('');
+    return fragments.join('');
   }
 
 }
@@ -60,8 +58,8 @@ class UccCode$Line implements UccCode$Part {
     this.#line = line;
   }
 
-  toCode(code: UccCode): void {
-    code.write(this.#line);
+  toCode(): string {
+    return this.#line;
   }
 
   print(): string {
@@ -80,24 +78,22 @@ class UccCode$Fragment implements UccCode$Part {
     this.#toCode = toCode;
   }
 
-  async toCode(code: UccCode): Promise<void> {
-    await this.#toCode(code);
+  toCode(): UccCode.Builder {
+    return this.#toCode;
   }
 
   async print(): Promise<string> {
-    const code = new UccCode(this.#parent);
-
-    await this.toCode(code);
-
-    return await code.print();
+    return await new UccCode(this.#parent).write(this.toCode()).print();
   }
 
 }
 
 export namespace UccCode {
-  export interface Fragment<in TCode extends UccCode = UccCode> {
-    toCode(code: TCode): void | PromiseLike<unknown>;
+  export interface Fragment<out TCode extends UccCode = UccCode> {
+    toCode(): string | Builder<TCode>;
   }
 
-  export type Builder<in TCode extends UccCode = UccCode> = Fragment<TCode>['toCode'];
+  export type Builder<in TCode extends UccCode = UccCode> = {
+    buildCode(code: TCode): unknown;
+  }['buildCode'];
 }

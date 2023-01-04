@@ -11,22 +11,47 @@ export class UccDeclarations implements UccCode.Fragment {
     this.#aliases = aliases;
   }
 
-  declare(name: string, initializer: string): string {
-    let alias = this.#snippets.get(name);
+  declare(
+    id: string,
+    initializer: string,
+    { key = id }: { readonly key?: string | undefined } = {},
+  ): string {
+    const snippetKey = key === id ? `id:${id}` : `key:${key}`;
+    let alias = this.#snippets.get(snippetKey);
 
     if (alias) {
       return alias;
     }
 
-    alias = this.#aliases.aliasFor(name);
+    alias = this.#aliases.aliasFor(id);
 
     this.#code.write(`const ${alias} = ${initializer};`);
+    this.#snippets.set(snippetKey, id);
 
     return alias;
   }
 
-  async toCode(code: UccCode): Promise<void> {
-    await this.#code.toCode(code);
+  declareConst(
+    key: string,
+    initializer: string,
+    {
+      prefix = 'CONST_',
+    }: { readonly prefix?: string | undefined; readonly key?: string | undefined } = {},
+  ): string {
+    const id =
+      prefix
+      + key.replace(
+        UCC_NON_ID_REPLACEMENT_PATTERN,
+        c => 'U' + c.charCodeAt(0).toString(16).padStart(2, '0000'),
+      );
+
+    return this.declare(id, initializer, { key: initializer });
+  }
+
+  toCode(): UccCode.Builder {
+    return this.#code.toCode.bind(this.#code);
   }
 
 }
+
+const UCC_NON_ID_REPLACEMENT_PATTERN = /(?:^[^a-zA-Z_$]|(?<!^)[^0-9a-zA-Z_$])/g;

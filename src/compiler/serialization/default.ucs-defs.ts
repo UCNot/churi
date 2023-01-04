@@ -1,4 +1,4 @@
-import { chargeURIKey } from '../../charge/charge-uri.js';
+import { encodeUcsKey } from '../../impl/encode-ucs-key.js';
 import { CHURI_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
@@ -57,19 +57,17 @@ class Default$UcsDefs implements UcsDefs {
     this.#writeWith(fn, schema, code, 'writeUcNumber', value);
   }
 
-  #writeASCII(fn: UcsFunction, code: UccCode, value: string): void {
-    const writeASCII = fn.lib.import(SERIALIZER_MODULE, 'writeUcASCII');
-
-    code.write(`await ${writeASCII}(${value});`);
-  }
-
   #writeList<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
     fn: UcsFunction,
     schema: UcList.Schema<TItem, TItemSpec>,
     code: UccCode,
     value: string,
   ): void {
-    const { aliases } = fn;
+    const { lib, aliases, args } = fn;
+    const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
+    const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
+    const listItemSeparator = lib.import(SERIALIZER_MODULE, 'UCS_LIST_ITEM_SEPARATOR');
+    const emptyList = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_LIST');
     const itemSchema = schema.item.optional
       ? ucOptional(ucNullable(schema.item), false) // Write `undefined` items as `null`
       : schema.item;
@@ -84,14 +82,16 @@ class Default$UcsDefs implements UcsDefs {
           .indent(code => {
             code
               .write(`if (!${itemWritten}) {`)
-              .indent(code => {
-                this.#writeASCII(fn, code, "'('");
-                code.write(`${itemWritten} = true;`);
-              })
+              .indent(
+                `await ${args.writer}.writer.ready;`,
+                `${args.writer}.whenWritten(${args.writer}.writer.write(${openingParenthesis}));`,
+                `${itemWritten} = true;`,
+              )
               .write('} else {')
-              .indent(code => {
-                this.#writeASCII(fn, code, "')('");
-              })
+              .indent(
+                `await ${args.writer}.writer.ready;`,
+                `${args.writer}.whenWritten(${args.writer}.writer.write(${listItemSeparator}));`,
+              )
               .write('}');
             try {
               const serializer = fn.serializerFor(itemSchema);
@@ -106,7 +106,11 @@ class Default$UcsDefs implements UcsDefs {
             }
           })
           .write(`}`);
-        this.#writeASCII(fn, code, `${itemWritten} ? ')' : '!!'`);
+        code.write(
+          `await ${args.writer}.writer.ready;`,
+          `${args.writer}.whenWritten(`
+            + `${args.writer}.writer.write(${itemWritten} ? ${closingParenthesis} : ${emptyList}));`,
+        );
       }),
     );
   }
@@ -117,7 +121,11 @@ class Default$UcsDefs implements UcsDefs {
     code: UccCode,
     value: string,
   ): void {
-    const { aliases } = fn;
+    const { lib, aliases, args } = fn;
+    const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
+    const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
+    const emptyMap = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_MAP');
+    const nullEntryValue = lib.import(SERIALIZER_MODULE, 'UCS_NULL_ENTRY_VALUE');
     const entryWritten = aliases.aliasFor(`${value}$entryWritten`);
     const entryValue = aliases.aliasFor(`${value}$entryValue`);
 
@@ -127,15 +135,25 @@ class Default$UcsDefs implements UcsDefs {
         code.write(`let ${entryValue};`);
 
         for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
-          code.write(`${entryValue} = ${value}${propertyAccessExpr(key)};`);
+          const entryPrefix = lib.declarations.declareConst(
+            key,
+            `${textEncoder}.encode('${encodeUcsKey(key)}(')`,
+            {
+              prefix: 'KEY_',
+            },
+          );
 
           code.write(
+            `${entryValue} = ${value}${propertyAccessExpr(key)};`,
             this.#checkConstraints(
               fn,
               entrySchema,
               entryValue,
               code => {
-                this.#writeASCII(fn, code, `'${chargeURIKey(key)}('`);
+                code.write(
+                  `await ${args.writer}.writer.ready;`,
+                  `${args.writer}.whenWritten(${args.writer}.writer.write(${entryPrefix}))`,
+                );
                 try {
                   const serializer = fn.serializerFor(
                     ucOptional(ucNullable(entrySchema, false), false),
@@ -149,11 +167,18 @@ class Default$UcsDefs implements UcsDefs {
                     { cause },
                   );
                 }
-                this.#writeASCII(fn, code, `')'`);
+                code.write(
+                  `await ${args.writer}.writer.ready;`,
+                  `${args.writer}.whenWritten(${args.writer}.writer.write(${closingParenthesis}));`,
+                );
                 code.write(`${entryWritten} = true;`);
               },
               code => {
-                this.#writeASCII(fn, code, `'${chargeURIKey(key)}(--)'`);
+                code.write(
+                  `await ${args.writer}.writer.ready;`,
+                  `${args.writer}.whenWritten(${args.writer}.writer.write(${entryPrefix}))`,
+                  `${args.writer}.whenWritten(${args.writer}.writer.write(${nullEntryValue}))`,
+                );
                 code.write(`${entryWritten} = true;`);
               },
             ),
@@ -162,22 +187,17 @@ class Default$UcsDefs implements UcsDefs {
 
         code
           .write(`if (!${entryWritten}) {`)
-          .indent(code => {
-            this.#writeASCII(fn, code, `'$'`);
-          })
+          .indent(
+            `await ${args.writer}.writer.ready;`,
+            `${args.writer}.whenWritten(${args.writer}.writer.write(${emptyMap}));`,
+          )
           .write('}');
       }),
     );
   }
 
   #writeString(fn: UcsFunction, schema: UcSchema, code: UccCode, value: string): void {
-    const encoder = this.#declareEncoder(fn);
-
-    this.#writeWith(fn, schema, code, 'writeUcString', value, `, ${encoder}`);
-  }
-
-  #declareEncoder(fn: UcsFunction): string {
-    return fn.declare('encoder', 'new TextEncoder()');
+    this.#writeWith(fn, schema, code, 'writeUcString', value);
   }
 
   #checkConstraints(
@@ -188,6 +208,9 @@ class Default$UcsDefs implements UcsDefs {
     buildNull?: (code: UccCode) => void,
     buildUndefined?: (code: UccCode) => void,
   ): UccCode.Builder {
+    const { lib, args } = fn;
+    const ucsNull = lib.import(SERIALIZER_MODULE, 'UCS_NULL');
+
     return code => {
       if (schema.nullable) {
         code.write(`if (${value} != null) {`).indent(code => {
@@ -198,7 +221,10 @@ class Default$UcsDefs implements UcsDefs {
             if (buildNull) {
               buildNull(code);
             } else {
-              this.#writeASCII(fn, code, "'--'");
+              code.write(
+                `await ${args.writer}.writer.ready;`,
+                `${args.writer}.whenWritten(${args.writer}.writer.write(${ucsNull}))`,
+              );
             }
           });
           if (buildUndefined) {
@@ -211,7 +237,10 @@ class Default$UcsDefs implements UcsDefs {
             if (buildNull) {
               buildNull(code);
             } else {
-              this.#writeASCII(fn, code, "'--'");
+              code.write(
+                `await ${args.writer}.writer.ready;`,
+                `${args.writer}.whenWritten(${args.writer}.writer.write(${ucsNull}))`,
+              );
             }
           });
         }
@@ -237,24 +266,14 @@ class Default$UcsDefs implements UcsDefs {
     code: UccCode,
     serializer: string,
     value: string,
-    extraArgs = '',
   ): void {
-    const { lib } = fn;
-    const serializerAlias = fn.lib.import(serializer, SERIALIZER_MODULE);
-    const write = `${serializerAlias}(${fn.args.writer}, ${value}${extraArgs})`;
+    const serializerAlias = fn.lib.import(SERIALIZER_MODULE, serializer);
 
-    if (schema.nullable) {
-      const writeASCII = lib.import(SERIALIZER_MODULE, 'writeUcASCII');
-      const writeNull = `${writeASCII}(${fn.args.writer}, '--')`;
-
-      if (schema.optional) {
-        code.write(`await ${value} != null ? ${write} : ${value} === null && ${writeNull};`);
-      } else {
-        code.write(`await ${value} != null ? ${write} : ${writeNull};`);
-      }
-    } else {
-      code.write(schema.optional ? `${value} != null && await ${write};` : `await ${write};`);
-    }
+    code.write(
+      this.#checkConstraints(fn, schema, value, code => {
+        code.write(`${serializerAlias}(${fn.args.writer}, ${value})`);
+      }),
+    );
   }
 
 }
