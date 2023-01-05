@@ -49,7 +49,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
           new UcsFunction({
             lib: this as UcsLib<any>,
             schema: like,
-            name: this.aliases.aliasFor(`${externalName}$serialize}`),
+            name: this.aliases.aliasFor(`${externalName}$serialize`),
           }),
         ];
       }),
@@ -113,7 +113,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   #toFactoryCode(): UccCode.Builder {
     return code => code
         .write('return (async () => {')
-        .indent(this.imports.asDynamic(), this.#compileSerializers(), this.#returnSerializers())
+        .indent(
+          this.imports.asDynamic(),
+          '',
+          this.#compileSerializers(),
+          '',
+          this.#returnSerializers(),
+        )
         .write('})();');
   }
 
@@ -132,10 +138,14 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode());
+    console.debug('---------------');
+
+    const code = new UccCode().write(this.#toFactoryCode()).toString();
+
+    console.debug(code);
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(await code.print()) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;
 
     return await factory();
   }
@@ -163,8 +173,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     };
   }
 
-  async #printModule(): Promise<string> {
-    return await new UccCode().write(this.#toModuleCode()).print();
+  #printModule(): string {
+    return new UccCode().write(this.#toModuleCode()).toString();
   }
 
   #compileSerializers(): UccCode.Builder {
@@ -197,6 +207,6 @@ export namespace UcsLib {
 
   export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {
     readonly lib: UcsLib<TSchemae>;
-    print(): Promise<string>;
+    print(): string;
   }
 }

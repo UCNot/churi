@@ -48,8 +48,8 @@ export class UccDeclarations implements UccCode.Fragment {
     return this.declare(id, initializer, { key: initializer });
   }
 
-  toCode(): UccCode.Builder {
-    return this.#code.toCode.bind(this.#code);
+  toCode(): UccCode.Source {
+    return code => code.write(this.#code);
   }
 
 }

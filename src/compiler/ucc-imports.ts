@@ -1,5 +1,5 @@
 import { UccAliases } from './ucc-aliases.js';
-import { UccCode } from './ucc-code.js';
+import { UccPrinter } from './ucc-printer.js';
 
 export class UccImports {
 
@@ -10,31 +10,35 @@ export class UccImports {
     this.#aliases = aliases;
   }
 
-  asStatic(): UccCode.Builder {
-    return code => {
-      for (const [from, moduleImports] of this.#imports) {
-        for (const [name, alias] of moduleImports) {
-          if (name === alias) {
-            code.write(`import { ${name} } from '${from}';`);
-          } else {
-            code.write(`import { ${name} as ${alias} } from '${from}';`);
+  asStatic(): UccPrinter.Record {
+    return {
+      printTo: lines => {
+        for (const [from, moduleImports] of this.#imports) {
+          for (const [name, alias] of moduleImports) {
+            if (name === alias) {
+              lines.print(`import { ${name} } from '${from}';`);
+            } else {
+              lines.print(`import { ${name} as ${alias} } from '${from}';`);
+            }
           }
         }
-      }
+      },
     };
   }
 
-  asDynamic(): UccCode.Builder {
-    return code => {
-      for (const [from, moduleImports] of this.#imports) {
-        for (const [name, alias] of moduleImports) {
-          if (name === alias) {
-            code.write(`const ${name} = await import('${from}');`);
-          } else {
-            code.write(`const { ${name}: ${alias} } = await import('${from}');`);
+  asDynamic(): UccPrinter.Record {
+    return {
+      printTo: lines => {
+        for (const [from, moduleImports] of this.#imports) {
+          for (const [name, alias] of moduleImports) {
+            if (name === alias) {
+              lines.print(`const { ${name} } = await import('${from}');`);
+            } else {
+              lines.print(`const { ${name}: ${alias} } = await import('${from}');`);
+            }
           }
         }
-      }
+      },
     };
   }
 
@@ -49,6 +53,7 @@ export class UccImports {
       }
     } else {
       moduleImports = new Map();
+      this.#imports.set(from, moduleImports);
     }
 
     const alias = this.#aliases.aliasFor(name);

@@ -52,7 +52,7 @@ class Default$UcsDefs implements UcsDefs {
     const ucsTrue = lib.import(SERIALIZER_MODULE, 'UCS_TRUE');
     const ucsFalse = lib.import(SERIALIZER_MODULE, 'UCS_FALSE');
 
-    return this.#checkConstraints(fn, schema, value, code => {
+    return this.#checkConstraints(fn, schema, value, function writeBoolean(code: UccCode) {
       code.write(
         `await ${args.writer}.ready;`,
         `${args.writer}.write(${value} ? ${ucsTrue} : ${ucsFalse});`,
@@ -222,7 +222,7 @@ class Default$UcsDefs implements UcsDefs {
     const { lib, args } = fn;
     const ucsNull = lib.import(SERIALIZER_MODULE, 'UCS_NULL');
 
-    return code => {
+    return function checkConstraints(code: UccCode) {
       if (schema.nullable) {
         code.write(`if (${value} != null) {`).indent(onValue);
         if (schema.optional) {

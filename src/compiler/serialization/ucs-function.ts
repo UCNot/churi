@@ -5,26 +5,23 @@ import { UccCode } from '../ucc-code.js';
 import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
 import { UcsLib } from './ucs-lib.js';
 
-export class UcsFunction<
-  out T = unknown,
-  out TSchema extends UcSchema<T> = UcSchema<T>,
-> extends UccCode {
+export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
+  implements UccCode.Fragment {
 
   readonly #lib: UcsLib;
   readonly #schema: TSchema;
   readonly #name: string;
+  readonly #code = new UccCode();
 
   constructor(options: UcsFunction.Options<T, TSchema>);
   constructor({ lib, schema, name }: UcsFunction.Options<T, TSchema>) {
-    super();
-
     this.#lib = lib;
     this.#schema = schema;
     this.#name = name;
 
     this.#schema = schema;
 
-    this.write(this.serialize(this.schema, this.args.value));
+    this.#code.write(this.serialize(this.schema, this.args.value));
   }
 
   get lib(): UcsLib {
@@ -60,10 +57,10 @@ export class UcsFunction<
     return serializer;
   }
 
-  override toCode(): UccCode.Builder {
+  toCode(): UccCode.Builder {
     return code => code
         .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
-        .indent(super.toCode())
+        .indent(this.#code)
         .write('}');
   }
 
