@@ -11,6 +11,8 @@ export const UCS_INFINITY_ENTITY = /*#__PURE__*/ asciiToBin('!Infinity');
 export const UCS_NEGATIVE_INFINITY_ENTITY = /*#__PURE__*/ asciiToBin('!-Infinity');
 export const UCS_TRUE = /*#__PURE__*/ new Uint8Array([0x21]); // `!`
 export const UCS_FALSE = /*#__PURE__*/ new Uint8Array([0x2d]); // `-`
+export const UCS_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x30, 0x6e]); // `0n`
+export const UCS_NEGATIVE_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x2d, 0x30, 0x6e]); // `-0n`
 
 function asciiToBin(value: string): Uint8Array {
   return new Uint8Array(value.split('').map(char => char.charCodeAt(0)));

@@ -11,6 +11,28 @@ describe('UcBigInt', () => {
       type: 'bigint',
     });
   });
+
+  describe('serializer', () => {
+    let lib: UcsLib<{ writeValue: typeof UcBigInt }>;
+    let writeValue: UcSerializer<bigint>;
+
+    beforeEach(async () => {
+      lib = new UcsLib({
+        schemae: {
+          writeValue: UcBigInt,
+        },
+      });
+      ({ writeValue } = await lib.compile().toSerializers());
+    });
+
+    it('serializes value', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, 0n))).resolves.toBe('0n0');
+      await expect(TextOutStream.read(async to => await writeValue(to, 13n))).resolves.toBe('0n13');
+      await expect(TextOutStream.read(async to => await writeValue(to, -13n))).resolves.toBe(
+        '-0n13',
+      );
+    });
+  });
 });
 
 describe('UcBoolean', () => {

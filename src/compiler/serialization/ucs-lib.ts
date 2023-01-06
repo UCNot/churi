@@ -138,11 +138,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
-    console.debug('---------------');
-
     const code = new UccCode().write(this.#toFactoryCode()).toString();
-
-    console.debug(code);
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;

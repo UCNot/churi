@@ -37,13 +37,13 @@ class Default$UcsDefs implements UcsDefs {
 
   #writeBigInt(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
     const { lib, args } = fn;
-    const writeAsIs = lib.import(SERIALIZER_MODULE, 'writeUcAsIs');
+    const writeBigInt = lib.import(SERIALIZER_MODULE, 'writeUcBigInt');
 
     return this.#checkConstraints(
       fn,
       schema,
       value,
-      `await ${writeAsIs}(${args.writer}, value.toString());`,
+      `await ${writeBigInt}(${args.writer}, ${value});`,
     );
   }
 
