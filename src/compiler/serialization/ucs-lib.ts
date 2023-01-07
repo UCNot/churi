@@ -16,6 +16,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
+  readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
   readonly #serializerArgs: UcsFunction.Args;
   readonly #serializers: Map<UcSchema, UcsFunction>;
 
@@ -26,6 +27,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     imports = new UccImports(aliases),
     declarations = new UccDeclarations(aliases),
     definitions = DefaultUcsDefs,
+    createSerializer = options => new UcsFunction(options),
   }: UcsLib.Options<TSchemae>) {
     this.#schemae = schemae;
     this.#definitions = new Map(
@@ -34,6 +36,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     this.#aliases = aliases;
     this.#imports = imports;
     this.#declarations = declarations;
+    this.#createSerializer = createSerializer;
 
     this.#serializerArgs = {
       writer: aliases.aliasFor('writer'),
@@ -46,7 +49,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 
         return [
           like,
-          new UcsFunction({
+          createSerializer({
             lib: this as UcsLib<any>,
             schema: like,
             name: this.aliases.aliasFor(`${externalName}$serialize`),
@@ -86,16 +89,15 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
       return found as UcsFunction<T, TSchema>;
     }
 
-    const serializerName = this.aliases.aliasFor('$serialize');
-    const schemaCompiler = new UcsFunction<T, TSchema>({
-      lib: this as UcsLib<any>,
+    const serializer = this.#createSerializer<T, TSchema>({
+      lib: this as UcsLib,
       schema: like as TSchema,
-      name: serializerName,
+      name: this.aliases.aliasFor('$serialize'),
     });
 
-    this.#serializers.set(like, schemaCompiler as UcsFunction);
+    this.#serializers.set(like, serializer as UcsFunction);
 
-    return schemaCompiler;
+    return serializer;
   }
 
   definitionsFor(schema: UcSchema): UcsDefs | undefined {
@@ -186,6 +188,11 @@ export namespace UcsLib {
     readonly imports?: UccImports | undefined;
     readonly declarations?: UccDeclarations | undefined;
     readonly definitions?: UcsDefs | readonly UcsDefs[] | undefined;
+
+    createSerializer?<T, TSchema extends UcSchema<T>>(
+      this: void,
+      options: UcsFunction.Options<T, TSchema>,
+    ): UcsFunction<T, TSchema>;
   }
 
   export interface Schemae {

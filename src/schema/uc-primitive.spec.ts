@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
+import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
+import { UcSchema } from './uc-schema.js';
 
 describe('UcBigInt', () => {
   it('creates schema', () => {
@@ -130,6 +132,32 @@ describe('UcString', () => {
     });
     it('escapes empty string', async () => {
       await expect(TextOutStream.read(async to => await writeValue(to, ''))).resolves.toBe("'");
+    });
+    it('writes multiple chunks', async () => {
+      lib = new UcsLib({
+        schemae: {
+          writeValue: UcString(),
+        },
+        createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {
+          return new UcsFunction<T, TSchema>({
+            ...options,
+            createWriter(serializer, writer, stream) {
+              const UcsWriter = serializer.lib.import('@hatsy/churi/spec', 'SmallChunkUcsWriter');
+
+              return `const ${writer} = new ${UcsWriter}(${stream}, 4);`;
+            },
+          });
+        },
+      });
+      ({ writeValue } = await lib.compile().toSerializers());
+
+      await expect(
+        TextOutStream.read(
+          async to => await writeValue(to, '1234567890'),
+          undefined,
+          new ByteLengthQueuingStrategy({ highWaterMark: 4 }),
+        ),
+      ).resolves.toBe("'1234567890");
     });
   });
 });

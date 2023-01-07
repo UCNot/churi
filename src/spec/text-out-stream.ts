@@ -1,15 +1,23 @@
 export class TextOutStream extends WritableStream<Uint8Array> {
 
-  static read(reader: (to: TextOutStream) => void | PromiseLike<void>): Promise<string> {
+  static read(
+    reader: (to: TextOutStream) => void | PromiseLike<void>,
+    sink?: UnderlyingSink<Uint8Array>,
+    strategy?: QueuingStrategy<Uint8Array>,
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const stream = new TextOutStream({
-        abort(reason: unknown) {
-          reject(reason);
+      const stream = new this(
+        {
+          abort(reason: unknown) {
+            reject(reason);
+          },
+          close() {
+            resolve(stream.toString());
+          },
+          ...sink,
         },
-        close() {
-          resolve(stream.toString());
-        },
-      });
+        strategy,
+      );
 
       Promise.resolve()
         .then(async () => {
@@ -23,11 +31,14 @@ export class TextOutStream extends WritableStream<Uint8Array> {
   readonly #decoder = new TextDecoder();
   #text = '';
 
-  constructor(sink?: UnderlyingSink<Uint8Array>) {
-    super({
-      ...sink,
-      write: chunk => this.#write(chunk),
-    });
+  constructor(sink?: UnderlyingSink<Uint8Array>, strategy?: QueuingStrategy<Uint8Array>) {
+    super(
+      {
+        write: chunk => this.#write(chunk),
+        ...sink,
+      },
+      strategy,
+    );
   }
 
   #write(chunk: Uint8Array): void {

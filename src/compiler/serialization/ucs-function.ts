@@ -11,17 +11,19 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #lib: UcsLib;
   readonly #schema: TSchema;
   readonly #name: string;
-  readonly #code = new UccCode();
+  readonly #createWriter: Required<UcsFunction.Options<T, TSchema>>['createWriter'];
 
   constructor(options: UcsFunction.Options<T, TSchema>);
-  constructor({ lib, schema, name }: UcsFunction.Options<T, TSchema>) {
+  constructor({
+    lib,
+    schema,
+    name,
+    createWriter = UcsFunction$createWriter,
+  }: UcsFunction.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
     this.#name = name;
-
-    this.#schema = schema;
-
-    this.#code.write(this.serialize(this.schema, this.args.value));
+    this.#createWriter = createWriter;
   }
 
   get lib(): UcsLib {
@@ -60,15 +62,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   toCode(): UccCode.Builder {
     return code => code
         .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
-        .indent(this.#code)
+        .indent(this.serialize(this.schema, this.args.value))
         .write('}');
   }
 
   toUcsSerializer(value: string): UccCode.Builder {
-    const UcsWriter = this.lib.import(SERIALIZER_MODULE, 'UcsWriter');
-
     return code => code
-        .write(`const writer = new ${UcsWriter}(stream);`)
+        .write(this.#createWriter(this, 'writer', 'stream'))
         .write(`try {`)
         .indent(`await ${this.name}(writer, ${value});`)
         .write(`} finally {`)
@@ -78,11 +78,24 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
 }
 
+function UcsFunction$createWriter(serializer: UcsFunction, writer: string, stream: string): string {
+  const UcsWriter = serializer.lib.import(SERIALIZER_MODULE, 'UcsWriter');
+
+  return `const ${writer} = new ${UcsWriter}(${stream});`;
+}
+
 export namespace UcsFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcsLib;
     readonly schema: TSchema;
     readonly name: string;
+
+    createWriter?(
+      this: void,
+      serializer: UcsFunction,
+      writer: string,
+      stream: string,
+    ): UccCode.Source;
   }
 
   export interface Args {

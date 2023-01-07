@@ -4,6 +4,7 @@ export class UcsWriter {
 
   readonly #writer: WritableStreamDefaultWriter;
   #whenWritten: Promise<unknown> = Promise.resolve();
+
   #memory?: UcsMemory;
   #encoder?: TextEncoder;
 
@@ -13,10 +14,6 @@ export class UcsWriter {
 
   get ready(): Promise<void> {
     return this.#writer.ready;
-  }
-
-  get writer(): WritableStreamDefaultWriter {
-    return this.#writer;
   }
 
   get memory(): UcsMemory {
