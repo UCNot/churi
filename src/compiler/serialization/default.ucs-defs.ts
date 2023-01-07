@@ -139,9 +139,13 @@ class Default$UcsDefs implements UcsDefs {
     let startMap: UccCode.Builder = noop;
     const writeDefaultEntryPrefix = (key: string): UccCode.Source => {
       const entryPrefix = key
-        ? lib.declarations.declareConst(key, `${textEncoder}.encode('${encodeUcsString(key)}(')`, {
-            prefix: 'EP_',
-          })
+        ? lib.declarations.declareConst(
+            key,
+            `${textEncoder}.encode('${stringExprEscape(encodeUcsString(key))}(')`,
+            {
+              prefix: 'EP_',
+            },
+          )
         : emptyEntryPrefix;
 
       return code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${entryPrefix})`);
@@ -282,16 +286,14 @@ class Default$UcsDefs implements UcsDefs {
 }
 
 const ASCII_KEY_PATTERN = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/;
-const KEY_ESCAPE_PATTERN = /'\//g;
+const KEY_ESCAPE_PATTERN = /['\\]/g;
 
 function propertyAccessExpr(key: string): string {
-  if (ASCII_KEY_PATTERN.test(key)) {
-    return `.${key}`;
-  }
+  return ASCII_KEY_PATTERN.test(key) ? `.${key}` : `['${stringExprEscape(key)}']`;
+}
 
-  const escaped = key.replace(KEY_ESCAPE_PATTERN, char => `\\${char}`);
-
-  return `['${escaped}']`;
+function stringExprEscape(value: string): string {
+  return value.replace(KEY_ESCAPE_PATTERN, char => `\\${char}`);
 }
 
 export const DefaultUcsDefs: UcsDefs = /*#__PURE__*/ new Default$UcsDefs();

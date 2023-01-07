@@ -4,7 +4,7 @@ import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
-import { UcSchema } from './uc-schema.js';
+import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
 
 describe('UcBigInt', () => {
   it('creates schema', () => {
@@ -61,6 +61,47 @@ describe('UcBoolean', () => {
     it('serializes boolean', async () => {
       await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
       await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
+    });
+    it('serializes optional boolean', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeValue: ucOptional(UcBoolean()),
+        },
+      });
+      const { writeValue } = await lib.compile().toSerializers();
+
+      await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
+      await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
+      await expect(TextOutStream.read(async to => await writeValue(to, undefined))).resolves.toBe(
+        '',
+      );
+    });
+    it('serializes nullable boolean', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeValue: ucNullable(UcBoolean()),
+        },
+      });
+      const { writeValue } = await lib.compile().toSerializers();
+
+      await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
+      await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
+      await expect(TextOutStream.read(async to => await writeValue(to, null))).resolves.toBe('--');
+    });
+    it('serializes optional nullable boolean', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeValue: ucOptional(ucNullable(UcBoolean())),
+        },
+      });
+      const { writeValue } = await lib.compile().toSerializers();
+
+      await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
+      await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
+      await expect(TextOutStream.read(async to => await writeValue(to, null))).resolves.toBe('--');
+      await expect(TextOutStream.read(async to => await writeValue(to, undefined))).resolves.toBe(
+        '',
+      );
     });
   });
 });

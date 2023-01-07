@@ -22,7 +22,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   readonly #declarations: UccDeclarations;
   readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
   readonly #serializerArgs: UcsFunction.Args;
-  readonly #serializers: Map<UcSchema, UcsFunction>;
+  readonly #serializers = new Map<UcSchema, Map<'' | 'O' | 'N' | 'ON', UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>);
   constructor({
@@ -55,20 +55,9 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
       value: aliases.aliasFor('value'),
     };
 
-    this.#serializers = new Map(
-      Object.entries(this.#schemae).map(([externalName, schema]) => {
-        const { like = schema } = resolver.schemaOf(schema);
-
-        return [
-          like,
-          createSerializer({
-            lib: this as UcsLib,
-            schema: like,
-            name: this.aliases.aliasFor(`${externalName}$serialize`),
-          }),
-        ];
-      }),
-    );
+    for (const [externalName, schema] of Object.entries(this.#schemae)) {
+      this.#serializerFor(schema, `${externalName}$serialize`);
+    }
   }
 
   get aliases(): UccAliases {
@@ -94,20 +83,32 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   serializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcsFunction<T, TSchema> {
-    const { like = schema } = schema;
-    const found = this.#serializers.get(like);
+    return this.#serializerFor(schema, '$serialize');
+  }
 
-    if (found) {
-      return found as UcsFunction<T, TSchema>;
+  #serializerFor<T, TSchema extends UcSchema<T>>(
+    schema: TSchema,
+    name: string,
+  ): UcsFunction<T, TSchema> {
+    const [like, variant] = UcSchema$key(schema);
+
+    let variants = this.#serializers.get(like);
+
+    if (!variants) {
+      variants = new Map();
+      this.#serializers.set(like, variants);
     }
 
-    const serializer = this.#createSerializer<T, TSchema>({
-      lib: this as UcsLib,
-      schema: like as TSchema,
-      name: this.aliases.aliasFor('$serialize'),
-    });
+    let serializer = variants.get(variant) as UcsFunction<T, TSchema> | undefined;
 
-    this.#serializers.set(like, serializer as UcsFunction);
+    if (!serializer) {
+      serializer = this.#createSerializer({
+        lib: this as UcsLib,
+        schema,
+        name: this.aliases.aliasFor(`${name}${variant}`),
+      });
+      variants.set(variant, serializer);
+    }
 
     return serializer;
   }
@@ -198,7 +199,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #compileSerializers(): UccCode.Builder {
-    return code => code.write(...this.#serializers.values());
+    return code => code.write(...this.#allSerializers());
+  }
+
+  *#allSerializers(): Iterable<UcsFunction> {
+    for (const variants of this.#serializers.values()) {
+      yield* variants.values();
+    }
   }
 
 }
@@ -223,7 +230,7 @@ export namespace UcsLib {
   }
 
   export type Exports<TSchemae extends Schemae> = {
-    readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.ImpliedType<TSchemae[writer]>>;
+    readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.DataType<TSchemae[writer]>>;
   };
 
   export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
@@ -235,4 +242,10 @@ export namespace UcsLib {
     readonly lib: UcsLib<TSchemae>;
     print(): string;
   }
+}
+
+function UcSchema$key<T>(schema: UcSchema<T>): readonly [UcSchema, '' | 'O' | 'N' | 'ON'] {
+  const { like = schema } = schema;
+
+  return [like, schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : ''];
 }

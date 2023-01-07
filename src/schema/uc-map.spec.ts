@@ -91,6 +91,22 @@ describe('UcMap', () => {
         TextOutStream.read(async to => await writeMap(to, { '': 'test' })),
       ).resolves.toBe("$('test)");
     });
+    it('serializes entry with apostrophe and backslash key', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            "'": UcString(),
+            '\\': UcNumber(),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { "'": 'test', '\\': 13 })),
+      ).resolves.toBe("$'('test)\\(13)");
+    });
     it('serializes nullable entry', async () => {
       const lib = new UcsLib({
         schemae: {
