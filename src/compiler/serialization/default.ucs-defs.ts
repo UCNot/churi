@@ -114,11 +114,11 @@ class Default$UcsDefs implements UcsDefs {
             );
           }
         })
-        .write(`}`);
-      code.write(
-        `await ${args.writer}.ready;`,
-        `${args.writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
-      );
+        .write(
+          `}`,
+          `await ${args.writer}.ready;`,
+          `${args.writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
+        );
     });
   }
 
@@ -244,11 +244,9 @@ class Default$UcsDefs implements UcsDefs {
     value: string,
     onValue: UccCode.Source,
     {
-      onNull: onNull,
-      onUndefined: onUndefined,
+      onNull,
     }: {
       readonly onNull?: UccCode.Source;
-      readonly onUndefined?: UccCode.Source;
     } = {},
   ): UccCode.Builder {
     const { lib, args } = fn;
@@ -260,22 +258,21 @@ class Default$UcsDefs implements UcsDefs {
         if (schema.optional) {
           code
             .write(`} else if (${value} === null) {`)
-            .indent(onNull ?? `await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
-          if (onUndefined) {
-            code.write(`} else {`).indent(onUndefined);
-          }
+            .indent(
+              onNull
+                ?? (code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`)),
+            );
         } else {
           code
             .write(`} else {`)
-            .indent(onNull ?? `await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
+            .indent(
+              onNull
+                ?? (code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`)),
+            );
         }
         code.write('}');
       } else if (schema.optional) {
-        code.write(`if (${value} != null) {`).indent(onValue);
-        if (onUndefined) {
-          code.write(`} else {`).indent(onUndefined);
-        }
-        code.write(`}`);
+        code.write(`if (${value} != null) {`).indent(onValue).write(`}`);
       } else {
         code.write(onValue);
       }

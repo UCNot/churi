@@ -32,8 +32,25 @@ export namespace UcMap {
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
   export type ObjectType<TEntriesSpec extends Schema.Entries.Spec> = {
-    -readonly [key in keyof TEntriesSpec]: UcSchema.DataType<TEntriesSpec[key]>;
+    -readonly [key in RequiredKeys<TEntriesSpec>]: UcSchema.DataType<TEntriesSpec[key]>;
+  } & {
+    -readonly [key in OptionalKeys<TEntriesSpec>]?: UcSchema.DataType<TEntriesSpec[key]>;
   };
+
+  export type Required<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
+
+  export type RequiredKeys<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? never : TKey;
+
+  export type OptionalKeys<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
 
   export namespace Schema {
     /**

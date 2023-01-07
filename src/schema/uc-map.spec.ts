@@ -5,7 +5,7 @@ import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcMap } from './uc-map.js';
 import { UcNumber, UcString } from './uc-primitive.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucOptional, UcSchema } from './uc-schema.js';
+import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
 
 describe('UcMap', () => {
   let spec: UcMap.Schema.Spec<{
@@ -90,6 +90,43 @@ describe('UcMap', () => {
       await expect(
         TextOutStream.read(async to => await writeMap(to, { '': 'test' })),
       ).resolves.toBe("$('test)");
+    });
+    it('serializes nullable entry', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            test: ucNullable(UcString()),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
+      ).resolves.toBe("$test('value)");
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { test: null })),
+      ).resolves.toBe('$test(--)');
+    });
+    it('serializes optional nullable entry', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            test: ucOptional(ucNullable(UcString())),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
+      ).resolves.toBe("$test('value)");
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { test: null })),
+      ).resolves.toBe('$test(--)');
+      await expect(TextOutStream.read(async to => await writeMap(to, {}))).resolves.toBe('$');
     });
     it('serializes second entry with empty key', async () => {
       const lib = new UcsLib({
