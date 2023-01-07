@@ -118,6 +118,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
         .indent(
           this.imports.asDynamic(),
           '',
+          this.declarations,
+          '',
           this.#compileSerializers(),
           '',
           this.#returnSerializers(),
@@ -157,7 +159,15 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #toModuleCode(): UccCode.Builder {
-    return code => code.write(this.#imports.asStatic(), this.#compileSerializers(), this.#exportSerializers());
+    return code => code.write(
+        this.#imports.asStatic(),
+        '',
+        this.declarations,
+        '',
+        this.#compileSerializers(),
+        '',
+        this.#exportSerializers(),
+      );
   }
 
   #exportSerializers(): UccCode.Builder {

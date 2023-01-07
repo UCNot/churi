@@ -4,48 +4,48 @@ import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
 
 describe('ucOptional', () => {
   it('makes schema optional', () => {
-    const modified: UcSchema<number> & { readonly optional: true } = ucOptional(UcNumber);
+    const modified: UcSchema<number> & { readonly optional: true } = ucOptional(UcNumber());
 
-    expect(modified).toEqual({ ...UcNumber, optional: true, like: UcNumber });
+    expect(modified).toEqual({ ...UcNumber(), optional: true, like: UcNumber() });
   });
   it('makes schema non-optional', () => {
     const modified: UcSchema<number> & { readonly optional?: false | undefined } = ucOptional(
-      ucOptional(UcNumber),
+      ucOptional(UcNumber()),
       false,
     );
 
-    expect(modified).toEqual({ ...UcNumber, optional: false, like: UcNumber });
+    expect(modified).toEqual({ ...UcNumber(), optional: false, like: UcNumber() });
   });
   it('leaves the schema as is', () => {
     const modified: UcSchema<number> & { readonly optional?: false | undefined } = ucOptional(
-      UcNumber,
+      UcNumber(),
       false,
     );
 
-    expect(modified).toBe(UcNumber);
+    expect(modified).toBe(UcNumber());
   });
 });
 
 describe('ucNullable', () => {
   it('makes schema nullable', () => {
-    const modified: UcSchema<number> & { readonly nullable: true } = ucNullable(UcNumber);
+    const modified: UcSchema<number> & { readonly nullable: true } = ucNullable(UcNumber());
 
-    expect(modified).toEqual({ ...UcNumber, nullable: true, like: UcNumber });
+    expect(modified).toEqual({ ...UcNumber(), nullable: true, like: UcNumber() });
   });
   it('makes schema non-nullable', () => {
     const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
-      ucNullable(UcNumber),
+      ucNullable(UcNumber()),
       false,
     );
 
-    expect(modified).toEqual({ ...UcNumber, nullable: false, like: UcNumber });
+    expect(modified).toEqual({ ...UcNumber(), nullable: false, like: UcNumber() });
   });
   it('leaves the schema as is', () => {
     const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
-      UcNumber,
+      UcNumber(),
       false,
     );
 
-    expect(modified).toBe(UcNumber);
+    expect(modified).toBe(UcNumber());
   });
 });

@@ -4,7 +4,7 @@ import { UcString } from './uc-primitive.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 
 describe('UcList', () => {
-  const spec = UcList<string>(() => UcString);
+  const spec = UcList<string>(() => UcString());
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
@@ -16,7 +16,7 @@ describe('UcList', () => {
 
   describe('item', () => {
     it('contains item schema', () => {
-      expect(resolver.schemaOf(spec).item).toBe(UcString);
+      expect(resolver.schemaOf(spec).item).toEqual(UcString());
     });
   });
 

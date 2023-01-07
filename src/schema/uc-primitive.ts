@@ -9,15 +9,17 @@ import { UcSchema } from './uc-schema.js';
  */
 export type UcPrimitive = bigint | boolean | number | string | null;
 
+const UcBigInt$Schema: UcBigInt.Schema = /*#__PURE__*/ Object.freeze({
+  from: CHURI_MODULE,
+  type: 'bigint',
+  asis,
+});
+
 /**
  * Creates URI charge schema for `bigint` value.
  */
 export function UcBigInt(): UcBigInt.Schema {
-  return {
-    from: CHURI_MODULE,
-    type: 'bigint',
-    asis,
-  };
+  return UcBigInt$Schema;
 }
 
 export namespace UcBigInt {
@@ -30,15 +32,17 @@ export namespace UcBigInt {
   }
 }
 
+const UcBoolean$Schema: UcBoolean.Schema = /*#__PURE__*/ Object.freeze({
+  from: CHURI_MODULE,
+  type: 'boolean',
+  asis,
+});
+
 /**
  * Creates URI charge schema for `boolean` value.
  */
 export function UcBoolean(): UcBoolean.Schema {
-  return {
-    from: CHURI_MODULE,
-    type: 'boolean',
-    asis,
-  };
+  return UcBoolean$Schema;
 }
 
 export namespace UcBoolean {
@@ -51,15 +55,17 @@ export namespace UcBoolean {
   }
 }
 
+const UcNumber$Schema: UcNumber.Schema = /*#__PURE__*/ Object.freeze({
+  from: CHURI_MODULE,
+  type: 'number',
+  asis,
+});
+
 /**
  * Creates URI charge schema for `number` value.
  */
 export function UcNumber(): UcNumber.Schema {
-  return {
-    from: CHURI_MODULE,
-    type: 'number',
-    asis,
-  };
+  return UcNumber$Schema;
 }
 
 export namespace UcNumber {
@@ -72,15 +78,17 @@ export namespace UcNumber {
   }
 }
 
+const UcString$Schema: UcString.Schema = /*#__PURE__*/ Object.freeze({
+  from: CHURI_MODULE,
+  type: 'string',
+  asis,
+});
+
 /**
  * Creates URI charge schema for `string` value.
  */
 export function UcString(): UcString.Schema {
-  return {
-    from: CHURI_MODULE,
-    type: 'string',
-    asis,
-  };
+  return UcString$Schema;
 }
 
 export namespace UcString {

@@ -59,14 +59,14 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return serializer;
   }
 
-  toCode(): UccCode.Builder {
+  toCode(): UccCode.Source {
     return code => code
         .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
         .indent(this.serialize(this.schema, this.args.value))
         .write('}');
   }
 
-  toUcsSerializer(value: string): UccCode.Builder {
+  toUcsSerializer(value: string): UccCode.Source {
     return code => code
         .write(this.#createWriter(this, 'writer', 'stream'))
         .write(`try {`)

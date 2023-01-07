@@ -1,5 +1,5 @@
 import { UccAliases } from './ucc-aliases.js';
-import { UccPrinter } from './ucc-printer.js';
+import { UccCode } from './ucc-code.js';
 
 export class UccImports {
 
@@ -10,7 +10,7 @@ export class UccImports {
     this.#aliases = aliases;
   }
 
-  asStatic(): UccPrinter.Record {
+  asStatic(): UccCode.Source {
     return {
       printTo: lines => {
         for (const [from, moduleImports] of this.#imports) {
@@ -26,7 +26,7 @@ export class UccImports {
     };
   }
 
-  asDynamic(): UccPrinter.Record {
+  asDynamic(): UccCode.Source {
     return {
       printTo: lines => {
         for (const [from, moduleImports] of this.#imports) {
