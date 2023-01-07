@@ -1,4 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
+import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
@@ -11,7 +12,10 @@ import { UcsFunction } from './ucs-function.js';
 
 export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 
-  readonly #schemae: TSchemae;
+  readonly #schemae: {
+    readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+  };
+
   readonly #definitions: Map<string, UcsDefs>;
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
@@ -23,13 +27,21 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   constructor(options: UcsLib.Options<TSchemae>);
   constructor({
     schemae,
+    resolver = new UcSchemaResolver(),
     aliases = new UccAliases(),
     imports = new UccImports(aliases),
     declarations = new UccDeclarations(aliases),
     definitions = DefaultUcsDefs,
     createSerializer = options => new UcsFunction(options),
   }: UcsLib.Options<TSchemae>) {
-    this.#schemae = schemae;
+    this.#schemae = Object.fromEntries(
+      Object.entries(schemae).map(([externalName, schemaSpec]) => [
+        externalName,
+        resolver.schemaOf(schemaSpec),
+      ]),
+    ) as {
+      readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+    };
     this.#definitions = new Map(
       asArray(definitions).map(definitions => [definitions.from, definitions]),
     );
@@ -44,13 +56,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     };
 
     this.#serializers = new Map(
-      Object.entries(schemae).map(([externalName, schema]) => {
-        const { like = schema } = schema;
+      Object.entries(this.#schemae).map(([externalName, schema]) => {
+        const { like = schema } = resolver.schemaOf(schema);
 
         return [
           like,
           createSerializer({
-            lib: this as UcsLib<any>,
+            lib: this as UcsLib,
             schema: like,
             name: this.aliases.aliasFor(`${externalName}$serialize`),
           }),
@@ -194,6 +206,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 export namespace UcsLib {
   export interface Options<TSchemae extends Schemae> {
     readonly schemae: TSchemae;
+    readonly resolver?: UcSchemaResolver | undefined;
     readonly aliases?: UccAliases | undefined;
     readonly imports?: UccImports | undefined;
     readonly declarations?: UccDeclarations | undefined;
@@ -206,7 +219,7 @@ export namespace UcsLib {
   }
 
   export interface Schemae {
-    readonly [writer: string]: UcSchema;
+    readonly [writer: string]: UcSchema.Spec;
   }
 
   export type Exports<TSchemae extends Schemae> = {

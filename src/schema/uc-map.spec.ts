@@ -1,40 +1,13 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
+import { UnsupportedUcSchema } from '../compiler/unsupported-uc-schema.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcMap } from './uc-map.js';
 import { UcNumber, UcString } from './uc-primitive.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { UcSchema } from './uc-schema.js';
+import { ucOptional, UcSchema } from './uc-schema.js';
 
-describe('UcMapSchema', () => {
-  class EntrySchema<out T> implements UcSchema<T> {
-
-    readonly #type: string;
-    readonly #flags: number | undefined;
-
-    constructor(type: string, flags?: number) {
-      this.#type = type;
-      this.#flags = flags;
-    }
-
-    get from(): string {
-      return 'test-library';
-    }
-
-    get type(): string {
-      return this.#type;
-    }
-
-    get flags(): number | undefined {
-      return this.#flags;
-    }
-
-    asis(value: T): T {
-      return value;
-    }
-
-}
-
+describe('UcMap', () => {
   let spec: UcMap.Schema.Spec<{
     foo: UcSchema<string>;
     bar: () => UcSchema<number>;
@@ -68,12 +41,10 @@ describe('UcMapSchema', () => {
     it('serializes map', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: resolver.schemaOf(
-            UcMap({
-              foo: UcString(),
-              bar: UcNumber(),
-            }),
-          ),
+          writeMap: UcMap({
+            foo: UcString(),
+            bar: UcNumber(),
+          }),
         },
       });
 
@@ -81,7 +52,126 @@ describe('UcMapSchema', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: 13 })),
-      ).resolves.toBe("foo('test)bar(13)");
+      ).resolves.toBe("$foo('test)bar(13)");
+    });
+    it('serializes nested map', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            foo: UcMap({
+              test1: UcNumber(),
+            }),
+            bar: UcMap({
+              test2: UcNumber(),
+            }),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(
+          async to => await writeMap(to, { foo: { test1: 11 }, bar: { test2: 22 } }),
+        ),
+      ).resolves.toBe('$foo($test1(11))bar($test2(22))');
+    });
+    it('serializes entry with empty key', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            '': UcString(),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { '': 'test' })),
+      ).resolves.toBe("$('test)");
+    });
+    it('serializes second entry with empty key', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            first: UcNumber(),
+            '': UcString(),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
+      ).resolves.toBe("$first(1)$('test)");
+    });
+    it('serializes second entry with empty key when first one is optional', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            first: ucOptional(UcNumber()),
+            '': UcString(),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
+      ).resolves.toBe("$first(1)$('test)");
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { first: undefined, '': 'test' })),
+      ).resolves.toBe("$('test)");
+    });
+    it('does not serialize unrecognized schema', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            test: new EntrySchema<string>('test-type'),
+          }),
+        },
+      });
+
+      let error: UnsupportedUcSchema | undefined;
+
+      try {
+        await lib.compile().toSerializers();
+      } catch (e) {
+        error = e as UnsupportedUcSchema;
+      }
+
+      expect(error).toBeInstanceOf(UnsupportedUcSchema);
+      expect(error?.schema.type).toBe('test-type');
+      expect(error?.message).toBe(
+        'writeMap$serialize: Can not serialize entry "test" of type "test-type" from "test-library"',
+      );
+      expect(error?.cause).toBeInstanceOf(UnsupportedUcSchema);
+      expect((error?.cause as UnsupportedUcSchema).schema.type).toBe('test-type');
     });
   });
 });
+
+class EntrySchema<T> implements UcSchema<T> {
+
+  readonly #type: string;
+
+  constructor(type: string) {
+    this.#type = type;
+  }
+
+  get from(): string {
+    return 'test-library';
+  }
+
+  get type(): string {
+    return this.#type;
+  }
+
+  asis(value: T): T {
+    return value;
+  }
+
+}
