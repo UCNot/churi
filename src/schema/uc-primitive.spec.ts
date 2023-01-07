@@ -5,21 +5,21 @@ import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
 
 describe('UcBigInt', () => {
-  it('is defined', () => {
-    expect(UcBigInt).toMatchObject({
+  it('creates schema', () => {
+    expect(UcBigInt()).toMatchObject({
       from: '@hatsy/churi',
       type: 'bigint',
     });
   });
 
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: typeof UcBigInt }>;
+    let lib: UcsLib<{ writeValue: UcBigInt.Schema }>;
     let writeValue: UcSerializer<bigint>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcBigInt,
+          writeValue: UcBigInt(),
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -36,21 +36,21 @@ describe('UcBigInt', () => {
 });
 
 describe('UcBoolean', () => {
-  it('is defined', () => {
-    expect(UcBoolean).toMatchObject({
+  it('creates schema', () => {
+    expect(UcBoolean()).toMatchObject({
       from: '@hatsy/churi',
       type: 'boolean',
     });
   });
 
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: typeof UcBoolean }>;
+    let lib: UcsLib<{ writeValue: UcBoolean.Schema }>;
     let writeValue: UcSerializer<boolean>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcBoolean,
+          writeValue: UcBoolean(),
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -64,21 +64,21 @@ describe('UcBoolean', () => {
 });
 
 describe('UcNumber', () => {
-  it('is defined', () => {
-    expect(UcNumber).toMatchObject({
+  it('creates schema', () => {
+    expect(UcNumber()).toMatchObject({
       from: '@hatsy/churi',
       type: 'number',
     });
   });
 
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: typeof UcNumber }>;
+    let lib: UcsLib<{ writeValue: UcNumber.Schema }>;
     let writeValue: UcSerializer<number>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcNumber,
+          writeValue: UcNumber(),
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -103,10 +103,33 @@ describe('UcNumber', () => {
 });
 
 describe('UcString', () => {
-  it('is defined', () => {
-    expect(UcString).toMatchObject({
+  it('creates schema', () => {
+    expect(UcString()).toMatchObject({
       from: '@hatsy/churi',
       type: 'string',
+    });
+  });
+
+  describe('serializer', () => {
+    let lib: UcsLib<{ writeValue: UcString.Schema }>;
+    let writeValue: UcSerializer<string>;
+
+    beforeEach(async () => {
+      lib = new UcsLib({
+        schemae: {
+          writeValue: UcString(),
+        },
+      });
+      ({ writeValue } = await lib.compile().toSerializers());
+    });
+
+    it('percent-encodes special symbols', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeValue(to, 'Hello, %(World)!')),
+      ).resolves.toBe("'Hello%2C %25%28World%29!");
+    });
+    it('escapes empty string', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, ''))).resolves.toBe("'");
     });
   });
 });

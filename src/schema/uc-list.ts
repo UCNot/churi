@@ -19,6 +19,8 @@ export namespace UcList {
    */
   export interface Schema<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>
     extends UcSchema<TItem[]> {
+    readonly from: '@hatsy/churi';
+    readonly type: 'list';
     readonly item: UcSchema.Of<TItemSpec>;
   }
 

@@ -21,6 +21,8 @@ export namespace UcMap {
    */
   export interface Schema<TEntriesSpec extends Schema.Entries.Spec>
     extends UcSchema<ObjectType<TEntriesSpec>> {
+    readonly from: '@hatsy/churi';
+    readonly type: 'map';
     readonly entries: Schema.Entries<TEntriesSpec>;
   }
 
@@ -85,15 +87,15 @@ export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
   return resolver => ({
-      from: CHURI_MODULE,
-      type: 'map',
-      entries: Object.fromEntries(
-        Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
-          const schema = resolver.schemaOf(spec);
+    from: CHURI_MODULE,
+    type: 'map',
+    entries: Object.fromEntries(
+      Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
+        const schema = resolver.schemaOf(spec);
 
-          return [key, schema];
-        }),
-      ) as UcMap.Schema.Entries<TEntriesSpec>,
-      asis,
-    });
+        return [key, schema];
+      }),
+    ) as UcMap.Schema.Entries<TEntriesSpec>,
+    asis,
+  });
 }
