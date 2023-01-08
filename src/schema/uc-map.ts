@@ -1,6 +1,7 @@
 import { asis } from '@proc7ts/primitives';
+import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcPrimitive } from './uc-primitive.js';
-import { UcSchema, UC_DATA_ENCODED } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
 
 /**
@@ -20,6 +21,8 @@ export namespace UcMap {
    */
   export interface Schema<TEntriesSpec extends Schema.Entries.Spec>
     extends UcSchema<ObjectType<TEntriesSpec>> {
+    readonly from: '@hatsy/churi';
+    readonly type: 'map';
     readonly entries: Schema.Entries<TEntriesSpec>;
   }
 
@@ -29,8 +32,25 @@ export namespace UcMap {
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
   export type ObjectType<TEntriesSpec extends Schema.Entries.Spec> = {
-    -readonly [key in keyof TEntriesSpec]: UcSchema.DataType<TEntriesSpec[key]>;
+    -readonly [key in RequiredKeys<TEntriesSpec>]: UcSchema.DataType<TEntriesSpec[key]>;
+  } & {
+    -readonly [key in OptionalKeys<TEntriesSpec>]?: UcSchema.DataType<TEntriesSpec[key]>;
   };
+
+  export type Required<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
+
+  export type RequiredKeys<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? never : TKey;
+
+  export type OptionalKeys<
+    TEntriesSpec extends Schema.Entries.Spec,
+    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
+  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
 
   export namespace Schema {
     /**
@@ -83,24 +103,16 @@ export namespace UcMap {
 export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
-  return resolver => {
-    let flags = 0;
-    const entries = Object.fromEntries(
+  return resolver => ({
+    from: CHURI_MODULE,
+    type: 'map',
+    entries: Object.fromEntries(
       Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
         const schema = resolver.schemaOf(spec);
 
-        flags |= (schema.flags ?? 0) & UC_DATA_ENCODED;
-
         return [key, schema];
       }),
-    ) as UcMap.Schema.Entries<TEntriesSpec>;
-
-    return {
-      from: '@hatsy/churi',
-      type: 'map',
-      flags,
-      entries,
-      asis,
-    };
-  };
+    ) as UcMap.Schema.Entries<TEntriesSpec>,
+    asis,
+  });
 }

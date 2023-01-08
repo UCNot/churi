@@ -1,5 +1,5 @@
 {
-  "entryPoints": ["src/mod.ts"],
+  "entryPoints": ["src/mod.ts", "src/compiler/mod.ts"],
   "excludePrivate": true,
   "name": "Charged URI",
   "out": "./target/typedoc",

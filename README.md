@@ -29,7 +29,7 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
 
   Directives are URI charge format extensions treated by custom handlers.
 
-  In this case the `!v` directive treats `3.0` as version specifier, rather as number. The latter is the case by
+  In this case the `!v` directive treats `3.0` as a version specifier rather as a number. The latter is the case by
   default, as everything started with a digit is treated as number.
 
 - `/user;id=0n302875106592253` is a path fragment charged with user ID specified as `user` matrix parameter.
@@ -51,7 +51,7 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
   }
   ```
 
-- `&range=from(10)to(20)` is a query parameter charged with map value, corresponding to JavaScript object literal like:
+- `&range=from(10)to(20)` is a query parameter charged with map value corresponding to JavaScript object literal like:
   ```javascript
   {
     from: 10, // A number rather a string!
@@ -78,8 +78,8 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
 
 ## Usage
 
-This library represents Charged URI by `ChURI` class. The latter resembles standard [URL class], except it is read-only.
-It also provides access to:
+This library represents Charged URIs as `ChURI` class instances. The latter resembles standard [URL class], except it is
+read-only. It also provides access to:
 
 - query parameter charges,
 - path fragments and their charges,
@@ -127,9 +127,9 @@ console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range')
 
 The `ChURI` class is read-only. It disallows URI manipulations.
 
-To build Charge URI a tagged template can be used.
+To build Charged URI a tagged template can be used.
 
-The following code snipped can be used to reconstruct the URL from example above:
+The following code reconstructs the URI from example above:
 
 ```typescript
 import { churi } from '@hatsy/churi';
@@ -159,12 +159,12 @@ import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';
 
 console.debug(
   'https://example.com' +
-    `/api(${chargeURIArgs(new UcDirective('!v', new UcEntity('3.0')))}` +
+    `/api${chargeURIArgs(new UcDirective('!v', '(3.0)'))}` +
     `/user;id=${chargeURI(302875106592253n)}` +
     `/article;slug=${chargeURI('hello-world')}` +
     '/comments' +
     `?date=${chargeURI({
-      since: new UcDirective('!date', new UcEntity('1970-01-01')),
+      since: new UcDirective('!date', '(1970-01-01)'),
       till: new UcEntity('!now'),
     })}` +
     `&range=${chargeURI({
@@ -174,7 +174,7 @@ console.debug(
 );
 ```
 
-The `UcEntity` above used to avoid escaping and percent-encoding and should be used with care.
+The `UcEntity` and `UcDirective` above used to avoid escaping and percent-encoding and should be used with care.
 
 Charging can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not implemented,
 a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON

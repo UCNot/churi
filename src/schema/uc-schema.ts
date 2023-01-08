@@ -41,15 +41,13 @@ export interface UcSchema<out T = unknown> {
   readonly type: string;
 
   /**
-   * Flags affecting code generation.
+   * Original schema modified by this one.
    *
-   * A bitmask constructed of `UC_DATA_XXX` bit flags.
+   * Original schema implies exactly the same data type, but may have different constraints.
    *
-   * For compound schema (e.g. list or map) combines flags of nested schemas.
-   *
-   * @defaultValue `0`.
+   * When set, used to identify the schema and deduplicate schema serializers.
    */
-  readonly flags?: number;
+  readonly like?: UcSchema<T>;
 
   /**
    * Returns the passed-in value.
@@ -58,11 +56,6 @@ export interface UcSchema<out T = unknown> {
    */
   asis(value: T): T;
 }
-
-/**
- * Whether the data value contains text to be encoded/decoded.
- */
-export const UC_DATA_ENCODED = 1;
 
 export namespace UcSchema {
   /**
@@ -85,7 +78,7 @@ export namespace UcSchema {
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
-   * @param resolver -
+   * @param resolver - Resolver of nested schemae.
    */
   export type Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = (
     resolver: UcSchemaResolver,
@@ -129,50 +122,130 @@ export namespace UcSchema {
   export type OptionalType<TSchema extends UcSchema> = TSchema extends { readonly optional: true }
     ? undefined
     : never;
+}
 
-  /**
-   * Schema definition that permits `undefined` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface Optional<T> extends UcSchema<T> {
-    readonly optional: true;
+/**
+ * Modifies schema to allow `undefined` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ *
+ * @returns Modified scheme or original one if it is already optional.
+ */
+export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  optional?: true,
+): Omit<TSchema, 'optional'> & { readonly optional: true };
+
+/**
+ * Modifies schema to prohibit `undefined` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ *
+ * @returns Modified scheme or original one if it prohibits `undefined` values already.
+ */
+export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  optional: false,
+): Omit<TSchema, 'optional'> & { readonly optional?: false | undefined };
+
+/**
+ * Modifies schema to allow or prohibit `undefined` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ * @param optional - Whether to allow `undefined` values.
+ *
+ * @returns Modified scheme or original one if its {@link UcScheme#optional optional} constraint matches the requested
+ * one.
+ */
+export function ucOptional<
+  T,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+  TOptional extends boolean | undefined = true,
+>(
+  schema: TSchema,
+  optional: TOptional,
+): Omit<TSchema, 'optional'> & { readonly optional: TOptional };
+
+export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  optional = true,
+): Omit<TSchema, 'optional'> & { readonly optional?: boolean | undefined } {
+  const { optional: oldOptional = false } = schema;
+
+  if (optional === oldOptional) {
+    return schema as Omit<TSchema, 'optional'> & { readonly optional: boolean };
   }
 
-  /**
-   * Schema definition that prohibits `undefined` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface NonOptional<T> extends UcSchema<T> {
-    readonly optional?: false | undefined;
+  const { like = schema } = schema;
+
+  return { ...schema, optional, like };
+}
+
+/**
+ * Modifies schema to allow `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ *
+ * @returns Modified scheme or original one if it is already nullable.
+ */
+export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  nullable?: true,
+): Omit<TSchema, 'nullable'> & { readonly nullable: true };
+
+/**
+ * Modifies schema to prohibit `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ *
+ * @returns Modified scheme or original one if it prohibits `null` values already.
+ */
+export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  nullable: false,
+): Omit<TSchema, 'nullable'> & { readonly nullable?: false | undefined };
+
+/**
+ * Modifies schema to allow or prohibit `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TScheme - Original scheme type.
+ * @param schema - Schema to modify.
+ * @param nullable - Whether to allow `null` values.
+ *
+ * @returns Modified scheme or original one if its {@link UcScheme#nullable nullable} constraint matches the requested
+ * one.
+ */
+export function ucNullable<
+  T,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+  TNullable extends boolean | undefined = true,
+>(
+  schema: TSchema,
+  nullable: TNullable,
+): Omit<TSchema, 'nullable'> & { readonly nullable: TNullable };
+
+export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  schema: TSchema,
+  nullable = true,
+): Omit<TSchema, 'nullable'> & { readonly nullable?: boolean | undefined } {
+  const { nullable: oldNullable = false } = schema;
+
+  if (nullable === oldNullable) {
+    return schema as Omit<TSchema, 'nullable'> & { readonly nullable: boolean };
   }
 
-  /**
-   * Schema definition that permits `null` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface Nullable<T> extends UcSchema<T> {
-    readonly nullable: true;
-  }
+  const { like = schema } = schema;
 
-  /**
-   * Schema definition that prohibits `null` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface NonNullable<T> extends UcSchema<T> {
-    readonly nullable?: false | undefined;
-  }
-
-  /**
-   * Schema definition that permits both `undefined` and `null` data values.
-   *
-   * @typeParam T - Implied data type.
-   */
-  export interface NonMandatory<T> extends UcSchema<T> {
-    readonly optional: true;
-    readonly nullable: true;
-  }
+  return { ...schema, nullable, like };
 }
