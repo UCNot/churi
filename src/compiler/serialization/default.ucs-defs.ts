@@ -5,6 +5,7 @@ import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { ucNullable, ucOptional, UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
+import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
 import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
 import { UcsDefs } from './ucs-defs.js';
 import { UcsFunction } from './ucs-function.js';
@@ -141,7 +142,7 @@ class Default$UcsDefs implements UcsDefs {
       const entryPrefix = key
         ? lib.declarations.declareConst(
             key,
-            `${textEncoder}.encode('${stringExprEscape(encodeUcsString(key))}(')`,
+            `${textEncoder}.encode('${uccStringExprContent(encodeUcsString(key))}(')`,
             {
               prefix: 'EP_',
             },
@@ -180,7 +181,7 @@ class Default$UcsDefs implements UcsDefs {
 
       for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
         code.write(
-          `${entryValue} = ${value}${propertyAccessExpr(key)};`,
+          `${entryValue} = ${uccPropertyAccessExpr(value, key)};`,
           this.#checkConstraints(
             fn,
             entrySchema,
@@ -283,17 +284,6 @@ class Default$UcsDefs implements UcsDefs {
     };
   }
 
-}
-
-const ASCII_KEY_PATTERN = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/;
-const KEY_ESCAPE_PATTERN = /['\\]/g;
-
-function propertyAccessExpr(key: string): string {
-  return ASCII_KEY_PATTERN.test(key) ? `.${key}` : `['${stringExprEscape(key)}']`;
-}
-
-function stringExprEscape(value: string): string {
-  return value.replace(KEY_ESCAPE_PATTERN, char => `\\${char}`);
 }
 
 export const DefaultUcsDefs: UcsDefs = /*#__PURE__*/ new Default$UcsDefs();

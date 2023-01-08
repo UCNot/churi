@@ -1,5 +1,6 @@
 import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
+import { uccStringExprContent } from './ucc-expr.js';
 
 export class UccImports {
 
@@ -8,38 +9,6 @@ export class UccImports {
 
   constructor(aliases: UccAliases) {
     this.#aliases = aliases;
-  }
-
-  asStatic(): UccCode.Source {
-    return {
-      printTo: lines => {
-        for (const [from, moduleImports] of this.#imports) {
-          for (const [name, alias] of moduleImports) {
-            if (name === alias) {
-              lines.print(`import { ${name} } from '${from}';`);
-            } else {
-              lines.print(`import { ${name} as ${alias} } from '${from}';`);
-            }
-          }
-        }
-      },
-    };
-  }
-
-  asDynamic(): UccCode.Source {
-    return {
-      printTo: lines => {
-        for (const [from, moduleImports] of this.#imports) {
-          for (const [name, alias] of moduleImports) {
-            if (name === alias) {
-              lines.print(`const { ${name} } = await import('${from}');`);
-            } else {
-              lines.print(`const { ${name}: ${alias} } = await import('${from}');`);
-            }
-          }
-        }
-      },
-    };
   }
 
   import(from: string, name: string): string {
@@ -61,6 +30,65 @@ export class UccImports {
     moduleImports.set(name, alias);
 
     return alias;
+  }
+
+  asStatic(): UccCode.Source {
+    return {
+      printTo: lines => {
+        for (const [from, moduleImports] of this.#imports) {
+          if (moduleImports.size > 1) {
+            lines
+              .print(`import {`)
+              .indent(lines => {
+                for (const [name, alias] of moduleImports) {
+                  lines.print(`${this.#staticClause(name, alias)},`);
+                }
+              })
+              .print(`} from '${uccStringExprContent(from)}';`);
+          } else {
+            for (const [name, alias] of moduleImports) {
+              lines.print(`import { ${this.#staticClause(name, alias)} } from '${from}';`);
+            }
+          }
+        }
+      },
+    };
+  }
+
+  #staticClause(name: string, alias: string): string {
+    return name === alias ? name : `${name} as ${alias}`;
+  }
+
+  asDynamic(): UccCode.Source {
+    return {
+      printTo: lines => {
+        for (const [from, moduleImports] of this.#imports) {
+          if (moduleImports.size > 1) {
+            lines
+              .print('const {')
+              .indent(lines => {
+                for (const [name, alias] of moduleImports) {
+                  lines.print(`${this.#dynamicClause(name, alias)},`);
+                }
+              })
+              .print(`} = await import('${uccStringExprContent(from)}');`);
+          } else {
+            for (const [name, alias] of moduleImports) {
+              lines.print(
+                `const { ${this.#dynamicClause(
+                  name,
+                  alias,
+                )} } = await import('${uccStringExprContent(from)}');`,
+              );
+            }
+          }
+        }
+      },
+    };
+  }
+
+  #dynamicClause(name: string, alias: string): string {
+    return name === alias ? name : `${name}: ${alias}`;
   }
 
 }
