@@ -8,11 +8,12 @@ export class UccAliases {
 
     if (!aliases) {
       alias = name;
-      this.#aliases.set(alias, [alias]);
     } else {
       alias = this.#nextAlias(aliases);
       aliases.push(alias);
     }
+
+    this.#aliases.set(alias, [alias]);
 
     return alias;
   }
