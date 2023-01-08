@@ -1,11 +1,11 @@
-import { UcsMemory } from './ucs-memory.js';
+import { UrtMemory } from '../runtime/urt-memory.js';
 
 export class UcsWriter {
 
   readonly #writer: WritableStreamDefaultWriter;
   #whenWritten: Promise<unknown> = Promise.resolve();
 
-  #memory?: UcsMemory;
+  #memory?: UrtMemory;
   #encoder?: TextEncoder;
 
   constructor(stream: WritableStream<Uint8Array>) {
@@ -16,8 +16,8 @@ export class UcsWriter {
     return this.#writer.ready;
   }
 
-  get memory(): UcsMemory {
-    return (this.#memory ??= new UcsMemory());
+  get memory(): UrtMemory {
+    return (this.#memory ??= new UrtMemory());
   }
 
   get encoder(): TextEncoder {
