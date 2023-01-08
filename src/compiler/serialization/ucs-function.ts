@@ -2,7 +2,7 @@ import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
-import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
+import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsLib } from './ucs-lib.js';
 
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
@@ -50,7 +50,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema, value);
 
     if (serializer == null) {
-      throw new UnsupportedUcSchema(
+      throw new UnsupportedUcSchemaError(
         schema,
         `${this.name}: Can not serialize type "${schema.type} from "${schema.from}"`,
       );

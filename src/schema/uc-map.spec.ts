@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
-import { UnsupportedUcSchema } from '../compiler/unsupported-uc-schema.js';
+import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcMap } from './uc-map.js';
 import { UcNumber, UcString } from './uc-primitive.js';
@@ -188,21 +188,21 @@ describe('UcMap', () => {
         },
       });
 
-      let error: UnsupportedUcSchema | undefined;
+      let error: UnsupportedUcSchemaError | undefined;
 
       try {
         await lib.compile().toSerializers();
       } catch (e) {
-        error = e as UnsupportedUcSchema;
+        error = e as UnsupportedUcSchemaError;
       }
 
-      expect(error).toBeInstanceOf(UnsupportedUcSchema);
+      expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
       expect(error?.message).toBe(
         'writeMap$serialize: Can not serialize entry "test" of type "test-type" from "test-library"',
       );
-      expect(error?.cause).toBeInstanceOf(UnsupportedUcSchema);
-      expect((error?.cause as UnsupportedUcSchema).schema.type).toBe('test-type');
+      expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });
   });
 });

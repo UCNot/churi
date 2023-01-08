@@ -6,7 +6,7 @@ import { UcMap } from '../../schema/uc-map.js';
 import { ucNullable, ucOptional, UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
-import { UnsupportedUcSchema } from '../unsupported-uc-schema.js';
+import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsDefs } from './ucs-defs.js';
 import { UcsFunction } from './ucs-function.js';
 
@@ -108,7 +108,7 @@ class Default$UcsDefs implements UcsDefs {
           try {
             code.write(fn.serialize(itemSchema, itemValue));
           } catch (cause) {
-            throw new UnsupportedUcSchema(
+            throw new UnsupportedUcSchemaError(
               itemSchema,
               `${fn.name}: Can not serialize list item of type "${itemSchema.type}" from "${itemSchema.from}"`,
               { cause },
@@ -193,7 +193,7 @@ class Default$UcsDefs implements UcsDefs {
                   fn.serialize(ucOptional(ucNullable(entrySchema, false), false), entryValue),
                 );
               } catch (cause) {
-                throw new UnsupportedUcSchema(
+                throw new UnsupportedUcSchemaError(
                   entrySchema,
                   `${fn.name}: Can not serialize entry "${key}" of type "${entrySchema.type}"`
                     + ` from "${entrySchema.from}"`,

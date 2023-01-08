@@ -1,6 +1,6 @@
 import { UcSchema } from '../schema/uc-schema.js';
 
-export class UnsupportedUcSchema extends TypeError {
+export class UnsupportedUcSchemaError extends TypeError {
 
   readonly #schema: UcSchema;
 
@@ -10,7 +10,7 @@ export class UnsupportedUcSchema extends TypeError {
     options?: ErrorOptions,
   ) {
     super(message, options);
-    this.name = 'UnsupportedUcSchema';
+    this.name = 'UnsupportedUcSchemaError';
     this.#schema = schema;
   }
 
