@@ -22,7 +22,7 @@ describe('UccCode', () => {
       expect(
         code
           .write('{')
-          .indent(code => code.write().write().write())
+          .indent(code => code.write().write('').write())
           .write('}')
           .toString(),
       ).toBe('{\n\n}\n');

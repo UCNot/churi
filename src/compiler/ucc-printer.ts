@@ -56,16 +56,26 @@ class UccPrinter$Lines implements UccPrinter.Lines {
     if (records.length) {
       for (const record of records) {
         if (typeof record === 'string') {
-          this.#lines.push(`${this.#indent}${record}\n`);
+          if (record) {
+            this.#lines.push(`${this.#indent}${record}\n`);
+          } else {
+            this.#newLine();
+          }
         } else {
           record.printTo(this);
         }
       }
-    } else if (this.#lines.length && this.#lines[this.#lines.length - 1]) {
-      this.#lines.push('\n');
+    } else {
+      this.#newLine();
     }
 
     return this;
+  }
+
+  #newLine(): void {
+    if (this.#lines.length && this.#lines[this.#lines.length - 1] !== '\n') {
+      this.#lines.push('\n');
+    }
   }
 
   indent(print: (printer: UccPrinter.Lines) => void, indent = '  '): this {
