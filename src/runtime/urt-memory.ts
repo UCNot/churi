@@ -2,6 +2,7 @@ export class UrtMemory {
 
   readonly #blockSize: number;
   readonly #blocks: UcsMemoryBlock[];
+  #useCount = 0;
   #nextBlockIdx = 0;
 
   constructor(blockSize = 4096, blockCount = 2) {
@@ -14,6 +15,8 @@ export class UrtMemory {
     size = Math.min(size, this.#blockSize);
 
     const block = this.#selectBlock(size);
+
+    ++this.#useCount;
 
     return await this.#use(block, size, use);
   }
@@ -35,11 +38,11 @@ export class UrtMemory {
     }
 
     // Allocate the next block if necessary.
-    return this.#blocks[this.#nextBlockIdx] ?? this.#allocateBlock();
+    return (this.#blocks[this.#nextBlockIdx] ??= this.#allocateBlock());
   }
 
   #allocateBlock(): UcsMemoryBlock {
-    return (this.#blocks[this.#nextBlockIdx] = new UcsMemoryBlock(this.#blockSize));
+    return new UcsMemoryBlock(this.#blockSize);
   }
 
   async #use<T>(
@@ -48,12 +51,12 @@ export class UrtMemory {
     use: (buffer: Uint8Array) => T | Promise<T>,
   ): Promise<T> {
     const used = await block.use(size);
-    const blockIdx = this.#nextBlockIdx;
 
     try {
       return await use(used);
     } finally {
-      if (block.free(size) && this.#nextBlockIdx === blockIdx) {
+      --this.#useCount;
+      if (block.free(size) && !this.#useCount) {
         // All space freed.
         // Reset to the first block to avoid extra allocations.
         this.#nextBlockIdx = 0;
@@ -83,7 +86,10 @@ class UcsMemoryBlock {
     while (!this.has(size)) {
       if (!this.#whenAvailable) {
         this.#whenAvailable = new Promise(resolve => {
-          this.#moreAvailable = resolve;
+          this.#moreAvailable = () => {
+            this.#whenAvailable = this.#moreAvailable = undefined;
+            resolve();
+          };
         });
       }
 
