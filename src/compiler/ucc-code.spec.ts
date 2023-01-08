@@ -18,6 +18,15 @@ describe('UccCode', () => {
           .toString(),
       ).toBe('{\n\n}\n');
     });
+    it('appends at most one new line', () => {
+      expect(
+        code
+          .write('{')
+          .indent(code => code.write().write().write())
+          .write('}')
+          .toString(),
+      ).toBe('{\n\n}\n');
+    });
     it('prevents adding code fragment to itself', () => {
       expect(() => code.write(inner => inner.write(code))).toThrow(
         new TypeError('Can not insert code fragment into itself'),

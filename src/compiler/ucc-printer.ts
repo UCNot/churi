@@ -61,7 +61,7 @@ class UccPrinter$Lines implements UccPrinter.Lines {
           record.printTo(this);
         }
       }
-    } else {
+    } else if (this.#lines.length && this.#lines[this.#lines.length - 1]) {
       this.#lines.push('\n');
     }
 
