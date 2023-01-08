@@ -25,7 +25,7 @@ export class UccCode {
     if (typeof fragment === 'function') {
       fragment(this);
     } else if (isUccCodePrintable(fragment)) {
-      if (this.#contains(fragment)) {
+      if (fragment instanceof UccCode && fragment.#contains(this)) {
         throw new TypeError('Can not insert code fragment into itself');
       }
       this.#parts.push(fragment);
@@ -38,19 +38,16 @@ export class UccCode {
     }
   }
 
-  #contains(fragment: UccCode.Source): boolean {
+  #contains(fragment: UccCode): boolean {
     for (;;) {
       if (fragment === this) {
         return true;
       }
-
-      if (fragment instanceof UccCode && fragment.#parent) {
-        fragment = fragment.#parent;
-
-        continue;
+      if (!fragment.#parent) {
+        return false;
       }
 
-      return false;
+      fragment = fragment.#parent;
     }
   }
 
