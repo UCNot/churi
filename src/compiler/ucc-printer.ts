@@ -47,7 +47,7 @@ class UccPrinter$Lines implements UccPrinter.Lines {
   readonly #indent: string;
   readonly #lines: string[];
 
-  constructor(indent: string, lines: string[] = []) {
+  constructor(indent: string, lines: string[]) {
     this.#indent = indent;
     this.#lines = lines;
   }
