@@ -80,6 +80,9 @@ describe('parseUcValue', () => {
     it('recognized as list item value', () => {
       expect(parse("('bar)").charge).toEqual(['bar']);
     });
+    it('includes balanced parenthesis', () => {
+      expect(parse("'foo(bar,baz)suffix").charge).toBe('foo(bar,baz)suffix');
+    });
   });
 
   describe('empty string value', () => {

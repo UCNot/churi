@@ -49,6 +49,7 @@ export function parseUcValue<TValue, TCharge>(
 }
 
 const PARENT_PATTERN = /[()]/;
+const PARENT_OR_COMMA_PATTERN = /[(),]/;
 
 function parseRawUcStringLength(input: string): string {
   let openedParentheses = 0;
@@ -56,23 +57,30 @@ function parseRawUcStringLength(input: string): string {
 
   for (;;) {
     const restInput = input.slice(offset);
-    const parenthesisIdx = restInput.search(PARENT_PATTERN);
+    const delimiterIdx = restInput.search(
+      // Search for commas only _outside_ parentheses.
+      openedParentheses ? PARENT_PATTERN : PARENT_OR_COMMA_PATTERN,
+    );
 
-    if (parenthesisIdx < 0) {
+    if (delimiterIdx < 0) {
+      // No delimiters found.
+      // Accept _full_ input.
       return input;
     }
 
-    if (restInput[parenthesisIdx] === '(') {
-      // End of input.
-      offset += parenthesisIdx + 1;
+    if (restInput[delimiterIdx] === '(') {
+      // Open one more parenthesis.
+      offset += delimiterIdx + 1;
       ++openedParentheses;
     } else if (openedParentheses) {
-      // Closing parenthesis matches the opened one.
+      // Closing parenthesis matching the opened one.
+      // This can not be a comma, as they are not searched for _inside_ parenthesis.
       --openedParentheses;
-      offset += parenthesisIdx + 1;
+      offset += delimiterIdx + 1;
     } else {
-      // Closing parenthesis does not match the opening one.
-      return input.slice(0, offset + parenthesisIdx);
+      // Either closing parenthesis not matching the opening one, or a comma.
+      // In either case, this is the end of input.
+      return input.slice(0, offset + delimiterIdx);
     }
   }
 }
