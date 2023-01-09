@@ -311,8 +311,10 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
 
 }
 
+const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
+
 class URIChargeBuilder$ListRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
-  extends OpaqueValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
+  extends OpaqueListRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
   implements URIChargeBuilder.ValueRx<TValue, TRx> {
 
   readonly #list: URICharge.Some<TValue>[] = [];

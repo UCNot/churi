@@ -322,8 +322,10 @@ class UcValueBuilder$MapRx<out TValue, out TRx extends UcValueBuilder<TValue>>
 
 }
 
+const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
+
 class UcValueBuilder$ListRx<out TValue, out TRx extends UcValueBuilder<TValue>>
-  extends OpaqueValueRx<TValue, UcValue<TValue>, TRx>
+  extends OpaqueListRx<TValue, UcValue<TValue>, TRx>
   implements UcValueBuilder.ListRx<TValue, TRx> {
 
   readonly #list: UcList<TValue> = [];

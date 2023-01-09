@@ -78,6 +78,7 @@ export namespace URIChargeRx {
   export interface Namespace {
     readonly ValueRx: ValueRx.Constructor;
     readonly MapRx: MapRx.Constructor;
+    readonly ListRx: ValueRx.Constructor;
   }
 
   /**
@@ -95,8 +96,12 @@ export namespace URIChargeRx {
   /**
    * URI charge value(s) receiver.
    *
-   * Implements a visitor pattern. May be used to build single value charge representation, a list item charges,
-   * directive argument(s), or map entry value.
+   * Implements a visitor pattern. Used in two flavours:
+   *
+   * - To receive single charge. In this case any added charge replaces preceding one.
+   * - To receive a list. In this case any added charge represents additional list item.
+   *
+   * In the former case, the receiver may be {@link RxValue#asList converted} to list receiver.
    *
    * First, the source charge(s) added by corresponding methods. While the result charge is built when the
    * {@link URIChargeRx.ValueRx#end end()} method called.
@@ -158,6 +163,21 @@ export namespace URIChargeRx {
      * @param build - Charge builder function accepting list items receiver and building a charge with it.
      */
     rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
+
+    /**
+     * Builds a charge out of visited list items.
+     *
+     * This effectively converts single charge receiver to list receiver.
+     *
+     * For single charge receiver the already added charge, if any, becomes the first item of the received list.
+     *
+     * For the list receiver this method just continues to build the the same list.
+     *
+     * The original receiver is discarded. Its {@link end} method will not be called.
+     *
+     * @param build - Charge builder function accepting list items receiver and building a charge with it.
+     */
+    asList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
 
     /**
      * Ends receiving charges and creates the result charge.
