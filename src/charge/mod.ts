@@ -1,4 +1,4 @@
-export { chargeURI, chargeURIArgs, chargeURIKey, unchargeURIKey } from './charge-uri.js';
+export { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 export * from './churi.tag.js';
 export * from './opaque.uri-charge-rx.js';
 export * from './parse-uc-value.js';

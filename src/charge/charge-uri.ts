@@ -21,32 +21,6 @@ export function chargeURI(
   return URI_CHARGE_ENCODERS[typeof value]?.(value, placement);
 }
 
-/**
- * Encodes arbitrary value to be placed to URI charge string as argument(s). E.g. appended to {@link UcRoute#charge
- * path fragment}.
- *
- * @param value - The value to encode.
- *
- * @returns Either encoded value, or `undefined` if the value can not be encoded.
- *
- * @see {@link chargeURI}.
- */
-export function chargeURIArgs(value: unknown): string | undefined {
-  let omitParentheses = false;
-  const encoded = chargeURI(value, {
-    as: 'arg',
-    omitParentheses() {
-      omitParentheses = true;
-    },
-  });
-
-  if (encoded === undefined) {
-    return;
-  }
-
-  return omitParentheses ? encoded : `(${encoded})`;
-}
-
 const URI_CHARGE_ENCODERS: {
   readonly [type in string]: (value: any, placement: URIChargeable.Placement) => string | undefined;
 } = {
@@ -142,112 +116,128 @@ function chargeURIObject(
 
   const entries = Object.entries(value);
 
-  return chargeURIMap(entries, entries.length, placement);
+  return chargeURIMap(entries, placement);
 }
 
 /** @internal */
 export function chargeURIArray(
   list: unknown[],
-  { as, omitParentheses }: URIChargeable.Placement,
+  { as, omitCommaBefore, omitCommaAfter }: URIChargeable.Placement,
 ): string {
+  omitCommaBefore?.();
+  omitCommaAfter?.();
+
+  let commaBefore = true;
+  let commaAfter = true;
+
+  const itemPlacement: URIChargeable.Item = {
+    as: 'item',
+    omitCommaBefore() {
+      commaBefore = false;
+    },
+    omitCommaAfter() {
+      commaAfter = false;
+    },
+  };
+
   if (list.length < 2) {
-    if (!list.length) {
-      return '!!';
+    if (list.length) {
+      // Encode single item.
+      let itemCharge = chargeURI(list[0], itemPlacement);
+
+      if (itemCharge == null) {
+        itemCharge = '--'; // Encode undefined item as `null`.
+      } else if (!itemCharge) {
+        itemCharge = "'";
+      }
+
+      return as === 'item'
+        ? `(${itemCharge})`
+        : commaBefore
+        ? /* Add comma to convert to array */ `,${itemCharge}`
+        : itemCharge;
     }
 
-    return chargeURIArrayItem(list[0], ANY_CHARGE_PLACEMENT);
+    // Encode empty list.
+    return as === 'item' ? '()' : ',';
   }
 
-  let tailIndex: number;
-  const itemPlacement: URIChargeable.Any = ANY_CHARGE_PLACEMENT;
+  const lastIndex = list.length - 1;
+  let listCharge = '';
+  let commaRequired = false;
 
-  if (as === 'entry') {
-    tailIndex = -1;
-    omitParentheses();
-  } else if (as === 'arg') {
-    tailIndex = list.length - 1;
-    omitParentheses();
-  } else {
-    tailIndex = list.length - 1;
-  }
+  list.forEach((item, index) => {
+    commaBefore = true;
+    commaAfter = true;
 
-  return list.reduce(
-    (prev: string, item: unknown, index: number) => prev
-      + (index === tailIndex ? chargeURIArrayTail(item) : chargeURIArrayItem(item, itemPlacement)),
-    '',
-  );
-}
+    let itemCharge = chargeURI(item, itemPlacement);
 
-function chargeURIArrayItem(item: unknown, placement: URIChargeable.Any): string {
-  const encoded = chargeURI(item, placement);
+    if (itemCharge == null) {
+      itemCharge = '--'; // Encode undefined item as `null`.
+    } else if (!itemCharge && (!index || index === lastIndex)) {
+      // Lading and trailing empty items has to be escaped.
+      itemCharge = "'";
+    }
+    if (!index) {
+      // Always omit comma before the first item.
+      listCharge = itemCharge;
+    } else {
+      if (commaBefore || commaRequired) {
+        listCharge += ',';
+      }
+      listCharge += itemCharge;
+    }
 
-  return encoded != null ? `(${encoded})` : '(--)';
-}
-
-function chargeURIArrayTail(item: unknown): string {
-  let omitParentheses = false;
-  const encoded = chargeURI(item, {
-    as: 'tail',
-    omitParentheses: () => {
-      omitParentheses = true;
-    },
+    commaRequired = commaAfter;
   });
 
-  if (omitParentheses) {
-    return encoded!;
-  }
-
-  return encoded != null ? `(${encoded})` : '(--)';
+  return as === 'item' ? `(${listCharge})` : listCharge;
 }
 
 /** @internal */
 export function chargeURIMap(
   entries: Iterable<[string, unknown]>,
-  numEntries: number,
-  placement: URIChargeable.Placement,
+  { omitCommaAfter }: URIChargeable.Placement,
 ): string {
-  const isTail = placement.as === 'tail';
-  const lastIndex = numEntries - 1;
-
-  let omitParentheses: boolean;
-  const entryPlacement: URIChargeable.Entry = {
-    as: 'entry',
-    omitParentheses() {
-      omitParentheses = true;
-    },
-  };
-  const encoded: string[] = [];
+  const mapCharge: string[] = [];
   let index = 0;
+  let hasSuffix = false;
 
   for (const [key, value] of entries) {
-    omitParentheses = false;
+    const entryCharge = chargeURI(value);
 
-    const encodedValue = chargeURI(value, entryPlacement);
+    if (entryCharge != null) {
+      // Omit undefined entries.
+      if (hasSuffix) {
+        mapCharge.push('()');
+        hasSuffix = false;
+      }
 
-    if (encodedValue != null) {
       const encodedKey = chargeURIKey(key, index > 0);
 
-      if (!encodedValue && index === lastIndex && (encoded.length || isTail)) {
-        // Suffix.
-        encoded.push(encodedKey);
+      if (entryCharge) {
+        mapCharge.push(`${encodedKey}(${entryCharge})`);
       } else {
-        encoded.push(
-          omitParentheses ? `${encodedKey}${encodedValue}` : `${encodedKey}(${encodedValue})`,
-        );
+        // Suffix.
+        mapCharge.push(encodedKey);
+        hasSuffix = true;
       }
 
       ++index;
     }
   }
 
-  if (!encoded.length) {
-    // Empty map.
-    return '!()';
-  }
-  if (isTail) {
-    // Tail of the list.
-    placement.omitParentheses();
+  if (!hasSuffix) {
+    // Can not omit comma after suffix.
+    omitCommaAfter?.();
+  } else if (mapCharge.length === 1) {
+    // Nothing but suffix.
+    // Avoid escaping it twice.
+    const [entryCharge] = mapCharge;
+
+    return entryCharge.startsWith('$') ? entryCharge : `$${entryCharge}`;
   }
 
-  return encoded.join('');
+  // Empty map?
+  return mapCharge.length ? mapCharge.join('') : '$';
 }

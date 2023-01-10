@@ -153,7 +153,7 @@ export class URICharge$Map<out TValue>
   }
 
   override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURIMap(this.#map, this.#map.size, placement);
+    return chargeURIMap(this.#map, placement);
   }
 
 }
