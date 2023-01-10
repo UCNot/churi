@@ -21,6 +21,14 @@ export class ASCIICharSet {
     this.#mask = mask;
   }
 
+  has(charCode: number): number | boolean {
+    return (
+      charCode <= this.#max
+      && charCode >= this.#min
+      && this.#mask & (1 << (charCode - this.#min))
+    );
+  }
+
   prefixes(input: string): number | boolean {
     const firstCode = input.charCodeAt(0);
 

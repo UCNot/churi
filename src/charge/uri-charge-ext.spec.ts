@@ -33,9 +33,9 @@ describe('URIChargeExt', () => {
       });
     });
     it('recognized as list item value', () => {
-      expect(parser.parse('(!test)')).toEqual({
+      expect(parser.parse(',!test')).toEqual({
         charge: [{ [test__symbol]: 'test value' }],
-        end: 7,
+        end: 6,
       });
     });
   });
@@ -49,7 +49,7 @@ describe('URIChargeExt', () => {
           directives: {
             ['!test'](_rawName: string, rawArg: string): UcValue<UcPrimitive | TestValue> {
               return target.chargeRx.rxValue(
-                rx => target.parseArgs(rawArg, new TestDirectiveRx(rx)).charge,
+                rx => target.parse(rawArg.slice(1), new TestDirectiveRx(rx)).charge,
               );
             },
           },
@@ -67,9 +67,9 @@ describe('URIChargeExt', () => {
       });
     });
     it('recognized as list item value', () => {
-      expect(parser.parse('(!test(bar)(baz))')).toEqual({
+      expect(parser.parse(',!test(bar,baz)')).toEqual({
         charge: [{ [test__symbol]: 'baz' }],
-        end: 17,
+        end: 15,
       });
     });
   });

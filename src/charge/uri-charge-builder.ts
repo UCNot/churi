@@ -218,6 +218,10 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
     }
   }
 
+  override asList(): void {
+    this.#builder = this.#builder.toList();
+  }
+
   override end(): URICharge<TValue> {
     return this.#builder.build(this);
   }
@@ -227,6 +231,7 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
 interface URIChargeValue$Builder<out TValue> {
   add(value: URICharge.Some<TValue>): URIChargeValue$Builder<TValue>;
   build(rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue>;
+  toList(): URIChargeValue$Builder<TValue>;
 }
 
 class URIChargeValue$None<TValue> implements URIChargeValue$Builder<TValue> {
@@ -237,6 +242,10 @@ class URIChargeValue$None<TValue> implements URIChargeValue$Builder<TValue> {
 
   build(rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
     return rx.chargeRx.none;
+  }
+
+  toList(): URIChargeValue$Builder<TValue> {
+    return new URIChargeValue$List([]);
   }
 
 }
@@ -259,6 +268,10 @@ class URIChargeValue$Single<TValue> implements URIChargeValue$Builder<TValue> {
     return this.#value;
   }
 
+  toList(): URIChargeValue$Builder<TValue> {
+    return new URIChargeValue$List([this.#value]);
+  }
+
 }
 
 class URIChargeValue$List<TValue> implements URIChargeValue$Builder<TValue> {
@@ -277,6 +290,10 @@ class URIChargeValue$List<TValue> implements URIChargeValue$Builder<TValue> {
 
   build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
     return new URICharge$List(this.#list);
+  }
+
+  toList(): this {
+    return this;
   }
 
 }
@@ -311,10 +328,8 @@ class URIChargeBuilder$MapRx<out TValue, out TRx extends URIChargeBuilder<TValue
 
 }
 
-const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
-
 class URIChargeBuilder$ListRx<out TValue, out TRx extends URIChargeBuilder<TValue>>
-  extends OpaqueListRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
+  extends OpaqueValueRx<URIChargeItem<TValue>, URICharge<TValue>, TRx>
   implements URIChargeBuilder.ValueRx<TValue, TRx> {
 
   readonly #list: URICharge.Some<TValue>[] = [];

@@ -78,7 +78,6 @@ export namespace URIChargeRx {
   export interface Namespace {
     readonly ValueRx: ValueRx.Constructor;
     readonly MapRx: MapRx.Constructor;
-    readonly ListRx: ValueRx.Constructor;
   }
 
   /**
@@ -96,15 +95,17 @@ export namespace URIChargeRx {
   /**
    * URI charge value(s) receiver.
    *
-   * Implements a visitor pattern. Used in two flavours:
+   * Implements a visitor pattern.
+   *
+   * First, the source charge(s) added by corresponding methods. While the result charge is built when the
+   * {@link URIChargeRx.ValueRx#end end()} method called.
+   *
+   * Used in two flavours:
    *
    * - To receive single charge. In this case any added charge replaces preceding one.
    * - To receive a list. In this case any added charge represents additional list item.
    *
    * In the former case, the receiver may be {@link RxValue#asList converted} to list receiver.
-   *
-   * First, the source charge(s) added by corresponding methods. While the result charge is built when the
-   * {@link URIChargeRx.ValueRx#end end()} method called.
    *
    * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    * @typeParam TCharge - URI charge representation type.
@@ -165,19 +166,13 @@ export namespace URIChargeRx {
     rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
 
     /**
-     * Builds a charge out of visited list items.
-     *
-     * This effectively converts single charge receiver to list receiver.
+     * Converts this receiver to list items receiver.
      *
      * For single charge receiver the already added charge, if any, becomes the first item of the received list.
      *
-     * For the list receiver this method just continues to build the the same list.
-     *
-     * The original receiver is discarded. Its {@link end} method will not be called.
-     *
-     * @param build - Charge builder function accepting list items receiver and building a charge with it.
+     * For the list receiver this method does nothing.
      */
-    asList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
+    asList(): void;
 
     /**
      * Ends receiving charges and creates the result charge.

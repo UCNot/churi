@@ -1,5 +1,5 @@
 import { UcPrimitive } from '../schema/uc-primitive.js';
-import { parseUcArgs, parseUcValue } from './impl/uc-value-parser.js';
+import { parseUcValue } from './impl/uc-value-parser.js';
 import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
 import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
@@ -61,49 +61,6 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
     return parseUcValue(rx, this.#ext, input);
-  }
-
-  /**
-   * Parses the given input as if it contains arguments attached to some URI charge.
-   *
-   * Thus, the leading `(` is not recognized as list, but rather as entry value.
-   *
-   * This is used e.g. to parse {@link UcRoute.charge path fragment charge}.
-   *
-   * @param input - Input string containing encoded URI charge.
-   * @param rx - Optional URI charge value receiver. New one will be {@link URIChargeRx.rxValue created} if omitted.
-   *
-   * @returns Parse result containing charge representation.
-   */
-  parseArgs(
-    input: string,
-    rx?: URIChargeRx.ValueRx<TValue, TCharge>,
-  ): URIChargeParser.Result<TCharge> {
-    if (rx) {
-      const end = this.#parseArgs(input, rx);
-
-      return { charge: rx.end(), end };
-    }
-
-    let end!: number;
-    const charge = this.chargeRx.rxValue(rx => {
-      end = this.#parseArgs(input, rx);
-
-      return rx.end();
-    });
-
-    return { charge, end };
-  }
-
-  #parseArgs(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
-    let offset = 0;
-
-    if (input.startsWith('(')) {
-      offset = 1;
-      input = input.slice(1);
-    }
-
-    return offset + parseUcArgs(rx, this.#ext, input);
   }
 
 }

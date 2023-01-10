@@ -120,17 +120,20 @@ describe('UcRoute', () => {
   });
 
   describe('charge', () => {
-    it('is none without charge', () => {
-      expect(new UcRoute('/path').charge).toBeURIChargeNone();
+    it('is string value without charge', () => {
+      expect(new UcRoute('/path').charge).toHaveURIChargeValue('path');
     });
     it('recognizes single charge', () => {
-      expect(new UcRoute('/path(foo)').charge).toHaveURIChargeValue('foo');
+      expect(new UcRoute('/path(foo)').charge).toHaveURIChargeItems({ path: 'foo' });
     });
     it('recognizes list charge', () => {
-      expect(new UcRoute('/path(foo)(bar)').charge).toHaveURIChargeItems('foo', 'bar');
+      expect(new UcRoute('/path,foo,bar)').charge).toHaveURIChargeItems('path', 'foo', 'bar');
     });
     it('recognizes map charge', () => {
-      expect(new UcRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems('foo', { bar: 'baz' });
+      expect(new UcRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems({
+        path: 'foo',
+        bar: 'baz',
+      });
     });
   });
 

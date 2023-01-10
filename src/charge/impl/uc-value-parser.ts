@@ -1,3 +1,4 @@
+import { ASCIICharSet } from '../../impl/ascii-char-set.js';
 import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 import { decodeUcValue } from './uc-value-decoder.js';
@@ -8,50 +9,104 @@ export function parseUcValue<TValue, TCharge>(
   ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): number {
+  if (input.startsWith(',')) {
+    // Convert to list and ignore leading comma.
+    rx.asList();
+
+    if (input.length < 2) {
+      // Ignore trailing comma at the end of input,
+      return input.length;
+    }
+    if (input[1] === ')') {
+      // Ignore trailing comma before closing parenthesis.
+      return 1;
+    }
+
+    return 1 + parseUcSingleOrList(rx, ext, input.slice(1));
+  }
+
+  return parseUcSingleOrList(rx, ext, input);
+}
+
+function parseUcSingleOrList<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): number {
+  const end = parseUcSingle(rx, ext, input);
+
+  if (end >= input.length) {
+    // End of input after the only item.
+    return input.length;
+  }
+
+  const terminator = input[end];
+
+  if (terminator === ')') {
+    // Closing parenthesis ends the value.
+    return end;
+  }
+
+  rx.asList(); // Convert to list.
+
+  // Skip comma, if any.
+  const restItemsStart = terminator === ',' ? end + 1 : end;
+
+  // Parse the rest of list items.
+  return restItemsStart + parseUcItems(rx, ext, input.slice(restItemsStart));
+}
+
+function parseUcSingle<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): number {
   if (input.startsWith("'")) {
-    const rawString = parseRawUcStringLength(input.slice(1));
+    // Parse quoted string.
+    const rawString = parseRawUcString(input.slice(1));
 
     rx.addValue(rawString, 'string');
 
     return 1 + rawString.length;
   }
 
-  const valueEnd = input.search(PARENT_PATTERN);
+  const delimiterIdx = input.search(UC_DELIMITER_PATTERN);
 
-  if (valueEnd < 0) {
+  if (delimiterIdx < 0) {
     // Up to the end of input.
     decodeUcValue(rx, ext, input);
 
     return input.length;
   }
-  if (input[valueEnd] === ')') {
-    // Up to closing parent.
-    decodeUcValue(rx, ext, input.slice(0, valueEnd));
 
-    return valueEnd;
+  const delimiter = input[delimiterIdx];
+
+  if (delimiter !== '(') {
+    // End of the value.
+    if (delimiter === ',' && (input.length < 2 || input[1] === ')')) {
+      // Ignore trailing comma.
+      rx.asList();
+
+      return delimiterIdx + 1;
+    }
+
+    decodeUcValue(rx, ext, input.slice(0, delimiterIdx));
+
+    return delimiterIdx;
+  }
+  if (delimiterIdx) {
+    // Opening parent after the key.
+    return parseUcMapOrDirective(rx, ext, input.slice(0, delimiterIdx), input);
   }
 
-  // Opening parent.
-  if (valueEnd) {
-    return parseUcMapOrDirective(rx, ext, input.slice(0, valueEnd), input);
-  }
-
-  // Empty key. Start nested list and parse first item.
-  let end!: number;
-
-  rx.rxList(listRx => {
-    end = parseUcArgs(listRx, ext, input.slice(1)) + 1;
-
-    return listRx.end();
-  });
-
-  return end;
+  // Opening parent without preceding key treated as nested list.
+  return parseNestedUcList(rx, ext, input);
 }
 
-const PARENT_PATTERN = /[()]/;
-const PARENT_OR_COMMA_PATTERN = /[(),]/;
+const UC_PARENTHESIS_PATTERN = /[()]/;
+const UC_DELIMITER_PATTERN = /[(),]/;
 
-function parseRawUcStringLength(input: string): string {
+function parseRawUcString(input: string): string {
   let openedParentheses = 0;
   let offset = 0;
 
@@ -59,7 +114,7 @@ function parseRawUcStringLength(input: string): string {
     const restInput = input.slice(offset);
     const delimiterIdx = restInput.search(
       // Search for commas only _outside_ parentheses.
-      openedParentheses ? PARENT_PATTERN : PARENT_OR_COMMA_PATTERN,
+      openedParentheses ? UC_PARENTHESIS_PATTERN : UC_DELIMITER_PATTERN,
     );
 
     if (delimiterIdx < 0) {
@@ -85,6 +140,71 @@ function parseRawUcStringLength(input: string): string {
   }
 }
 
+function parseNestedUcList<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): number {
+  rx.asList();
+
+  if (input.length < 2 || input[1] === ')') {
+    // Empty list.
+    rx.rxList(itemRx => itemRx.end());
+
+    return Math.min(input.length, 2);
+  }
+
+  // Ignore leading comma, if any.
+  const offset = input[1] === ',' ? 2 : 1;
+  let end!: number;
+
+  rx.rxList(itemRx => {
+    end = offset + parseUcItems(itemRx, ext, input.slice(offset)) + 1;
+
+    return itemRx.end();
+  });
+
+  return end;
+}
+
+function parseUcItems<TValue, TCharge>(
+  listRx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): number {
+  let offset = 0;
+
+  for (;;) {
+    if (input.length <= offset || input[offset] === ')') {
+      // Ignore empty trailing item.
+      return offset;
+    }
+
+    const restInput = input.slice(offset);
+    const end = parseUcSingle(listRx, ext, restInput);
+
+    if (end >= restInput.length) {
+      // The end of the input.
+      return input.length;
+    }
+
+    const delimiter = restInput[end];
+
+    if (delimiter === ')') {
+      // Closing parenthesis ends the list.
+      return offset + end;
+    }
+    if (delimiter === ',') {
+      // Comma separator.
+      offset += end + 1;
+    } else {
+      // No comma separator.
+      // This is possible e.g. after nested list.
+      offset += end;
+    }
+  }
+}
+
 function parseUcMapOrDirective<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
   ext: URIChargeExtParser<TValue, TCharge>,
@@ -93,7 +213,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
 ): number {
   if (rawKey.startsWith('!')) {
     // Handle directive.
-    const arg = parseRawUcStringLength(input.slice(rawKey.length));
+    const arg = parseRawUcString(input.slice(rawKey.length));
 
     ext.parseDirective(rx, rawKey, arg);
 
@@ -126,7 +246,7 @@ function parseUcMap<TValue>(
   let firstEntryEnd!: number;
 
   mapRx.rxEntry(key, rx => {
-    firstEntryEnd = parseUcEntry(rx, ext, firstValueInput);
+    firstEntryEnd = parseUcValue(rx, ext, firstValueInput) + 1;
 
     return rx.end();
   });
@@ -136,13 +256,16 @@ function parseUcMap<TValue>(
     // End of input.
     return firstValueInput.length;
   }
-  if (firstValueInput[firstEntryEnd] === ')') {
+  if (UC_MAP_TERMINATORS.has(firstValueInput.charCodeAt(firstEntryEnd))) {
+    // Next item starts after closing parenthesis.
     return firstEntryEnd;
   }
 
   // Parse the rest of the map entries.
   return firstEntryEnd + parseUcEntries(mapRx, ext, firstValueInput.slice(firstEntryEnd));
 }
+
+const UC_MAP_TERMINATORS = new ASCIICharSet("!'(),");
 
 function parseUcEntries<TValue>(
   mapRx: URIChargeRx.MapRx<TValue>,
@@ -152,9 +275,10 @@ function parseUcEntries<TValue>(
   let offset = 0;
 
   for (;;) {
-    const keyEnd = input.search(PARENT_PATTERN);
+    const keyEnd = input.search(UC_DELIMITER_PATTERN);
 
     if (keyEnd < 0) {
+      // End of input.
       mapRx.addSuffix(unchargeURIKey(input));
 
       return offset + input.length;
@@ -162,8 +286,11 @@ function parseUcEntries<TValue>(
 
     const key = unchargeURIKey(input.slice(0, keyEnd));
 
-    if (input[keyEnd] === ')') {
+    if (input[keyEnd] !== '(') {
+      // No opening parent after key.
       if (keyEnd) {
+        // ...but there is a key.
+        // Add suffix.
         mapRx.addSuffix(key);
       }
 
@@ -175,106 +302,18 @@ function parseUcEntries<TValue>(
     input = input.slice(keyEnd + 1);
     offset += keyEnd + 1;
     mapRx.rxEntry(key, rx => {
-      nextKeyStart = parseUcEntry(rx, ext, input);
+      nextKeyStart = parseUcValue(rx, ext, input) + 1;
 
       return rx.end();
     });
 
     if (nextKeyStart >= input.length) {
+      // End of input.
       return offset + input.length;
     }
-
-    input = input.slice(nextKeyStart);
-    offset += nextKeyStart;
-  }
-}
-
-function parseUcEntry<TValue>(
-  rx: URIChargeRx.ValueRx<TValue>,
-  ext: URIChargeExtParser<TValue>,
-  input: string,
-): number {
-  let offset = 0;
-
-  for (;;) {
-    const nextTokenStart = parseUcValue(rx, ext, input) + 1;
-
-    if (nextTokenStart >= input.length) {
-      return offset + input.length;
-    }
-    if (input[nextTokenStart] !== '(') {
-      // Not a next item.
-      return offset + nextTokenStart;
-    }
-
-    input = input.slice(nextTokenStart + 1);
-    offset += nextTokenStart + 1;
-  }
-}
-
-export function parseUcArgs<TValue>(
-  rx: URIChargeRx.ValueRx<TValue>,
-  ext: URIChargeExtParser<TValue>,
-  firstValueInput: string,
-): number {
-  // Opening parent without preceding key.
-  // Parse first item value.
-  const firstValueEnd = parseUcValue(rx, ext, firstValueInput) + 1;
-  // After closing parent.
-
-  if (firstValueEnd >= firstValueInput.length) {
-    // End of input.
-    return firstValueInput.length;
-  }
-  if (firstValueInput[firstValueEnd] === ')') {
-    // No more fields.
-    return firstValueEnd;
-  }
-
-  // Parse the rest of list items.
-  return firstValueEnd + parseUcItems(rx, ext, firstValueInput.slice(firstValueEnd));
-}
-
-function parseUcItems<TValue>(
-  rx: URIChargeRx.ValueRx<TValue>,
-  ext: URIChargeExtParser<TValue>,
-  input: string /* never empty */,
-): number {
-  let offset = 0;
-
-  for (;;) {
-    const keyEnd = input.search(PARENT_PATTERN);
-
-    if (keyEnd < 0) {
-      // Suffix treated as trailing item containing map with suffix.
-      // Thus, `(value)suffix` is the same as `(value)(suffix())`.
-      rx.rxMap(suffixRx => {
-        suffixRx.addSuffix(unchargeURIKey(input));
-
-        return suffixRx.endMap();
-      });
-
-      return offset + input.length;
-    }
-
-    if (keyEnd) {
-      // New key specified explicitly.
-      // Add map to trailing item and pass the rest of the input to added map.
-      // Thus, `(value1)key(value2)` is the same as `(value1)(key(value2))`.
-      return offset + parseUcMapOrDirective(rx, ext, input.slice(0, keyEnd), input);
-    }
-
-    if (input[0] === ')') {
-      return offset;
-    }
-
-    input = input.slice(1);
-    ++offset;
-
-    const nextKeyStart = parseUcValue(rx, ext, input) + 1;
-
-    if (nextKeyStart >= input.length) {
-      return offset + input.length;
+    if (UC_MAP_TERMINATORS.has(input.charCodeAt(nextKeyStart))) {
+      // Not a valid entry key.
+      return offset + nextKeyStart;
     }
 
     input = input.slice(nextKeyStart);

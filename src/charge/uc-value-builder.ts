@@ -217,6 +217,10 @@ class UcValueBuilder$ValueRx<out TValue, out TRx extends UcValueBuilder<TValue>>
     }
   }
 
+  override asList(): void {
+    this.#builder = this.#builder.toList();
+  }
+
   override end(): UcValue<TValue> {
     return this.#builder.build(this);
   }
@@ -236,6 +240,7 @@ function isUcMap<TValue>(value: UcValue<TValue>): value is UcMap<TValue> {
 interface UcValue$Builder<TValue> {
   add(value: UcValue<TValue>): UcValue$Builder<TValue>;
   build(rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue>;
+  toList(): UcValue$Builder<TValue>;
 }
 
 class UcValue$None<TValue> implements UcValue$Builder<TValue> {
@@ -246,6 +251,10 @@ class UcValue$None<TValue> implements UcValue$Builder<TValue> {
 
   build(rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
     return rx.chargeRx.none;
+  }
+
+  toList(): UcValue$Builder<TValue> {
+    return new UcValue$List([]);
   }
 
 }
@@ -268,6 +277,10 @@ class UcValue$Single<TValue> implements UcValue$Builder<TValue> {
     return this.#value;
   }
 
+  toList(): UcValue$Builder<TValue> {
+    return new UcValue$List([this.#value]);
+  }
+
 }
 
 class UcValue$List<TValue> implements UcValue$Builder<TValue> {
@@ -286,6 +299,10 @@ class UcValue$List<TValue> implements UcValue$Builder<TValue> {
 
   build(_rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
     return this.#list;
+  }
+
+  toList(): this {
+    return this;
   }
 
 }
@@ -322,10 +339,8 @@ class UcValueBuilder$MapRx<out TValue, out TRx extends UcValueBuilder<TValue>>
 
 }
 
-const OpaqueListRx = /*#__PURE__*/ OpaqueURIChargeRx.ListRx;
-
 class UcValueBuilder$ListRx<out TValue, out TRx extends UcValueBuilder<TValue>>
-  extends OpaqueListRx<TValue, UcValue<TValue>, TRx>
+  extends OpaqueValueRx<TValue, UcValue<TValue>, TRx>
   implements UcValueBuilder.ListRx<TValue, TRx> {
 
   readonly #list: UcList<TValue> = [];

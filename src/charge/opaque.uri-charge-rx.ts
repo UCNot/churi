@@ -36,17 +36,6 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return OpaqueURICharge$MapRx;
   }
 
-  /**
-   * Opaque URI charge list receiver.
-   *
-   * Ignores charges and always results to {@link OpaqueURIChargeRx#none none}.
-   *
-   * Can be used as a base for other implementations.
-   */
-  static get ListRx(): URIChargeRx.ValueRx.Constructor {
-    return OpaqueURICharge$ListRx;
-  }
-
   readonly #none: TCharge;
 
   constructor({ none }: URIChargeRx.Init<TCharge>) {
@@ -87,11 +76,8 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
 
 }
 
-abstract class OpaqueURICharge$AbstractRx<
-  out TValue,
-  out TCharge,
-  out TRx extends URIChargeRx<TValue, TCharge>,
-> implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
+class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URIChargeRx<TValue, TCharge>>
+  implements URIChargeRx.ValueRx<TValue, TCharge, TRx> {
 
   readonly #chargeRx: TRx;
 
@@ -103,7 +89,9 @@ abstract class OpaqueURICharge$AbstractRx<
     return this.#chargeRx;
   }
 
-  abstract add(charge: TCharge): void;
+  add(_charge: TCharge): void {
+    // Ignore charge.
+  }
 
   addDirective(rawName: string, rawArg: string): void {
     this.add(this.#chargeRx.createDirective(rawName, rawArg));
@@ -125,56 +113,12 @@ abstract class OpaqueURICharge$AbstractRx<
     this.add(this.chargeRx.rxList(build));
   }
 
-  abstract asList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void;
+  asList(): void {
+    // Does nothing.
+  }
 
   end(): TCharge {
     return this.#chargeRx.none;
-  }
-
-}
-
-class OpaqueURICharge$ValueRx<
-  out TValue,
-  out TCharge,
-  out TRx extends URIChargeRx<TValue, TCharge>,
-> extends OpaqueURICharge$AbstractRx<TValue, TCharge, TRx> {
-
-  #charge?: [TCharge];
-
-  override add(charge: TCharge): void {
-    this.#charge = [charge];
-  }
-
-  override asList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
-    if (this.#charge) {
-      const [charge] = this.#charge;
-
-      this.chargeRx.rxList(rx => {
-        rx.add(charge);
-
-        return build(rx);
-      });
-    } else {
-      this.chargeRx.rxList(build);
-    }
-  }
-
-}
-
-class OpaqueURICharge$ListRx<
-  out TValue,
-  out TCharge,
-  out TRx extends URIChargeRx<TValue, TCharge>,
-> extends OpaqueURICharge$AbstractRx<TValue, TCharge, TRx> {
-
-  override add(_charge: TCharge): void {
-    // Ignore charge
-  }
-
-  override asList(
-    build: (rx: URIChargeRx.ValueRx<TValue, TCharge, URIChargeRx<TValue, TCharge>>) => TCharge,
-  ): void {
-    build(this);
   }
 
 }

@@ -65,8 +65,6 @@ function decodeExclamationPrefixedUcValue<TValue, TCharge>(
 ): void {
   if (input.length === 1) {
     rx.addValue(true, 'boolean');
-  } else if (input === '!!') {
-    rx.rxList(listRx => listRx.end());
   } else {
     ext.parseEntity(rx, input);
   }

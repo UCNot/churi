@@ -10,7 +10,7 @@ describe('NonFiniteUcExt', () => {
       expect(parseUcValue('foo(!Infinity)').charge).toEqual({ foo: Infinity });
     });
     it('recognized as list item value', () => {
-      expect(parseUcValue('(!Infinity)').charge).toEqual([Infinity]);
+      expect(parseUcValue(',!Infinity').charge).toEqual([Infinity]);
     });
 
     describe('-Infinity', () => {
@@ -21,7 +21,7 @@ describe('NonFiniteUcExt', () => {
         expect(parseUcValue('foo(!-Infinity)').charge).toEqual({ foo: -Infinity });
       });
       it('recognized as list item value', () => {
-        expect(parseUcValue('(!-Infinity)').charge).toEqual([-Infinity]);
+        expect(parseUcValue(',!-Infinity').charge).toEqual([-Infinity]);
       });
     });
 
@@ -33,7 +33,7 @@ describe('NonFiniteUcExt', () => {
         expect(parseUcValue('foo(!NaN)').charge).toEqual({ foo: NaN });
       });
       it('recognized as list item value', () => {
-        expect(parseUcValue('(!NaN)').charge).toEqual([NaN]);
+        expect(parseUcValue(',!NaN').charge).toEqual([NaN]);
       });
     });
   });
