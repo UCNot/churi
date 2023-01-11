@@ -83,13 +83,6 @@ function parseUcSingle<TValue, TCharge>(
 
   if (delimiter !== '(') {
     // End of the value.
-    if (delimiter === ',' && (input.length < 2 || input[1] === ')')) {
-      // Ignore trailing comma.
-      rx.asList();
-
-      return delimiterIdx + 1;
-    }
-
     decodeUcValue(rx, ext, input.slice(0, delimiterIdx));
 
     return delimiterIdx;

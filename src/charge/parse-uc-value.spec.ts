@@ -152,6 +152,18 @@ describe('parseUcValue', () => {
     });
   });
 
+  describe('empty list item', () => {
+    it('recognized as top-level value', () => {
+      expect(parse(',,')).toEqual({ charge: [''], end: 2 });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse('foo(,,)').charge).toEqual({ foo: [''] });
+    });
+    it('recognized as nested list item value', () => {
+      expect(parse('(,,)')).toEqual({ charge: [['']], end: 4 });
+    });
+  });
+
   describe('null value', () => {
     it('recognized as top-level value', () => {
       expect(parse('--')).toEqual({ charge: null, end: 2 });
@@ -437,6 +449,9 @@ describe('parseUcValue', () => {
     expect(parse(',(foo))')).toEqual({ charge: [['foo']], end: 6 });
     expect(parse('(foo),)')).toEqual({ charge: [['foo']], end: 6 });
     expect(parse(',(foo),)')).toEqual({ charge: [['foo']], end: 7 });
+  });
+  it('stops nested list parsing after comma', () => {
+    expect(parse('(foo,bar,')).toEqual({ charge: [['foo', 'bar']], end: 9 });
   });
   it('stops entries parsing at closing parent', () => {
     expect(parse('foo(bar))')).toEqual({ charge: { foo: 'bar' }, end: 8 });
