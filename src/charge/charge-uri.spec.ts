@@ -250,6 +250,21 @@ describe('chargeURI', () => {
     });
   });
 
+  describe('array value empty string item', () => {
+    it('escapes the only empty string', () => {
+      expect(chargeURI([''])).toBe(",'");
+    });
+    it('escapes leading empty string', () => {
+      expect(chargeURI(['', 'tail'])).toBe("',tail");
+    });
+    it('escapes trailing empty string', () => {
+      expect(chargeURI(['head', ''])).toBe("head,'");
+    });
+    it('does not escape empty string in the middle', () => {
+      expect(chargeURI(['head', '', 'tail'])).toBe('head,,tail');
+    });
+  });
+
   describe('array value with multiple items', () => {
     it('encoded as top-level list', () => {
       expect(chargeURI(['bar', 'baz'])).toBe('bar,baz');
