@@ -22,7 +22,7 @@
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Modifies schema to allow <code>null</code> values.</p>
 
-<h3>Returns</h3><p>Modified scheme or original one if it is already nullable.</p>
+<h3>Returns</h3><p>Modified schema or original one if it is already nullable.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -32,7 +32,9 @@
 <div class="tsd-comment tsd-typography"><p>Implied data type.</p>
 </div></li>
 <li>
-<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></section>
+<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"><p>Original schema type.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -44,12 +46,12 @@
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> nullable: <span class="tsd-signature-type">true</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;nullable&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>nullable<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">true</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/31e7ab2/src/schema/uc-schema.ts#L199">hatsy/churi/src/schema/uc-schema.ts:199</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/f533182/src/schema/uc-schema.ts#L199">hatsy/churi/src/schema/uc-schema.ts:199</a></li></ul></aside></li>
 <li class="tsd-signature tsd-anchor-link" id="ucNullable-1">uc<wbr/>Nullable<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>schema<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span>, nullable<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;nullable&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>nullable<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><a href="#ucNullable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Modifies schema to prohibit <code>null</code> values.</p>
 
-<h3>Returns</h3><p>Modified scheme or original one if it prohibits <code>null</code> values already.</p>
+<h3>Returns</h3><p>Modified schema or original one if it prohibits <code>null</code> values already.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
 <h4>Type Parameters</h4>
@@ -59,7 +61,9 @@
 <div class="tsd-comment tsd-typography"><p>Implied data type.</p>
 </div></li>
 <li>
-<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></section>
+<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"><p>Original schema type.</p>
+</div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
@@ -71,12 +75,12 @@
 <h5>nullable: <span class="tsd-signature-type">false</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;nullable&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>nullable<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">false</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/31e7ab2/src/schema/uc-schema.ts#L213">hatsy/churi/src/schema/uc-schema.ts:213</a></li></ul></aside></li>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/f533182/src/schema/uc-schema.ts#L213">hatsy/churi/src/schema/uc-schema.ts:213</a></li></ul></aside></li>
 <li class="tsd-signature tsd-anchor-link" id="ucNullable-2">uc<wbr/>Nullable<span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TNullable</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span>schema<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span>, nullable<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TNullable</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;nullable&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>nullable<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TNullable</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><a href="#ucNullable-2" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Modifies schema to allow or prohibit <code>null</code> values.</p>
 
-<h3>Returns</h3><p>Modified scheme or original one if its UcScheme#nullable nullable constraint matches the requested
+<h3>Returns</h3><p>Modified schema or original one if its <a href="../interfaces/_hatsy_churi.UcSchema-1.html#nullable">nullable</a> constraint matches the requested
 one.</p>
 </div>
 <section class="tsd-panel tsd-type-parameters">
@@ -87,7 +91,9 @@ one.</p>
 <div class="tsd-comment tsd-typography"><p>Implied data type.</p>
 </div></li>
 <li>
-<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li>
+<h4>TSchema<span class="tsd-signature-symbol"> extends </span><a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span> = <a href="../interfaces/_hatsy_churi.UcSchema-1.html" class="tsd-signature-type" data-tsd-kind="Interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"><p>Original schema type.</p>
+</div></li>
 <li>
 <h4>TNullable<span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">boolean</span> = <span class="tsd-signature-type">true</span></h4></li></ul></section>
 <div class="tsd-parameters">
@@ -103,7 +109,7 @@ one.</p>
 </div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Omit</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TSchema</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">&quot;nullable&quot;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span>nullable<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type" data-tsd-kind="Type parameter">TNullable</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/31e7ab2/src/schema/uc-schema.ts#L229">hatsy/churi/src/schema/uc-schema.ts:229</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/f533182/src/schema/uc-schema.ts#L229">hatsy/churi/src/schema/uc-schema.ts:229</a></li></ul></aside></li></ul></section></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
 <details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
@@ -160,6 +166,7 @@ one.</p>
 <li class="tsd-kind-namespace tsd-parent-kind-namespace"><a href="../modules/_hatsy_churi.UcValueBuilder.ValueRx.html">Value<wbr/>Rx</a></li></ul></li></ul></li>
 <li class="tsd-kind-module"><a href="../modules/_hatsy_churi_compiler.html">@hatsy/churi/compiler</a>
 <ul>
+<li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_hatsy_churi_compiler.UccCode.html">Ucc<wbr/>Code</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_hatsy_churi_compiler.UccImports.html">Ucc<wbr/>Imports</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_hatsy_churi_compiler.UccPrinter.html">Ucc<wbr/>Printer</a></li>
 <li class="tsd-kind-namespace tsd-parent-kind-module"><a href="../modules/_hatsy_churi_compiler.UcsFunction.html">Ucs<wbr/>Function</a></li>
