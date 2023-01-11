@@ -115,9 +115,9 @@ describe('churi tag', () => {
     expect(churi`${[]},`).toBe('(),');
     expect(churi`?p=${[]},`).toBe('?p=(),');
   });
-  it('charges undefined value as !undef entity', () => {
-    expect(churi`${undefined}`).toBe('!undef');
-    expect(churi`?p=${undefined}`).toBe('?p=!undef');
+  it('charges undefined value as null', () => {
+    expect(churi`${undefined}`).toBe('--');
+    expect(churi`?p=${undefined}`).toBe('?p=--');
   });
   it('charges undefined list item as null', () => {
     expect(churi`,${undefined}`).toBe(',--');

@@ -100,8 +100,8 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
       commaRequired = commaAfter;
     } else {
-      // Substitute `!undef` entity for undefined item.
-      uri += chargeURI(value) ?? '!undef';
+      // Substitute `null` for undefined value.
+      uri += chargeURI(value) ?? '--';
     }
 
     index = nextIndex;
