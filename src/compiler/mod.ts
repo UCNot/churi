@@ -3,6 +3,7 @@
  */
 export * from './serialization/mod.js';
 export * from './ucc-aliases.js';
+export * from './ucc-code.js';
 export * from './ucc-declarations.js';
 export * from './ucc-expr.js';
 export * from './ucc-imports.js';
