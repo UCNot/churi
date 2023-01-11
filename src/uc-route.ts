@@ -79,15 +79,13 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
     let name: string;
 
     if (nameEnd < 0) {
-      name = charge;
+      name = charge.startsWith('$') || charge.startsWith("'") ? charge.slice(1) : charge;
+    } else if (charge.startsWith('$')) {
+      name = charge.slice(1, nameEnd);
     } else {
       const nameDelimiter = charge[nameEnd];
 
-      if (nameDelimiter === '(') {
-        name = charge.slice(charge.startsWith('$') ? 1 : 0, nameEnd);
-      } else {
-        name = charge.slice(charge.startsWith("'") || charge.startsWith('$') ? 1 : 0, nameEnd);
-      }
+      name = charge.slice(nameDelimiter !== '(' && charge.startsWith("'") ? 1 : 0, nameEnd);
     }
 
     return {
@@ -99,10 +97,6 @@ export class UcRoute<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> 
 
   #parseCharge(): TCharge {
     const { charge } = this.#getParts();
-
-    if (charge == null) {
-      return this.chargeParser.chargeRx.none;
-    }
 
     return this.chargeParser.parse(charge).charge;
   }
@@ -238,7 +232,7 @@ const CHURI_NAME_DELIMITER_PATTERN = /[,()]/;
 
 interface UcRoute$Parts {
   readonly name: string;
-  readonly charge: string | undefined;
+  readonly charge: string;
   readonly matrix: string | undefined;
 }
 

@@ -44,6 +44,18 @@ describe('UcRoute', () => {
       expect(new UcRoute('path/').name).toBe('path');
       expect(new UcRoute('/path/').name).toBe('path');
     });
+    it('omits dollar prefix', () => {
+      expect(new UcRoute('/$some').name).toBe('some');
+      expect(new UcRoute('/$some,other').name).toBe('some');
+      expect(new UcRoute('/$some(foo)').name).toBe('some');
+    });
+    it('omits quote', () => {
+      expect(new UcRoute("/'some").name).toBe('some');
+      expect(new UcRoute("/'some,other").name).toBe('some');
+    });
+    it('does not omit quote of entry key', () => {
+      expect(new UcRoute("/'some(foo)").name).toBe("'some");
+    });
     it('omits charge', () => {
       expect(new UcRoute('name(foo)').name).toBe('name');
       expect(new UcRoute('name(foo);p=bar').name).toBe('name');
