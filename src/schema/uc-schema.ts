@@ -128,10 +128,10 @@ export namespace UcSchema {
  * Modifies schema to allow `undefined` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  *
- * @returns Modified scheme or original one if it is already optional.
+ * @returns Modified schema or original one if it is already optional.
  */
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
@@ -142,10 +142,10 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  * Modifies schema to prohibit `undefined` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  *
- * @returns Modified scheme or original one if it prohibits `undefined` values already.
+ * @returns Modified schema or original one if it prohibits `undefined` values already.
  */
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
@@ -156,11 +156,11 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  * Modifies schema to allow or prohibit `undefined` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  * @param optional - Whether to allow `undefined` values.
  *
- * @returns Modified scheme or original one if its {@link UcScheme#optional optional} constraint matches the requested
+ * @returns Modified schema or original one if its {@link UcSchema#optional optional} constraint matches the requested
  * one.
  */
 export function ucOptional<
@@ -191,10 +191,10 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  * Modifies schema to allow `null` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  *
- * @returns Modified scheme or original one if it is already nullable.
+ * @returns Modified schema or original one if it is already nullable.
  */
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
@@ -205,10 +205,10 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  * Modifies schema to prohibit `null` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  *
- * @returns Modified scheme or original one if it prohibits `null` values already.
+ * @returns Modified schema or original one if it prohibits `null` values already.
  */
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
@@ -219,11 +219,11 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  * Modifies schema to allow or prohibit `null` values.
  *
  * @typeParam T - Implied data type.
- * @typeParam TScheme - Original scheme type.
+ * @typeParam TSchema - Original schema type.
  * @param schema - Schema to modify.
  * @param nullable - Whether to allow `null` values.
  *
- * @returns Modified scheme or original one if its {@link UcScheme#nullable nullable} constraint matches the requested
+ * @returns Modified schema or original one if its {@link UcSchema#nullable nullable} constraint matches the requested
  * one.
  */
 export function ucNullable<

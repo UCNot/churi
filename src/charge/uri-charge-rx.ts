@@ -105,7 +105,7 @@ export namespace URIChargeRx {
    * - To receive single charge. In this case any added charge replaces preceding one.
    * - To receive a list. In this case any added charge represents additional list item.
    *
-   * In the former case, the receiver may be {@link RxValue#asList converted} to list receiver.
+   * In the former case, the receiver may be {@link URIChargeRx.ValueRx#asList converted} to list receiver.
    *
    * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    * @typeParam TCharge - URI charge representation type.
