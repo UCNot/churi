@@ -254,14 +254,16 @@ const URIChargeValue$none: URIChargeValue$Builder<any> = /*#__PURE__*/ new URICh
 
 class URIChargeValue$Single<TValue> implements URIChargeValue$Builder<TValue> {
 
-  readonly #value: URICharge.Some<TValue>;
+  #value: URICharge.Some<TValue>;
 
   constructor(value: URICharge.Some<TValue>) {
     this.#value = value;
   }
 
-  add(value: URICharge.Some<TValue>): URIChargeValue$List<TValue> {
-    return new URIChargeValue$List([this.#value, value]);
+  add(value: URICharge.Some<TValue>): this {
+    this.#value = value;
+
+    return this;
   }
 
   build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {

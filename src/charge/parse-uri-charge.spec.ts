@@ -19,6 +19,17 @@ describe('createURIChargeParser', () => {
 
       expect(charge).toBe(URICharge.none);
     });
+    it('overrides last received charge', () => {
+      const charge = new URIChargeBuilder().rxValue(rx => {
+        rx.addValue(1, 'number');
+        rx.addValue(2, 'number');
+
+        return rx.end();
+      });
+
+      expect(charge).toBeURIChargeSingle('number');
+      expect(charge).toHaveURIChargeValue(2);
+    });
   });
 });
 

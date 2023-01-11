@@ -17,9 +17,20 @@ describe('createUcValueParser', () => {
   describe('rxValue', () => {
     it('builds none without values', () => {
       const builder = new UcValueBuilder();
-      const value = builder.rxValue(rx => rx.end());
+      const charge = builder.rxValue(rx => rx.end());
 
-      expect(value).toBe(builder.none);
+      expect(charge).toBe(builder.none);
+    });
+
+    it('overrides last received charge', () => {
+      const charge = new UcValueBuilder().rxValue(rx => {
+        rx.addValue(1, 'number');
+        rx.addValue(2, 'number');
+
+        return rx.end();
+      });
+
+      expect(charge).toBe(2);
     });
   });
 });

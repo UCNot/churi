@@ -263,14 +263,16 @@ const UcValue$none: UcValue$Builder<any> = /*#__PURE__*/ new UcValue$None();
 
 class UcValue$Single<TValue> implements UcValue$Builder<TValue> {
 
-  readonly #value: UcValue<TValue>;
+  #value: UcValue<TValue>;
 
   constructor(value: UcValue<TValue>) {
     this.#value = value;
   }
 
-  add(value: UcValue<TValue>): UcValue$List<TValue> {
-    return new UcValue$List([this.#value, value]);
+  add(value: UcValue<TValue>): this {
+    this.#value = value;
+
+    return this;
   }
 
   build(_rx: URIChargeRx.ValueRx<TValue, UcValue<TValue>>): UcValue<TValue> {
