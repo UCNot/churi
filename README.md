@@ -72,9 +72,10 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
 [github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
 [github-url]: https://github.com/hatsyjs/churi
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
-[api documentation]: https://hatsyjs.github.io/churi/
-[uri charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
-[bigint]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[API documentation]: https://hatsyjs.github.io/churi/
+[URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
+[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[Matrix URI]: https://www.w3.org/DesignIssues/MatrixURIs.html
 
 ## Usage
 
@@ -121,7 +122,7 @@ console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range')
 // 10 20
 ```
 
-[url class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
+[URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 
 ## Charging
 
