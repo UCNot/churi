@@ -1,4 +1,5 @@
-import { chargeURI, chargeURIArgs } from './charge-uri.js';
+import { chargeURI } from './charge-uri.js';
+import { URIChargeable } from './uri-chargeable.js';
 
 /**
  * Tagged template for Charged URI string.
@@ -7,7 +8,7 @@ import { chargeURI, chargeURIArgs } from './charge-uri.js';
  * - Removes whitespace around charges.
  * - Removes spaces around new lines within template strings.
  * - _Does not_ alter template strings otherwise. It is up to the user to URI-encode them.
- * - Applies {@link chargeURI} or {@link chargeURIArgs} to substituted values depending on placement.
+ * - Applies {@link chargeURI} to substituted values at appropriate {@link URIChargeable.Placement placement}.
  *
  * @param strings - Template strings.
  * @param values - Substituted values.
@@ -19,41 +20,90 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
   let uri = '';
   let index = 0;
-  let args = false;
+  let isItem = false;
+
+  let commaRequired = false;
+  let commaBefore = true;
+  let commaAfter = true;
+
+  const itemPlacement: URIChargeable.Item = {
+    as: 'item',
+    omitCommaBefore() {
+      commaBefore = false;
+    },
+    omitCommaAfter() {
+      commaAfter = false;
+    },
+  };
 
   for (const value of values) {
     const prefix = templates[index];
     const nextIndex = index + 1;
+    let omitCommaPrefix = false;
 
-    const handleTopLevel = (): void => {
-      args = nextIndex < values.length && !templates[nextIndex];
+    const checkForNextItem = (): void => {
+      const suffix = templates[nextIndex];
+
+      if (suffix) {
+        const suffixChar = suffix[0];
+
+        if (suffixChar === ',' || suffixChar === '(') {
+          // There is a next item in the list.
+          isItem = true;
+
+          // No need to place prefix comma.
+          omitCommaPrefix = true;
+        } else {
+          // No next item.
+          isItem = false;
+
+          // Reset for the next list.
+          commaRequired = false;
+        }
+      } else if (nextIndex < values.length) {
+        // There is a next item in the list, but comma is unspecified.
+        isItem = true;
+
+        // No need to place prefix comma.
+        omitCommaPrefix = true;
+      }
     };
 
     uri += prefix;
     if (prefix) {
       switch (prefix[prefix.length - 1]) {
-        case '=':
-          handleTopLevel();
-
-          break;
         case '(':
-          if (prefix !== ')(') {
-            if (nextIndex < values.length && !templates[nextIndex]) {
-              args = true;
-            } else {
-              args = false;
-            }
-          }
+        case ',':
+          omitCommaPrefix = true; // No need for comma for first item or because it is part of template.
+          isItem = true;
 
           break;
         default:
-          args = true;
+          checkForNextItem();
       }
     } else if (!index) {
-      handleTopLevel();
+      checkForNextItem();
     }
 
-    uri += args ? chargeURIArgs(value) : chargeURI(value);
+    if (isItem) {
+      commaBefore = true;
+      commaAfter = true;
+
+      // Substitute `null` for undefined item.
+      const itemCharge = chargeURI(value, itemPlacement) ?? '--';
+
+      if (!omitCommaPrefix && (commaRequired || commaBefore)) {
+        uri += ',';
+      }
+
+      uri += itemCharge;
+
+      commaRequired = commaAfter;
+    } else {
+      // Substitute `!undef` entity for undefined item.
+      uri += chargeURI(value) ?? '!undef';
+    }
+
     index = nextIndex;
   }
 
