@@ -43,7 +43,7 @@ describe('UcList', () => {
       const { writeList } = await lib.compile().toSerializers();
 
       await expect(TextOutStream.read(async to => await writeList(to, [1, 22, 333]))).resolves.toBe(
-        '(1)(22)(333)',
+        ',1,22,333',
       );
     });
     it('serializes empty list', async () => {
@@ -55,7 +55,7 @@ describe('UcList', () => {
 
       const { writeList } = await lib.compile().toSerializers();
 
-      await expect(TextOutStream.read(async to => await writeList(to, []))).resolves.toBe('!!');
+      await expect(TextOutStream.read(async to => await writeList(to, []))).resolves.toBe(',');
     });
     it('serializes nulls', async () => {
       const lib = new UcsLib({
@@ -68,7 +68,7 @@ describe('UcList', () => {
 
       await expect(
         TextOutStream.read(async to => await writeList(to, [1, null, 333])),
-      ).resolves.toBe('(1)(--)(333)');
+      ).resolves.toBe(',1,--,333');
     });
     it('serializes missing items as nulls', async () => {
       const lib = new UcsLib({
@@ -81,8 +81,48 @@ describe('UcList', () => {
 
       await expect(
         TextOutStream.read(async to => await writeList(to, [1, undefined, 333])),
-      ).resolves.toBe('(1)(--)(333)');
+      ).resolves.toBe(',1,--,333');
     });
+
+    describe('nested list', () => {
+      let lib: UcsLib<{ writeList: UcList.Schema<number[]> }>;
+
+      beforeEach(() => {
+        lib = new UcsLib({
+          schemae: {
+            writeList: UcList<number[]>(UcList<number>(UcNumber())),
+          },
+        });
+      });
+
+      it('serialized with one item', async () => {
+        const { writeList } = await lib.compile().toSerializers();
+
+        await expect(
+          TextOutStream.read(async to => await writeList(to, [[1, 22, 333]])),
+        ).resolves.toBe(',(1,22,333)');
+      });
+      it('serialized with multiple items', async () => {
+        const { writeList } = await lib.compile().toSerializers();
+
+        await expect(
+          TextOutStream.read(
+            async to => await writeList(to, [
+                [1, 22, 333],
+                [1, 2, 3],
+              ]),
+          ),
+        ).resolves.toBe(',(1,22,333),(1,2,3)');
+      });
+      it('serialized with empty item', async () => {
+        const { writeList } = await lib.compile().toSerializers();
+
+        await expect(TextOutStream.read(async to => await writeList(to, [[]]))).resolves.toBe(
+          ',()',
+        );
+      });
+    });
+
     it('does not serialize unrecognized schema', async () => {
       const lib = new UcsLib({
         schemae: {

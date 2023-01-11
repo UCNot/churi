@@ -46,8 +46,8 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#lib.aliases;
   }
 
-  serialize(schema: UcSchema, value: string): UccCode.Source {
-    const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema, value);
+  serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {
+    const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema, value, asItem);
 
     if (serializer == null) {
       throw new UnsupportedUcSchemaError(
@@ -61,8 +61,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   toCode(): UccCode.Source {
     return code => code
-        .write(`async function ${this.name}(${this.args.writer}, ${this.args.value}) {`)
-        .indent(this.serialize(this.schema, this.args.value))
+        .write(
+          `async function ${this.name}(${this.args.writer}, ${this.args.value}, ${this.args.asItem}) {`,
+        )
+        .indent(this.serialize(this.schema, this.args.value, this.args.asItem))
         .write('}');
   }
 
@@ -101,5 +103,6 @@ export namespace UcsFunction {
   export interface Args {
     readonly writer: string;
     readonly value: string;
+    readonly asItem: string;
   }
 }

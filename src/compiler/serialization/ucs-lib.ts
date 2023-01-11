@@ -53,6 +53,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     this.#serializerArgs = {
       writer: aliases.aliasFor('writer'),
       value: aliases.aliasFor('value'),
+      asItem: aliases.aliasFor('asItem'),
     };
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
