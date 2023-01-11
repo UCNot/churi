@@ -101,6 +101,18 @@ describe('churi tag', () => {
     expect(churi`${list},`).toBe("('11,'22),");
     expect(churi`?p=${list},`).toBe("?p=('11,'22),");
   });
+  it('charges many nested lists', () => {
+    const first = ['a11', 'a22'];
+    const second = ['b11', 'b22'];
+
+    expect(churi`(${first}${second})`).toBe('((a11,a22)(b11,b22))');
+    expect(churi`${first}${second}`).toBe('(a11,a22)(b11,b22)');
+    expect(churi`,${first}${second}`).toBe(',(a11,a22)(b11,b22)');
+    expect(churi`${first},${second}`).toBe('(a11,a22),(b11,b22)');
+    expect(churi`,${first},${second}`).toBe(',(a11,a22),(b11,b22)');
+    expect(churi`?p=${first}${second}`).toBe('?p=(a11,a22)(b11,b22)');
+    expect(churi`?p=${first},${second}`).toBe('?p=(a11,a22),(b11,b22)');
+  });
   it('charges nested list with single item', () => {
     const list = ['11'];
 
