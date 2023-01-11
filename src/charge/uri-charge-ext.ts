@@ -119,23 +119,6 @@ export namespace URIChargeExt {
       input: string,
       rx?: URIChargeRx.ValueRx<TValue, TCharge>,
     ): URIChargeParser.Result<TCharge>;
-
-    /**
-     * Parses the given input as if it contains arguments attached to some URI charge.
-     *
-     * Thus, the leading `(` is not recognized as list, but rather as entry value.
-     *
-     * This is used e.g. to parse {@link UcRoute.charge path fragment charge}.
-     *
-     * @param input - Input string containing encoded URI charge.
-     * @param rx - Optional URI charge value receiver. New one will be {@link URIChargeRx.rxValue created} if omitted.
-     *
-     * @returns Parse result containing charge representation.
-     */
-    parseArgs(
-      input: string,
-      rx?: URIChargeRx.ValueRx<TValue, TCharge>,
-    ): URIChargeParser.Result<TCharge>;
   }
 
   /**

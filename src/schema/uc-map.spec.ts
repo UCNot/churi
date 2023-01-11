@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
 import { UcNumber, UcString } from './uc-primitive.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
@@ -52,7 +53,7 @@ describe('UcMap', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: 13 })),
-      ).resolves.toBe("$foo('test)bar(13)");
+      ).resolves.toBe("foo('test)bar(13)");
     });
     it('serializes nested map', async () => {
       const lib = new UcsLib({
@@ -74,7 +75,23 @@ describe('UcMap', () => {
         TextOutStream.read(
           async to => await writeMap(to, { foo: { test1: 11 }, bar: { test2: 22 } }),
         ),
-      ).resolves.toBe('$foo($test1(11))bar($test2(22))');
+      ).resolves.toBe('foo(test1(11))bar(test2(22))');
+    });
+    it('serializes list entry', async () => {
+      const lib = new UcsLib({
+        schemae: {
+          writeMap: UcMap({
+            foo: UcList(UcNumber()),
+            bar: UcList<number[]>(UcList(UcNumber())),
+          }),
+        },
+      });
+
+      const { writeMap } = await lib.compile().toSerializers();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { foo: [11], bar: [[22, 333]] })),
+      ).resolves.toBe('foo(,11)bar(,(22,333))');
     });
     it('serializes entry with empty key', async () => {
       const lib = new UcsLib({
@@ -91,12 +108,15 @@ describe('UcMap', () => {
         TextOutStream.read(async to => await writeMap(to, { '': 'test' })),
       ).resolves.toBe("$('test)");
     });
-    it('serializes entry with apostrophe and backslash key', async () => {
+    it('serializes entry with special keys', async () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
             "'": UcString(),
+            '!': UcString(),
+            $: UcString(),
             '\\': UcNumber(),
+            '(%)': UcString(),
           }),
         },
       });
@@ -104,8 +124,16 @@ describe('UcMap', () => {
       const { writeMap } = await lib.compile().toSerializers();
 
       await expect(
-        TextOutStream.read(async to => await writeMap(to, { "'": 'test', '\\': 13 })),
-      ).resolves.toBe("$'('test)\\(13)");
+        TextOutStream.read(
+          async to => await writeMap(to, {
+              "'": 'quote',
+              '!': 'exclamation',
+              $: 'dollar',
+              '\\': 13,
+              '(%)': '13',
+            }),
+        ),
+      ).resolves.toBe("$'('quote)$!('exclamation)$$('dollar)\\(13)%28%25%29('13)");
     });
     it('serializes nullable entry', async () => {
       const lib = new UcsLib({
@@ -120,10 +148,10 @@ describe('UcMap', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
-      ).resolves.toBe("$test('value)");
+      ).resolves.toBe("test('value)");
       await expect(
         TextOutStream.read(async to => await writeMap(to, { test: null })),
-      ).resolves.toBe('$test(--)');
+      ).resolves.toBe('test(--)');
     });
     it('serializes optional nullable entry', async () => {
       const lib = new UcsLib({
@@ -138,10 +166,10 @@ describe('UcMap', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
-      ).resolves.toBe("$test('value)");
+      ).resolves.toBe("test('value)");
       await expect(
         TextOutStream.read(async to => await writeMap(to, { test: null })),
-      ).resolves.toBe('$test(--)');
+      ).resolves.toBe('test(--)');
       await expect(TextOutStream.read(async to => await writeMap(to, {}))).resolves.toBe('$');
     });
     it('serializes second entry with empty key', async () => {
@@ -158,7 +186,7 @@ describe('UcMap', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
-      ).resolves.toBe("$first(1)$('test)");
+      ).resolves.toBe("first(1)$('test)");
     });
     it('serializes second entry with empty key when first one is optional', async () => {
       const lib = new UcsLib({
@@ -174,7 +202,7 @@ describe('UcMap', () => {
 
       await expect(
         TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
-      ).resolves.toBe("$first(1)$('test)");
+      ).resolves.toBe("first(1)$('test)");
       await expect(
         TextOutStream.read(async to => await writeMap(to, { first: undefined, '': 'test' })),
       ).resolves.toBe("$('test)");

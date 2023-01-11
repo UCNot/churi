@@ -1,5 +1,5 @@
 import { noop } from '@proc7ts/primitives';
-import { encodeUcsString } from '../../impl/encode-ucs-string.js';
+import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { CHURI_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
@@ -31,10 +31,15 @@ class Default$UcsDefs implements UcsDefs {
     return CHURI_MODULE;
   }
 
-  serialize(serializer: UcsFunction, schema: UcSchema, value: string): UccCode.Source | undefined {
+  serialize(
+    serializer: UcsFunction,
+    schema: UcSchema,
+    value: string,
+    asItem: string,
+  ): UccCode.Source | undefined {
     const writer = this.#byType[schema.type];
 
-    return writer?.(serializer, schema, value);
+    return writer?.(serializer, schema, value, asItem);
   }
 
   #writeBigInt(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
@@ -78,12 +83,13 @@ class Default$UcsDefs implements UcsDefs {
     fn: UcsFunction,
     schema: UcList.Schema<TItem, TItemSpec>,
     value: string,
+    asItem: string,
   ): UccCode.Source {
     const { lib, aliases, args } = fn;
     const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
-    const listItemSeparator = lib.import(SERIALIZER_MODULE, 'UCS_LIST_ITEM_SEPARATOR');
     const emptyList = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_LIST');
+    const comma = lib.import(SERIALIZER_MODULE, 'UCS_COMMA');
     const itemSchema = schema.item.optional
       ? ucOptional(ucNullable(schema.item), false) // Write `undefined` items as `null`
       : schema.item;
@@ -95,18 +101,13 @@ class Default$UcsDefs implements UcsDefs {
         .write(`let ${itemWritten} = false;`)
         .write(`for (const ${itemValue} of ${value}) {`)
         .indent(code => {
-          code
-            .write(`if (!${itemWritten}) {`)
-            .indent(
-              `await ${args.writer}.ready;`,
-              `${args.writer}.write(${openingParenthesis});`,
-              `${itemWritten} = true;`,
-            )
-            .write('} else {')
-            .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${listItemSeparator});`)
-            .write('}');
+          code.write(
+            `await ${args.writer}.ready;`,
+            `${args.writer}.write(${itemWritten} || !${asItem} ? ${comma} : ${openingParenthesis});`,
+            `${itemWritten} = true;`,
+          );
           try {
-            code.write(fn.serialize(itemSchema, itemValue));
+            code.write(fn.serialize(itemSchema, itemValue, '1'));
           } catch (cause) {
             throw new UnsupportedUcSchemaError(
               itemSchema,
@@ -115,11 +116,15 @@ class Default$UcsDefs implements UcsDefs {
             );
           }
         })
-        .write(
-          `}`,
+        .write(`}`)
+        .write(`if (${asItem}) {`)
+        .indent(
           `await ${args.writer}.ready;`,
           `${args.writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
-        );
+        )
+        .write(`} else if (!${itemWritten}) {`)
+        .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${comma});`)
+        .write(`}`);
     });
   }
 
@@ -130,7 +135,6 @@ class Default$UcsDefs implements UcsDefs {
   ): UccCode.Source {
     const { lib, aliases, args } = fn;
     const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
-    const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
     const emptyMap = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_MAP');
     const emptyEntryPrefix = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_ENTRY_PREFIX');
@@ -138,11 +142,12 @@ class Default$UcsDefs implements UcsDefs {
     const entryValue = aliases.aliasFor(`${value}$entryValue`);
 
     let startMap: UccCode.Builder = noop;
+    let endMap: UccCode.Builder = noop;
     const writeDefaultEntryPrefix = (key: string): UccCode.Source => {
       const entryPrefix = key
         ? lib.declarations.declareConst(
             key,
-            `${textEncoder}.encode('${uccStringExprContent(encodeUcsString(key))}(')`,
+            `${textEncoder}.encode('${uccStringExprContent(encodeUcsKey(key))}(')`,
             {
               prefix: 'EP_',
             },
@@ -153,31 +158,21 @@ class Default$UcsDefs implements UcsDefs {
     };
     let writeEntryPrefix = writeDefaultEntryPrefix;
 
-    if (this.#firstKeyMayBeEmpty(schema)) {
+    if (this.#mayBeEmpty(schema)) {
       const entryWritten = aliases.aliasFor(`${value}$entryWritten`);
 
       startMap = code => code.write(`let ${entryWritten} = false;`);
-      writeEntryPrefix = key => {
-        if (key) {
-          return code => code.write(`${entryWritten} = true`, writeDefaultEntryPrefix(key));
-        }
-
-        return code => {
-          code
-            .write(`if (${entryWritten}) {`)
-            .indent(writeDefaultEntryPrefix(key))
-            .write(`} else {`)
-            .indent(`${entryWritten} = true;`, `${args.writer}.write(${openingParenthesis});`)
-            .write(`}`);
-        };
+      endMap = code => code
+          .write(`if (!${entryWritten}) {`)
+          .indent(`await ${args.writer}.ready; ${args.writer}.write(${emptyMap});`)
+          .write(`}`);
+      writeEntryPrefix = key => code => {
+        code.write(`${entryWritten} = true;`, writeDefaultEntryPrefix(key));
       };
     }
 
     return this.#checkConstraints(fn, schema, value, code => {
-      // Always prefix with `$`
-      code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${emptyMap});`);
-      code.write(startMap);
-      code.write(`let ${entryValue};`);
+      code.write(`let ${entryValue};`, startMap);
 
       for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
         code.write(
@@ -213,22 +208,15 @@ class Default$UcsDefs implements UcsDefs {
           ),
         );
       }
+
+      code.write(endMap);
     });
   }
 
-  #firstKeyMayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+  #mayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
     schema: UcMap.Schema<TEntriesSpec>,
   ): boolean {
-    for (const [entryKey, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
-      if (!entryKey) {
-        return true;
-      }
-      if (!entrySchema.optional) {
-        break;
-      }
-    }
-
-    return false;
+    return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);
   }
 
   #writeString(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {

@@ -15,7 +15,7 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
   implements URIChargeRx<TValue, TCharge> {
 
   /**
-   * Opaque URI charge values(s) receiver.
+   * Opaque URI charge value receiver.
    *
    * Ignores charges and always results to {@link OpaqueURIChargeRx#none none}.
    *
@@ -111,6 +111,10 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
 
   rxList(build: (rx: URIChargeRx.ValueRx<TValue, TCharge>) => TCharge): void {
     this.add(this.chargeRx.rxList(build));
+  }
+
+  asList(): void {
+    // Does nothing.
   }
 
   end(): TCharge {

@@ -105,7 +105,7 @@ const { route, searchParams: query } = new ChURI(
 console.debug(route.path);
 // /api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-world/comments
 
-console.debug(route.name, route.charge.value);
+console.debug(route.name, route.charge.get('api').value);
 // api 3.0
 
 console.debug(route.at(1).name, route.at(1).matrix.chargeOf('id').value);
@@ -136,21 +136,22 @@ import { churi } from '@hatsy/churi';
 
 console.debug(churi`
   https://example.com
-    /api(!v(${'3.0'}))
+    /api(${new UcDirective('!v', '(3.0)')})
     /user;id=${302875106592253n}
     /article;slug=${'hello-world'}
     /comments
-    ?date=since(
-      !date${'1970-01-01'}
-    )till(
-      !now
-    )
-    &range=${{
-      from: 10,
-      to: 20,
-    }}
+      ?date=${{
+        since: new UcDirective('!date', '(1970-01-01)'),
+        till: new UcEntity('!now'),
+      }}
+      &range=${{
+        from: 10,
+        to: 20,
+      }}
 `);
 ```
+
+The `UcEntity` and `UcDirective` above used to avoid escaping and percent-encoding and should be used with care.
 
 Instead, a Charged URI string can be built with `chargeURI()` and `chargeURIArgs()` functions.
 
@@ -159,7 +160,7 @@ import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';
 
 console.debug(
   'https://example.com' +
-    `/api${chargeURIArgs(new UcDirective('!v', '(3.0)'))}` +
+    `/api(${chargeURI(new UcDirective('!v', '(3.0)'))})` +
     `/user;id=${chargeURI(302875106592253n)}` +
     `/article;slug=${chargeURI('hello-world')}` +
     '/comments' +
@@ -173,8 +174,6 @@ console.debug(
     })}`,
 );
 ```
-
-The `UcEntity` and `UcDirective` above used to avoid escaping and percent-encoding and should be used with care.
 
 Charging can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not implemented,
 a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON

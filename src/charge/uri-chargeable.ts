@@ -27,93 +27,46 @@ export namespace URIChargeable {
   /**
    * The supposed placement of encoded value.
    */
-  export type Placement = Any | Entry | Tail | Arg;
-
-  /**
-   * Unknown placement of encoded value.
-   */
-  export interface Unknown {
-    /**
-     * Placement role.
-     */
-    readonly as?: string;
-
-    /**
-     * Informs the enclosing encoder that it may omit parentheses around encoded charge.
-     */
-    readonly omitParentheses?: ((this: void) => void) | undefined;
-  }
+  export type Placement = Any | Item;
 
   /**
    * The encoded value may be used placed as any part of URI charge.
    */
-  export interface Any extends Unknown {
+  export interface Any {
     readonly as?: undefined;
 
-    readonly omitParentheses?: undefined;
+    readonly omitCommaBefore?: undefined;
+
+    readonly omitCommaAfter?: undefined;
   }
 
   /**
-   * The encoded value supposed to be placed as a map entry value after opening parent.
+   * The encoded value supposed to be placed as a list item value.
    *
-   * This may affect a list. If it has two or more items, the enclosing parentheses may be omitted. So, the
+   * **Nested lists have to enclose themselves into parentheses** when placed as nested list items.
+   *
+   * Omitting commas is applicable to nested lists, so that:
    * ```
-   * foo((item1)(item2))
+   * foo((item-1.1,item-1.2),(item-2.1,item-2.2))
    * ```
    * may be encoded as
    * ```
-   * foo(item1)(item2)
+   * foo((item-1.1,item-1.2)(item-2.1,item-2.2))
    * ```
    */
-  export interface Entry extends Unknown {
-    readonly as: 'entry';
+  export interface Item {
+    readonly as: 'item';
 
     /**
-     * Informs the enclosing map encoder that it may omit parentheses around encoded entry value.
+     * Allows the enclosing list encoder to omit comma before this item if the preceding item
+     * {@link omitCommaAfter allows this too} .
      */
-    readonly omitParentheses: (this: void) => void;
-  }
-
-  /**
-   * The encoded value supposed to be placed as the last item of a list or last directive argument.
-   *
-   * This may affect a trailing item of the list containing a map. The enclosing parentheses may be omitted in this
-   * case. So, the
-   * ```
-   * (item1)(item2(foo(bar)))
-   * ```
-   * may be encoded as
-   * ```
-   * (item1)(item2)foo(bar)
-   * ```
-   */
-  export interface Tail extends Unknown {
-    readonly as: 'tail';
+    readonly omitCommaBefore: (this: void) => void;
 
     /**
-     * Informs the enclosing list encoder that it may omit parentheses around encoded item value.
+     * Allows the enclosing list encoder to omit comma after this item if the following item
+     * {@link omitCommaBefore allows this too}.
      */
-    readonly omitParentheses: (this: void) => void;
-  }
-
-  /**
-   * The encoded value supposed to be placed as an argument value after opening parent.
-   *
-   * This may affect a list. If it has two or more items, the enclosing parentheses may be omitted. So, the
-   * ```
-   * !foo((arg1)(arg2)arg3(value)suffix)
-   * ```
-   * may be encoded as
-   * ```
-   !foo(arg1)(arg2)arg3(value)suffix
-   * ```
-   */
-  export interface Arg extends Unknown {
-    readonly as: 'arg';
-
-    /**
-     * Informs the enclosing directive encoder that it may omit parentheses around encoded argument(s).
-     */
-    readonly omitParentheses: (this: void) => void;
+    readonly omitCommaAfter: (this: void) => void;
   }
 }

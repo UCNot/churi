@@ -257,7 +257,7 @@ describe('UcSearchParams', () => {
 
   describe('charge', () => {
     it('obtains parameter charges', () => {
-      const params = new UcSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
+      const params = new UcSearchParams('?foo=bar(test)&foo=1&baz=21,22&test');
 
       expect(params.chargeOf('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
       expect(params.chargeOf('baz')).toHaveURIChargeItems(21, 22);

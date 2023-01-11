@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
-import { chargeURI, chargeURIArgs, chargeURIKey, unchargeURIKey } from './charge-uri.js';
+import { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { URICharge } from './uri-charge.js';
 import { URIChargeable } from './uri-chargeable.js';
@@ -16,7 +16,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: 13n, bar: -13n })).toBe('foo(0n13)bar(-0n13)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([13n, -13n])).toBe('(0n13)(-0n13)');
+      expect(chargeURI([13n, -13n])).toBe('0n13,-0n13');
     });
   });
 
@@ -30,8 +30,8 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: false })).toBe('foo(-)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([true])).toBe('(!)');
-      expect(chargeURI([false])).toBe('(-)');
+      expect(chargeURI([true])).toBe(',!');
+      expect(chargeURI([false])).toBe(',-');
     });
   });
 
@@ -65,7 +65,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: 13, bar: -13 })).toBe('foo(13)bar(-13)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([13, -13])).toBe('(13)(-13)');
+      expect(chargeURI([13, -13])).toBe('13,-13');
     });
     it('encodes NaN', () => {
       expect(chargeURI(NaN)).toBe('!NaN');
@@ -86,8 +86,8 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(chargeURI(['Hello, (World)!'])).toBe('(Hello%2C%20%28World%29!)');
-      expect(chargeURI(['-test'])).toBe("('-test)");
+      expect(chargeURI(['Hello, (World)!'])).toBe(',Hello%2C%20%28World%29!');
+      expect(chargeURI(['-test'])).toBe(",'-test");
     });
     it('escapes special prefixes', () => {
       expect(chargeURI('!foo')).toBe("'!foo");
@@ -121,7 +121,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: null })).toBe('foo(--)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([null])).toBe('(--)');
+      expect(chargeURI([null])).toBe(',--');
     });
   });
 
@@ -130,14 +130,14 @@ describe('chargeURI', () => {
       expect(chargeURI(undefined)).toBeUndefined();
     });
     it('is not encoded as map entry value', () => {
-      expect(chargeURI({ foo: undefined })).toBe('!()');
+      expect(chargeURI({ foo: undefined })).toBe('$');
       expect(chargeURI({ foo: undefined, bar: 1 })).toBe('bar(1)');
       expect(chargeURI({ bar: 1, foo: undefined })).toBe('bar(1)');
     });
     it('is encoded like null as array item value', () => {
-      expect(chargeURI([undefined])).toBe('(--)');
-      expect(chargeURI([1, undefined])).toBe('(1)(--)');
-      expect(chargeURI([undefined, 2])).toBe('(--)(2)');
+      expect(chargeURI([undefined])).toBe(',--');
+      expect(chargeURI([1, undefined])).toBe('1,--');
+      expect(chargeURI([undefined, 2])).toBe('--,2');
     });
   });
 
@@ -152,10 +152,10 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: { bar: { baz: 1 } } })).toBe('foo(bar(baz(1)))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([{ foo: 'bar' }])).toBe('(foo(bar))');
+      expect(chargeURI([{ foo: 'bar' }])).toBe(',foo(bar)');
     });
     it('appended to list when last item value', () => {
-      expect(chargeURI(['', { foo: 'bar' }])).toBe('()foo(bar)');
+      expect(chargeURI(['', { foo: 'bar' }])).toBe("',foo(bar)");
     });
     it('uses custom encoder', () => {
       const obj: URIChargeable = {
@@ -194,16 +194,16 @@ describe('chargeURI', () => {
 
   describe('empty object value', () => {
     it('encoded as top-level map', () => {
-      expect(chargeURI({})).toBe('!()');
+      expect(chargeURI({})).toBe('$');
     });
     it('encoded when nested', () => {
-      expect(chargeURI({ foo: {} })).toBe('foo(!())');
+      expect(chargeURI({ foo: {} })).toBe('foo($)');
     });
     it('encoded when deeply nested', () => {
-      expect(chargeURI({ foo: { bar: {} } })).toBe('foo(bar(!()))');
+      expect(chargeURI({ foo: { bar: {} } })).toBe('foo(bar($))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([{}])).toBe('(!())');
+      expect(chargeURI([{}])).toBe(',$');
     });
   });
 
@@ -221,7 +221,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ '': 1 })).toBe('$(1)');
     });
     it('escaped when nested', () => {
-      expect(chargeURI([{ '': 1 }])).toBe('($(1))');
+      expect(chargeURI([{ '': 1 }])).toBe(',$(1)');
     });
   });
 
@@ -229,53 +229,69 @@ describe('chargeURI', () => {
     it('appended to map', () => {
       expect(chargeURI({ test1: '', test2: '', suffix: '' })).toBe('test1()test2()suffix');
     });
-    it('appended to list when last item value', () => {
-      expect(chargeURI(['', { foo: '' }])).toBe('()foo');
+    it('escaped and appended as list item value', () => {
+      expect(chargeURI(['', { foo: '' }])).toBe("',$foo");
+      expect(chargeURI(['', { '!foo': '' }])).toBe("',$!foo");
     });
   });
 
   describe('array value with one item', () => {
     it('encoded as top-level list', () => {
-      expect(chargeURI(['bar'])).toBe('(bar)');
+      expect(chargeURI(['bar'])).toBe(',bar');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: ['bar'] })).toBe('foo((bar))');
+      expect(chargeURI({ foo: ['bar'] })).toBe('foo(,bar)');
     });
     it('encoded as nested list item value', () => {
-      expect(chargeURI([['bar']])).toBe('((bar))');
+      expect(chargeURI([['bar']])).toBe('(bar)');
     });
     it('encoded as deeply nested list item value', () => {
-      expect(chargeURI([[['bar']]])).toBe('(((bar)))');
+      expect(chargeURI([[['bar']]])).toBe('((bar))');
+    });
+  });
+
+  describe('array value empty string item', () => {
+    it('escapes the only empty string', () => {
+      expect(chargeURI([''])).toBe(",'");
+    });
+    it('escapes leading empty string', () => {
+      expect(chargeURI(['', 'tail'])).toBe("',tail");
+    });
+    it('escapes trailing empty string', () => {
+      expect(chargeURI(['head', ''])).toBe("head,'");
+    });
+    it('does not escape empty string in the middle', () => {
+      expect(chargeURI(['head', '', 'tail'])).toBe('head,,tail');
     });
   });
 
   describe('array value with multiple items', () => {
     it('encoded as top-level list', () => {
-      expect(chargeURI(['bar', 'baz'])).toBe('(bar)(baz)');
+      expect(chargeURI(['bar', 'baz'])).toBe('bar,baz');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: ['bar', 'baz'] })).toBe('foo(bar)(baz)');
+      expect(chargeURI({ foo: ['bar', 'baz'] })).toBe('foo(bar,baz)');
     });
     it('encoded as nested list item value', () => {
-      expect(chargeURI([['bar', 'baz']])).toBe('((bar)(baz))');
+      expect(chargeURI([['bar', 'baz']])).toBe('(bar,baz)');
     });
     it('encoded as deeply nested list item value', () => {
-      expect(chargeURI([[['bar', 'baz']]])).toBe('(((bar)(baz)))');
+      expect(chargeURI([[['bar', 'baz']]])).toBe('((bar,baz))');
     });
   });
 
   describe('empty array value', () => {
     it('encoded as top-level list', () => {
-      expect(chargeURI([])).toBe('!!');
+      expect(chargeURI([])).toBe(',');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: [] })).toBe('foo(!!)');
+      expect(chargeURI({ foo: [] })).toBe('foo(,)');
     });
     it('encoded as nested list item value', () => {
-      expect(chargeURI([[]])).toBe('(!!)');
+      expect(chargeURI([[]])).toBe('()');
     });
     it('encoded as deeply nested list item value', () => {
-      expect(chargeURI([[[]]])).toBe('((!!))');
+      expect(chargeURI([[[]]])).toBe('(())');
     });
   });
 
@@ -287,7 +303,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: new UcEntity('!test') })).toBe('foo(!test)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([new UcEntity('!test')])).toBe('(!test)');
+      expect(chargeURI([new UcEntity('!test')])).toBe(',!test');
     });
   });
 
@@ -299,7 +315,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: new UcDirective('!test', '(bar)') })).toBe('foo(!test(bar))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([new UcDirective('!test', '(foo)')])).toBe('(!test(foo))');
+      expect(chargeURI([new UcDirective('!test', '(foo)')])).toBe(',!test(foo)');
     });
   });
 
@@ -320,39 +336,6 @@ describe('chargeURI', () => {
       expect(String(URICharge.none)).toBe('!None');
       expect(chargeURI(URICharge.none)).toBeUndefined();
     });
-  });
-});
-
-describe('chargeURIArgs', () => {
-  it('encloses single value into parentheses', () => {
-    expect(chargeURIArgs('test')).toBe('(test)');
-  });
-  it('encloses `null` into parentheses', () => {
-    expect(chargeURIArgs(null)).toBe('(--)');
-  });
-  it('encloses empty map into parentheses', () => {
-    expect(chargeURIArgs({})).toBe('(!())');
-  });
-  it('encloses non-empty map into parentheses', () => {
-    expect(chargeURIArgs({ foo: 'bar' })).toBe('(foo(bar))');
-  });
-  it('appends suffix', () => {
-    expect(chargeURIArgs({ foo: 'bar', suffix: '' })).toBe('(foo(bar)suffix)');
-  });
-  it('does not append the only suffix', () => {
-    expect(chargeURIArgs({ suffix: '' })).toBe('(suffix())');
-  });
-  it('encloses empty list into parentheses', () => {
-    expect(chargeURIArgs([])).toBe('(!!)');
-  });
-  it('encloses list with one element into parentheses', () => {
-    expect(chargeURIArgs([1])).toBe('((1))');
-  });
-  it('does not enclose list with two elements into parentheses', () => {
-    expect(chargeURIArgs([1, 2])).toBe('(1)(2)');
-  });
-  it('does not encode unsupported values', () => {
-    expect(chargeURIArgs(Symbol('unsupported'))).toBeUndefined();
   });
 });
 

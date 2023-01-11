@@ -4,5 +4,10 @@ import { UcsFunction } from './ucs-function.js';
 
 export interface UcsDefs {
   readonly from: string;
-  serialize(serializer: UcsFunction, schema: UcSchema, value: string): UccCode.Source | undefined;
+  serialize(
+    serializer: UcsFunction,
+    schema: UcSchema,
+    value: string,
+    asItem: string,
+  ): UccCode.Source | undefined;
 }

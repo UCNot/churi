@@ -1,7 +1,6 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
-import { UcPrimitive } from '../schema/uc-primitive.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';
@@ -15,38 +14,23 @@ describe('createUcValueParser', () => {
     expect(createUcValueParser({})).not.toBe(createUcValueParser());
   });
 
-  describe('parseArgs', () => {
-    let parser: URIChargeParser<UcPrimitive, UcValue>;
-
-    beforeEach(() => {
-      parser = createUcValueParser();
-    });
-
-    it('recognizes single arg', () => {
-      expect(parser.parseArgs('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
-    });
-    it('recognizes arg with custom receiver', () => {
-      expect(parser.chargeRx.rxValue(rx => parser.parseArgs('Hello,%20World!', rx).charge)).toBe(
-        'Hello, World!',
-      );
-    });
-    it('recognizes arg in parentheses', () => {
-      expect(parser.parseArgs('(Hello,%20World!)')).toEqual({ charge: 'Hello, World!', end: 17 });
-    });
-    it('recognizes multiple args', () => {
-      expect(parser.parseArgs('(Hello,%20World!)foo(bar)suffix')).toEqual({
-        charge: ['Hello, World!', { foo: 'bar', suffix: '' }],
-        end: 31,
-      });
-    });
-  });
-
   describe('rxValue', () => {
     it('builds none without values', () => {
       const builder = new UcValueBuilder();
-      const value = builder.rxValue(rx => rx.end());
+      const charge = builder.rxValue(rx => rx.end());
 
-      expect(value).toBe(builder.none);
+      expect(charge).toBe(builder.none);
+    });
+
+    it('overrides last received charge', () => {
+      const charge = new UcValueBuilder().rxValue(rx => {
+        rx.addValue(1, 'number');
+        rx.addValue(2, 'number');
+
+        return rx.end();
+      });
+
+      expect(charge).toBe(2);
     });
   });
 });
@@ -54,7 +38,7 @@ describe('createUcValueParser', () => {
 describe('parseUcValue', () => {
   describe('string value', () => {
     it('recognized as top-level value', () => {
-      expect(parse('Hello,%20World!')).toEqual({ charge: 'Hello, World!', end: 15 });
+      expect(parse('Hello!%20World!')).toEqual({ charge: 'Hello! World!', end: 15 });
     });
     it('recognized as map entry value', () => {
       expect(parse('foo(bar)').charge).toEqual({ foo: 'bar' });
@@ -78,7 +62,10 @@ describe('parseUcValue', () => {
       expect(parse("foo('bar)").charge).toEqual({ foo: 'bar' });
     });
     it('recognized as list item value', () => {
-      expect(parse("('bar)").charge).toEqual(['bar']);
+      expect(parse(",'bar").charge).toEqual(['bar']);
+    });
+    it('includes balanced parenthesis', () => {
+      expect(parse("'foo(bar,baz)suffix").charge).toBe('foo(bar,baz)suffix');
     });
   });
 
@@ -91,9 +78,6 @@ describe('parseUcValue', () => {
     });
     it('recognized as map entry value', () => {
       expect(parse('foo()').charge).toEqual({ foo: '' });
-    });
-    it('recognizes as list item value', () => {
-      expect(parse('()').charge).toEqual(['']);
     });
   });
 
@@ -108,11 +92,19 @@ describe('parseUcValue', () => {
       expect(parse("foo(')").charge).toEqual({ foo: '' });
     });
     it('recognizes as list item value', () => {
-      expect(parse("(')").charge).toEqual(['']);
+      expect(parse("',").charge).toEqual(['']);
+      expect(parse(",'").charge).toEqual(['']);
+      expect(parse(",',").charge).toEqual(['']);
     });
   });
 
   describe('bigint value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse('0n13').charge).toBe(13n);
+      expect(parse('-0n13').charge).toBe(-13n);
+      expect(parse('0n').charge).toBe(0n);
+      expect(parse('-0n').charge).toBe(0n);
+    });
     it('recognized as map entry value', () => {
       expect(parse('foo(0n13)').charge).toEqual({ foo: 13n });
       expect(parse('foo(-0n13)').charge).toEqual({ foo: -13n });
@@ -120,21 +112,29 @@ describe('parseUcValue', () => {
       expect(parse('foo(-0n)').charge).toEqual({ foo: 0n });
     });
     it('recognized as list item value', () => {
-      expect(parse('(0n13)').charge).toEqual([13n]);
-      expect(parse('(-0n13)').charge).toEqual([-13n]);
-      expect(parse('(0n)').charge).toEqual([0n]);
-      expect(parse('(-0n)').charge).toEqual([0n]);
+      expect(parse(',0n13,').charge).toEqual([13n]);
+      expect(parse(',-0n13,').charge).toEqual([-13n]);
+      expect(parse(',0n,').charge).toEqual([0n]);
+      expect(parse(',-0n,').charge).toEqual([0n]);
     });
   });
 
   describe('boolean value', () => {
+    it('recognized as top-level value', () => {
+      expect(parse('!').charge).toBe(true);
+      expect(parse('-').charge).toBe(false);
+    });
     it('recognized as map entry value', () => {
       expect(parse('foo(!)').charge).toEqual({ foo: true });
       expect(parse('foo(-)').charge).toEqual({ foo: false });
     });
     it('recognized as list item value', () => {
-      expect(parse('(!)').charge).toEqual([true]);
-      expect(parse('(-)').charge).toEqual([false]);
+      expect(parse(',!').charge).toEqual([true]);
+      expect(parse('!,').charge).toEqual([true]);
+      expect(parse(',!,').charge).toEqual([true]);
+      expect(parse(',-').charge).toEqual([false]);
+      expect(parse('-,').charge).toEqual([false]);
+      expect(parse(',-,').charge).toEqual([false]);
     });
   });
 
@@ -146,19 +146,32 @@ describe('parseUcValue', () => {
       expect(parse('foo($)').charge).toEqual({ foo: {} });
     });
     it('recognized as list item value', () => {
-      expect(parse('($)').charge).toEqual([{}]);
+      expect(parse(',$').charge).toEqual([{}]);
     });
   });
 
   describe('empty list', () => {
     it('recognized as top-level value', () => {
-      expect(parse('!!')).toEqual({ charge: [], end: 2 });
+      expect(parse(',')).toEqual({ charge: [], end: 1 });
     });
     it('recognized as map entry value', () => {
-      expect(parse('foo(!!)').charge).toEqual({ foo: [] });
+      expect(parse('foo(,)').charge).toEqual({ foo: [] });
     });
-    it('recognized as list item value', () => {
-      expect(parse('(!!)').charge).toEqual([[]]);
+    it('recognized as nested list item value', () => {
+      expect(parse('()')).toEqual({ charge: [[]], end: 2 });
+      expect(parse('(,)')).toEqual({ charge: [[]], end: 3 });
+    });
+  });
+
+  describe('empty list item', () => {
+    it('recognized as top-level value', () => {
+      expect(parse(',,')).toEqual({ charge: [''], end: 2 });
+    });
+    it('recognized as map entry value', () => {
+      expect(parse('foo(,,)').charge).toEqual({ foo: [''] });
+    });
+    it('recognized as nested list item value', () => {
+      expect(parse('(,,)')).toEqual({ charge: [['']], end: 4 });
     });
   });
 
@@ -170,7 +183,8 @@ describe('parseUcValue', () => {
       expect(parse('foo(--)').charge).toEqual({ foo: null });
     });
     it('recognized as list item value', () => {
-      expect(parse('(--)').charge).toEqual([null]);
+      expect(parse(',--').charge).toEqual([null]);
+      expect(parse('--,').charge).toEqual([null]);
     });
   });
 
@@ -192,12 +206,12 @@ describe('parseUcValue', () => {
       expect(parse('foo(-0)').charge).toEqual({ foo: -0 });
     });
     it('recognized as list item value', () => {
-      expect(parse('(123E-2)').charge).toEqual([123e-2]);
-      expect(parse('(%3123E-2)').charge).toEqual([123e-2]);
-      expect(parse('(-123E-2)').charge).toEqual([-123e-2]);
-      expect(parse('(%2D123E-2)').charge).toEqual([-123e-2]);
-      expect(parse('(0)').charge).toEqual([0]);
-      expect(parse('(-0)').charge).toEqual([-0]);
+      expect(parse(',123E-2').charge).toEqual([123e-2]);
+      expect(parse(',%3123E-2)').charge).toEqual([123e-2]);
+      expect(parse(',-123E-2').charge).toEqual([-123e-2]);
+      expect(parse(',%2D123E-2').charge).toEqual([-123e-2]);
+      expect(parse(',0').charge).toEqual([0]);
+      expect(parse(',-0)').charge).toEqual([-0]);
     });
   });
 
@@ -229,49 +243,70 @@ describe('parseUcValue', () => {
       });
     });
     it('recognized as list item value', () => {
-      expect(parse('(!bar%20baz)').charge).toEqual([new UcEntity('!bar%20baz')]);
+      expect(parse(',!bar%20baz').charge).toEqual([new UcEntity('!bar%20baz')]);
+      expect(parse('!bar%20baz,').charge).toEqual([new UcEntity('!bar%20baz')]);
+      expect(parse(',!bar%20baz,').charge).toEqual([new UcEntity('!bar%20baz')]);
     });
   });
 
   describe('list value', () => {
     it('recognized as top-level value with one item', () => {
-      expect(parse('(123)').charge).toEqual([123]);
+      expect(parse('123,').charge).toEqual([123]);
+      expect(parse(',123').charge).toEqual([123]);
+      expect(parse(',123,').charge).toEqual([123]);
     });
     it('recognized as top-level value', () => {
-      expect(parse('(123)(456)').charge).toEqual([123, 456]);
+      expect(parse('123,456').charge).toEqual([123, 456]);
     });
     it('recognized as map entry value', () => {
-      expect(parse('foo(1)(bar)()').charge).toEqual({
+      expect(parse("foo(1,bar,')").charge).toEqual({
         foo: [1, 'bar', ''],
       });
     });
     it('recognized as map entry value with leading empty string', () => {
-      expect(parse('foo()(1)').charge).toEqual({
+      expect(parse("foo(',1)").charge).toEqual({
         foo: ['', 1],
       });
     });
-    it('recognized with multiple items', () => {
+    it('recognized as multiple nested lists', () => {
       expect(parse('foo((1)(bar)())').charge).toEqual({
-        foo: [1, 'bar', ''],
+        foo: [[1], ['bar'], []],
       });
     });
-    it('recognized with single item', () => {
+    it('recognized as single nested list', () => {
       expect(parse('foo((1))').charge).toEqual({
-        foo: [1],
+        foo: [[1]],
       });
     });
-    it('recognized with single item containing empty string', () => {
+    it('recognized as single empty nested list', () => {
       expect(parse('foo(())').charge).toEqual({
-        foo: [''],
+        foo: [[]],
       });
     });
-    it('recognized when nested', () => {
+    it('recognized when deeply nested', () => {
       expect(parse('foo(((1)(bar)(!))((2)(baz)(-)))').charge).toEqual({
         foo: [
-          [1, 'bar', true],
-          [2, 'baz', false],
+          [[1], ['bar'], [true]],
+          [[2], ['baz'], [false]],
         ],
       });
+    });
+    it('ignores leading comma', () => {
+      expect(parse(',(2),(baz)(-)').charge).toEqual([[2], ['baz'], [false]]);
+      expect(parse('(,(2),(baz)(-))').charge).toEqual([[[2], ['baz'], [false]]]);
+    });
+    it('ignores trailing comma', () => {
+      expect(parse('(2),(baz)(-),').charge).toEqual([[2], ['baz'], [false]]);
+      expect(parse('((2),(baz)(-),)').charge).toEqual([[[2], ['baz'], [false]]]);
+    });
+    it('ignores both leading and trailing commas', () => {
+      expect(parse(',(2),(baz)(-),').charge).toEqual([[2], ['baz'], [false]]);
+      expect(parse('(,(2),(baz)(-),)').charge).toEqual([[[2], ['baz'], [false]]]);
+    });
+    it('ignores the only comma', () => {
+      expect(parse(',').charge).toEqual([]);
+      expect(parse('(,)').charge).toEqual([[]]);
+      expect(parse('((,))').charge).toEqual([[[]]]);
     });
   });
 
@@ -306,7 +341,7 @@ describe('parseUcValue', () => {
       });
     });
     it('recognized after list-valued entry', () => {
-      expect(parse('foo(1)(bar)test(-)').charge).toEqual({
+      expect(parse('foo(1,bar)test(-)').charge).toEqual({
         foo: [1, 'bar'],
         test: false,
       });
@@ -316,40 +351,44 @@ describe('parseUcValue', () => {
         foo: '',
       });
     });
-    it('treated as trailing map of top-level list', () => {
-      expect(parse('(123)(456)foo(test)bar(1)tail').charge).toEqual([
+    it('treated as trailing item of top-level list', () => {
+      expect(parse('123,456,foo(test)bar(1)tail').charge).toEqual([
         123,
         456,
         { foo: 'test', bar: 1, tail: '' },
       ]);
+      expect(parse('(123)(456)foo(test)bar(1)tail').charge).toEqual([
+        [123],
+        [456],
+        { foo: 'test', bar: 1, tail: '' },
+      ]);
     });
-    it('treated as trailing map-valued item of the list', () => {
+    it('treated as trailing item of list-valued entry', () => {
       expect(parse('foo(bar((1)(2)test(3))))').charge).toEqual({
+        foo: { bar: [[1], [2], { test: 3 }] },
+      });
+      expect(parse('foo(bar(1,2,test(3))))').charge).toEqual({
         foo: { bar: [1, 2, { test: 3 }] },
       });
     });
   });
 
-  describe('map suffix', () => {
+  describe('suffix', () => {
     it('parsed for top-level map', () => {
       expect(parse('foo(456)suffix').charge).toEqual({ foo: 456, suffix: '' });
     });
-    it('treated as trailing map-valued item of top-level list', () => {
-      expect(parse('(123)(456)foo').charge).toEqual([123, 456, { foo: '' }]);
+    it('treated as trailing string item after nested list', () => {
+      expect(parse('(123)(456)foo').charge).toEqual([[123], [456], 'foo']);
+      expect(parse('foo(bar(1)(2)test))').charge).toEqual({
+        foo: [{ bar: 1 }, [2], 'test'],
+      });
+      expect(parse('foo(bar((1)(2)test)))').charge).toEqual({
+        foo: { bar: [[1], [2], 'test'] },
+      });
     });
     it('treated as map entry containing empty string after single-valued entry', () => {
       expect(parse('foo(bar(baz)test))').charge).toEqual({
         foo: { bar: 'baz', test: '' },
-      });
-    });
-    it('treated as map entry containing empty string after list-valued entry', () => {
-      expect(parse('foo(bar(1)(2)test))').charge).toEqual({
-        foo: { bar: [1, 2], test: '' },
-      });
-    });
-    it('treated as trailing item containing map after list', () => {
-      expect(parse('foo(bar((1)(2)test)))').charge).toEqual({
-        foo: { bar: [1, 2, { test: '' }] },
       });
     });
   });
@@ -372,7 +411,7 @@ describe('parseUcValue', () => {
       expect(rawArg).toBe('(1)');
     });
     it('recognized as list item value', () => {
-      const [{ rawName, rawArg }] = parse('(!bar%20baz())').charge as [UcDirective];
+      const [{ rawName, rawArg }] = parse(',!bar%20baz()').charge as [UcDirective];
 
       expect(rawName).toBe('!bar%20baz');
       expect(rawArg).toBe('()');
@@ -385,7 +424,7 @@ describe('parseUcValue', () => {
     });
   });
   it('overrides list', () => {
-    expect(parse('foo(bar)(baz)foo(bar1)(baz1)foo(bar2)(baz2)').charge).toEqual({
+    expect(parse('foo(bar,baz)foo(bar1,baz1)foo(bar2,baz2)').charge).toEqual({
       foo: ['bar2', 'baz2'],
     });
   });
@@ -395,7 +434,7 @@ describe('parseUcValue', () => {
     });
   });
   it('concatenates maps', () => {
-    expect(parse('foo(bar(test)(test2))(bar(baz(1)test(!)))(bar(baz(2)test(-)))').charge).toEqual({
+    expect(parse('foo(bar(test,test2),bar(baz(1)test(!)),bar(baz(2)test(-)))').charge).toEqual({
       foo: [
         { bar: ['test', 'test2'] },
         { bar: { baz: 1, test: true } },
@@ -404,15 +443,26 @@ describe('parseUcValue', () => {
     });
   });
   it('concatenates map and value', () => {
-    expect(parse('foo(bar(baz(1))(test))').charge).toEqual({
+    expect(parse('foo(bar(baz(1),test))').charge).toEqual({
       foo: { bar: [{ baz: 1 }, 'test'] },
     });
   });
   it('stops simple value parsing at closing parent', () => {
     expect(parse('foo)')).toEqual({ charge: 'foo', end: 3 });
   });
-  it('stops top-level kist parsing at closing parent', () => {
-    expect(parse('(foo))')).toEqual({ charge: ['foo'], end: 5 });
+  it('stops top-level list parsing at closing parent', () => {
+    expect(parse(',foo)')).toEqual({ charge: ['foo'], end: 4 });
+    expect(parse('foo,)')).toEqual({ charge: ['foo'], end: 4 });
+    expect(parse(',foo,)')).toEqual({ charge: ['foo'], end: 5 });
+  });
+  it('stops nested list parsing at closing parent', () => {
+    expect(parse('(foo))')).toEqual({ charge: [['foo']], end: 5 });
+    expect(parse(',(foo))')).toEqual({ charge: [['foo']], end: 6 });
+    expect(parse('(foo),)')).toEqual({ charge: [['foo']], end: 6 });
+    expect(parse(',(foo),)')).toEqual({ charge: [['foo']], end: 7 });
+  });
+  it('stops nested list parsing after comma', () => {
+    expect(parse('(foo,bar,')).toEqual({ charge: [['foo', 'bar']], end: 9 });
   });
   it('stops entries parsing at closing parent', () => {
     expect(parse('foo(bar))')).toEqual({ charge: { foo: 'bar' }, end: 8 });

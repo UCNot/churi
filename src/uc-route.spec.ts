@@ -44,6 +44,18 @@ describe('UcRoute', () => {
       expect(new UcRoute('path/').name).toBe('path');
       expect(new UcRoute('/path/').name).toBe('path');
     });
+    it('omits dollar prefix', () => {
+      expect(new UcRoute('/$some').name).toBe('some');
+      expect(new UcRoute('/$some,other').name).toBe('some');
+      expect(new UcRoute('/$some(foo)').name).toBe('some');
+    });
+    it('omits quote', () => {
+      expect(new UcRoute("/'some").name).toBe('some');
+      expect(new UcRoute("/'some,other").name).toBe('some');
+    });
+    it('does not omit quote of entry key', () => {
+      expect(new UcRoute("/'some(foo)").name).toBe("'some");
+    });
     it('omits charge', () => {
       expect(new UcRoute('name(foo)').name).toBe('name');
       expect(new UcRoute('name(foo);p=bar').name).toBe('name');
@@ -120,17 +132,20 @@ describe('UcRoute', () => {
   });
 
   describe('charge', () => {
-    it('is none without charge', () => {
-      expect(new UcRoute('/path').charge).toBeURIChargeNone();
+    it('is string value without charge', () => {
+      expect(new UcRoute('/path').charge).toHaveURIChargeValue('path');
     });
     it('recognizes single charge', () => {
-      expect(new UcRoute('/path(foo)').charge).toHaveURIChargeValue('foo');
+      expect(new UcRoute('/path(foo)').charge).toHaveURIChargeItems({ path: 'foo' });
     });
     it('recognizes list charge', () => {
-      expect(new UcRoute('/path(foo)(bar)').charge).toHaveURIChargeItems('foo', 'bar');
+      expect(new UcRoute('/path,foo,bar)').charge).toHaveURIChargeItems('path', 'foo', 'bar');
     });
     it('recognizes map charge', () => {
-      expect(new UcRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems('foo', { bar: 'baz' });
+      expect(new UcRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems({
+        path: 'foo',
+        bar: 'baz',
+      });
     });
   });
 

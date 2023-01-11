@@ -218,6 +218,10 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
     }
   }
 
+  override asList(): void {
+    this.#builder = this.#builder.toList();
+  }
+
   override end(): URICharge<TValue> {
     return this.#builder.build(this);
   }
@@ -227,6 +231,7 @@ class URIChargeBuilder$ValueRx<out TValue, out TRx extends URIChargeBuilder<TVal
 interface URIChargeValue$Builder<out TValue> {
   add(value: URICharge.Some<TValue>): URIChargeValue$Builder<TValue>;
   build(rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue>;
+  toList(): URIChargeValue$Builder<TValue>;
 }
 
 class URIChargeValue$None<TValue> implements URIChargeValue$Builder<TValue> {
@@ -239,24 +244,34 @@ class URIChargeValue$None<TValue> implements URIChargeValue$Builder<TValue> {
     return rx.chargeRx.none;
   }
 
+  toList(): URIChargeValue$Builder<TValue> {
+    return new URIChargeValue$List([]);
+  }
+
 }
 
 const URIChargeValue$none: URIChargeValue$Builder<any> = /*#__PURE__*/ new URIChargeValue$None();
 
 class URIChargeValue$Single<TValue> implements URIChargeValue$Builder<TValue> {
 
-  readonly #value: URICharge.Some<TValue>;
+  #value: URICharge.Some<TValue>;
 
   constructor(value: URICharge.Some<TValue>) {
     this.#value = value;
   }
 
-  add(value: URICharge.Some<TValue>): URIChargeValue$List<TValue> {
-    return new URIChargeValue$List([this.#value, value]);
+  add(value: URICharge.Some<TValue>): this {
+    this.#value = value;
+
+    return this;
   }
 
   build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
     return this.#value;
+  }
+
+  toList(): URIChargeValue$Builder<TValue> {
+    return new URIChargeValue$List([this.#value]);
   }
 
 }
@@ -277,6 +292,10 @@ class URIChargeValue$List<TValue> implements URIChargeValue$Builder<TValue> {
 
   build(_rx: URIChargeBuilder.ValueRx<TValue>): URICharge<TValue> {
     return new URICharge$List(this.#list);
+  }
+
+  toList(): this {
+    return this;
   }
 
 }
