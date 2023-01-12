@@ -40,10 +40,7 @@ export class UccDeclarations implements UccCode.Fragment {
   ): string {
     const id =
       prefix
-      + key.replace(
-        UCC_NON_ID_REPLACEMENT_PATTERN,
-        c => 'U' + c.charCodeAt(0).toString(16).padStart(2, '0000'),
-      );
+      + key.replace(UCC_NON_ID_REPLACEMENT_PATTERN, c => '_x' + c.charCodeAt(0).toString(16) + '_');
 
     return this.declare(id, initializer, { key: initializer });
   }
