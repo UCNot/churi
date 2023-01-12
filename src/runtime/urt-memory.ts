@@ -68,18 +68,18 @@ export class UrtMemory {
 
 class UcsMemoryBlock {
 
-  readonly #space: Uint8Array;
+  readonly #space: ArrayBuffer;
   #reserved = 0;
   #free = 0;
   #whenAvailable?: Promise<void>;
   #moreAvailable?: () => void;
 
   constructor(size: number) {
-    this.#space = new Uint8Array(size);
+    this.#space = new ArrayBuffer(size);
   }
 
   has(size: number): boolean {
-    return this.#space.length - this.#reserved >= size;
+    return this.#space.byteLength - this.#reserved >= size;
   }
 
   async use(size: number): Promise<Uint8Array> {
@@ -100,10 +100,9 @@ class UcsMemoryBlock {
   }
 
   #use(size: number): Uint8Array {
-    const end = this.#reserved + size;
-    const used = this.#space.subarray(this.#reserved, end);
+    const used = new Uint8Array(this.#space, this.#reserved, size);
 
-    this.#reserved = end;
+    this.#reserved += size;
 
     return used;
   }
