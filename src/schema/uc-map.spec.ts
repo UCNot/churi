@@ -43,8 +43,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcString(),
-            bar: UcNumber(),
+            foo: UcString,
+            bar: UcNumber,
           }),
         },
       });
