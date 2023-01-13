@@ -99,7 +99,7 @@ function parseUcSingle<TValue, TCharge>(
 const UC_PARENTHESIS_PATTERN = /[()]/;
 const UC_DELIMITER_PATTERN = /[(),]/;
 
-function parseRawUcString(input: string): string {
+function parseRawUcString(input: string, balanceParentheses = false): string {
   let openedParentheses = 0;
   let offset = 0;
 
@@ -113,7 +113,10 @@ function parseRawUcString(input: string): string {
     if (delimiterIdx < 0) {
       // No delimiters found.
       // Accept _full_ input.
-      return input;
+
+      return balanceParentheses && openedParentheses
+        ? input + ')'.repeat(openedParentheses) // Close hanging parentheses.
+        : input;
     }
 
     if (restInput[delimiterIdx] === '(') {
@@ -206,7 +209,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
 ): number {
   if (rawKey.startsWith('!')) {
     // Handle directive.
-    const arg = parseRawUcString(input.slice(rawKey.length));
+    const arg = parseRawUcString(input.slice(rawKey.length), true);
 
     ext.parseDirective(rx, rawKey, arg);
 

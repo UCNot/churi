@@ -67,6 +67,9 @@ describe('parseUcValue', () => {
     it('includes balanced parenthesis', () => {
       expect(parse("'foo(bar,baz)suffix").charge).toBe('foo(bar,baz)suffix');
     });
+    it('does not close hanging parentheses', () => {
+      expect(parse("'foo(bar(").charge).toBe('foo(bar(');
+    });
   });
 
   describe('empty string value', () => {
@@ -415,6 +418,12 @@ describe('parseUcValue', () => {
 
       expect(rawName).toBe('!bar%20baz');
       expect(rawArg).toBe('()');
+    });
+    it('closes hanging parentheses', () => {
+      const { rawName, rawArg } = parse('!foo(bar(item1,item2)baz(').charge as UcDirective;
+
+      expect(rawName).toBe('!foo');
+      expect(rawArg).toBe('(bar(item1,item2)baz())');
     });
   });
 
