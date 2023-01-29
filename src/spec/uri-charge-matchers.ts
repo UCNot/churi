@@ -2,7 +2,6 @@
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
 import { URICharge, URIChargeItem } from '../charge/uri-charge.js';
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 
 expect.extend({
@@ -197,9 +196,6 @@ function extractURIChargeItem(charge: URICharge): URIChargeValue {
 function extractURIChargeValue(charge: URICharge): URIChargeValue {
   const { value } = charge;
 
-  if (value instanceof UcDirective) {
-    return { rawName: value.rawName, rawArg: value.rawArg };
-  }
   if (value instanceof UcEntity) {
     return { raw: value.raw };
   }

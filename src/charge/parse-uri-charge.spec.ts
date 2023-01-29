@@ -47,6 +47,8 @@ describe('parseURICharge', () => {
       expect(charge.at(-1)).toBe(charge);
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
+      expect([...charge.entries()]).toEqual([]);
+      expect([...charge.keys()]).toEqual([]);
     });
     it('recognized as map entry value', () => {
       const map = parse('foo(bar)').charge;
@@ -184,7 +186,7 @@ describe('parseURICharge', () => {
     });
   });
 
-  describe('unknown entity', () => {
+  describe('opaque entity', () => {
     it('recognized at top level', () => {
       const charge = parse('!bar%20baz').charge;
 
@@ -300,33 +302,6 @@ describe('parseURICharge', () => {
     it('recognized when deeply nested', () => {
       expect(parse('foo(bar(baz(13)))').charge).toHaveURIChargeEntries({
         foo: { bar: { baz: 13 } },
-      });
-    });
-  });
-
-  describe('unknown directive', () => {
-    it('recognized as top-level value', () => {
-      const charge = parse('!bar%20baz(foo)((1))test').charge;
-
-      expect(charge).toBeURIChargeSingle('directive');
-      expect(charge).toHaveURIChargeValue({
-        rawName: '!bar%20baz',
-        rawArg: '(foo)((1))test',
-      });
-
-      expect(charge.get('value')).toBeURIChargeNone();
-      expect([...charge.entries()]).toHaveLength(0);
-      expect([...charge.keys()]).toHaveLength(0);
-    });
-    it('recognized as map entry value', () => {
-      expect(parse('foo(!bar%20baz(1))').charge).toHaveURIChargeItems({
-        foo: { rawName: '!bar%20baz', rawArg: '(1)' },
-      });
-    });
-    it('recognized as list item value', () => {
-      expect(parse(',!bar%20baz()').charge).toHaveURIChargeItems({
-        rawName: '!bar%20baz',
-        rawArg: '()',
       });
     });
   });

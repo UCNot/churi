@@ -61,6 +61,9 @@ function parseUcSingle<TValue, TCharge>(
   ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): number {
+  if (input.startsWith('!')) {
+    return parseEntityOrTrue(rx, ext, input);
+  }
   if (input.startsWith("'")) {
     // Parse quoted string.
     const rawString = parseRawUcString(input.slice(1));
@@ -74,7 +77,7 @@ function parseUcSingle<TValue, TCharge>(
 
   if (delimiterIdx < 0) {
     // Up to the end of input.
-    decodeUcValue(rx, ext, input);
+    decodeUcValue(rx, input);
 
     return input.length;
   }
@@ -83,17 +86,39 @@ function parseUcSingle<TValue, TCharge>(
 
   if (delimiter !== '(') {
     // End of the value.
-    decodeUcValue(rx, ext, input.slice(0, delimiterIdx));
+    decodeUcValue(rx, input.slice(0, delimiterIdx));
 
     return delimiterIdx;
   }
   if (delimiterIdx) {
     // Opening parent after the key.
-    return parseUcMapOrDirective(rx, ext, input.slice(0, delimiterIdx), input);
+    return parseUcMap(rx, ext, input.slice(0, delimiterIdx), input);
   }
 
   // Opening parent without preceding key treated as nested list.
   return parseNestedUcList(rx, ext, input);
+}
+
+function parseEntityOrTrue<TValue, TCharge>(
+  rx: URIChargeRx.ValueRx<TValue, TCharge>,
+  ext: URIChargeExtParser<TValue, TCharge>,
+  input: string,
+): number {
+  if (input.length > 2) {
+    const second = input[1];
+
+    if (second !== ')' && second !== ',') {
+      const rawEntity = parseRawUcString(input, true);
+
+      ext.parseEntity(rx, rawEntity);
+
+      return rawEntity.length;
+    }
+  }
+
+  rx.addValue(true, 'boolean');
+
+  return 1;
 }
 
 const UC_PARENTHESIS_PATTERN = /[()]/;
@@ -201,21 +226,12 @@ function parseUcItems<TValue, TCharge>(
   }
 }
 
-function parseUcMapOrDirective<TValue, TCharge>(
+function parseUcMap<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
   ext: URIChargeExtParser<TValue, TCharge>,
   rawKey: string,
   input: string,
 ): number {
-  if (rawKey.startsWith('!')) {
-    // Handle directive.
-    const arg = parseRawUcString(input.slice(rawKey.length), true);
-
-    ext.parseDirective(rx, rawKey, arg);
-
-    return rawKey.length + arg.length;
-  }
-
   // Start nested map and parse first entry.
   const firstValueOffset = rawKey.length + 1;
   const firstValueInput = input.slice(firstValueOffset);
@@ -223,7 +239,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
   let end!: number;
 
   rx.rxMap(mapRx => {
-    end = firstValueOffset + parseUcMap(mapRx, ext, firstKey, firstValueInput);
+    end = firstValueOffset + parseUcMapContent(mapRx, ext, firstKey, firstValueInput);
 
     return mapRx.endMap();
   });
@@ -231,7 +247,7 @@ function parseUcMapOrDirective<TValue, TCharge>(
   return end;
 }
 
-function parseUcMap<TValue>(
+function parseUcMapContent<TValue>(
   mapRx: URIChargeRx.MapRx<TValue>,
   ext: URIChargeExtParser<TValue>,
   key: string,

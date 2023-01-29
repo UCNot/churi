@@ -50,10 +50,6 @@ export class OpaqueURIChargeRx<out TValue = UcPrimitive, out TCharge = unknown>
     return this.#none;
   }
 
-  createDirective(_rawName: string, _rawArg: string): TCharge {
-    return this.none;
-  }
-
   createEntity(_rawEntity: string): TCharge {
     return this.none;
   }
@@ -91,10 +87,6 @@ class OpaqueURICharge$ValueRx<out TValue, out TCharge, out TRx extends URICharge
 
   add(_charge: TCharge): void {
     // Ignore charge.
-  }
-
-  addDirective(rawName: string, rawArg: string): void {
-    this.add(this.#chargeRx.createDirective(rawName, rawArg));
   }
 
   addEntity(rawEntity: string): void {

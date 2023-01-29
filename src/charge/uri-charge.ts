@@ -1,4 +1,3 @@
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
 import { URIChargeable } from './uri-chargeable.js';
@@ -159,7 +158,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
  *
  * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  */
-export type URIChargeItem<TValue = UcPrimitive> = TValue | UcPrimitive | UcEntity | UcDirective;
+export type URIChargeItem<TValue = UcPrimitive> = TValue | UcPrimitive | UcEntity;
 
 export namespace URICharge {
   /**

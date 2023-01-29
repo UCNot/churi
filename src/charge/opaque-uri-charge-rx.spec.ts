@@ -10,12 +10,6 @@ describe('OpaqueURIChargeRx', () => {
     chargeRx = new OpaqueURIChargeRx({ none: NONE });
   });
 
-  describe('createDirective', () => {
-    it('ignores charge', () => {
-      expect(chargeRx.createDirective('!test', '(arg)')).toBe(NONE);
-    });
-  });
-
   describe('createEntity', () => {
     it('charges none', () => {
       expect(chargeRx.createEntity('!test')).toBe(NONE);

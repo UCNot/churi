@@ -1,4 +1,3 @@
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
 import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
@@ -49,10 +48,6 @@ export class URIChargeBuilder<out TValue = UcPrimitive>
 
   get none(): URICharge.None {
     return URICharge.none;
-  }
-
-  createDirective(rawName: string, rawArg: string): URICharge.Single<TValue> {
-    return new URICharge$Single<TValue>(new UcDirective(rawName, rawArg), 'directive');
   }
 
   createEntity(rawEntity: string): URICharge.Single<TValue> {
