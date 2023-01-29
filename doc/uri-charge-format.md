@@ -10,7 +10,7 @@ negative [Infinity] and [NaN] values are representable within URI charge with st
 URI charge may be used in various parts of URI. E.g. within [query]:
 
 ```
-?find=includes(john)(first_name)&order=first_name(asc(!))second_name(asc(!))birthday(asc(-))&range=from(10)to(20)
+?find=includes(first_name(john))&order=first_name(asc(!))second_name(asc(!))birthday(asc(-))&range=from(10)to(20)
 ```
 
 [bigint]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
@@ -72,7 +72,7 @@ Additionally:
   that should be [percent-encoded].
 - Since _decimal digits_, `"!" (U+0021)`, `"$" (U+0024)`, `"'" (U+0027)`, and `"-" (U+002D)` prefixes have special
   meaning, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
-- When string escaped with _apostrophe_, it may include balanced set of _parentheses_ (`"(" (U+0028)`
+- A _quoted string_ starting with _apostrophe_ may include balanced set of _parentheses_ (`"(" (U+0028)`
   and `")" (U+0029)`). I.e. _closing parenthesis_ should match an _opening_ one preceding it.
   A _comma_ (`"," (U+002C)`) is considered a part of such string only if it is enclosed into parentheses.
   This may be used to place _unchanged_ URI charge as a string value.
@@ -209,14 +209,13 @@ So, the `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')
 
 [object literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
 
-## Extensions
+## Entities
 
-URI charge format can be extended with custom _entities_ and _directives_. They don't have special meaning, unless
-recognized by custom parser.
+URI charge format can be extended with custom _entities_. An entity is opaque syntax construct that don't have special
+meaning, unless recognized by custom parser.
 
-### Entity
-
-Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by entity name. It is up to the parser how to treat it.
+Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by arbitrary string. It may include e.g. balanced set of
+parentheses, just like a _quoted string_.
 
 For example, the following entities supported by standard "Non-Finite Numbers" extension:
 
@@ -224,20 +223,15 @@ For example, the following entities supported by standard "Non-Finite Numbers" e
 - `!-Infinity` is treated as `-Infinity` (negative infinity) numeric value.
 - `!NaN` is treated as `NaN` (not-a-number) value.
 
-### Directive
-
-Like entity, directive starts with _exclamation mark_ (`"!" (U+0021)`) followed by directive name. In contrast to
-entity, directive has argument(s):
+Entities may recognized by their names, or may have arbitrary syntax. E.g. they may include arguments:
 
 ```
 !error(invalid-email,too-short,invalid-syntax)
 ```
 
-Everything after directive name is treated as directive arguments. Such arguments may include balanced parentheses and
-commas enclosed into these parentheses, just like a string escaped with _apostrophe_.
-
-It is up to directive implementation how to interpret arguments. They may or may not follow the URI charge syntax.
+It is up to parser implementation how to interpret the entity content. It may or may not strictly follow the URI charge
+syntax:
 
 ```
-!data(base64(!)content-type(text,plain)charset(utf-8)):SGVsbG8sIFdvcmxkIQ
+!data$base64(!)content-type(text,plain)charset(utf-8):SGVsbG8sIFdvcmxkIQ
 ```

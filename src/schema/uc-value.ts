@@ -1,4 +1,3 @@
-import { UcDirective } from './uc-directive.js';
 import { UcEntity } from './uc-entity.js';
 import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
@@ -13,8 +12,7 @@ import { UcPrimitive } from './uc-primitive.js';
  * - {@link UcPrimitive primitive value},
  * - object representing {@link UcMap map},
  * - array representing {@link UcList list},
- * - unrecognized {@link UcEntity entity},
- * - unrecognized {@link UcDirective directive}.
+ * - opaque {@link UcEntity entity}.
  *
  * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  */
@@ -23,5 +21,4 @@ export type UcValue<TValue = UcPrimitive> =
   | UcPrimitive
   | UcEntity
   | UcMap<TValue>
-  | UcList<TValue>
-  | UcDirective;
+  | UcList<TValue>;

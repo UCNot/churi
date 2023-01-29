@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
@@ -295,7 +294,7 @@ describe('chargeURI', () => {
     });
   });
 
-  describe('unknown entity value', () => {
+  describe('opaque entity', () => {
     it('encoded as top-level value', () => {
       expect(chargeURI(new UcEntity('!test'))).toBe('!test');
     });
@@ -304,18 +303,6 @@ describe('chargeURI', () => {
     });
     it('encoded as list item value', () => {
       expect(chargeURI([new UcEntity('!test')])).toBe(',!test');
-    });
-  });
-
-  describe('unknown directive value', () => {
-    it('encoded as top-level value', () => {
-      expect(chargeURI(new UcDirective('!test', '(foo)'))).toBe('!test(foo)');
-    });
-    it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: new UcDirective('!test', '(bar)') })).toBe('foo(!test(bar))');
-    });
-    it('encoded as list item value', () => {
-      expect(chargeURI([new UcDirective('!test', '(foo)')])).toBe(',!test(foo)');
     });
   });
 
@@ -328,9 +315,6 @@ describe('chargeURI', () => {
     });
     it('encoded when list', () => {
       expect(String(parseURICharge('(foo)(%74est').charge)).toBe('(foo)(test)');
-    });
-    it('encoded when directive', () => {
-      expect(String(parseURICharge('!foo(%74est').charge)).toBe('!foo(%74est)');
     });
     it('is not encoded when none', () => {
       expect(String(URICharge.none)).toBe('!None');

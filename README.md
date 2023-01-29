@@ -20,17 +20,14 @@ URI charge may be used as:
 **Example:**
 
 ```
-https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date(1970-01-01))till(!now)&range=from(10)to(20)
+https://example.com/api(!v:3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date:1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
 , where:
 
-- `/api(!v(3.0))` is a path fragment charged with `!v(3.0)` directive
+- `/api(!v:3.0)` is a path fragment charged with `!v:3.0` entity.
 
-  Directives are URI charge format extensions treated by custom handlers.
-
-  In this case the `!v` directive treats `3.0` as a version specifier rather as a number. The latter is the case by
-  default, as everything started with a digit is treated as number.
+  Entities are URI charge format extensions treated by custom handlers.
 
 - `/user;id=0n302875106592253` is a path fragment charged with user ID specified as `user` matrix parameter.
 
@@ -38,9 +35,9 @@ https://example.com/api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-wo
 
 - `/article;slug=hello-world` is a path fragment with simple string matrix parameter.
 
-- `?date=since(!date(1970-01-01))till(!now)` is a query parameter charged with map value.
+- `?date=since(!date:1970-01-01)till(!now)` is a query parameter charged with map value.
 
-  Notice the `!date(1970-01-01)` directive and `!now` entity. The latter is a another type of extensions.
+  Notice the `!date:1970-01-01` and `!now` entities.
 
   The `date` parameter charge corresponds to JavaScript object literal like:
 
@@ -95,11 +92,11 @@ import { ChURI } from '@hatsy/churi';
 
 const { route, searchParams: query } = new ChURI(
   'https://example.com' +
-    '/api(!v(3.0))' +
+    '/api(!v:3.0)' +
     '/user;id=0n302875106592253' +
     '/article;slug=hello-world' +
     '/comments' +
-    '?date=since(!date(1970-01-01))till(!now)' +
+    '?date=since(!date:1970-01-01)till(!now)' +
     '&range=from(10)to(20)',
 );
 
@@ -137,12 +134,12 @@ import { churi } from '@hatsy/churi';
 
 console.debug(churi`
   https://example.com
-    /api(${new UcDirective('!v', '(3.0)')})
+    /api(${new UcEntity('!v:3.0')})
     /user;id=${302875106592253n}
     /article;slug=${'hello-world'}
     /comments
       ?date=${{
-        since: new UcDirective('!date', '(1970-01-01)'),
+        since: new UcEntity('!date:1970-01-01'),
         till: new UcEntity('!now'),
       }}
       &range=${{
@@ -152,21 +149,21 @@ console.debug(churi`
 `);
 ```
 
-The `UcEntity` and `UcDirective` above used to avoid escaping and percent-encoding and should be used with care.
+The `UcEntity` above used to avoid escaping and percent-encoding and should be used with care.
 
-Instead, a Charged URI string can be built with `chargeURI()` and `chargeURIArgs()` functions.
+Instead, a Charged URI string can be built with `chargeURI()` function.
 
 ```typescript
 import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';
 
 console.debug(
   'https://example.com' +
-    `/api(${chargeURI(new UcDirective('!v', '(3.0)'))})` +
+    `/api(${chargeURI(new UcEntity('!v:3.0'))})` +
     `/user;id=${chargeURI(302875106592253n)}` +
     `/article;slug=${chargeURI('hello-world')}` +
     '/comments' +
     `?date=${chargeURI({
-      since: new UcDirective('!date', '(1970-01-01)'),
+      since: new UcEntity('!date:1970-01-01'),
       till: new UcEntity('!now'),
     })}` +
     `&range=${chargeURI({

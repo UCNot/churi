@@ -1,4 +1,3 @@
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { UcList } from '../schema/uc-list.js';
 import { UcMap } from '../schema/uc-map.js';
@@ -50,10 +49,6 @@ export class UcValueBuilder<out TValue = UcPrimitive>
 
   get none(): UcValue<TValue> {
     return null;
-  }
-
-  createDirective(rawName: string, rawArg: string): UcValue<TValue> {
-    return new UcDirective(rawName, rawArg);
   }
 
   createEntity(rawEntity: string): UcValue<TValue> {

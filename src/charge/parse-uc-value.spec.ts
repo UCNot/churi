@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcDirective } from '../schema/uc-directive.js';
 import { UcEntity } from '../schema/uc-entity.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
@@ -236,7 +235,7 @@ describe('parseUcValue', () => {
     });
   });
 
-  describe('unknown entity', () => {
+  describe('opaque entity', () => {
     it('recognized at top level', () => {
       expect(parse('!bar%20baz').charge).toEqual(new UcEntity('!bar%20baz'));
     });
@@ -249,6 +248,11 @@ describe('parseUcValue', () => {
       expect(parse(',!bar%20baz').charge).toEqual([new UcEntity('!bar%20baz')]);
       expect(parse('!bar%20baz,').charge).toEqual([new UcEntity('!bar%20baz')]);
       expect(parse(',!bar%20baz,').charge).toEqual([new UcEntity('!bar%20baz')]);
+    });
+    it('closes hanging parentheses', () => {
+      const { raw } = parse('!foo(bar(item1,item2)baz(').charge as UcEntity;
+
+      expect(raw).toBe('!foo(bar(item1,item2)baz())');
     });
   });
 
@@ -393,37 +397,6 @@ describe('parseUcValue', () => {
       expect(parse('foo(bar(baz)test))').charge).toEqual({
         foo: { bar: 'baz', test: '' },
       });
-    });
-  });
-
-  describe('unknown directive', () => {
-    it('recognized as top-level value', () => {
-      const { rawName, rawArg } = parse('!bar%20baz(foo%20bar)((1))test').charge as UcDirective;
-
-      expect(rawName).toBe('!bar%20baz');
-      expect(rawArg).toBe('(foo%20bar)((1))test');
-    });
-    it('recognized as map entry value', () => {
-      const {
-        foo: { rawName, rawArg },
-      } = parse('foo(!bar%20baz(1))').charge as {
-        foo: UcDirective;
-      };
-
-      expect(rawName).toBe('!bar%20baz');
-      expect(rawArg).toBe('(1)');
-    });
-    it('recognized as list item value', () => {
-      const [{ rawName, rawArg }] = parse(',!bar%20baz()').charge as [UcDirective];
-
-      expect(rawName).toBe('!bar%20baz');
-      expect(rawArg).toBe('()');
-    });
-    it('closes hanging parentheses', () => {
-      const { rawName, rawArg } = parse('!foo(bar(item1,item2)baz(').charge as UcDirective;
-
-      expect(rawName).toBe('!foo');
-      expect(rawArg).toBe('(bar(item1,item2)baz())');
     });
   });
 

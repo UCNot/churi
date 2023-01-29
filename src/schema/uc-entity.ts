@@ -1,7 +1,7 @@
 import { URIChargeable } from '../charge/uri-chargeable.js';
 
 /**
- * Unrecognized URI charge entity.
+ * Opaque URI charge entity.
  *
  * This representation is used when entity is not recognized by {@link URIChargeParser parser},
  * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.

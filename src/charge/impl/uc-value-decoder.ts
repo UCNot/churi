@@ -1,10 +1,8 @@
 import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
-import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
 export function decodeUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): void {
   if (!input) {
@@ -14,13 +12,13 @@ export function decodeUcValue<TValue, TCharge>(
     const decoder = UC_VALUE_DECODERS[input[0]];
 
     if (decoder) {
-      decoder(rx, ext, input);
+      decoder(rx, input);
     } else {
       const decoded = decodeURIComponent(input);
       const decoder = UC_STRING_DECODERS[decoded[0]];
 
       if (decoder) {
-        decoder(rx, ext, decoded);
+        decoder(rx, decoded);
       } else {
         rx.addValue(decoded, 'string');
       }
@@ -30,7 +28,6 @@ export function decodeUcValue<TValue, TCharge>(
 
 type UcValueDecoder = <TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ) => void;
 
@@ -53,26 +50,12 @@ const UC_STRING_DECODERS: {
 const UC_VALUE_DECODERS: {
   readonly [prefix: string]: UcValueDecoder;
 } = {
-  '!': decodeExclamationPrefixedUcValue,
   $: decodeDollarPrefixedUcValue,
   ...UC_STRING_DECODERS,
 };
 
-function decodeExclamationPrefixedUcValue<TValue, TCharge>(
-  rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
-  input: string,
-): void {
-  if (input.length === 1) {
-    rx.addValue(true, 'boolean');
-  } else {
-    ext.parseEntity(rx, input);
-  }
-}
-
 function decodeDollarPrefixedUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): void {
   rx.rxMap(mapRx => {
@@ -87,7 +70,6 @@ function decodeDollarPrefixedUcValue<TValue, TCharge>(
 
 function decodeMinusSignedUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): void {
   if (input.length === 1) {
@@ -107,7 +89,6 @@ function decodeMinusSignedUcValue<TValue, TCharge>(
 
 function decodeNumberUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): void {
   rx.addValue(Number(input), 'number');
@@ -122,7 +103,6 @@ function decodeStringUcValue<TValue, TCharge>(
 
 function decodeUnsignedUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  _ext: URIChargeExtParser<TValue, TCharge>,
   input: string,
 ): void {
   decodeNumericUcValue(rx, input, 0, asis);

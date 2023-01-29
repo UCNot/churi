@@ -5,7 +5,7 @@ import { URIChargeRx } from './uri-charge-rx.js';
 /**
  * URI charge extension.
  *
- * Can be passed to {@link URIChargeParser} to add support for custom entities and directives.
+ * Can be passed to {@link URIChargeParser} to add support for custom entities.
  *
  * @typeParam TValue - Base value type contained in URI charge.
  * @typeParam TCharge - URI charge representation type.
@@ -19,17 +19,6 @@ export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
   readonly entities?:
     | {
         readonly [rawEntity: string]: URIChargeExt.EntityHandler<TCharge>;
-      }
-    | undefined;
-
-  /**
-   * Supported directives.
-   *
-   * An object literal with directive name as its key, and directive handler as value.
-   */
-  readonly directives?:
-    | {
-        readonly [rawName: string]: URIChargeExt.DirectiveHandler<TCharge>;
       }
     | undefined;
 }
@@ -48,18 +37,15 @@ export function URIChargeExt<TValue, TCharge>(
 ): URIChargeExt.Factory<TValue, TCharge> {
   return (target: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
     const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
-    const directives: Record<string, URIChargeExt.DirectiveHandler<TCharge>> = {};
 
     for (const factory of asArray(spec)) {
       const ext = factory(target);
 
       Object.assign(entities, ext.entities);
-      Object.assign(directives, ext.directives);
     }
 
     return {
       entities,
-      directives,
     };
   };
 }
@@ -134,19 +120,4 @@ export namespace URIChargeExt {
   export type EntityHandler<out TCharge = unknown> = {
     createEntity(rawEntity: string): TCharge;
   }['createEntity'];
-
-  /**
-   * Custom directive handler.
-   *
-   * Creates directive charge out of directive name and argument.
-   *
-   * @typeParam TCharge - URI charge representation type.
-   * @param rawName - Directive name as is, with leading `!`. _Not_ URI-decoded.
-   * @param rawArg - Directive argument as is, including opening and closing parentheses. _Not_ URI-decoded.
-   *
-   * @returns URI charge representing directive.
-   */
-  export type DirectiveHandler<out TCharge = unknown> = {
-    createDirective(rawName: string, rawArg: string): TCharge;
-  }['createDirective'];
 }
