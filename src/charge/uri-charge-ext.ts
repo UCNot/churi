@@ -18,13 +18,26 @@ export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
    */
   readonly entities?:
     | {
-        readonly [rawEntity: string]: URIChargeExt.EntityHandler<TCharge>;
+        readonly [rawEntity: string]: URIChargeExt.EntityHandler<TCharge> | undefined;
+      }
+    | undefined;
+
+  /**
+   * Supported entity prefixes.
+   *
+   * An object literal with entity prefix as its key, and matching prefix handler as value.
+   */
+  readonly prefixes?:
+    | {
+        readonly [prefix: string]: URIChargeExt.PrefixHandler<TCharge> | undefined;
       }
     | undefined;
 }
 
 /**
  * Constructs URI charge extension {@link URIChargeExt.Factory factory} out of its {@link URIChargeExt.Spec specifier}.
+ *
+ * When multiple extensions specified, the handlers specified later take precedence.
  *
  * @typeParam TValue - Base value type contained in URI charge.
  * @typeParam TCharge - URI charge representation type.
@@ -37,15 +50,37 @@ export function URIChargeExt<TValue, TCharge>(
 ): URIChargeExt.Factory<TValue, TCharge> {
   return (target: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
     const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
+    const prefixes: Record<string, URIChargeExt.PrefixHandler<TCharge>> = {};
 
     for (const factory of asArray(spec)) {
       const ext = factory(target);
 
       Object.assign(entities, ext.entities);
+
+      if (ext.prefixes) {
+        for (const prefix of Object.keys(ext.prefixes)) {
+          const handler = ext.prefixes[prefix];
+
+          if (handler) {
+            const prevHandler = prefixes[prefix];
+
+            if (prevHandler) {
+              prefixes[prefix] = (suffix, prefix) => {
+                const entity = handler(suffix, prefix);
+
+                return entity !== undefined ? entity : prevHandler(suffix, prefix);
+              };
+            } else {
+              prefixes[prefix] = handler;
+            }
+          }
+        }
+      }
     }
 
     return {
       entities,
+      prefixes,
     };
   };
 }
@@ -119,5 +154,21 @@ export namespace URIChargeExt {
    */
   export type EntityHandler<out TCharge = unknown> = {
     createEntity(rawEntity: string): TCharge;
+  }['createEntity'];
+
+  /**
+   * Custom entity prefix handler.
+   *
+   * Creates entity charge out of raw string. If entity is not recognized, then `undefined` may be returned. In this
+   * case the next handler will be tried.
+   *
+   * @typeParam TCharge - URI charge representation type.
+   * @param suffix - Entity suffix following the matching `prefix` as is. _Not_ URI-decoded.
+   * @param prefix - Matching entity prefix as is. _Not_ URI-decoded.
+   *
+   * @returns URI charge representing entity, or `undefined` if entity is not recognized.
+   */
+  export type PrefixHandler<out TCharge = unknown> = {
+    createEntity(suffix: string, prefix: string): TCharge | undefined;
   }['createEntity'];
 }
