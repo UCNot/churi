@@ -1,4 +1,4 @@
-import { asArray } from '@proc7ts/primitives';
+import { asArray, valueByRecipe } from '@proc7ts/primitives';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
@@ -53,7 +53,7 @@ export function URIChargeExt<TValue, TCharge>(
     const prefixes: Record<string, URIChargeExt.PrefixHandler<TCharge>> = {};
 
     for (const factory of asArray(spec)) {
-      const ext = factory(target);
+      const ext = valueByRecipe(factory, target);
 
       Object.assign(entities, ext.entities);
 
@@ -89,14 +89,15 @@ export namespace URIChargeExt {
   /**
    * URI charge extension specifier.
    *
-   * Either extension {@link Factory factory}, array of factories, or nothing.
+   * Either {@link URIChargeExt extension}, its {@link Factory factory}, array of the above, or nothing.
    *
    * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.
    */
   export type Spec<TValue = unknown, TCharge = unknown> =
     | Factory<TValue, TCharge>
-    | readonly Factory<TValue, TCharge>[]
+    | URIChargeExt<TValue, TCharge>
+    | readonly (Factory<TValue, TCharge> | URIChargeExt<TValue, TCharge>)[]
     | undefined;
 
   /**

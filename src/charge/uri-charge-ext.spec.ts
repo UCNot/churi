@@ -60,7 +60,7 @@ describe('URIChargeExt', () => {
               },
             },
           }),
-          (): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
+          {
             prefixes: {
               ['!test:'](suffix): UcValue<UcPrimitive | TestValue> | undefined {
                 return suffix.startsWith('match')
@@ -68,7 +68,7 @@ describe('URIChargeExt', () => {
                   : undefined;
               },
             },
-          }),
+          },
         ],
       });
     });
