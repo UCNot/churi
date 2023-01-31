@@ -1,8 +1,9 @@
 import { UcPrimitive } from '../schema/uc-primitive.js';
+import { unchargeEntities } from '../uncharge/uncharge-entities.js';
+import { UcEntityParser } from './impl/uc-entity-parser.js';
 import { parseUcValue } from './impl/uc-value-parser.js';
-import { URIChargeExtParser } from './impl/uri-charge-ext-parser.js';
-import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeRx } from './uri-charge-rx.js';
+import { URIUncharger } from './uri-uncharger.js';
 
 /**
  * Parser of strings containing URI charge.
@@ -13,18 +14,18 @@ import { URIChargeRx } from './uri-charge-rx.js';
 export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
 
   readonly #rx: URIChargeRx<TValue, TCharge>;
-  readonly #ext: URIChargeExtParser<TValue, TCharge>;
+  readonly #uncharger: UcEntityParser<TValue, TCharge>;
 
   /**
    * Constructs URI charge parser.
    *
    * @param options - Parser options.
    */
-  constructor(options: URIChargeParser.Options<TValue, TCharge>) {
-    const { rx, ext } = options;
+  constructor(options: URIChargeParser.Options<TValue, TCharge>);
 
+  constructor({ rx, recognize }: URIChargeParser.Options<TValue, TCharge>) {
     this.#rx = rx;
-    this.#ext = new URIChargeExtParser(this, ext);
+    this.#uncharger = new UcEntityParser(this, recognize);
   }
 
   /**
@@ -60,7 +61,7 @@ export class URIChargeParser<out TValue = UcPrimitive, out TCharge = unknown> {
   }
 
   #parse(input: string, rx: URIChargeRx.ValueRx<TValue, TCharge>): number {
-    return parseUcValue(rx, this.#ext, input);
+    return parseUcValue(rx, this.#uncharger, input);
   }
 
 }
@@ -79,9 +80,13 @@ export namespace URIChargeParser {
     readonly rx: URIChargeRx<TValue, TCharge>;
 
     /**
-     * Optional URI charge extension(s) specifier.
+     * Specifies additional URI uncharger(s).
+     *
+     * Only {@link unchargeEntities standard entities} recognized when omitted. Only specified entities recognized
+     * the given present. The {@link unchargeEntities} has to be specified explicitly in the latter case if standard
+     * entities support is desired.
      */
-    readonly ext?: URIChargeExt.Spec<TValue, TCharge> | undefined;
+    readonly recognize?: URIUncharger.Spec<TValue, TCharge> | undefined;
   }
 
   /**

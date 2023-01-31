@@ -67,15 +67,14 @@ Additionally:
 
 - Since _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`) and _comma_ (`"," (U+002C)`) have special meaning within
   URI charge, they should be [percent-encoded].
-- When encoded value starts with _apostrophe_ (`"'" (U+0027)`), the apostrophe is stripped, and the actual string value
-  starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
-  that should be [percent-encoded].
-- Since _decimal digits_, `"!" (U+0021)`, `"$" (U+0024)`, `"'" (U+0027)`, and `"-" (U+002D)` prefixes have special
-  meaning, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
+- When encoded value starts with _apostrophe_ (`"'" (U+0027)`), the apostrophe is stripped, and the actual string
+  value starts from the second symbol.
 - A _quoted string_ starting with _apostrophe_ may include balanced set of _parentheses_ (`"(" (U+0028)`
-  and `")" (U+0029)`). I.e. _closing parenthesis_ should match an _opening_ one preceding it.
+  and `")" (U+0029)`). I.e. each _closing parenthesis_ should match the _opening_ one preceding it.
   A _comma_ (`"," (U+002C)`) is considered a part of such string only if it is enclosed into parentheses.
   This may be used to place _unchanged_ URI charge as a string value.
+- Since _decimal digits_, `"!" (U+0021)`, `"$" (U+0024)`, `"'" (U+0027)`, and `"-" (U+002D)` prefixes have special
+  meaning, they should be escaped with _apostrophe_ (`"'" (U+0027)`).
 
 _Empty string_ may be left as is or encoded as single _apostrophe_ (`"'" (U+0027)`).
 
@@ -190,32 +189,32 @@ The following rules apply to entry keys:
 
 - Since _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`) and _comma_ (`"," (U+002C)`) have special meaning within
   URI charge, they should be [percent-encoded].
-- When encoded value starts with _dollar sign_ (`"$" (U+0024)`), the dollar sign is stripped, and the actual key value
-  starts from the second symbol. This can be used to escape symbols that have special meaning, except _parentheses_,
-  that should be [percent-encoded].
+- When encoded value starts with _dollar sign_ (`"$" (U+0024)`), the dollar sign is stripped, and the actual key
+  value starts from the second symbol. This can be used to escape symbols that have special meaning, except
+  _parentheses_, that should be [percent-encoded].
 - Since `"!" (U+0021)`, `"$" (U+0024)`, and `"'" (U+0027)` prefixes have special meaning, they should be escaped
   with _dollar sign_ (`"$" (U+0024)`).
 - Empty key represented by single _dollar sign_ (`"$" (U+0024)`).
-- **A non-escaped key having more than 63 octets is illegal for the first entry**. It is up to the parser how to treat
-  it, or raise an error instead. This requirement allows to quickly distinguish strings and maps when processing a
-  stream. This rule makes sense only for the first key and not applied to subsequent ones.
+- **A non-escaped key having more than 63 octets is illegal for the first entry**. It is up to the parser how
+  to treat it, or raise an error instead. This requirement allows to quickly distinguish strings and maps when
+  processing a stream. This rule makes sense only for the first key and not applied to subsequent ones.
 
-A special case when key prefixed with _dollar sign_ is not followed by value is treated as entry with empty string value.
-I.e. `$key` is the same as `$key()`. Note that this rule does not work for single `$` symbol, which stands for empty
-object. The `$()` has to be used for object with empty key and empty value (`{ '': '' }`).
+A special case when key prefixed with _dollar sign_ is not followed by value is treated as entry with empty string
+value. I.e. `$key` is the same as `$key()`. Note that this rule does not work for single `$` symbol, which stands
+for empty object. The `$()` has to be used for object with empty key and empty value (`{ '': '' }`).
 
-A map may have _suffix_. I.e. the last entry key without value. Such suffix is treated as entry with empty string value.
-So, the `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`)
+A map may have _suffix_. I.e. the last entry key without value. Such suffix is treated as entry with empty string
+value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`)
 
 [object literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
 
 ## Entities
 
-URI charge format can be extended with custom _entities_. An entity is opaque syntax construct that don't have special
-meaning, unless recognized by custom parser.
+URI charge format can be extended with custom _entities_. An entity is opaque syntax construct that don't have
+special meaning, unless recognized by custom parser.
 
-Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by arbitrary string. It may include e.g. balanced set of
-parentheses, just like a _quoted string_.
+Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by arbitrary string. It may include e.g. balanced
+set of parentheses, just like a _quoted string_.
 
 For example, the following entities supported by standard "Non-Finite Numbers" extension:
 
@@ -229,8 +228,8 @@ Entities may recognized by their names, or may have arbitrary syntax. E.g. they 
 !error(invalid-email,too-short,invalid-syntax)
 ```
 
-It is up to parser implementation how to interpret the entity content. It may or may not strictly follow the URI charge
-syntax:
+It is up to parser implementation how to interpret the entity content. It may or may not strictly follow the URI
+charge syntax:
 
 ```
 !data$base64(!)content-type(text,plain)charset(utf-8):SGVsbG8sIFdvcmxkIQ

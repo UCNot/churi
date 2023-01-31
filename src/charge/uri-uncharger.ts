@@ -3,57 +3,57 @@ import { URIChargeParser } from './uri-charge-parser.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 
 /**
- * URI charge extension.
+ * URI uncharger recognizes specific entities within URI charge.
  *
  * Can be passed to {@link URIChargeParser} to add support for custom entities.
  *
  * @typeParam TValue - Base value type contained in URI charge.
  * @typeParam TCharge - URI charge representation type.
  */
-export interface URIChargeExt<out TValue = unknown, out TCharge = unknown> {
+export interface URIUncharger<out TValue = unknown, out TCharge = unknown> {
   /**
-   * Supported entities.
+   * Recognized entities.
    *
    * An object literal with entity as its key, and entity handler as value.
    */
   readonly entities?:
     | {
-        readonly [rawEntity: string]: URIChargeExt.EntityHandler<TCharge> | undefined;
+        readonly [rawEntity: string]: URIUncharger.EntityHandler<TCharge> | undefined;
       }
     | undefined;
 
   /**
-   * Supported entity prefixes.
+   * Recognized entity prefixes.
    *
    * An object literal with entity prefix as its key, and matching prefix handler as value.
    */
   readonly prefixes?:
     | {
-        readonly [prefix: string]: URIChargeExt.PrefixHandler<TCharge> | undefined;
+        readonly [prefix: string]: URIUncharger.PrefixHandler<TCharge> | undefined;
       }
     | undefined;
 }
 
 /**
- * Constructs URI charge extension {@link URIChargeExt.Factory factory} out of its {@link URIChargeExt.Spec specifier}.
+ * Constructs URI uncharger {@link URIUncharger.Factory factory} out of its {@link URIUncharger.Spec specifier}.
  *
- * When multiple extensions specified, the handlers specified later take precedence.
+ * When multiple unchargers specified, the handlers specified later take precedence.
  *
  * @typeParam TValue - Base value type contained in URI charge.
  * @typeParam TCharge - URI charge representation type.
- * @param spec - Source extension specifier.
+ * @param spec - Source uncharger specifier.
  *
- * @returns Extension factory.
+ * @returns Uncharger factory.
  */
-export function URIChargeExt<TValue, TCharge>(
-  spec: URIChargeExt.Spec<TValue, TCharge>,
-): URIChargeExt.Factory<TValue, TCharge> {
-  return (target: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> => {
-    const entities: Record<string, URIChargeExt.EntityHandler<TCharge>> = {};
-    const prefixes: Record<string, URIChargeExt.PrefixHandler<TCharge>> = {};
+export function URIUncharger<TValue, TCharge>(
+  spec: URIUncharger.Spec<TValue, TCharge>,
+): URIUncharger.Factory<TValue, TCharge> {
+  return (target: URIUncharger.Target<TValue, TCharge>): URIUncharger<TValue, TCharge> => {
+    const entities: Record<string, URIUncharger.EntityHandler<TCharge>> = {};
+    const prefixes: Record<string, URIUncharger.PrefixHandler<TCharge>> = {};
 
-    for (const factory of asArray(spec)) {
-      const ext = valueByRecipe(factory, target);
+    for (const recipe of asArray(spec)) {
+      const ext = valueByRecipe(recipe, target);
 
       Object.assign(entities, ext.entities);
 
@@ -85,40 +85,41 @@ export function URIChargeExt<TValue, TCharge>(
   };
 }
 
-export namespace URIChargeExt {
+export namespace URIUncharger {
   /**
-   * URI charge extension specifier.
+   * URI uncharger(s) specifier.
    *
-   * Either {@link URIChargeExt extension}, its {@link Factory factory}, array of the above, or nothing.
+   * Either {@link URIUncharger uncharger} instance, its {@link Factory factory}, or array of the above.
+   * Can be `undefined` as well.
    *
    * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.
    */
   export type Spec<TValue = unknown, TCharge = unknown> =
     | Factory<TValue, TCharge>
-    | URIChargeExt<TValue, TCharge>
-    | readonly (Factory<TValue, TCharge> | URIChargeExt<TValue, TCharge>)[]
+    | URIUncharger<TValue, TCharge>
+    | readonly (Factory<TValue, TCharge> | URIUncharger<TValue, TCharge>)[]
     | undefined;
 
   /**
-   * URI charge extension factory.
+   * URI uncharger factory.
    *
-   * Creates an extension for the given charge receiver.
+   * Creates an uncharger instance for the given target.
    *
    * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.
-   * @param target - Extension target. This is typically a {@link URIChargeParser parser} instance.
+   * @param target - Uncharge target. This is typically a {@link URIChargeParser parser} instance.
    *
-   * @returns Extension instance.
+   * @returns Uncharger instance.
    */
   export type Factory<out TValue = unknown, out TCharge = unknown> = {
-    extendCharge(target: Target<TValue, TCharge>): URIChargeExt<TValue, TCharge>;
+    extendCharge(target: Target<TValue, TCharge>): URIUncharger<TValue, TCharge>;
   }['extendCharge'];
 
   /**
-   * URI charge extension target.
+   * URI uncharge target.
    *
-   * Passed to {@link Factory extension factory} when creating extension.
+   * Passed to {@link Factory uncharger factory} to create an uncharger instance.
    *
    * @typeParam TValue - Base value type contained in URI charge.
    * @typeParam TCharge - URI charge representation type.

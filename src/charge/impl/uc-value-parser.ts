@@ -1,12 +1,12 @@
 import { ASCIICharSet } from '../../impl/ascii-char-set.js';
 import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
+import { UcEntityParser } from './uc-entity-parser.js';
 import { decodeUcValue } from './uc-value-decoder.js';
-import { URIChargeExtParser } from './uri-charge-ext-parser.js';
 
 export function parseUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
   if (input.startsWith(',')) {
@@ -22,18 +22,18 @@ export function parseUcValue<TValue, TCharge>(
       return 1;
     }
 
-    return 1 + parseUcSingleOrList(rx, ext, input.slice(1));
+    return 1 + parseUcSingleOrList(rx, entityParser, input.slice(1));
   }
 
-  return parseUcSingleOrList(rx, ext, input);
+  return parseUcSingleOrList(rx, entityParser, input);
 }
 
 function parseUcSingleOrList<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
-  const end = parseUcSingle(rx, ext, input);
+  const end = parseUcSingle(rx, entityParser, input);
 
   if (end >= input.length) {
     // End of input after the only item.
@@ -53,16 +53,16 @@ function parseUcSingleOrList<TValue, TCharge>(
   const restItemsStart = terminator === ',' ? end + 1 : end;
 
   // Parse the rest of list items.
-  return restItemsStart + parseUcItems(rx, ext, input.slice(restItemsStart));
+  return restItemsStart + parseUcItems(rx, entityParser, input.slice(restItemsStart));
 }
 
 function parseUcSingle<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
   if (input.startsWith('!')) {
-    return parseEntityOrTrue(rx, ext, input);
+    return parseEntityOrTrue(rx, entityParser, input);
   }
   if (input.startsWith("'")) {
     // Parse quoted string.
@@ -92,16 +92,16 @@ function parseUcSingle<TValue, TCharge>(
   }
   if (delimiterIdx) {
     // Opening parent after the key.
-    return parseUcMap(rx, ext, input.slice(0, delimiterIdx), input);
+    return parseUcMap(rx, entityParser, input.slice(0, delimiterIdx), input);
   }
 
   // Opening parent without preceding key treated as nested list.
-  return parseNestedUcList(rx, ext, input);
+  return parseNestedUcList(rx, entityParser, input);
 }
 
 function parseEntityOrTrue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
   if (input.length > 2) {
@@ -110,7 +110,7 @@ function parseEntityOrTrue<TValue, TCharge>(
     if (second !== ')' && second !== ',') {
       const rawEntity = parseRawUcString(input, true);
 
-      ext.parseEntity(rx, rawEntity);
+      entityParser.parseEntity(rx, rawEntity);
 
       return rawEntity.length;
     }
@@ -163,7 +163,7 @@ function parseRawUcString(input: string, balanceParentheses = false): string {
 
 function parseNestedUcList<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
   rx.asList();
@@ -180,7 +180,7 @@ function parseNestedUcList<TValue, TCharge>(
   let end!: number;
 
   rx.rxList(itemRx => {
-    end = offset + parseUcItems(itemRx, ext, input.slice(offset)) + 1;
+    end = offset + parseUcItems(itemRx, entityParser, input.slice(offset)) + 1;
 
     return itemRx.end();
   });
@@ -190,7 +190,7 @@ function parseNestedUcList<TValue, TCharge>(
 
 function parseUcItems<TValue, TCharge>(
   listRx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   input: string,
 ): number {
   let offset = 0;
@@ -202,7 +202,7 @@ function parseUcItems<TValue, TCharge>(
     }
 
     const restInput = input.slice(offset);
-    const end = parseUcSingle(listRx, ext, restInput);
+    const end = parseUcSingle(listRx, entityParser, restInput);
 
     if (end >= restInput.length) {
       // The end of the input.
@@ -228,7 +228,7 @@ function parseUcItems<TValue, TCharge>(
 
 function parseUcMap<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
-  ext: URIChargeExtParser<TValue, TCharge>,
+  entityParser: UcEntityParser<TValue, TCharge>,
   rawKey: string,
   input: string,
 ): number {
@@ -239,7 +239,7 @@ function parseUcMap<TValue, TCharge>(
   let end!: number;
 
   rx.rxMap(mapRx => {
-    end = firstValueOffset + parseUcMapContent(mapRx, ext, firstKey, firstValueInput);
+    end = firstValueOffset + parseUcMapContent(mapRx, entityParser, firstKey, firstValueInput);
 
     return mapRx.endMap();
   });
@@ -249,7 +249,7 @@ function parseUcMap<TValue, TCharge>(
 
 function parseUcMapContent<TValue>(
   mapRx: URIChargeRx.MapRx<TValue>,
-  ext: URIChargeExtParser<TValue>,
+  entityParser: UcEntityParser<TValue>,
   key: string,
   firstValueInput: string,
 ): number {
@@ -258,7 +258,7 @@ function parseUcMapContent<TValue>(
   let firstEntryEnd!: number;
 
   mapRx.rxEntry(key, rx => {
-    firstEntryEnd = parseUcValue(rx, ext, firstValueInput) + 1;
+    firstEntryEnd = parseUcValue(rx, entityParser, firstValueInput) + 1;
 
     return rx.end();
   });
@@ -274,14 +274,14 @@ function parseUcMapContent<TValue>(
   }
 
   // Parse the rest of the map entries.
-  return firstEntryEnd + parseUcEntries(mapRx, ext, firstValueInput.slice(firstEntryEnd));
+  return firstEntryEnd + parseUcEntries(mapRx, entityParser, firstValueInput.slice(firstEntryEnd));
 }
 
 const UC_MAP_TERMINATORS = new ASCIICharSet("!'(),");
 
 function parseUcEntries<TValue>(
   mapRx: URIChargeRx.MapRx<TValue>,
-  ext: URIChargeExtParser<TValue>,
+  entityParser: UcEntityParser<TValue>,
   input: string /* never empty */,
 ): number {
   let offset = 0;
@@ -314,7 +314,7 @@ function parseUcEntries<TValue>(
     input = input.slice(keyEnd + 1);
     offset += keyEnd + 1;
     mapRx.rxEntry(key, rx => {
-      nextKeyStart = parseUcValue(rx, ext, input) + 1;
+      nextKeyStart = parseUcValue(rx, entityParser, input) + 1;
 
       return rx.end();
     });

@@ -1,20 +1,20 @@
-import { URIChargeExt } from '../uri-charge-ext.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
+import { URIUncharger } from '../uri-uncharger.js';
 
-export class URIChargeExtParser<out TValue, out TCharge = unknown> {
+export class UcEntityParser<out TValue, out TCharge = unknown> {
 
-  readonly #target: URIChargeExt.Target<TValue, TCharge>;
-  readonly #createExt: URIChargeExt.Factory<TValue, TCharge>;
+  readonly #target: URIUncharger.Target<TValue, TCharge>;
+  readonly #createUncharger: URIUncharger.Factory<TValue, TCharge>;
 
-  #entities!: Map<string, URIChargeExt.EntityHandler<TCharge>>;
+  #entities!: Map<string, URIUncharger.EntityHandler<TCharge>>;
   #prefixes?: UcEntity$PrefixHandler<TValue, TCharge>[];
 
   constructor(
-    target: URIChargeExt.Target<TValue, TCharge>,
-    spec: URIChargeExt.Spec<TValue, TCharge> | undefined,
+    target: URIUncharger.Target<TValue, TCharge>,
+    spec: URIUncharger.Spec<TValue, TCharge>,
   ) {
     this.#target = target;
-    this.#createExt = URIChargeExt(spec);
+    this.#createUncharger = URIUncharger(spec);
   }
 
   #init(): void {
@@ -22,13 +22,13 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
       return;
     }
 
-    const ext = this.#createExt(this.#target);
+    const uncharger = this.#createUncharger(this.#target);
 
-    this.#initEntityHandlers(ext);
-    this.#initEntityPrefixes(ext);
+    this.#initEntityHandlers(uncharger);
+    this.#initEntityPrefixes(uncharger);
   }
 
-  #initEntityHandlers({ entities }: URIChargeExt<TValue, TCharge>): void {
+  #initEntityHandlers({ entities }: URIUncharger<TValue, TCharge>): void {
     this.#entities = new Map();
 
     if (entities) {
@@ -40,7 +40,7 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
     }
   }
 
-  #initEntityPrefixes({ prefixes }: URIChargeExt<TValue, TCharge>): void {
+  #initEntityPrefixes({ prefixes }: URIUncharger<TValue, TCharge>): void {
     if (prefixes) {
       const prefixHandlers = new Map<number, UcEntity$PrefixHandler<TValue, TCharge>>();
 
@@ -91,13 +91,13 @@ export class URIChargeExtParser<out TValue, out TCharge = unknown> {
 class UcEntity$PrefixHandler<out TValue, out TCharge> {
 
   readonly #length: number;
-  readonly #handlers = new Map<string, URIChargeExt.PrefixHandler<TCharge>>();
+  readonly #handlers = new Map<string, URIUncharger.PrefixHandler<TCharge>>();
 
   constructor(length: number) {
     this.#length = length;
   }
 
-  add(prefix: string, handler: URIChargeExt.PrefixHandler<TCharge>): void {
+  add(prefix: string, handler: URIUncharger.PrefixHandler<TCharge>): void {
     this.#handlers.set(prefix, handler);
   }
 

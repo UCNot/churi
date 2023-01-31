@@ -1,20 +1,19 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcEntity } from '../schema/uc-entity.js';
-import { UcPrimitive } from '../schema/uc-primitive.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser } from './parse-uc-value.js';
-import { URIChargeExt } from './uri-charge-ext.js';
 import { URIChargeParser } from './uri-charge-parser.js';
+import { URIUncharger } from './uri-uncharger.js';
 
-describe('URIChargeExt', () => {
+describe('URIUncharger', () => {
   describe('entity', () => {
-    let parser: URIChargeParser<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>;
+    let parser: URIChargeParser<TestValue, UcValue<TestValue>>;
 
     beforeAll(() => {
       parser = createUcValueParser({
-        ext: (): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
+        recognize: (): URIUncharger<TestValue, UcValue<TestValue>> => ({
           entities: {
-            ['!test'](): UcValue<UcPrimitive | TestValue> {
+            ['!test'](): UcValue<TestValue> {
               return { [test__symbol]: 'test value' };
             },
           },
@@ -40,29 +39,29 @@ describe('URIChargeExt', () => {
   });
 
   describe('prefix', () => {
-    let parser: URIChargeParser<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>>;
+    let parser: URIChargeParser<TestValue, UcValue<TestValue>>;
 
     beforeAll(() => {
       parser = createUcValueParser({
-        ext: [
-          (): URIChargeExt<UcPrimitive | TestValue, UcValue<UcPrimitive | TestValue>> => ({
+        recognize: [
+          (): URIUncharger<TestValue, UcValue<TestValue>> => ({
             entities: {
-              ['!test:exact'](): UcValue<UcPrimitive | TestValue> {
+              ['!test:exact'](): UcValue<TestValue> {
                 return { [test__symbol]: '(exact)' };
               },
             },
             prefixes: {
-              ['!test:'](suffix): UcValue<UcPrimitive | TestValue> {
+              ['!test:'](suffix): UcValue<TestValue> {
                 return { [test__symbol]: suffix };
               },
-              ['!test:longer:'](suffix): UcValue<UcPrimitive | TestValue> {
+              ['!test:longer:'](suffix): UcValue<TestValue> {
                 return { [test__symbol]: suffix + '(longer)' };
               },
             },
           }),
           {
             prefixes: {
-              ['!test:'](suffix): UcValue<UcPrimitive | TestValue> | undefined {
+              ['!test:'](suffix): UcValue<TestValue> | undefined {
                 return suffix.startsWith('match')
                   ? { [test__symbol]: suffix.slice(6) + '(match)' }
                   : undefined;

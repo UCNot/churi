@@ -1,19 +1,21 @@
-import { URIChargeExt } from '../charge/uri-charge-ext.js';
+import { URIUncharger } from '../charge/uri-uncharger.js';
 
 /**
- * URI charge extension that adds support for non-finite numbers:
+ * Uncharges non-finite numbers.
+ *
+ * Enables support for:
  *
  * - `!Infinity` entity for `Infinity` value,
  * - `!-Infinity` entity for negative `Infinity` value,
  * - `!NaN` entity for `NaN` value.
  */
-export function NonFiniteUcExt<TValue, TCharge>(
-  target: URIChargeExt.Target<TValue, TCharge>,
-): URIChargeExt<TValue, TCharge>;
+export function unchargeNonFinite<TValue, TCharge>(
+  target: URIUncharger.Target<TValue, TCharge>,
+): URIUncharger<TValue, TCharge>;
 
-export function NonFiniteUcExt<TValue, TCharge>({
+export function unchargeNonFinite<TValue, TCharge>({
   chargeRx,
-}: URIChargeExt.Target<TValue, TCharge>): URIChargeExt<TValue, TCharge> {
+}: URIUncharger.Target<TValue, TCharge>): URIUncharger<TValue, TCharge> {
   return {
     entities: {
       ['!Infinity'](): TCharge {

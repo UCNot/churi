@@ -1,5 +1,5 @@
-import { StandardUcExt } from '../ext/standard.uc-ext.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
+import { unchargeEntities } from '../uncharge/uncharge-entities.js';
 import { URIChargeBuilder } from './uri-charge-builder.js';
 import { URIChargeParser } from './uri-charge-parser.js';
 import { URICharge } from './uri-charge.js';
@@ -20,17 +20,22 @@ let URIChargeParser$default: URIChargeParser<any, any> | undefined;
 export function createURIChargeParser<TValue>(
   options?: Partial<URIChargeParser.Options<TValue, URICharge<TValue>>>,
 ): URIChargeParser<TValue, URICharge<TValue>> {
-  const { rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>, ext = StandardUcExt } =
-    options ?? {};
+  const {
+    rx = URIChargeBuilder$instance as URIChargeBuilder<TValue>,
+    recognize = unchargeEntities,
+  } = options ?? {};
 
   if (!options) {
     return (URIChargeParser$default ??= new URIChargeParser({
       rx,
-      ext,
+      recognize: recognize,
     })) as URIChargeParser<TValue, URICharge<TValue>>;
   }
 
-  return new URIChargeParser({ rx, ext }) as URIChargeParser<TValue, URICharge<TValue>>;
+  return new URIChargeParser({ rx, recognize: recognize }) as URIChargeParser<
+    TValue,
+    URICharge<TValue>
+  >;
 }
 
 /**
