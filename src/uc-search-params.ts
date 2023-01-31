@@ -53,10 +53,10 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    chargeParser: URIChargeParser<TValue, TCharge> = createURIChargeParser() as URIChargeParser<
+    chargeParser: URIChargeParser<
       TValue,
       TCharge
-    >,
+    > = /*#__PURE__*/ createURIChargeParser() as URIChargeParser<TValue, TCharge>,
   ) {
     this.#chargeParser = chargeParser;
     this.#map =

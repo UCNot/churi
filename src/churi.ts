@@ -48,15 +48,17 @@ export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
   constructor(
     uri: string,
     {
-      Route: route = UcRoute as new (path: string) => TRoute,
-      SearchParams: searchParams = UcSearchParams as new (search: string) => TSearchParams,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      Route = UcRoute as new (path: string) => TRoute,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      SearchParams = UcSearchParams as new (search: string) => TSearchParams,
     }: Partial<ChURI.Options<TRoute, TSearchParams>> = {},
   ) {
     const url = new URL(uri);
 
     this.#url = url;
-    this.#Route = route;
-    this.#SearchParams = searchParams;
+    this.#Route = Route;
+    this.#SearchParams = SearchParams;
   }
 
   /**
@@ -230,39 +232,20 @@ export namespace ChURI {
     SearchParamsOptions<TSearchParams>;
 
   /**
-   * Default charged URI construction options.
-   *
-   * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
-   * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
-   */
-  export interface DefaultOptions<TRoute = UcRoute, TSearchParams = UcSearchParams> {
-    /**
-     * Route representation constructor.
-     *
-     * @defaultValue {@link UcRoute}.
-     */
-    readonly Route?: (new (path: string) => TRoute) | undefined;
-
-    /**
-     * Search parameters representation constructor.
-     *
-     * @defaultValue {@link UcSearchParams}.
-     */
-    readonly SearchParams?: (new (search: string) => TSearchParams) | undefined;
-  }
-
-  /**
    * Charged URI construction options specifying its route representation class.
    *
    * @typeParam TRoute - Custom route representation type.
    */
   export type RouteOptions<TRoute> = UcRoute extends TRoute
-    ? {
-        readonly Route?: (new (path: string) => TRoute) | undefined;
-      }
-    : {
-        readonly Route: new (path: string) => TRoute;
-      };
+    ? Partial<CustomRouteOptions<TRoute>>
+    : CustomRouteOptions<TRoute>;
+
+  export interface CustomRouteOptions<TRoute> {
+    /**
+     * Constructor of route representation.
+     */
+    readonly Route: new (path: string) => TRoute;
+  }
 
   /**
    * Charged URI construction options specifying its search parameters representation class.
@@ -270,10 +253,13 @@ export namespace ChURI {
    * @typeParam TRoute - Custom route representation type.
    */
   export type SearchParamsOptions<TSearchParams> = UcSearchParams extends UcSearchParams
-    ? {
-        readonly SearchParams?: (new (search: string) => TSearchParams) | undefined;
-      }
-    : {
-        readonly SearchParams: new (search: string) => TSearchParams;
-      };
+    ? Partial<CustomSearchParamsOptions<TSearchParams>>
+    : CustomSearchParamsOptions<TSearchParams>;
+
+  export interface CustomSearchParamsOptions<TSearchParams> {
+    /**
+     * Constructor of search parameters representation.
+     */
+    readonly SearchParams: new (search: string) => TSearchParams;
+  }
 }
