@@ -1,7 +1,4 @@
-import { createURIChargeParser } from './charge/parse-uri-charge.js';
-import { URIChargeParser } from './charge/uri-charge-parser.js';
 import { URICharge } from './charge/uri-charge.js';
-import { UcPrimitive } from './schema/uc-primitive.js';
 import { UcRoute } from './uc-route.js';
 import { UcSearchParams } from './uc-search-params.js';
 
@@ -21,50 +18,45 @@ import { UcSearchParams } from './uc-search-params.js';
  * [URI]: https://ru.wikipedia.org/wiki/URI
  * [URL class]:https://developer.mozilla.org/en-US/docs/Web/API/URL
  *
- * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
- * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+ * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
+ * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
  */
-export class ChURI<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
+export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
 
   readonly #url: URL;
-  readonly #chargeParser: URIChargeParser<TValue, TCharge>;
   #scheme?: string;
-  #route?: UcRoute<TValue, TCharge>;
-  #searchParams?: UcSearchParams<TValue, TCharge>;
+  readonly #Route: new (path: string) => TRoute;
+  readonly #SearchParams: new (search: string) => TSearchParams;
+  #route?: TRoute;
+  #searchParams?: TSearchParams;
 
   /**
    * Constructs charged URI.
    *
    * @param uri - Absolute URI string conforming to [RFC3986](https://www.rfc-editor.org/rfc/rfc3986).
-   * @param chargeParser - Parser to use to parse charges.
+   * @param options - Charged URI options.
    */
   constructor(
     uri: string,
-    ...chargeParser: UcPrimitive extends TValue
-      ? URICharge<TValue> extends TCharge
-        ? [URIChargeParser<TValue, TCharge>?]
-        : [URIChargeParser<TValue, TCharge>]
-      : [URIChargeParser<TValue, TCharge>]
+    ...options: UcRoute extends TRoute
+      ? UcSearchParams extends TSearchParams
+        ? [ChURI.Options?]
+        : [ChURI.Options<TRoute, TSearchParams>]
+      : [ChURI.Options<TRoute, TSearchParams>]
   );
 
   constructor(
     uri: string,
-    chargeParser: URIChargeParser<TValue, TCharge> = createURIChargeParser() as URIChargeParser<
-      TValue,
-      TCharge
-    >,
+    {
+      Route: route = UcRoute as new (path: string) => TRoute,
+      SearchParams: searchParams = UcSearchParams as new (search: string) => TSearchParams,
+    }: Partial<ChURI.Options<TRoute, TSearchParams>> = {},
   ) {
     const url = new URL(uri);
 
     this.#url = url;
-    this.#chargeParser = chargeParser;
-  }
-
-  /**
-   * Parser used to parse charges.
-   */
-  get chargeParser(): URIChargeParser<TValue, TCharge> {
-    return this.#chargeParser;
+    this.#Route = route;
+    this.#SearchParams = searchParams;
   }
 
   /**
@@ -152,8 +144,8 @@ export class ChURI<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
    *
    * The returned {@link UcRoute} instance refers the first fragment of the path.
    */
-  get route(): UcRoute<TValue, TCharge> {
-    return (this.#route ??= new UcRoute(this.pathname, this.chargeParser));
+  get route(): TRoute {
+    return (this.#route ??= new this.#Route(this.pathname));
   }
 
   /**
@@ -173,8 +165,8 @@ export class ChURI<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
    *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): UcSearchParams<TValue, TCharge> {
-    return (this.#searchParams ??= new UcSearchParams(this.search, this.chargeParser));
+  get searchParams(): TSearchParams {
+    return (this.#searchParams ??= new this.#SearchParams(this.search));
   }
 
   /**
@@ -225,4 +217,63 @@ export class ChURI<out TValue = UcPrimitive, out TCharge = URICharge<TValue>> {
     return this.toString();
   }
 
+}
+
+export namespace ChURI {
+  /**
+   * Charged URI construction options.
+   *
+   * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
+   * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
+   */
+  export type Options<TRoute = UcRoute, TSearchParams = UcSearchParams> = RouteOptions<TRoute> &
+    SearchParamsOptions<TSearchParams>;
+
+  /**
+   * Default charged URI construction options.
+   *
+   * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
+   * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
+   */
+  export interface DefaultOptions<TRoute = UcRoute, TSearchParams = UcSearchParams> {
+    /**
+     * Route representation constructor.
+     *
+     * @defaultValue {@link UcRoute}.
+     */
+    readonly Route?: (new (path: string) => TRoute) | undefined;
+
+    /**
+     * Search parameters representation constructor.
+     *
+     * @defaultValue {@link UcSearchParams}.
+     */
+    readonly SearchParams?: (new (search: string) => TSearchParams) | undefined;
+  }
+
+  /**
+   * Charged URI construction options specifying its route representation class.
+   *
+   * @typeParam TRoute - Custom route representation type.
+   */
+  export type RouteOptions<TRoute> = UcRoute extends TRoute
+    ? {
+        readonly Route?: (new (path: string) => TRoute) | undefined;
+      }
+    : {
+        readonly Route: new (path: string) => TRoute;
+      };
+
+  /**
+   * Charged URI construction options specifying its search parameters representation class.
+   *
+   * @typeParam TRoute - Custom route representation type.
+   */
+  export type SearchParamsOptions<TSearchParams> = UcSearchParams extends UcSearchParams
+    ? {
+        readonly SearchParams?: (new (search: string) => TSearchParams) | undefined;
+      }
+    : {
+        readonly SearchParams: new (search: string) => TSearchParams;
+      };
 }
