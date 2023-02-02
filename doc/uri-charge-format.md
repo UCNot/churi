@@ -222,15 +222,25 @@ For example, the following entities supported by standard "Non-Finite Numbers" e
 - `!-Infinity` is treated as `-Infinity` (negative infinity) numeric value.
 - `!NaN` is treated as `NaN` (not-a-number) value.
 
-Entities may recognized by their names, or may have arbitrary syntax. E.g. they may include arguments:
+Entities may recognized by their names, or may have arbitrary syntax. E.g. they may have parameters:
 
 ```
 !error(invalid-email,too-short,invalid-syntax)
 ```
 
-It is up to parser implementation how to interpret the entity content. It may or may not strictly follow the URI
-charge syntax:
+It is up to parser implementation of how to treat the entity content. It may or may not strictly follow the URI charge
+syntax.
 
-```
-!data$base64(!)content-type(text,plain)charset(utf-8):SGVsbG8sIFdvcmxkIQ
-```
+Parameterized entity is called _directive_. Typically, it has one of three forms:
+
+1. Directive with value:
+
+   `!base64:SGVsbG8sIFdvcmxkIQ`
+
+2. Directive with attributes:
+
+   `!error(code(invalid-email)message(Invalid%20email),too-short,invalid-syntax)`
+
+3. Directive with attributes and value:
+
+   `!data(base64(!)content-type(text,plain)charset(utf-8))SGVsbG8sIFdvcmxkIQ`
