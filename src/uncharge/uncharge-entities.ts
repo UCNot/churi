@@ -10,6 +10,9 @@ import { unchargeNonFinite } from './uncharge-non-finite.js';
  * Enables support for:
  *
  * - {@link unchargeNonFinite Non-finite numbers}.
+ *
+ * @typeParam TValue - Base value type contained in URI charge.
+ * @typeParam TCharge - URI charge representation type.
  */
 export function unchargeEntities<TValue = unknown, TCharge = unknown>(
   target: URIUncharger.Target<TValue, TCharge>,
