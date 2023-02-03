@@ -4,12 +4,14 @@ import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList } from './uc-list.js';
-import { UcNumber, UcString } from './uc-primitive.js';
+import { ucNullable } from './uc-nullable.js';
+import { ucOptional } from './uc-optional.js';
+import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucNullable, ucOptional } from './uc-schema.js';
+import { ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
-  const spec = UcList<string>(() => UcString());
+  const spec = UcList<string>(ucSchemaRef(() => String));
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
@@ -21,14 +23,24 @@ describe('UcList', () => {
 
   describe('item', () => {
     it('contains item schema', () => {
-      expect(resolver.schemaOf(spec).item).toEqual(UcString());
+      expect(resolver.schemaOf(spec).item).toEqual({
+        optional: false,
+        nullable: false,
+        type: String,
+        asis,
+      });
     });
   });
 
   describe('type', () => {
     it('is set to `list`', () => {
-      expect(schema.from).toBe('@hatsy/churi');
       expect(schema.type).toBe('list');
+    });
+  });
+
+  describe('name', () => {
+    it('reflects item type', () => {
+      expect(ucSchemaName(schema)).toBe('String[]');
     });
   });
 
@@ -36,7 +48,7 @@ describe('UcList', () => {
     it('serializes list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(UcNumber()),
+          writeList: UcList(Number),
         },
       });
 
@@ -49,7 +61,7 @@ describe('UcList', () => {
     it('serializes empty list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(UcNumber()),
+          writeList: UcList(Number),
         },
       });
 
@@ -60,7 +72,7 @@ describe('UcList', () => {
     it('serializes nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucNullable(UcNumber())),
+          writeList: UcList(ucNullable(Number)),
         },
       });
 
@@ -73,7 +85,7 @@ describe('UcList', () => {
     it('serializes missing items as nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucOptional(UcNumber())),
+          writeList: UcList(ucOptional(Number)),
         },
       });
 
@@ -90,7 +102,7 @@ describe('UcList', () => {
       beforeEach(() => {
         lib = new UcsLib({
           schemae: {
-            writeList: UcList<number[]>(UcList<number>(UcNumber())),
+            writeList: UcList<number[]>(UcList<number>(Number)),
           },
         });
       });
@@ -126,7 +138,7 @@ describe('UcList', () => {
     it('does not serialize unrecognized schema', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList<number>({ type: 'test-type', from: 'test-lib', asis }),
+          writeList: UcList<number>({ type: 'test-type', asis }),
         },
       });
 
@@ -141,7 +153,7 @@ describe('UcList', () => {
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
       expect(error?.message).toBe(
-        'writeList$serialize: Can not serialize list item of type "test-type" from "test-lib"',
+        'writeList$serialize: Can not serialize list item of type "test-type"',
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');

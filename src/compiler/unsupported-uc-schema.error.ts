@@ -1,3 +1,4 @@
+import { ucSchemaName } from '../schema/uc-schema-name.js';
 import { UcSchema } from '../schema/uc-schema.js';
 
 export class UnsupportedUcSchemaError extends TypeError {
@@ -6,7 +7,7 @@ export class UnsupportedUcSchemaError extends TypeError {
 
   constructor(
     schema: UcSchema,
-    message = `Unsupported type "${schema.type}" from "${schema.from}"`,
+    message = `Unsupported type "${ucSchemaName(schema)}"`,
     options?: ErrorOptions,
   ) {
     super(message, options);

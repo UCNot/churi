@@ -1,5 +1,5 @@
-import { lazyValue } from '@proc7ts/primitives';
-import { UcSchema } from './uc-schema.js';
+import { asis, lazyValue } from '@proc7ts/primitives';
+import { UcSchema, UcSchema__symbol } from './uc-schema.js';
 
 /**
  * Resolver of URI charge {@link UcSchema.Ref schema references}.
@@ -8,7 +8,10 @@ import { UcSchema } from './uc-schema.js';
  */
 export class UcSchemaResolver {
 
-  readonly #cache = new WeakMap<UcSchema.Ref, () => UcSchema>();
+  readonly #cache = new WeakMap<
+    UcSchema.Class | ((resolver: UcSchemaResolver) => UcSchema),
+    () => UcSchema
+  >();
 
   /**
    * Resolves URI charge schema instance by the given specifier.
@@ -25,21 +28,49 @@ export class UcSchemaResolver {
    * @returns Resolved schema.
    */
   schemaOf<T, TSchema extends UcSchema<T> = UcSchema<T>>(spec: UcSchema.Spec<T, TSchema>): TSchema {
-    if (typeof spec !== 'function') {
-      return spec;
+    const resolveSchema = spec[UcSchema__symbol];
+    let key: UcSchema.Class | ((resolver: UcSchemaResolver) => UcSchema);
+
+    if (resolveSchema) {
+      key = resolveSchema;
+    } else {
+      if (typeof spec !== 'function') {
+        return spec;
+      }
+
+      key = spec;
     }
 
-    const cached = this.#cache.get(spec) as (() => TSchema) | undefined;
+    const cached = this.#cache.get(key) as (() => TSchema) | undefined;
 
     if (cached) {
       return cached();
     }
 
-    const getSchema = lazyValue(() => spec(this)); // Prevent recursive calls.
+    const getSchema: () => TSchema = resolveSchema
+      ? lazyValue(() => this.#resolveRef(resolveSchema)) // Prevent recursive calls.
+      : () => this.#resolveClass<T>(spec) as TSchema;
 
-    this.#cache.set(spec, getSchema);
+    this.#cache.set(key, getSchema);
 
     return getSchema();
+  }
+
+  #resolveRef<T, TSchema extends UcSchema<T>>(
+    resolveSchema: (this: void, resolver: UcSchemaResolver) => TSchema | UcSchema.Class<T>,
+  ): TSchema {
+    const result = resolveSchema(this);
+
+    return typeof result === 'function' ? (this.#resolveClass(result) as TSchema) : result;
+  }
+
+  #resolveClass<T>(type: UcSchema.Class<T>): UcSchema<T> {
+    return {
+      optional: false,
+      nullable: false,
+      type,
+      asis,
+    };
   }
 
 }

@@ -4,14 +4,16 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
-import { UcNumber, UcString } from './uc-primitive.js';
+import { ucNullable } from './uc-nullable.js';
+import { ucOptional } from './uc-optional.js';
+import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
+import { UcSchema, ucSchemaRef } from './uc-schema.js';
 
 describe('UcMap', () => {
   let spec: UcMap.Schema.Spec<{
     foo: UcSchema<string>;
-    bar: () => UcSchema<number>;
+    bar: UcSchema.Ref<number>;
   }>;
   let resolver: UcSchemaResolver;
   let schema: UcMap.Schema<{ foo: UcSchema<string>; bar: UcSchema<number> }>;
@@ -19,7 +21,7 @@ describe('UcMap', () => {
   beforeEach(() => {
     spec = UcMap({
       foo: new EntrySchema<string>('test-string'),
-      bar: () => new EntrySchema<number>('test-number'),
+      bar: ucSchemaRef(() => new EntrySchema<number>('test-number')),
     });
     resolver = new UcSchemaResolver();
     schema = resolver.schemaOf(spec);
@@ -33,8 +35,26 @@ describe('UcMap', () => {
 
   describe('type', () => {
     it('is set to `map`', () => {
-      expect(schema.from).toBe('@hatsy/churi');
       expect(schema.type).toBe('map');
+    });
+  });
+
+  describe('name', () => {
+    it('reflects entry schemae', () => {
+      expect(ucSchemaName(schema)).toBe('{foo: test-string, bar: test-number}');
+    });
+    it('reflects only a few entry schemae', () => {
+      const spec = UcMap({
+        foo: new EntrySchema<string>('test-string'),
+        '0abc': new EntrySchema<string>('test-string'),
+        '%abc': new EntrySchema<string>('test-string'),
+        bar: new EntrySchema<string>('test-string'),
+      });
+      const schema = resolver.schemaOf(spec);
+
+      expect(ucSchemaName(schema)).toBe(
+        `{foo: test-string, '0abc': test-string, '%abc': test-string, ...}`,
+      );
     });
   });
 
@@ -43,8 +63,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcString,
-            bar: UcNumber,
+            foo: String,
+            bar: Number,
           }),
         },
       });
@@ -60,10 +80,10 @@ describe('UcMap', () => {
         schemae: {
           writeMap: UcMap({
             foo: UcMap({
-              test1: UcNumber(),
+              test1: Number,
             }),
             bar: UcMap({
-              test2: UcNumber(),
+              test2: Number,
             }),
           }),
         },
@@ -81,8 +101,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcList(UcNumber()),
-            bar: UcList<number[]>(UcList(UcNumber())),
+            foo: UcList(Number),
+            bar: UcList<number[]>(UcList(Number)),
           }),
         },
       });
@@ -97,7 +117,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            '': UcString(),
+            '': String,
           }),
         },
       });
@@ -113,11 +133,11 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            "'": UcString(),
-            '!': UcString(),
-            $: UcString(),
-            '\\': UcNumber(),
-            [specialKey]: UcString(),
+            "'": String,
+            '!': String,
+            $: String,
+            '\\': Number,
+            [specialKey]: String,
           }),
         },
       });
@@ -140,7 +160,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            test: ucNullable(UcString()),
+            test: ucNullable(String),
           }),
         },
       });
@@ -158,7 +178,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            test: ucOptional(ucNullable(UcString())),
+            test: ucOptional(ucNullable(String)),
           }),
         },
       });
@@ -177,8 +197,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            first: UcNumber(),
-            '': UcString(),
+            first: Number,
+            '': String,
           }),
         },
       });
@@ -193,8 +213,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            first: ucOptional(UcNumber()),
-            '': UcString(),
+            first: ucOptional(Number),
+            '': String,
           }),
         },
       });
@@ -228,7 +248,7 @@ describe('UcMap', () => {
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
       expect(error?.message).toBe(
-        'writeMap$serialize: Can not serialize entry "test" of type "test-type" from "test-library"',
+        'writeMap$serialize: Can not serialize entry "test" of type "test-type"',
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
@@ -242,10 +262,6 @@ class EntrySchema<T> implements UcSchema<T> {
 
   constructor(type: string) {
     this.#type = type;
-  }
-
-  get from(): string {
-    return 'test-library';
   }
 
   get type(): string {

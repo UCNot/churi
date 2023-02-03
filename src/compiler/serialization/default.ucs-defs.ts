@@ -1,45 +1,35 @@
 import { noop } from '@proc7ts/primitives';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
-import { CHURI_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
-import { ucNullable, ucOptional, UcSchema } from '../../schema/uc-schema.js';
+import { ucNullable } from '../../schema/uc-nullable.js';
+import { ucOptional } from '../../schema/uc-optional.js';
+import { ucSchemaName } from '../../schema/uc-schema-name.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { UcsDefs } from './ucs-defs.js';
+import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
 
-class Default$UcsDefs implements UcsDefs {
+class Default$UcsDefs {
 
-  readonly #byType: {
-    readonly [type: string]: UcsDefs['serialize'];
-  };
+  readonly #list: UcsDef[];
 
   constructor() {
-    this.#byType = {
-      bigint: this.#writeBigInt.bind(this),
-      boolean: this.#writeBoolean.bind(this),
-      list: this.#writeList.bind(this),
-      map: this.#writeMap.bind(this),
-      number: this.#writeNumber.bind(this),
-      string: this.#writeString.bind(this),
-    };
+    this.#list = [
+      { type: BigInt, serialize: this.#writeBigInt.bind(this) },
+      { type: Boolean, serialize: this.#writeBoolean.bind(this) },
+      { type: 'list', serialize: this.#writeList.bind(this) },
+      { type: 'map', serialize: this.#writeMap.bind(this) },
+      { type: Number, serialize: this.#writeNumber.bind(this) },
+      { type: String, serialize: this.#writeString.bind(this) },
+    ];
   }
 
-  get from(): string {
-    return CHURI_MODULE;
-  }
-
-  serialize(
-    serializer: UcsFunction,
-    schema: UcSchema,
-    value: string,
-    asItem: string,
-  ): UccCode.Source | undefined {
-    const writer = this.#byType[schema.type];
-
-    return writer?.(serializer, schema, value, asItem);
+  get list(): readonly UcsDef[] {
+    return this.#list;
   }
 
   #writeBigInt(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
@@ -111,7 +101,7 @@ class Default$UcsDefs implements UcsDefs {
           } catch (cause) {
             throw new UnsupportedUcSchemaError(
               itemSchema,
-              `${fn.name}: Can not serialize list item of type "${itemSchema.type}" from "${itemSchema.from}"`,
+              `${fn.name}: Can not serialize list item of type "${ucSchemaName(itemSchema)}"`,
               { cause },
             );
           }
@@ -190,8 +180,9 @@ class Default$UcsDefs implements UcsDefs {
               } catch (cause) {
                 throw new UnsupportedUcSchemaError(
                   entrySchema,
-                  `${fn.name}: Can not serialize entry "${key}" of type "${entrySchema.type}"`
-                    + ` from "${entrySchema.from}"`,
+                  `${fn.name}: Can not serialize entry "${key}" of type "${ucSchemaName(
+                    entrySchema,
+                  )}"`,
                   { cause },
                 );
               }
@@ -274,4 +265,4 @@ class Default$UcsDefs implements UcsDefs {
 
 }
 
-export const DefaultUcsDefs: UcsDefs = /*#__PURE__*/ new Default$UcsDefs();
+export const DefaultUcsDefs: readonly UcsDef[] = /*#__PURE__*/ new Default$UcsDefs().list;
