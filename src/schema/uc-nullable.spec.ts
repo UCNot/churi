@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { asis } from '@proc7ts/primitives';
 import { ucNullable } from './uc-nullable.js';
 import { UcNumber } from './uc-primitive.js';
 import { UcSchema } from './uc-schema.js';
@@ -24,5 +25,15 @@ describe('ucNullable', () => {
     );
 
     expect(modified).toBe(UcNumber());
+  });
+  it('creates schema for class', () => {
+    class TestValue {}
+
+    expect(ucNullable(TestValue)).toEqual({
+      optional: false,
+      nullable: true,
+      type: TestValue,
+      asis,
+    });
   });
 });
