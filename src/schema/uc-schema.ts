@@ -41,15 +41,6 @@ export interface UcSchema<out T = unknown> {
   readonly type: string;
 
   /**
-   * Original schema modified by this one.
-   *
-   * Original schema implies exactly the same data type, but may have different constraints.
-   *
-   * When set, used to identify the schema and deduplicate schema serializers.
-   */
-  readonly like?: UcSchema<T>;
-
-  /**
    * Returns the passed-in value.
    *
    * This is a marker method that needs to present in order the type inference to work properly.
@@ -182,9 +173,7 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     return schema as Omit<TSchema, 'optional'> & { readonly optional: boolean };
   }
 
-  const { like = schema } = schema;
-
-  return { ...schema, optional, like };
+  return { ...schema, optional };
 }
 
 /**
@@ -245,7 +234,5 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     return schema as Omit<TSchema, 'nullable'> & { readonly nullable: boolean };
   }
 
-  const { like = schema } = schema;
-
-  return { ...schema, nullable, like };
+  return { ...schema, nullable };
 }

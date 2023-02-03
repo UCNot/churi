@@ -22,7 +22,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   readonly #declarations: UccDeclarations;
   readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
   readonly #serializerArgs: UcsFunction.Args;
-  readonly #serializers = new Map<UcSchema, Map<'' | 'O' | 'N' | 'ON', UcsFunction>>();
+  readonly #serializers = new Map<string, Map<'' | 'O' | 'N' | 'ON', UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>);
   constructor({
@@ -91,13 +91,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     schema: TSchema,
     name: string,
   ): UcsFunction<T, TSchema> {
-    const [like, variant] = UcSchema$key(schema);
+    const [type, variant] = UcSchema$key(schema);
 
-    let variants = this.#serializers.get(like);
+    let variants = this.#serializers.get(type);
 
     if (!variants) {
       variants = new Map();
-      this.#serializers.set(like, variants);
+      this.#serializers.set(type, variants);
     }
 
     let serializer = variants.get(variant) as UcsFunction<T, TSchema> | undefined;
@@ -245,8 +245,9 @@ export namespace UcsLib {
   }
 }
 
-function UcSchema$key<T>(schema: UcSchema<T>): readonly [UcSchema, '' | 'O' | 'N' | 'ON'] {
-  const { like = schema } = schema;
-
-  return [like, schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : ''];
+function UcSchema$key<T>(schema: UcSchema<T>): readonly [string, '' | 'O' | 'N' | 'ON'] {
+  return [
+    schema.from + ':' + schema.type,
+    schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : '',
+  ];
 }

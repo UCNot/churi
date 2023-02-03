@@ -6,7 +6,7 @@ describe('ucOptional', () => {
   it('makes schema optional', () => {
     const modified: UcSchema<number> & { readonly optional: true } = ucOptional(UcNumber());
 
-    expect(modified).toEqual({ ...UcNumber(), optional: true, like: UcNumber() });
+    expect(modified).toEqual({ ...UcNumber(), optional: true });
   });
   it('makes schema non-optional', () => {
     const modified: UcSchema<number> & { readonly optional?: false | undefined } = ucOptional(
@@ -14,7 +14,7 @@ describe('ucOptional', () => {
       false,
     );
 
-    expect(modified).toEqual({ ...UcNumber(), optional: false, like: UcNumber() });
+    expect(modified).toEqual({ ...UcNumber(), optional: false });
   });
   it('leaves the schema as is', () => {
     const modified: UcSchema<number> & { readonly optional?: false | undefined } = ucOptional(
@@ -30,7 +30,7 @@ describe('ucNullable', () => {
   it('makes schema nullable', () => {
     const modified: UcSchema<number> & { readonly nullable: true } = ucNullable(UcNumber());
 
-    expect(modified).toEqual({ ...UcNumber(), nullable: true, like: UcNumber() });
+    expect(modified).toEqual({ ...UcNumber(), nullable: true });
   });
   it('makes schema non-nullable', () => {
     const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
@@ -38,7 +38,7 @@ describe('ucNullable', () => {
       false,
     );
 
-    expect(modified).toEqual({ ...UcNumber(), nullable: false, like: UcNumber() });
+    expect(modified).toEqual({ ...UcNumber(), nullable: false });
   });
   it('leaves the schema as is', () => {
     const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
