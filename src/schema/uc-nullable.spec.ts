@@ -1,30 +1,28 @@
 import { describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
 import { ucNullable } from './uc-nullable.js';
-import { UcNumber } from './uc-primitive.js';
 import { UcSchema } from './uc-schema.js';
 
 describe('ucNullable', () => {
   it('makes schema nullable', () => {
-    const modified: UcSchema<number> & { readonly nullable: true } = ucNullable(UcNumber());
+    const modified: UcSchema<number> & { readonly nullable: true } = ucNullable<number>(Number);
 
-    expect(modified).toEqual({ ...UcNumber(), nullable: true });
+    expect(modified).toEqual({ optional: false, nullable: true, type: Number, asis });
   });
   it('makes schema non-nullable', () => {
     const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
-      ucNullable(UcNumber()),
+      ucNullable<number>(Number),
       false,
     );
 
-    expect(modified).toEqual({ ...UcNumber(), nullable: false });
+    expect(modified).toEqual({ optional: false, nullable: false, type: Number, asis });
   });
   it('leaves the schema as is', () => {
-    const modified: UcSchema<number> & { readonly nullable?: false | undefined } = ucNullable(
-      UcNumber(),
-      false,
-    );
+    const schema: UcSchema<number> = { optional: false, nullable: false, type: Number, asis };
+    const modified: UcSchema<number> & { readonly nullable?: false | undefined } =
+      ucNullable<number>(schema, false);
 
-    expect(modified).toBe(UcNumber());
+    expect(modified).toBe(schema);
   });
   it('creates schema for class', () => {
     class TestValue {}

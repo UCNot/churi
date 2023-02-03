@@ -6,13 +6,12 @@ import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList } from './uc-list.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
-import { UcNumber, UcString } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
-  const spec = UcList<string>(ucSchemaRef(() => UcString()));
+  const spec = UcList<string>(ucSchemaRef(() => String));
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
@@ -24,7 +23,12 @@ describe('UcList', () => {
 
   describe('item', () => {
     it('contains item schema', () => {
-      expect(resolver.schemaOf(spec).item).toEqual(UcString());
+      expect(resolver.schemaOf(spec).item).toEqual({
+        optional: false,
+        nullable: false,
+        type: String,
+        asis,
+      });
     });
   });
 
@@ -36,7 +40,7 @@ describe('UcList', () => {
 
   describe('name', () => {
     it('reflects item type', () => {
-      expect(ucSchemaName(schema)).toBe('string[]');
+      expect(ucSchemaName(schema)).toBe('String[]');
     });
   });
 
@@ -44,7 +48,7 @@ describe('UcList', () => {
     it('serializes list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(UcNumber()),
+          writeList: UcList(Number),
         },
       });
 
@@ -57,7 +61,7 @@ describe('UcList', () => {
     it('serializes empty list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(UcNumber()),
+          writeList: UcList(Number),
         },
       });
 
@@ -68,7 +72,7 @@ describe('UcList', () => {
     it('serializes nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucNullable(UcNumber())),
+          writeList: UcList(ucNullable(Number)),
         },
       });
 
@@ -81,7 +85,7 @@ describe('UcList', () => {
     it('serializes missing items as nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucOptional(UcNumber())),
+          writeList: UcList(ucOptional(Number)),
         },
       });
 
@@ -98,7 +102,7 @@ describe('UcList', () => {
       beforeEach(() => {
         lib = new UcsLib({
           schemae: {
-            writeList: UcList<number[]>(UcList<number>(UcNumber())),
+            writeList: UcList<number[]>(UcList<number>(Number)),
           },
         });
       });

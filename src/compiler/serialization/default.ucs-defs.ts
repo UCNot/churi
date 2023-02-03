@@ -19,12 +19,12 @@ class Default$UcsDefs {
 
   constructor() {
     this.#list = [
-      { type: 'bigint', serialize: this.#writeBigInt.bind(this) },
-      { type: 'boolean', serialize: this.#writeBoolean.bind(this) },
+      { type: BigInt, serialize: this.#writeBigInt.bind(this) },
+      { type: Boolean, serialize: this.#writeBoolean.bind(this) },
       { type: 'list', serialize: this.#writeList.bind(this) },
       { type: 'map', serialize: this.#writeMap.bind(this) },
-      { type: 'number', serialize: this.#writeNumber.bind(this) },
-      { type: 'string', serialize: this.#writeString.bind(this) },
+      { type: Number, serialize: this.#writeNumber.bind(this) },
+      { type: String, serialize: this.#writeString.bind(this) },
     ];
   }
 

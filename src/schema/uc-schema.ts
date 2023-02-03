@@ -62,9 +62,9 @@ export interface UcSchema<out T = unknown> {
  * @typeParam TSchema - Schema type.
  * @param resolve - Schema instance resolver.
  *
- * @returns New URI schema reference.
+ * @returns Resolved schema instance or data class.
  */
-export function ucSchemaRef<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+export function ucSchemaRef<T, TSchema extends UcSchema<T> | UcSchema.Class<T> = UcSchema<T>>(
   resolve: (resolver: UcSchemaResolver) => TSchema,
 ): UcSchema.Ref<T> {
   return {
@@ -91,9 +91,16 @@ export namespace UcSchema {
    *
    * @typeParam T - Implied instance type.
    */
-  export interface Class<out T = unknown> {
+  export type Class<T = unknown> = Constructor<T> | Factory<T>;
+
+  export interface Constructor<out T = unknown> {
     readonly [UcSchema__symbol]?: undefined;
     new (...args: never[]): T;
+  }
+
+  export interface Factory<out T = unknown> {
+    readonly [UcSchema__symbol]?: undefined;
+    (...args: never[]): T;
   }
 
   /**
@@ -113,9 +120,9 @@ export namespace UcSchema {
      *
      * @param resolver - Resolver of nested schemae.
      *
-     * @returns Resolved schema instance.
+     * @returns Resolved schema instance or data class.
      */
-    [UcSchema__symbol](this: void, resolver: UcSchemaResolver): TSchema;
+    [UcSchema__symbol](this: void, resolver: UcSchemaResolver): TSchema | UcSchema.Class<T>;
   }
 
   /**

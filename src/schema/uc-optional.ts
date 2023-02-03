@@ -16,18 +16,6 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
 ): Omit<TSchema, 'optional'> & { readonly optional: true };
 
 /**
- * Creates a schema for the given class that allows `undefined` values.
- *
- * @typeParam T - Implied data type.
- * @param dataClass - Target data class.
- *
- * @returns Schema instance.
- */
-export function ucOptional<T>(
-  dataClass: UcSchema.Class<T>,
-): Omit<UcSchema<T>, 'optional'> & { readonly optional: true };
-
-/**
  * Modifies schema to prohibit `undefined` values.
  *
  * @typeParam T - Implied data type.
@@ -40,19 +28,6 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   optional: false,
 ): Omit<TSchema, 'optional'> & { readonly optional?: false | undefined };
-
-/**
- * Creates a schema for the given class that prohibits `undefined` values.
- *
- * @typeParam T - Implied data type.
- * @param dataClass - Target data class.
- *
- * @returns Schema instance.
- */
-export function ucOptional<T>(
-  dataClass: UcSchema.Class<T>,
-  optional: false,
-): Omit<UcSchema<T>, 'optional'> & { readonly optional?: false | undefined };
 
 /**
  * Modifies schema to allow or prohibit `undefined` values.
@@ -75,6 +50,32 @@ export function ucOptional<
 ): Omit<TSchema, 'optional'> & { readonly optional: TOptional };
 
 /**
+ * Creates a schema for the given class that allows `undefined` values.
+ *
+ * @typeParam T - Implied data type.
+ * @param dataClass - Target data class.
+ *
+ * @returns Schema instance.
+ */
+export function ucOptional<T>(
+  dataClass: UcSchema.Class<T>,
+  optional?: true,
+): Omit<UcSchema<T>, 'optional'> & { readonly optional: true };
+
+/**
+ * Creates a schema for the given class that prohibits `undefined` values.
+ *
+ * @typeParam T - Implied data type.
+ * @param dataClass - Target data class.
+ *
+ * @returns Schema instance.
+ */
+export function ucOptional<T>(
+  dataClass: UcSchema.Class<T>,
+  optional: false,
+): Omit<UcSchema<T>, 'optional'> & { readonly optional?: false | undefined };
+
+/**
  * Creates a schema for the given class that allows or prohibits `undefined` values.
  *
  * @typeParam T - Implied data type.
@@ -85,7 +86,7 @@ export function ucOptional<
  */
 export function ucOptional<T, TOptional extends boolean | undefined = true>(
   dataClass: UcSchema.Class<T>,
-  optional: false,
+  optional: TOptional,
 ): Omit<UcSchema<T>, 'optional'> & { readonly optional: TOptional };
 
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(

@@ -6,7 +6,6 @@ import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
-import { UcNumber, UcString } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { UcSchema, ucSchemaRef } from './uc-schema.js';
@@ -64,8 +63,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcString(),
-            bar: UcNumber(),
+            foo: String,
+            bar: Number,
           }),
         },
       });
@@ -81,10 +80,10 @@ describe('UcMap', () => {
         schemae: {
           writeMap: UcMap({
             foo: UcMap({
-              test1: UcNumber(),
+              test1: Number,
             }),
             bar: UcMap({
-              test2: UcNumber(),
+              test2: Number,
             }),
           }),
         },
@@ -102,8 +101,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcList(UcNumber()),
-            bar: UcList<number[]>(UcList(UcNumber())),
+            foo: UcList(Number),
+            bar: UcList<number[]>(UcList(Number)),
           }),
         },
       });
@@ -118,7 +117,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            '': UcString(),
+            '': String,
           }),
         },
       });
@@ -134,11 +133,11 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            "'": UcString(),
-            '!': UcString(),
-            $: UcString(),
-            '\\': UcNumber(),
-            [specialKey]: UcString(),
+            "'": String,
+            '!': String,
+            $: String,
+            '\\': Number,
+            [specialKey]: String,
           }),
         },
       });
@@ -161,7 +160,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            test: ucNullable(UcString()),
+            test: ucNullable(String),
           }),
         },
       });
@@ -179,7 +178,7 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            test: ucOptional(ucNullable(UcString())),
+            test: ucOptional(ucNullable(String)),
           }),
         },
       });
@@ -198,8 +197,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            first: UcNumber(),
-            '': UcString(),
+            first: Number,
+            '': String,
           }),
         },
       });
@@ -214,8 +213,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            first: ucOptional(UcNumber()),
-            '': UcString(),
+            first: ucOptional(Number),
+            '': String,
           }),
         },
       });

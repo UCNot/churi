@@ -48,17 +48,29 @@ export class UcSchemaResolver {
     }
 
     const getSchema: () => TSchema = resolveSchema
-      ? lazyValue(() => resolveSchema(this)) // Prevent recursive calls.
-      : () => ({
-            optional: undefined,
-            nullable: undefined,
-            type: spec,
-            asis,
-          } as UcSchema<T> as TSchema);
+      ? lazyValue(() => this.#resolveRef(resolveSchema)) // Prevent recursive calls.
+      : () => this.#resolveClass<T>(spec) as TSchema;
 
     this.#cache.set(key, getSchema);
 
     return getSchema();
+  }
+
+  #resolveRef<T, TSchema extends UcSchema<T>>(
+    resolveSchema: (this: void, resolver: UcSchemaResolver) => TSchema | UcSchema.Class<T>,
+  ): TSchema {
+    const result = resolveSchema(this);
+
+    return typeof result === 'function' ? (this.#resolveClass(result) as TSchema) : result;
+  }
+
+  #resolveClass<T>(type: UcSchema.Class<T>): UcSchema<T> {
+    return {
+      optional: false,
+      nullable: false,
+      type,
+      asis,
+    };
   }
 
 }

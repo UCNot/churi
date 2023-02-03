@@ -5,24 +5,17 @@ import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
-import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
 import { UcSchema } from './uc-schema.js';
 
-describe('UcBigInt', () => {
-  it('creates schema', () => {
-    expect(UcBigInt()).toMatchObject({
-      type: 'bigint',
-    });
-  });
-
+describe('BigInt', () => {
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: UcBigInt.Schema }>;
+    let lib: UcsLib<{ writeValue: UcSchema.Spec<bigint> }>;
     let writeValue: UcSerializer<bigint>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcBigInt(),
+          writeValue: BigInt,
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -38,21 +31,15 @@ describe('UcBigInt', () => {
   });
 });
 
-describe('UcBoolean', () => {
-  it('creates schema', () => {
-    expect(UcBoolean()).toMatchObject({
-      type: 'boolean',
-    });
-  });
-
+describe('Boolean', () => {
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: UcBoolean.Schema }>;
+    let lib: UcsLib<{ writeValue: UcSchema.Spec<boolean> }>;
     let writeValue: UcSerializer<boolean>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcBoolean(),
+          writeValue: Boolean,
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -65,7 +52,7 @@ describe('UcBoolean', () => {
     it('serializes optional boolean', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeValue: ucOptional(UcBoolean()),
+          writeValue: ucOptional(Boolean),
         },
       });
       const { writeValue } = await lib.compile().toSerializers();
@@ -79,7 +66,7 @@ describe('UcBoolean', () => {
     it('serializes nullable boolean', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeValue: ucNullable(UcBoolean()),
+          writeValue: ucNullable(Boolean),
         },
       });
       const { writeValue } = await lib.compile().toSerializers();
@@ -91,7 +78,7 @@ describe('UcBoolean', () => {
     it('serializes optional nullable boolean', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeValue: ucOptional(ucNullable(UcBoolean())),
+          writeValue: ucOptional(ucNullable(Boolean)),
         },
       });
       const { writeValue } = await lib.compile().toSerializers();
@@ -106,21 +93,15 @@ describe('UcBoolean', () => {
   });
 });
 
-describe('UcNumber', () => {
-  it('creates schema', () => {
-    expect(UcNumber()).toMatchObject({
-      type: 'number',
-    });
-  });
-
+describe('Number', () => {
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: UcNumber.Schema }>;
+    let lib: UcsLib<{ writeValue: UcSchema.Spec<number> }>;
     let writeValue: UcSerializer<number>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcNumber(),
+          writeValue: Number,
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -144,21 +125,15 @@ describe('UcNumber', () => {
   });
 });
 
-describe('UcString', () => {
-  it('creates schema', () => {
-    expect(UcString()).toMatchObject({
-      type: 'string',
-    });
-  });
-
+describe('String', () => {
   describe('serializer', () => {
-    let lib: UcsLib<{ writeValue: UcString.Schema }>;
+    let lib: UcsLib<{ writeValue: UcSchema.Spec<string> }>;
     let writeValue: UcSerializer<string>;
 
     beforeEach(async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcString(),
+          writeValue: String,
         },
       });
       ({ writeValue } = await lib.compile().toSerializers());
@@ -189,7 +164,7 @@ describe('UcString', () => {
     it('writes multiple chunks', async () => {
       lib = new UcsLib({
         schemae: {
-          writeValue: UcString(),
+          writeValue: String,
         },
         createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {
           return new UcsFunction<T, TSchema>({

@@ -16,18 +16,6 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
 ): Omit<TSchema, 'nullable'> & { readonly nullable: true };
 
 /**
- * Creates a schema for the given class that allows `null` values.
- *
- * @typeParam T - Implied data type.
- * @param dataClass - Target data class.
- *
- * @returns Schema instance.
- */
-export function ucNullable<T>(
-  dataClass: UcSchema.Class<T>,
-): Omit<UcSchema<T>, 'nullable'> & { readonly nullable: true };
-
-/**
  * Modifies schema to prohibit `null` values.
  *
  * @typeParam T - Implied data type.
@@ -40,19 +28,6 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   nullable: false,
 ): Omit<TSchema, 'nullable'> & { readonly nullable?: false | undefined };
-
-/**
- * Creates a schema for the given class that prohibits `null` values.
- *
- * @typeParam T - Implied data type.
- * @param dataClass - Target data class.
- *
- * @returns Schema instance.
- */
-export function ucNullable<T>(
-  dataClass: UcSchema.Class<T>,
-  optional: false,
-): Omit<UcSchema<T>, 'nullable'> & { readonly nullable?: false | undefined };
 
 /**
  * Modifies schema to allow or prohibit `null` values.
@@ -75,6 +50,32 @@ export function ucNullable<
 ): Omit<TSchema, 'nullable'> & { readonly nullable: TNullable };
 
 /**
+ * Creates a schema for the given class that allows `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @param dataClass - Target data class.
+ *
+ * @returns Schema instance.
+ */
+export function ucNullable<T>(
+  dataClass: UcSchema.Class<T>,
+  nullable?: true,
+): Omit<UcSchema<T>, 'nullable'> & { readonly nullable: true };
+
+/**
+ * Creates a schema for the given class that prohibits `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @param dataClass - Target data class.
+ *
+ * @returns Schema instance.
+ */
+export function ucNullable<T>(
+  dataClass: UcSchema.Class<T>,
+  optional: false,
+): Omit<UcSchema<T>, 'nullable'> & { readonly nullable?: false | undefined };
+
+/**
  * Creates a schema for the given class that allows or prohibits `null` values.
  *
  * @typeParam T - Implied data type.
@@ -85,7 +86,7 @@ export function ucNullable<
  */
 export function ucNullable<T, TNullable extends boolean | undefined = true>(
   dataClass: UcSchema.Class<T>,
-  optional: false,
+  optional: TNullable,
 ): Omit<UcSchema<T>, 'nullable'> & { readonly nullable: TNullable };
 
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
