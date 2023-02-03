@@ -47,12 +47,12 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {
-    const serializer = this.lib.definitionsFor(schema)?.serialize(this, schema, value, asItem);
+    const serializer = this.lib.definitionFor(schema)?.serialize(this, schema, value, asItem);
 
     if (serializer == null) {
       throw new UnsupportedUcSchemaError(
         schema,
-        `${this.name}: Can not serialize type "${schema.type} from "${schema.from}"`,
+        `${this.name}: Can not serialize type "${schema.type}"`,
       );
     }
 

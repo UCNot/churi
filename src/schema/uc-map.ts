@@ -1,5 +1,4 @@
 import { asis } from '@proc7ts/primitives';
-import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { UcSchema } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
@@ -21,7 +20,6 @@ export namespace UcMap {
    */
   export interface Schema<TEntriesSpec extends Schema.Entries.Spec>
     extends UcSchema<ObjectType<TEntriesSpec>> {
-    readonly from: '@hatsy/churi';
     readonly type: 'map';
     readonly entries: Schema.Entries<TEntriesSpec>;
   }
@@ -104,7 +102,6 @@ export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
   return resolver => ({
-    from: CHURI_MODULE,
     type: 'map',
     entries: Object.fromEntries(
       Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {

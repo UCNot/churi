@@ -6,7 +6,7 @@ export class UnsupportedUcSchemaError extends TypeError {
 
   constructor(
     schema: UcSchema,
-    message = `Unsupported type "${schema.type}" from "${schema.from}"`,
+    message = `Unsupported type "${schema.type}"`,
     options?: ErrorOptions,
   ) {
     super(message, options);

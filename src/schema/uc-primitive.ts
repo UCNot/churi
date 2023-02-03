@@ -1,5 +1,4 @@
 import { asis } from '@proc7ts/primitives';
-import { CHURI_MODULE } from '../impl/module-names.js';
 import { UcSchema } from './uc-schema.js';
 
 /**
@@ -10,7 +9,6 @@ import { UcSchema } from './uc-schema.js';
 export type UcPrimitive = bigint | boolean | number | string | null;
 
 const UcBigInt$Schema: UcBigInt.Schema = /*#__PURE__*/ Object.freeze({
-  from: CHURI_MODULE,
   type: 'bigint',
   asis,
 });
@@ -27,13 +25,11 @@ export namespace UcBigInt {
    * URI charge schema definition for `bigint` value.
    */
   export interface Schema extends UcSchema<bigint> {
-    readonly from: '@hatsy/churi';
     readonly type: 'bigint';
   }
 }
 
 const UcBoolean$Schema: UcBoolean.Schema = /*#__PURE__*/ Object.freeze({
-  from: CHURI_MODULE,
   type: 'boolean',
   asis,
 });
@@ -50,13 +46,11 @@ export namespace UcBoolean {
    * URI charge schema definition for `boolean` value.
    */
   export interface Schema extends UcSchema<boolean> {
-    readonly from: '@hatsy/churi';
     readonly type: 'boolean';
   }
 }
 
 const UcNumber$Schema: UcNumber.Schema = /*#__PURE__*/ Object.freeze({
-  from: CHURI_MODULE,
   type: 'number',
   asis,
 });
@@ -73,13 +67,11 @@ export namespace UcNumber {
    * URI charge schema definition for `number` value.
    */
   export interface Schema extends UcSchema<number> {
-    readonly from: '@hatsy/churi';
     readonly type: 'number';
   }
 }
 
 const UcString$Schema: UcString.Schema = /*#__PURE__*/ Object.freeze({
-  from: CHURI_MODULE,
   type: 'string',
   asis,
 });
@@ -96,7 +88,6 @@ export namespace UcString {
    * URI charge schema definition for `string` value.
    */
   export interface Schema extends UcSchema<string> {
-    readonly from: '@hatsy/churi';
     readonly type: 'string';
   }
 }

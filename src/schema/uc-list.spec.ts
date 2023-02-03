@@ -27,7 +27,6 @@ describe('UcList', () => {
 
   describe('type', () => {
     it('is set to `list`', () => {
-      expect(schema.from).toBe('@hatsy/churi');
       expect(schema.type).toBe('list');
     });
   });
@@ -126,7 +125,7 @@ describe('UcList', () => {
     it('does not serialize unrecognized schema', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList<number>({ type: 'test-type', from: 'test-lib', asis }),
+          writeList: UcList<number>({ type: 'test-type', asis }),
         },
       });
 
@@ -141,7 +140,7 @@ describe('UcList', () => {
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
       expect(error?.message).toBe(
-        'writeList$serialize: Can not serialize list item of type "test-type" from "test-lib"',
+        'writeList$serialize: Can not serialize list item of type "test-type"',
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');

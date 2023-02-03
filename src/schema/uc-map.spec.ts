@@ -33,7 +33,6 @@ describe('UcMap', () => {
 
   describe('type', () => {
     it('is set to `map`', () => {
-      expect(schema.from).toBe('@hatsy/churi');
       expect(schema.type).toBe('map');
     });
   });
@@ -228,7 +227,7 @@ describe('UcMap', () => {
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
       expect(error?.message).toBe(
-        'writeMap$serialize: Can not serialize entry "test" of type "test-type" from "test-library"',
+        'writeMap$serialize: Can not serialize entry "test" of type "test-type"',
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
@@ -242,10 +241,6 @@ class EntrySchema<T> implements UcSchema<T> {
 
   constructor(type: string) {
     this.#type = type;
-  }
-
-  get from(): string {
-    return 'test-library';
   }
 
   get type(): string {

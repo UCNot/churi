@@ -9,7 +9,6 @@ import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
 describe('UcBigInt', () => {
   it('creates schema', () => {
     expect(UcBigInt()).toMatchObject({
-      from: '@hatsy/churi',
       type: 'bigint',
     });
   });
@@ -40,7 +39,6 @@ describe('UcBigInt', () => {
 describe('UcBoolean', () => {
   it('creates schema', () => {
     expect(UcBoolean()).toMatchObject({
-      from: '@hatsy/churi',
       type: 'boolean',
     });
   });
@@ -109,7 +107,6 @@ describe('UcBoolean', () => {
 describe('UcNumber', () => {
   it('creates schema', () => {
     expect(UcNumber()).toMatchObject({
-      from: '@hatsy/churi',
       type: 'number',
     });
   });
@@ -148,7 +145,6 @@ describe('UcNumber', () => {
 describe('UcString', () => {
   it('creates schema', () => {
     expect(UcString()).toMatchObject({
-      from: '@hatsy/churi',
       type: 'string',
     });
   });

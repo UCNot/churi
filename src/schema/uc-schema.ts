@@ -27,14 +27,7 @@ export interface UcSchema<out T = unknown> {
   readonly nullable?: boolean | undefined;
 
   /**
-   * The source of {@link type} definition.
-   *
-   * This is typically an NPM module name.
-   */
-  readonly from: string;
-
-  /**
-   * The name of the type unique within the {@link from source}.
+   * Unique type name.
    *
    * Code generation is based on this name.
    */

@@ -7,7 +7,7 @@ import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
 import { UcSerializer } from './uc-serializer.js';
-import { UcsDefs } from './ucs-defs.js';
+import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
 
 export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
@@ -16,7 +16,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #definitions: Map<string, UcsDefs>;
+  readonly #definitions: Map<string, UcsDef>;
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
@@ -42,9 +42,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
-    this.#definitions = new Map(
-      asArray(definitions).map(definitions => [definitions.from, definitions]),
-    );
+    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#aliases = aliases;
     this.#imports = imports;
     this.#declarations = declarations;
@@ -114,8 +112,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     return serializer;
   }
 
-  definitionsFor(schema: UcSchema): UcsDefs | undefined {
-    return this.#definitions.get(schema.from);
+  definitionFor(schema: UcSchema): UcsDef | undefined {
+    return this.#definitions.get(schema.type);
   }
 
   compile(): UcsLib.Compiled<TSchemae> {
@@ -218,7 +216,7 @@ export namespace UcsLib {
     readonly aliases?: UccAliases | undefined;
     readonly imports?: UccImports | undefined;
     readonly declarations?: UccDeclarations | undefined;
-    readonly definitions?: UcsDefs | readonly UcsDefs[] | undefined;
+    readonly definitions?: UcsDef | readonly UcsDef[] | undefined;
 
     createSerializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -247,7 +245,7 @@ export namespace UcsLib {
 
 function UcSchema$key<T>(schema: UcSchema<T>): readonly [string, '' | 'O' | 'N' | 'ON'] {
   return [
-    schema.from + ':' + schema.type,
+    schema.type,
     schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : '',
   ];
 }
