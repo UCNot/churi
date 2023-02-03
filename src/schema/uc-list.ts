@@ -1,7 +1,7 @@
 import { asis } from '@proc7ts/primitives';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchema } from './uc-schema.js';
+import { UcSchema, UcSchema__symbol } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
 
 /**
@@ -56,16 +56,18 @@ export namespace UcList {
 export function UcList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
 ): UcList.Schema.Ref<TItem, TItemSpec> {
-  return resolver => {
-    const item = resolver.schemaOf(itemSpec) as UcSchema.Of<TItemSpec>;
+  return {
+    [UcSchema__symbol]: resolver => {
+      const item = resolver.schemaOf(itemSpec) as UcSchema.Of<TItemSpec>;
 
-    return {
-      type: 'list',
-      item,
-      asis,
-      toString() {
-        return `${ucSchemaName(item)}[]`;
-      },
-    };
+      return {
+        type: 'list',
+        item,
+        asis,
+        toString() {
+          return `${ucSchemaName(item)}[]`;
+        },
+      };
+    },
   };
 }

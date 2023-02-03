@@ -2,7 +2,7 @@ import { asis } from '@proc7ts/primitives';
 import { uccPropertyKey } from '../compiler/ucc-expr.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchema } from './uc-schema.js';
+import { UcSchema, UcSchema__symbol } from './uc-schema.js';
 import { UcValue } from './uc-value.js';
 
 /**
@@ -103,37 +103,41 @@ export namespace UcMap {
 export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
-  return resolver => {
-    const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
-      const schema = resolver.schemaOf(spec);
+  return {
+    [UcSchema__symbol]: resolver => {
+      const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(
+        ([key, spec]) => {
+          const schema = resolver.schemaOf(spec);
 
-      return [key, schema];
-    });
+          return [key, schema];
+        },
+      );
 
-    return {
-      type: 'map',
-      entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
-      asis,
-      toString() {
-        let out = '{';
+      return {
+        type: 'map',
+        entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
+        asis,
+        toString() {
+          let out = '{';
 
-        entries.every(([key, entry], i) => {
-          if (i) {
-            out += ', ';
-          }
-          out += uccPropertyKey(key) + ': ' + ucSchemaName(entry);
+          entries.every(([key, entry], i) => {
+            if (i) {
+              out += ', ';
+            }
+            out += uccPropertyKey(key) + ': ' + ucSchemaName(entry);
 
-          if (i < 2) {
-            return true;
-          }
+            if (i < 2) {
+              return true;
+            }
 
-          out += ', ...';
+            out += ', ...';
 
-          return false;
-        });
+            return false;
+          });
 
-        return out + '}';
-      },
-    };
+          return out + '}';
+        },
+      };
+    },
   };
 }

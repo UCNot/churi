@@ -9,7 +9,6 @@ import { UcSchema } from './uc-schema.js';
  */
 export function ucSchemaName(schema: UcSchema): string {
   if (typeof schema.toString === 'function' && schema.toString !== Object.prototype.toString) {
-    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return schema.toString();
   }
 

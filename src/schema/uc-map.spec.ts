@@ -9,12 +9,12 @@ import { ucOptional } from './uc-optional.js';
 import { UcNumber, UcString } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { UcSchema } from './uc-schema.js';
+import { UcSchema, ucSchemaRef } from './uc-schema.js';
 
 describe('UcMap', () => {
   let spec: UcMap.Schema.Spec<{
     foo: UcSchema<string>;
-    bar: () => UcSchema<number>;
+    bar: UcSchema.Ref<number>;
   }>;
   let resolver: UcSchemaResolver;
   let schema: UcMap.Schema<{ foo: UcSchema<string>; bar: UcSchema<number> }>;
@@ -22,7 +22,7 @@ describe('UcMap', () => {
   beforeEach(() => {
     spec = UcMap({
       foo: new EntrySchema<string>('test-string'),
-      bar: () => new EntrySchema<number>('test-number'),
+      bar: ucSchemaRef(() => new EntrySchema<number>('test-number')),
     });
     resolver = new UcSchemaResolver();
     schema = resolver.schemaOf(spec);
@@ -64,8 +64,8 @@ describe('UcMap', () => {
       const lib = new UcsLib({
         schemae: {
           writeMap: UcMap({
-            foo: UcString,
-            bar: UcNumber,
+            foo: UcString(),
+            bar: UcNumber(),
           }),
         },
       });

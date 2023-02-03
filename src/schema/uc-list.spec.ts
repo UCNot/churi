@@ -9,9 +9,10 @@ import { ucOptional } from './uc-optional.js';
 import { UcNumber, UcString } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
+import { ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
-  const spec = UcList<string>(() => UcString());
+  const spec = UcList<string>(ucSchemaRef(() => UcString()));
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;

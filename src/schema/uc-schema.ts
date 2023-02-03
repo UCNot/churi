@@ -1,6 +1,11 @@
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 
 /**
+ * A key of URI charge schema {@link UcSchema.Ref reference} method that resolves to schema instance.
+ */
+export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSymbol');
+
+/**
  * URI charge schema definition.
  *
  * Describes data type along with its serialization format within URI charge.
@@ -8,6 +13,8 @@ import { UcSchemaResolver } from './uc-schema-resolver.js';
  * @typeParam T - Implied data type.
  */
 export interface UcSchema<out T = unknown> {
+  [UcSchema__symbol]?: undefined;
+
   /**
    * Whether the data is optional.
    *
@@ -48,6 +55,23 @@ export interface UcSchema<out T = unknown> {
   toString?(): string;
 }
 
+/**
+ * Creates URI charge schema {@link UcSchema.Ref reference}.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ * @param resolve - Schema instance resolver.
+ *
+ * @returns New URI schema reference.
+ */
+export function ucSchemaRef<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  resolve: (resolver: UcSchemaResolver) => TSchema,
+): UcSchema.Ref<T> {
+  return {
+    [UcSchema__symbol]: resolve,
+  };
+}
+
 export namespace UcSchema {
   /**
    * Specifier of URI charge schema.
@@ -64,16 +88,24 @@ export namespace UcSchema {
   /**
    * Reference to URI charge schema.
    *
-   * Builds schema instance. Can be used as schema {@link Spec specifier}. Supposed to be
-   * {@link UcSchemaResolver#schemaOf resolved} to schema instance.
+   * Can be used as schema {@link Spec specifier}. Supposed to be {@link UcSchemaResolver#schemaOf resolved} to schema
+   * instance.
+   *
+   * Can be created by {@link ucSchemaRef} function.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
-   * @param resolver - Resolver of nested schemae.
    */
-  export type Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = (
-    resolver: UcSchemaResolver,
-  ) => TSchema;
+  export interface Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+    /**
+     * Resolves schema instance.
+     *
+     * @param resolver - Resolver of nested schemae.
+     *
+     * @returns Resolved schema instance.
+     */
+    [UcSchema__symbol](this: void, resolver: UcSchemaResolver): TSchema;
+  }
 
   /**
    * URI charge schema type of the given specifier.
