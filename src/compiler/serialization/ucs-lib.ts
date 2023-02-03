@@ -16,13 +16,16 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #definitions: Map<string, UcsDef>;
+  readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
   readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
   readonly #serializerArgs: UcsFunction.Args;
-  readonly #serializers = new Map<string, Map<'' | 'O' | 'N' | 'ON', UcsFunction>>();
+  readonly #serializers = new Map<
+    string | UcSchema.Class,
+    Map<'' | 'O' | 'N' | 'ON', UcsFunction>
+  >();
 
   constructor(options: UcsLib.Options<TSchemae>);
   constructor({
@@ -89,7 +92,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     schema: TSchema,
     name: string,
   ): UcsFunction<T, TSchema> {
-    const [type, variant] = UcSchema$key(schema);
+    const { type } = schema;
+    const variant = UcSchema$variant(schema);
 
     let variants = this.#serializers.get(type);
 
@@ -112,8 +116,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     return serializer;
   }
 
-  definitionFor(schema: UcSchema): UcsDef | undefined {
-    return this.#definitions.get(schema.type);
+  definitionFor<T>(schema: UcSchema<T>): UcsDef<T> | undefined {
+    return this.#definitions.get(schema.type) as UcsDef<T> | undefined;
   }
 
   compile(): UcsLib.Compiled<TSchemae> {
@@ -243,9 +247,6 @@ export namespace UcsLib {
   }
 }
 
-function UcSchema$key<T>(schema: UcSchema<T>): readonly [string, '' | 'O' | 'N' | 'ON'] {
-  return [
-    schema.type,
-    schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : '',
-  ];
+function UcSchema$variant(schema: UcSchema): '' | 'O' | 'N' | 'ON' {
+  return schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : '';
 }

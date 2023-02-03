@@ -13,12 +13,13 @@ export function ucSchemaName(schema: UcSchema): string {
   }
 
   const { optional, nullable, type } = schema;
+  const typeName = typeof type === 'string' ? type : type.name;
 
   return optional
     ? nullable
-      ? `(${type} | null)?`
-      : `${type}?`
+      ? `(${typeName} | null)?`
+      : `${typeName}?`
     : nullable
-    ? `(${type} | null)`
-    : type;
+    ? `(${typeName} | null)`
+    : typeName;
 }

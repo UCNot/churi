@@ -8,6 +8,11 @@ describe('ucSchemaName', () => {
   it('reflects type name', () => {
     expect(ucSchemaName({ type: 'test-type', asis })).toBe('test-type');
   });
+  it('reflects class name', () => {
+    class TestValue {}
+
+    expect(ucSchemaName({ type: TestValue, asis })).toBe('TestValue');
+  });
   it('reflects optional type', () => {
     expect(ucSchemaName(ucOptional({ type: 'test-type', asis }))).toBe('test-type?');
   });

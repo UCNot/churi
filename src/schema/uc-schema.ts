@@ -3,7 +3,7 @@ import { UcSchemaResolver } from './uc-schema-resolver.js';
 /**
  * A key of URI charge schema {@link UcSchema.Ref reference} method that resolves to schema instance.
  */
-export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSymbol');
+export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSchema');
 
 /**
  * URI charge schema definition.
@@ -13,7 +13,7 @@ export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSymbol');
  * @typeParam T - Implied data type.
  */
 export interface UcSchema<out T = unknown> {
-  [UcSchema__symbol]?: undefined;
+  readonly [UcSchema__symbol]?: undefined;
 
   /**
    * Whether the data is optional.
@@ -34,11 +34,11 @@ export interface UcSchema<out T = unknown> {
   readonly nullable?: boolean | undefined;
 
   /**
-   * Unique type name.
+   * Either unique type name, or type class.
    *
    * Code generation is based on this name.
    */
-  readonly type: string;
+  readonly type: UcSchema.Class<T> | string;
 
   /**
    * Returns the passed-in value.
@@ -76,14 +76,25 @@ export namespace UcSchema {
   /**
    * Specifier of URI charge schema.
    *
-   * Either a {@link UcSchema schema instance}, or {@link Ref schema reference}.
+   * Either a {@link UcSchema schema instance}, {@link Ref schema reference}, or supported class constructor.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    */
   export type Spec<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> =
     | TSchema
+    | (UcSchema<T> extends TSchema ? Class<T> : never)
     | Ref<T, TSchema>;
+
+  /**
+   * Class constructor useable as URI charge schema.
+   *
+   * @typeParam T - Implied instance type.
+   */
+  export interface Class<out T = unknown> {
+    readonly [UcSchema__symbol]?: undefined;
+    new (...args: never[]): T;
+  }
 
   /**
    * Reference to URI charge schema.
@@ -112,7 +123,11 @@ export namespace UcSchema {
    *
    * @typeParam TSpec - Schema specifier type.
    */
-  export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema> ? TSchema : TSpec;
+  export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema>
+    ? TSchema
+    : TSpec extends Class<infer T>
+    ? UcSchema<T>
+    : TSpec;
 
   /**
    * Data type compatible with particular URI charge schema, including possible {@link UcSchema#nullable null} and
@@ -135,6 +150,8 @@ export namespace UcSchema {
   export type ImpliedType<TSpec extends Spec> = TSpec extends UcSchema<infer T>
     ? T
     : TSpec extends Ref<infer T>
+    ? T
+    : TSpec extends Class<infer T>
     ? T
     : never;
 
