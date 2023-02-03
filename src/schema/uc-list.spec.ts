@@ -35,7 +35,7 @@ describe('UcList', () => {
 
   describe('name', () => {
     it('reflects item type', () => {
-      expect(ucSchemaName(schema)).toBe('[string...]');
+      expect(ucSchemaName(schema)).toBe('string[]');
     });
   });
 

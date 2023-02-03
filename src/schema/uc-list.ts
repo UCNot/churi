@@ -64,7 +64,7 @@ export function UcList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       item,
       asis,
       toString() {
-        return `[${ucSchemaName(item)}...]`;
+        return `${ucSchemaName(item)}[]`;
       },
     };
   };
