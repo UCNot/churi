@@ -4,9 +4,11 @@ import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList } from './uc-list.js';
+import { ucNullable } from './uc-nullable.js';
+import { ucOptional } from './uc-optional.js';
 import { UcNumber, UcString } from './uc-primitive.js';
+import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucNullable, ucOptional } from './uc-schema.js';
 
 describe('UcList', () => {
   const spec = UcList<string>(() => UcString());
@@ -28,6 +30,12 @@ describe('UcList', () => {
   describe('type', () => {
     it('is set to `list`', () => {
       expect(schema.type).toBe('list');
+    });
+  });
+
+  describe('name', () => {
+    it('reflects item type', () => {
+      expect(ucSchemaName(schema)).toBe('[string...]');
     });
   });
 

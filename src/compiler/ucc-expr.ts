@@ -2,6 +2,10 @@ const UCC_ASCII_KEY_PATTERN = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/;
 // eslint-disable-next-line no-control-regex
 const UCC_STRING_ESCAPE_PATTERN = /[\u0000-\u001f\\'"\u007f-\uffff]/g;
 
+export function uccPropertyKey(key: string): string {
+  return UCC_ASCII_KEY_PATTERN.test(key) ? key : `'${uccStringExprContent(key)}'`;
+}
+
 export function uccPropertyAccessExpr(host: string, key: string): string {
   return UCC_ASCII_KEY_PATTERN.test(key)
     ? `${host}.${key}`

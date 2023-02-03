@@ -3,7 +3,10 @@ import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
-import { ucNullable, ucOptional, UcSchema } from '../../schema/uc-schema.js';
+import { ucNullable } from '../../schema/uc-nullable.js';
+import { ucOptional } from '../../schema/uc-optional.js';
+import { ucSchemaName } from '../../schema/uc-schema-name.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -98,7 +101,7 @@ class Default$UcsDefs {
           } catch (cause) {
             throw new UnsupportedUcSchemaError(
               itemSchema,
-              `${fn.name}: Can not serialize list item of type "${itemSchema.type}"`,
+              `${fn.name}: Can not serialize list item of type "${ucSchemaName(itemSchema)}"`,
               { cause },
             );
           }
@@ -177,7 +180,9 @@ class Default$UcsDefs {
               } catch (cause) {
                 throw new UnsupportedUcSchemaError(
                   entrySchema,
-                  `${fn.name}: Can not serialize entry "${key}" of type "${entrySchema.type}"`,
+                  `${fn.name}: Can not serialize entry "${key}" of type "${ucSchemaName(
+                    entrySchema,
+                  )}"`,
                   { cause },
                 );
               }

@@ -3,8 +3,10 @@ import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
 import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { ucNullable } from './uc-nullable.js';
+import { ucOptional } from './uc-optional.js';
 import { UcBigInt, UcBoolean, UcNumber, UcString } from './uc-primitive.js';
-import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 
 describe('UcBigInt', () => {
   it('creates schema', () => {

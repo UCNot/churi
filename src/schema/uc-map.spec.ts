@@ -4,9 +4,12 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList } from './uc-list.js';
 import { UcMap } from './uc-map.js';
+import { ucNullable } from './uc-nullable.js';
+import { ucOptional } from './uc-optional.js';
 import { UcNumber, UcString } from './uc-primitive.js';
+import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucNullable, ucOptional, UcSchema } from './uc-schema.js';
+import { UcSchema } from './uc-schema.js';
 
 describe('UcMap', () => {
   let spec: UcMap.Schema.Spec<{
@@ -34,6 +37,25 @@ describe('UcMap', () => {
   describe('type', () => {
     it('is set to `map`', () => {
       expect(schema.type).toBe('map');
+    });
+  });
+
+  describe('name', () => {
+    it('reflects entry schemae', () => {
+      expect(ucSchemaName(schema)).toBe('{foo: test-string, bar: test-number}');
+    });
+    it('reflects only a few entry schemae', () => {
+      const spec = UcMap({
+        foo: new EntrySchema<string>('test-string'),
+        '0abc': new EntrySchema<string>('test-string'),
+        '%abc': new EntrySchema<string>('test-string'),
+        bar: new EntrySchema<string>('test-string'),
+      });
+      const schema = resolver.schemaOf(spec);
+
+      expect(ucSchemaName(schema)).toBe(
+        `{foo: test-string, '0abc': test-string, '%abc': test-string, ...}`,
+      );
     });
   });
 
