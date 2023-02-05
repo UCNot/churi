@@ -4,7 +4,7 @@ import { URIChargeable } from '../charge/uri-chargeable.js';
  * Opaque URI charge entity.
  *
  * This representation is used when entity is not recognized by {@link URIChargeParser parser},
- * charge {@link URIChargeRx receiver}, or one of {@link URIChargeExt extensions}.
+ * charge {@link URIChargeRx receiver}, or one of {@link URIUncharger unchargers}.
  */
 
 export class UcEntity implements URIChargeable {

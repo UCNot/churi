@@ -4,7 +4,7 @@ import { unchargeNonFinite } from './uncharge-non-finite.js';
 /**
  * Uncharges URI charge entities supported by default.
  *
- * This uncharger enabled in {@link URIChargeParser parsers}, unless {@link URIChargeParser.Options#and explicitly
+ * This uncharger enabled in {@link URIChargeParser parsers}, unless {@link URIChargeParser.Options#recognize explicitly
  * overridden}.
  *
  * Enables support for:
