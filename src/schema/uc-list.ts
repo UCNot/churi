@@ -15,6 +15,8 @@ export namespace UcList {
   /**
    * URI charge schema definition for JavaScript {@link UcList array} serialized as list.
    *
+   * Such schema can be built with {@link ucList} function.
+   *
    * @typeParam TItemSpec - Type of list item schema specifier.
    */
   export interface Schema<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>
@@ -53,7 +55,7 @@ export namespace UcList {
  *
  * @returns Reference to schema of URI charge list.
  */
-export function UcList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
+export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
 ): UcList.Schema.Ref<TItem, TItemSpec> {
   return {

@@ -18,6 +18,8 @@ export namespace UcMap {
   /**
    * URI charge schema definition for JavaScript {@link UcMap object} serialized as map.
    *
+   * Such schema can be built with {@link ucMap} function.
+   *
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
    */
   export interface Schema<TEntriesSpec extends Schema.Entries.Spec>
@@ -100,7 +102,7 @@ export namespace UcMap {
  *
  * @returns Reference to schema of URI charge map.
  */
-export function UcMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+export function ucMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
 ): UcMap.Schema.Ref<TEntriesSpec> {
   return {

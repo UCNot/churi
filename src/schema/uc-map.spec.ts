@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
-import { UcList } from './uc-list.js';
-import { UcMap } from './uc-map.js';
+import { ucList } from './uc-list.js';
+import { ucMap, UcMap } from './uc-map.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
@@ -19,7 +19,7 @@ describe('UcMap', () => {
   let schema: UcMap.Schema<{ foo: UcSchema<string>; bar: UcSchema<number> }>;
 
   beforeEach(() => {
-    spec = UcMap({
+    spec = ucMap({
       foo: new EntrySchema<string>('test-string'),
       bar: ucSchemaRef(() => new EntrySchema<number>('test-number')),
     });
@@ -44,7 +44,7 @@ describe('UcMap', () => {
       expect(ucSchemaName(schema)).toBe('{foo: test-string, bar: test-number}');
     });
     it('reflects only a few entry schemae', () => {
-      const spec = UcMap({
+      const spec = ucMap({
         foo: new EntrySchema<string>('test-string'),
         '0abc': new EntrySchema<string>('test-string'),
         '%abc': new EntrySchema<string>('test-string'),
@@ -62,7 +62,7 @@ describe('UcMap', () => {
     it('serializes map', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             foo: String,
             bar: Number,
           }),
@@ -78,11 +78,11 @@ describe('UcMap', () => {
     it('serializes nested map', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
-            foo: UcMap({
+          writeMap: ucMap({
+            foo: ucMap({
               test1: Number,
             }),
-            bar: UcMap({
+            bar: ucMap({
               test2: Number,
             }),
           }),
@@ -100,9 +100,9 @@ describe('UcMap', () => {
     it('serializes list entry', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
-            foo: UcList(Number),
-            bar: UcList<number[]>(UcList(Number)),
+          writeMap: ucMap({
+            foo: ucList(Number),
+            bar: ucList<number[]>(ucList(Number)),
           }),
         },
       });
@@ -116,7 +116,7 @@ describe('UcMap', () => {
     it('serializes entry with empty key', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             '': String,
           }),
         },
@@ -132,7 +132,7 @@ describe('UcMap', () => {
       const specialKey = '(%)\r\n\t\u042a ' as const;
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             "'": String,
             '!': String,
             $: String,
@@ -159,7 +159,7 @@ describe('UcMap', () => {
     it('serializes nullable entry', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             test: ucNullable(String),
           }),
         },
@@ -177,7 +177,7 @@ describe('UcMap', () => {
     it('serializes optional nullable entry', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             test: ucOptional(ucNullable(String)),
           }),
         },
@@ -196,7 +196,7 @@ describe('UcMap', () => {
     it('serializes second entry with empty key', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             first: Number,
             '': String,
           }),
@@ -212,7 +212,7 @@ describe('UcMap', () => {
     it('serializes second entry with empty key when first one is optional', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             first: ucOptional(Number),
             '': String,
           }),
@@ -231,7 +231,7 @@ describe('UcMap', () => {
     it('does not serialize unrecognized schema', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeMap: UcMap({
+          writeMap: ucMap({
             test: new EntrySchema<string>('test-type'),
           }),
         },

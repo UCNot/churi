@@ -3,7 +3,7 @@ import { asis } from '@proc7ts/primitives';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
-import { UcList } from './uc-list.js';
+import { UcList, ucList } from './uc-list.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
@@ -11,7 +11,7 @@ import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
-  const spec = UcList<string>(ucSchemaRef(() => String));
+  const spec = ucList<string>(ucSchemaRef(() => String));
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
@@ -48,7 +48,7 @@ describe('UcList', () => {
     it('serializes list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(Number),
+          writeList: ucList(Number),
         },
       });
 
@@ -61,7 +61,7 @@ describe('UcList', () => {
     it('serializes empty list', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(Number),
+          writeList: ucList(Number),
         },
       });
 
@@ -72,7 +72,7 @@ describe('UcList', () => {
     it('serializes nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucNullable(Number)),
+          writeList: ucList(ucNullable(Number)),
         },
       });
 
@@ -85,7 +85,7 @@ describe('UcList', () => {
     it('serializes missing items as nulls', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList(ucOptional(Number)),
+          writeList: ucList(ucOptional(Number)),
         },
       });
 
@@ -102,7 +102,7 @@ describe('UcList', () => {
       beforeEach(() => {
         lib = new UcsLib({
           schemae: {
-            writeList: UcList<number[]>(UcList<number>(Number)),
+            writeList: ucList<number[]>(ucList<number>(Number)),
           },
         });
       });
@@ -138,7 +138,7 @@ describe('UcList', () => {
     it('does not serialize unrecognized schema', async () => {
       const lib = new UcsLib({
         schemae: {
-          writeList: UcList<number>({ type: 'test-type', asis }),
+          writeList: ucList<number>({ type: 'test-type', asis }),
         },
       });
 
