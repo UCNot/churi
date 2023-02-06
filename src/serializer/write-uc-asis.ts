@@ -9,6 +9,7 @@ export async function writeUcAsIs(ucsWriter: UcsWriter, value: string): Promise<
 
       await ucsWriter.ready;
       ucsWriter.write(buffer);
+      await ucsWriter.written();
 
       if (read! >= value.length) {
         return false;

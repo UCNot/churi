@@ -25,10 +25,14 @@ export class UcsWriter {
   }
 
   write(chunk: Uint8Array): void {
-    this.whenWritten(this.#writer.write(chunk));
+    this.#startWrite(this.#writer.write(chunk));
   }
 
-  whenWritten(written: Promise<void>): void {
+  written(): Promise<unknown> {
+    return this.#whenWritten;
+  }
+
+  #startWrite(written: Promise<void>): void {
     this.#whenWritten = Promise.all([this.#whenWritten, written]);
   }
 
