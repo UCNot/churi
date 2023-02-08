@@ -1,6 +1,7 @@
 import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
@@ -16,16 +17,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
+  readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
   readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
   readonly #serializerArgs: UcsFunction.Args;
-  readonly #serializers = new Map<
-    string | UcSchema.Class,
-    Map<'' | 'O' | 'N' | 'ON', UcsFunction>
-  >();
+  readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>);
   constructor({
@@ -45,10 +43,10 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
-    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#aliases = aliases;
     this.#imports = imports;
     this.#declarations = declarations;
+    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createSerializer = createSerializer;
 
     this.#serializerArgs = {
@@ -93,7 +91,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     name: string,
   ): UcsFunction<T, TSchema> {
     const { type } = schema;
-    const variant = UcSchema$variant(schema);
+    const variant = UcSchema$variantOf(schema);
 
     let variants = this.#serializers.get(type);
 
@@ -150,7 +148,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
             code
               .write(`async ${externalName}(stream, value) {`)
-              .indent(this.serializerFor(schema).toUcsSerializer('value'))
+              .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
               .write('}');
           }
         })
@@ -191,7 +189,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
         code
           .write(`export async function ${externalName}(stream, value) {`)
-          .indent(this.serializerFor(schema).toUcsSerializer('value'))
+          .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
           .write('}');
       }
     };
@@ -245,8 +243,4 @@ export namespace UcsLib {
     readonly lib: UcsLib<TSchemae>;
     print(): string;
   }
-}
-
-function UcSchema$variant(schema: UcSchema): '' | 'O' | 'N' | 'ON' {
-  return schema.optional ? (schema.nullable ? 'ON' : 'O') : schema.nullable ? 'N' : '';
 }

@@ -69,13 +69,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write('}');
   }
 
-  toUcsSerializer(value: string): UccCode.Source {
+  toUcSerializer(stream: string, value: string): UccCode.Source {
     return code => code
-        .write(this.#createWriter(this, 'writer', 'stream'))
+        .write(this.#createWriter(this, this.args.writer, stream))
         .write(`try {`)
-        .indent(`await ${this.name}(writer, ${value});`)
+        .indent(`await ${this.name}(${this.args.writer}, ${value});`)
         .write(`} finally {`)
-        .indent(`await writer.done();`)
+        .indent(`await ${this.args.writer}.done();`)
         .write(`}`);
   }
 
