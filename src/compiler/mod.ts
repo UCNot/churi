@@ -1,6 +1,7 @@
 /**
  * @module @hatsy/churi/compiler
  */
+export * from './deserialization/mod.js';
 export * from './serialization/mod.js';
 export * from './ucc-aliases.js';
 export * from './ucc-code.js';

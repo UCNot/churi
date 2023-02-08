@@ -32,6 +32,10 @@
       "types": "./dist/churi.compiler.d.ts",
       "default": "./dist/churi.compiler.js"
     },
+    "./deserializer": {
+      "types": "./dist/churi.deserializer.d.ts",
+      "default": "./dist/churi.deserializer.js"
+    },
     "./runtime": {
       "types": "./dist/churi.runtime.d.ts",
       "default": "./dist/churi.runtime.js"
