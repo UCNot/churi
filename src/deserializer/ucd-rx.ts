@@ -1,12 +1,16 @@
 export interface UcdRx {
-  bol?(value: boolean): UcdRx;
-  big?(value: bigint): UcdRx;
-  nul?(): UcdRx;
-  num?(value: number): UcdRx;
-  str?(value: string): UcdRx;
+  _: UcdValueRx;
 
-  lst?(): UcdRx | undefined;
-  for?(key: PropertyKey): UcdRx | undefined;
-
+  lst?(): 1;
   end?(): void;
+}
+
+export interface UcdValueRx {
+  bol?(value: boolean): 1;
+  big?(value: bigint): 1;
+  nul?(): 1;
+  num?(value: number): 1;
+  str?(value: string): 1;
+
+  for?(key: PropertyKey): UcdRx | undefined;
 }

@@ -25,12 +25,6 @@ export class UcdReader {
     await Promise.resolve();
   }
 
-  rxOne(setter: (value: unknown) => void, value: unknown): UcdRx {
-    return {
-      end: () => setter(value),
-    };
-  }
-
   done(): void {
     this.#reader.releaseLock();
   }

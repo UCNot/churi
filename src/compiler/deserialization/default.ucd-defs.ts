@@ -1,3 +1,4 @@
+import { UcdValueRx } from '../../deserializer/ucd-rx.js';
 import { UcPrimitive } from '../../schema/uc-primitive.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
@@ -53,16 +54,21 @@ export class Default$UcdDefs {
     { args: { reader } }: UcdFunction,
     schema: UcSchema<UcPrimitive>,
     setter: string,
-    name: string,
+    name: keyof UcdValueRx,
   ): UccCode.Source {
     return code => {
       code
         .write(`await ${reader}.read({`)
         .indent(code => {
-          code.write(`${name}: $ => ${reader}.rxOne(${setter}, $),`);
-          if (schema.nullable) {
-            code.write(`nul: () => ${reader}.rxOne(${setter}, null),`);
-          }
+          code
+            .write('_: {')
+            .indent(code => {
+              code.write(`${name}: ${setter},`);
+              if (schema.nullable) {
+                code.write(`nul: () => ${setter}(null),`);
+              }
+            })
+            .write('},');
         })
         .write(`});`);
     };

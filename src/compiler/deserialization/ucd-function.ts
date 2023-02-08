@@ -72,7 +72,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(this.#createReader(this, this.args.reader, stream, options))
         .write('let result;')
         .write(`const ${this.args.setter} = $ => {`)
-        .indent('result = $;')
+        .indent('result = $;', 'return 1;')
         .write('}')
         .write(`try {`)
         .indent(`await ${this.name}(${this.args.reader}, ${this.args.setter});`)
