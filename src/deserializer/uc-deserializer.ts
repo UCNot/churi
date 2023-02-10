@@ -1,5 +1,5 @@
 export type UcDeserializer<T> = (
-  stream: ReadableStream<Uint8Array>,
+  input: ReadableStream<string>,
   options?: UcDeserializer.Options,
 ) => Promise<T>;
 
