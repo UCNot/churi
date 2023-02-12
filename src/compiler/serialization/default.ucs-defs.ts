@@ -1,6 +1,7 @@
 import { noop } from '@proc7ts/primitives';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
@@ -8,7 +9,7 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
-import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
+import { uccPropertyAccessExpr } from '../ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
@@ -137,7 +138,7 @@ class Default$UcsDefs {
       const entryPrefix = key
         ? lib.declarations.declareConst(
             key,
-            `${textEncoder}.encode('${uccStringExprContent(encodeUcsKey(key))}(')`,
+            `${textEncoder}.encode('${escapeJsString(encodeUcsKey(key))}(')`,
             {
               prefix: 'EP_',
             },

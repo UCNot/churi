@@ -1,6 +1,6 @@
+import { escapeJsString } from '../impl/quote-property-key.js';
 import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
-import { uccStringExprContent } from './ucc-expr.js';
 
 export class UccImports {
 
@@ -44,7 +44,7 @@ export class UccImports {
                   lines.print(`${this.#staticClause(name, alias)},`);
                 }
               })
-              .print(`} from '${uccStringExprContent(from)}';`);
+              .print(`} from '${escapeJsString(from)}';`);
           } else {
             for (const [name, alias] of moduleImports) {
               lines.print(`import { ${this.#staticClause(name, alias)} } from '${from}';`);
@@ -71,14 +71,13 @@ export class UccImports {
                   lines.print(`${this.#dynamicClause(name, alias)},`);
                 }
               })
-              .print(`} = await import('${uccStringExprContent(from)}');`);
+              .print(`} = await import('${escapeJsString(from)}');`);
           } else {
             for (const [name, alias] of moduleImports) {
               lines.print(
-                `const { ${this.#dynamicClause(
-                  name,
-                  alias,
-                )} } = await import('${uccStringExprContent(from)}');`,
+                `const { ${this.#dynamicClause(name, alias)} } = await import('${escapeJsString(
+                  from,
+                )}');`,
               );
             }
           }

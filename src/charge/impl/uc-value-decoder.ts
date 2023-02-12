@@ -1,3 +1,5 @@
+import { asis } from '@proc7ts/primitives';
+import { negate } from '../../impl/numeric.js';
 import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 
@@ -106,14 +108,6 @@ function decodeUnsignedUcValue<TValue, TCharge>(
   input: string,
 ): void {
   decodeNumericUcValue(rx, input, 0, asis);
-}
-
-function negate<T extends number | bigint>(value: T): T {
-  return -value as T;
-}
-
-function asis<T extends number | bigint>(value: T): T {
-  return value;
 }
 
 function decodeNumericUcValue<TValue, TCharge>(

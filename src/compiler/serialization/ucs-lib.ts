@@ -149,10 +149,10 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
             code
               .write(`async ${externalName}(stream, value) {`)
               .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
-              .write('}');
+              .write('},');
           }
         })
-        .write('}');
+        .write('};');
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
