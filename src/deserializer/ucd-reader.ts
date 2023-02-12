@@ -1,3 +1,4 @@
+import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
@@ -37,9 +38,8 @@ export class UcdReader {
     this.#onError(error);
   }
 
-  async read(_rx: UcdRx): Promise<void> {
-    // Read data.
-    await Promise.resolve();
+  async read(rx: UcdRx): Promise<void> {
+    await ucdReadValue(this, rx);
   }
 
   async next(): Promise<string | undefined> {

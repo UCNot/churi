@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { Readable } from 'node:stream';
+import { chunkStream } from '../spec/chunk-stream.js';
 import { UcdReader } from './ucd-reader.js';
 
 describe('UcdReader', () => {
@@ -118,6 +119,6 @@ describe('UcdReader', () => {
   });
 
   function readChunks(...chunks: string[]): UcdReader {
-    return new UcdReader(Readable.toWeb(Readable.from(chunks)) as ReadableStream<string>);
+    return new UcdReader(chunkStream(...chunks));
   }
 });

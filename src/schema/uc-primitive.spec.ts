@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
 import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
+import { UcDeserializer } from '../deserializer/uc-deserializer.js';
+import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
@@ -27,6 +30,41 @@ describe('BigInt', () => {
       await expect(TextOutStream.read(async to => await writeValue(to, -13n))).resolves.toBe(
         '-0n13',
       );
+    });
+  });
+
+  describe('deserializer', () => {
+    let lib: UcdLib<{ readValue: UcSchema.Spec<bigint> }>;
+    let readValue: UcDeserializer<bigint>;
+
+    beforeEach(async () => {
+      lib = new UcdLib({
+        schemae: {
+          readValue: BigInt,
+        },
+      });
+      ({ readValue } = await lib.compile().toDeserializers());
+    });
+
+    it('deserializes number', async () => {
+      await expect(readValue(chunkStream('0n123'))).resolves.toBe(123n);
+      await expect(readValue(chunkStream('-0n123'))).resolves.toBe(-123n);
+    });
+    it('deserializes hexadecimal number', async () => {
+      await expect(readValue(chunkStream('0n0x123'))).resolves.toBe(0x123n);
+      await expect(readValue(chunkStream('-0n0x123'))).resolves.toBe(-0x123n);
+    });
+    it('deserializes zero', async () => {
+      await expect(readValue(chunkStream('0n0'))).resolves.toBe(0n);
+      await expect(readValue(chunkStream('-0n0'))).resolves.toBe(-0n);
+    });
+    it('fails to deserialize NaN', async () => {
+      await expect(readValue(chunkStream('0nz'))).rejects.toEqual({
+        code: 'invalidSyntax',
+        invalidSyntax: { type: 'bigint' },
+        message: 'Cannot convert z to a BigInt',
+        cause: new SyntaxError('Cannot convert z to a BigInt'),
+      });
     });
   });
 });
@@ -91,6 +129,25 @@ describe('Boolean', () => {
       );
     });
   });
+
+  describe('deserializer', () => {
+    let lib: UcdLib<{ readValue: UcSchema.Spec<boolean> }>;
+    let readValue: UcDeserializer<boolean>;
+
+    beforeEach(async () => {
+      lib = new UcdLib({
+        schemae: {
+          readValue: Boolean,
+        },
+      });
+      ({ readValue } = await lib.compile().toDeserializers());
+    });
+
+    it('deserializes boolean', async () => {
+      // await expect(readValue(chunkStream('!'))).resolves.toBe(true);
+      await expect(readValue(chunkStream('-'))).resolves.toBe(false);
+    });
+  });
 });
 
 describe('Number', () => {
@@ -121,6 +178,40 @@ describe('Number', () => {
       await expect(TextOutStream.read(async to => await writeValue(to, -Infinity))).resolves.toBe(
         '!-Infinity',
       );
+    });
+  });
+
+  describe('deserializer', () => {
+    let lib: UcdLib<{ readValue: UcSchema.Spec<number> }>;
+    let readValue: UcDeserializer<number>;
+
+    beforeEach(async () => {
+      lib = new UcdLib({
+        schemae: {
+          readValue: Number,
+        },
+      });
+      ({ readValue } = await lib.compile().toDeserializers());
+    });
+
+    it('deserializes number', async () => {
+      await expect(readValue(chunkStream('123'))).resolves.toBe(123);
+      await expect(readValue(chunkStream('-123'))).resolves.toBe(-123);
+    });
+    it('deserializes hexadecimal number', async () => {
+      await expect(readValue(chunkStream('0x123'))).resolves.toBe(0x123);
+      await expect(readValue(chunkStream('-0x123'))).resolves.toBe(-0x123);
+    });
+    it('deserializes zero', async () => {
+      await expect(readValue(chunkStream('0'))).resolves.toBe(0);
+      await expect(readValue(chunkStream('-0'))).resolves.toBe(-0);
+    });
+    it('fails to deserialize NaN', async () => {
+      await expect(readValue(chunkStream('0xz'))).rejects.toEqual({
+        code: 'invalidSyntax',
+        invalidSyntax: { type: 'number' },
+        message: 'Not a number',
+      });
     });
   });
 });
@@ -186,6 +277,30 @@ describe('String', () => {
           new ByteLengthQueuingStrategy({ highWaterMark: 4 }),
         ),
       ).resolves.toBe("'1234567890");
+    });
+  });
+
+  describe('deserializer', () => {
+    let lib: UcdLib<{ readValue: UcSchema.Spec<string> }>;
+    let readValue: UcDeserializer<string>;
+
+    beforeEach(async () => {
+      lib = new UcdLib({
+        schemae: {
+          readValue: String,
+        },
+      });
+      ({ readValue } = await lib.compile().toDeserializers());
+    });
+
+    it('deserializes string', async () => {
+      await expect(readValue(chunkStream('some string'))).resolves.toBe('some string');
+    });
+    it('URI-decodes string', async () => {
+      await expect(readValue(chunkStream('some%20string'))).resolves.toBe('some string');
+    });
+    it('deserializes empty string', async () => {
+      await expect(readValue(chunkStream(''))).resolves.toBe('');
     });
   });
 });

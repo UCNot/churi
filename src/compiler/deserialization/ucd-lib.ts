@@ -114,7 +114,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return {
       lib: this,
       toCode: this.#toFactoryCode.bind(this),
-      toSerializers: this.#toDeserializers.bind(this),
+      toDeserializers: this.#toDeserializers.bind(this),
     };
   }
 
@@ -139,10 +139,10 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
             code
               .write(`async ${externalName}(stream, options) {`)
               .indent(this.deserializerFor(schema).toUcDeserializer('stream', 'options'))
-              .write('}');
+              .write('},');
           }
         })
-        .write('}');
+        .write('};');
   }
 
   async #toDeserializers(): Promise<UcdLib.Exports<TSchemae>> {
@@ -223,7 +223,7 @@ export namespace UcdLib {
 
   export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
     readonly lib: UcdLib<TSchemae>;
-    toSerializers(): Promise<Exports<TSchemae>>;
+    toDeserializers(): Promise<Exports<TSchemae>>;
   }
 
   export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {
