@@ -302,5 +302,14 @@ describe('String', () => {
     it('deserializes empty string', async () => {
       await expect(readValue(chunkStream(''))).resolves.toBe('');
     });
+    it('deserializes quoted string', async () => {
+      await expect(readValue(chunkStream("'abc"))).resolves.toBe('abc');
+    });
+    it('deserializes balanced parentheses within quoted string', async () => {
+      await expect(readValue(chunkStream("'abc(def()))"))).resolves.toBe('abc(def())');
+    });
+    it('does not close unbalanced parentheses within quoted string', async () => {
+      await expect(readValue(chunkStream("'abc(def("))).resolves.toBe('abc(def(');
+    });
   });
 });

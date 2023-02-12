@@ -7,6 +7,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   await ucdSkipSpace(reader);
 
   const { current } = reader;
+  let hasValue = false;
 
   if (!current) {
     // End of input.
@@ -19,8 +20,9 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (single) {
       return;
     }
-  }
-  if (current.startsWith("'")) {
+
+    hasValue = true;
+  } else if (current.startsWith("'")) {
     reader.consume(1); // Skip apostrophe.
 
     ucdRxString(reader, rx, await ucdReadRawString(reader));
@@ -28,6 +30,8 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (single) {
       return;
     }
+
+    hasValue = true;
   }
 
   const argStart = await reader.search(UCD_ARG_PATTERN);
@@ -35,7 +39,11 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   if (argStart < 0) {
     // No arg found or end of input.
     // Consume the rest of the input.
-    return ucdDecodeValue(reader, rx, reader.consume().trimEnd());
+    if (!hasValue) {
+      ucdDecodeValue(reader, rx, reader.consume().trimEnd());
+    }
+
+    return;
   }
 
   const argDelimiter = reader.current![argStart];
@@ -43,7 +51,9 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   if (argDelimiter === ')') {
     // Unbalanced closing parenthesis.
     // Consume up to its position.
-    return ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
+    if (!hasValue) {
+      ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
+    }
   }
 
   if (argDelimiter === ',') {
@@ -75,10 +85,44 @@ async function ucdReadEntityOrTrue(_reader: UcdReader, _rx: UcdRx): Promise<void
   await Promise.reject('TODO');
 }
 
-async function ucdReadRawString(_reader: UcdReader, _balanceParentheses = false): Promise<string> {
-  // TODO read raw string.
-  return await Promise.reject('TODO');
+async function ucdReadRawString(reader: UcdReader, balanceParentheses = false): Promise<string> {
+  let result = '';
+  let openedParentheses = 0;
+
+  for (;;) {
+    const delimiterIdx = await reader.search(
+      // Search for commas only _outside_ parentheses.
+      openedParentheses ? UCD_PARENTHESIS_PATTERN : UCD_DELIMITER_PATTERN,
+    );
+
+    if (delimiterIdx < 0) {
+      // No delimiters found.
+      // Accept _full_ input.
+
+      return balanceParentheses && openedParentheses
+        ? result + reader.consume() + ')'.repeat(openedParentheses) // Close hanging parentheses.
+        : result + reader.consume();
+    }
+
+    if (reader.current![delimiterIdx] === '(') {
+      // Open one more parenthesis.
+      ++openedParentheses;
+      result += reader.consume(delimiterIdx + 1);
+    } else if (openedParentheses) {
+      // Closing parenthesis matching the opened one.
+      // This can not be a comma, as they are not searched for _inside_ parenthesis.
+      --openedParentheses;
+      result += reader.consume(delimiterIdx + 1);
+    } else {
+      // Either closing parenthesis not matching the opening one, or a comma.
+      // In either case, this is the end of input.
+      return result + reader.consume(delimiterIdx);
+    }
+  }
 }
+
+const UCD_PARENTHESIS_PATTERN = /[()]/;
+const UCD_DELIMITER_PATTERN = /[(),]/;
 
 async function ucdReadItems(_reader: UcdReader, _rx: UcdRx): Promise<void> {
   // TODO read list items.
