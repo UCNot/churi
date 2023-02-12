@@ -47,7 +47,7 @@ describe('BigInt', () => {
     });
 
     it('deserializes number', async () => {
-      await expect(readValue(chunkStream('0n123'))).resolves.toBe(123n);
+      await expect(readValue(chunkStream(' 0n123   '))).resolves.toBe(123n);
       await expect(readValue(chunkStream('-0n123'))).resolves.toBe(-123n);
     });
     it('deserializes hexadecimal number', async () => {

@@ -35,7 +35,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   if (argStart < 0) {
     // No arg found or end of input.
     // Consume the rest of the input.
-    return ucdDecodeValue(reader, rx, reader.consume());
+    return ucdDecodeValue(reader, rx, reader.consume().trimEnd());
   }
 
   const argDelimiter = reader.current![argStart];
@@ -43,7 +43,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   if (argDelimiter === ')') {
     // Unbalanced closing parenthesis.
     // Consume up to its position.
-    return ucdDecodeValue(reader, rx, reader.consume(argStart));
+    return ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
   }
 
   if (argDelimiter === ',') {
@@ -59,7 +59,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (argStart) {
       // Decode leading item, if eny.
       // Ignore empty leading item otherwise.
-      ucdDecodeValue(reader, rx, reader.consume(argStart));
+      ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
     }
 
     // Consume comma.
