@@ -144,8 +144,10 @@ describe('Boolean', () => {
     });
 
     it('deserializes boolean', async () => {
-      // await expect(readValue(chunkStream('!'))).resolves.toBe(true);
+      await expect(readValue(chunkStream('!'))).resolves.toBe(true);
+      await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
       await expect(readValue(chunkStream('-'))).resolves.toBe(false);
+      await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
     });
   });
 });
@@ -295,6 +297,11 @@ describe('String', () => {
 
     it('deserializes string', async () => {
       await expect(readValue(chunkStream('some string'))).resolves.toBe('some string');
+    });
+    it('deserializes multiline string', async () => {
+      await expect(readValue(chunkStream('prefix\r', '\n(suffix'))).resolves.toBe(
+        'prefix\r\n(suffix',
+      );
     });
     it('URI-decodes string', async () => {
       await expect(readValue(chunkStream('some%20string'))).resolves.toBe('some string');

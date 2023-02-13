@@ -103,7 +103,7 @@ function ucdRxBigInt(reader: UcdReader, rx: UcdRx, value: bigint): void {
   }
 }
 
-function ucdRxBoolean(reader: UcdReader, rx: UcdRx, value: boolean): void {
+export function ucdRxBoolean(reader: UcdReader, rx: UcdRx, value: boolean): void {
   if (!rx._.bol?.(value) && !rx._.any?.(value)) {
     reader.error(ucdUnexpectedError('boolean', rx));
   }

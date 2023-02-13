@@ -1,6 +1,6 @@
 import { UcdReader } from '../ucd-reader.js';
 import { UcdRx } from '../ucd-rx.js';
-import { ucdDecodeValue, ucdRxString } from './ucd-decode-value.js';
+import { ucdDecodeValue, ucdRxBoolean, ucdRxString } from './ucd-decode-value.js';
 import { ucdUnexpectedError } from './ucd-errors.js';
 
 export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false): Promise<void> {
@@ -32,6 +32,9 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     }
 
     hasValue = true;
+  } else if (current.startsWith('$')) {
+    // TODO: Map entry, possibly without arguments.
+    return Promise.reject('TODO');
   }
 
   const argStart = await reader.search(UCD_ARG_PATTERN);
@@ -54,22 +57,24 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (!hasValue) {
       ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
     }
+
+    return;
   }
 
   if (argDelimiter === ',') {
-    if (single) {
-      // Do not parse the list.
-      return;
-    }
-
+    // End of list item.
     // List item.
-    if (!rx.lst?.()) {
+    if (!single && !rx.lst?.()) {
       reader.error(ucdUnexpectedError('list', rx));
     }
     if (argStart) {
       // Decode leading item, if eny.
       // Ignore empty leading item otherwise.
       ucdDecodeValue(reader, rx, reader.consume(argStart).trimEnd());
+    }
+    if (single) {
+      // Do not parse the rest of items.
+      return;
     }
 
     // Consume comma.
@@ -78,11 +83,27 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
 
     return await ucdReadItems(reader, rx);
   }
+
+  if (argDelimiter === '(') {
+    // TODO: Map entry.
+    return Promise.reject('TODO');
+  }
+
+  // New line.
+  // Treat the rest of the item as string.
+  ucdRxString(reader, rx, reader.consume(argStart + 1) + (await ucdReadRawString(reader)));
 }
 
-async function ucdReadEntityOrTrue(_reader: UcdReader, _rx: UcdRx): Promise<void> {
-  // TODO read entity or true.
-  await Promise.reject('TODO');
+async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> {
+  const entityInput = await ucdReadRawString(reader, true);
+  const entity = entityInput.trimEnd();
+
+  if (entity.length === 1) {
+    ucdRxBoolean(reader, rx, true);
+  } else {
+    // TODO Process entities.
+    await Promise.reject('TODO');
+  }
 }
 
 async function ucdReadRawString(reader: UcdReader, balanceParentheses = false): Promise<string> {
@@ -125,7 +146,7 @@ const UCD_PARENTHESIS_PATTERN = /[()]/;
 const UCD_DELIMITER_PATTERN = /[(),]/;
 
 async function ucdReadItems(_reader: UcdReader, _rx: UcdRx): Promise<void> {
-  // TODO read list items.
+  // TODO Read list items.
   await Promise.reject('TODO');
 }
 
@@ -139,4 +160,4 @@ async function ucdSkipSpace(reader: UcdReader): Promise<void> {
   }
 }
 
-const UCD_NON_SPACE_PATTERN = /[^\r\n\t ]/;
+const UCD_NON_SPACE_PATTERN = /\S/;
