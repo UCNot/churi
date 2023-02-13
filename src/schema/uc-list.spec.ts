@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
+import { UcDeserializer } from '../deserializer/uc-deserializer.js';
+import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcList, ucList } from './uc-list.js';
 import { ucNullable } from './uc-nullable.js';
@@ -157,6 +160,77 @@ describe('UcList', () => {
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+    });
+  });
+
+  describe('deserializer', () => {
+    let readList: UcDeserializer<number[]>;
+
+    beforeEach(async () => {
+      const lib = new UcdLib({
+        schemae: {
+          readList: ucList<number>(Number),
+        },
+      });
+
+      ({ readList } = await lib.compile().toDeserializers());
+    });
+
+    it('deserializes list', async () => {
+      await expect(readList(chunkStream('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes list with leading comma', async () => {
+      await expect(readList(chunkStream(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes list with trailing comma', async () => {
+      await expect(readList(chunkStream('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes single item with leading comma', async () => {
+      await expect(readList(chunkStream(' ,13  '))).resolves.toEqual([13]);
+    });
+    it('deserializes single item with trailing comma', async () => {
+      await expect(readList(chunkStream('13 ,  '))).resolves.toEqual([13]);
+    });
+
+    describe('nested', () => {
+      let readMatrix: UcDeserializer<number[][]>;
+
+      beforeEach(async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readMatrix: ucList<number[]>(ucList<number>(Number)),
+          },
+        });
+
+        ({ readMatrix } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes nested list', async () => {
+        await expect(readMatrix(chunkStream(' ( 13 ) '))).resolves.toEqual([[13]]);
+      });
+      it('deserializes comma-separated lists', async () => {
+        await expect(readMatrix(chunkStream(' (13, 14), (15, 16) '))).resolves.toEqual([
+          [13, 14],
+          [15, 16],
+        ]);
+      });
+      it('deserializes lists', async () => {
+        await expect(readMatrix(chunkStream(' (13, 14) (15, 16) '))).resolves.toEqual([
+          [13, 14],
+          [15, 16],
+        ]);
+      });
+      it('deserializes deeply nested lists', async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readCube: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))),
+          },
+        });
+
+        const { readCube } = await lib.compile().toDeserializers();
+
+        await expect(readCube(chunkStream('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
+      });
     });
   });
 });

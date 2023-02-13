@@ -4,6 +4,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcdDef } from './ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
@@ -47,8 +48,10 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#lib.aliases;
   }
 
-  deserialize(schema: UcSchema, setter: string): UccCode.Source {
-    const deserializer = this.lib.definitionFor(schema)?.deserialize(this, schema, setter);
+  deserialize(schema: UcSchema, location: Omit<UcdDef.Location, 'fn'>): UccCode.Source {
+    const deserializer = this.lib
+      .definitionFor(schema)
+      ?.deserialize(schema, { ...location, fn: this as UcdFunction });
 
     if (deserializer == null) {
       throw new UnsupportedUcSchemaError(
@@ -63,7 +66,13 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   toCode(): UccCode.Source {
     return code => code
         .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
-        .indent(this.deserialize(this.schema, this.args.setter))
+        .indent(
+          this.deserialize(this.schema, {
+            setter: this.args.setter,
+            prefix: `await ${this.args.reader}.read(`,
+            suffix: ');',
+          }),
+        )
         .write('}');
   }
 

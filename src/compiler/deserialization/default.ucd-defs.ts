@@ -1,9 +1,10 @@
 import { UcdValueRx } from '../../deserializer/ucd-rx.js';
+import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { UcList } from '../../schema/uc-list.js';
 import { UcPrimitive } from '../../schema/uc-primitive.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { UcdDef } from './ucd-def.js';
-import { UcdFunction } from './ucd-function.js';
 
 export class Default$UcdDefs {
 
@@ -20,6 +21,10 @@ export class Default$UcdDefs {
         deserialize: this.#readBigInt.bind(this),
       },
       {
+        type: 'list',
+        deserialize: this.#readList.bind(this),
+      },
+      {
         type: Number,
         deserialize: this.#readNumber.bind(this),
       },
@@ -34,31 +39,54 @@ export class Default$UcdDefs {
     return this.#list;
   }
 
-  #readBoolean(fn: UcdFunction, schema: UcSchema<boolean>, setter: string): UccCode.Source {
-    return this.#readPrimitive(fn, schema, setter, 'bol');
+  #readBoolean(schema: UcSchema<boolean>, location: UcdDef.Location): UccCode.Source {
+    return this.#readPrimitive(schema, location, 'bol');
   }
 
-  #readBigInt(fn: UcdFunction, schema: UcSchema<bigint>, setter: string): UccCode.Source {
-    return this.#readPrimitive(fn, schema, setter, 'big');
+  #readBigInt(schema: UcSchema<bigint>, location: UcdDef.Location): UccCode.Source {
+    return this.#readPrimitive(schema, location, 'big');
   }
 
-  #readNumber(fn: UcdFunction, schema: UcSchema<number>, setter: string): UccCode.Source {
-    return this.#readPrimitive(fn, schema, setter, 'num');
+  #readList(
+    { item }: UcList.Schema,
+    { fn, setter, prefix, suffix }: UcdDef.Location,
+  ): UccCode.Source {
+    const {
+      lib,
+      aliases,
+      args: { reader },
+    } = fn;
+    const readUcList = lib.import(DESERIALIZER_MODULE, 'readUcList');
+
+    return code => {
+      const listRx = aliases.aliasFor('listRx');
+      const addItem = aliases.aliasFor('addItem');
+
+      code
+        .write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`)
+        .indent(fn.deserialize(item, { setter: addItem, prefix: 'return ', suffix: ';' }))
+        .write(`});`)
+        .write(`${prefix}${listRx}.rx${suffix}`)
+        .write(`${listRx}.end();`);
+    };
   }
 
-  #readString(fn: UcdFunction, schema: UcSchema<string>, setter: string): UccCode.Source {
-    return this.#readPrimitive(fn, schema, setter, 'str');
+  #readNumber(schema: UcSchema<number>, location: UcdDef.Location): UccCode.Source {
+    return this.#readPrimitive(schema, location, 'num');
+  }
+
+  #readString(schema: UcSchema<string>, location: UcdDef.Location): UccCode.Source {
+    return this.#readPrimitive(schema, location, 'str');
   }
 
   #readPrimitive(
-    { args: { reader } }: UcdFunction,
     schema: UcSchema<UcPrimitive>,
-    setter: string,
+    { setter, prefix, suffix }: UcdDef.Location,
     name: keyof UcdValueRx,
   ): UccCode.Source {
     return code => {
       code
-        .write(`await ${reader}.read({`)
+        .write(`${prefix}{`)
         .indent(code => {
           code
             .write('_: {')
@@ -70,7 +98,7 @@ export class Default$UcdDefs {
             })
             .write('},');
         })
-        .write(`});`);
+        .write(`}${suffix}`);
     };
   }
 

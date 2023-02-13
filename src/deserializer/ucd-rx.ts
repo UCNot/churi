@@ -8,6 +8,7 @@ export interface UcdRx {
 export interface UcdValueRx {
   bol?(value: boolean): 1;
   big?(value: bigint): 1;
+  nls?(): UcdRx | undefined;
   map?: UcdMapRx | undefined;
   nul?(): 1;
   num?(value: number): 1;

@@ -13,7 +13,7 @@ export function ucdUnexpectedError(type: string, rx: UcdRx): unknown {
       },
     },
     message:
-      `Unexpected ${type}. Expected `
+      `Unexpected ${type}, while expected `
       + (expectedTypes.length === 1 ? expectedTypes[0] : `one of ${expectedTypes.join(', ')}`),
   };
 }
@@ -28,15 +28,16 @@ export function ucdUnexpectedEntryError(key: string, _rx: UcdRx): unknown {
   };
 }
 
-function ucdExpectedTypes(rx: UcdRx): readonly string[] {
-  const keys = Object.keys(rx._).map(key => UCD_TYPE_NAMES[key] ?? key);
+export function ucdExpectedTypes(rx: UcdRx): readonly string[] {
+  const types = Object.keys(rx._).map(key => UCD_TYPE_NAMES[key] ?? key);
 
-  return keys.length ? keys : ['none'];
+  return types.length ? types : ['value'];
 }
 
 const UCD_TYPE_NAMES: { [key: PropertyKey]: string | undefined } = {
   bol: 'boolean',
   big: 'bigint',
+  nls: 'nested list',
   nul: 'null',
   num: 'number',
   str: 'string',
