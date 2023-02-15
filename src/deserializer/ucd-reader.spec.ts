@@ -105,15 +105,30 @@ describe('UcdReader', () => {
       reader = readChunks('abc\n', 'def\n');
     });
 
-    it('searches across chunks', async () => {
-      await expect(reader.search('e')).resolves.toBe(1);
-      expect(reader.current).toBe('def\n');
-      expect(reader.prev).toEqual(['abc\n']);
+    describe('one-line', () => {
+      it('searches on the same line', async () => {
+        await expect(reader.search('c')).resolves.toBe(2);
+        expect(reader.current).toBe('abc\n');
+        expect(reader.prev).toHaveLength(0);
+      });
+      it('does not searches across chunks', async () => {
+        await expect(reader.search('e')).resolves.toBe(-1);
+        expect(reader.current).toBe('abc\n');
+        expect(reader.prev).toHaveLength(0);
+      });
     });
-    it('iterates all chunks when not found', async () => {
-      await expect(reader.search('Z')).resolves.toBe(-1);
-      expect(reader.current).toBe('def\n');
-      expect(reader.prev).toEqual(['abc\n']);
+
+    describe('multiline', () => {
+      it('searches across chunks', async () => {
+        await expect(reader.search('e', true)).resolves.toBe(1);
+        expect(reader.current).toBe('def\n');
+        expect(reader.prev).toEqual(['abc\n']);
+      });
+      it('iterates all chunks when not found', async () => {
+        await expect(reader.search('Z', true)).resolves.toBe(-1);
+        expect(reader.current).toBe('def\n');
+        expect(reader.prev).toEqual(['abc\n']);
+      });
     });
   });
 

@@ -18,7 +18,7 @@ export function ucdUnexpectedError(type: string, rx: UcdRx): unknown {
   };
 }
 
-export function ucdUnexpectedEntryError(key: string, _rx: UcdRx): unknown {
+export function ucdUnexpectedEntryError(key: string): unknown {
   return {
     code: 'unexpectedEntry',
     unexpectedEntry: {

@@ -1,9 +1,8 @@
 import { asis } from '@proc7ts/primitives';
-import { unchargeURIKey } from '../../charge/charge-uri.js';
 import { negate } from '../../impl/numeric.js';
 import { UcdReader } from '../ucd-reader.js';
 import { UcdRx } from '../ucd-rx.js';
-import { ucdUnexpectedEntryError, ucdUnexpectedError } from './ucd-errors.js';
+import { ucdUnexpectedError } from './ucd-errors.js';
 
 export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): void {
   if (!input) {
@@ -16,7 +15,7 @@ export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): voi
       decoder(reader, rx, input);
     } else {
       const decoded = decodeURIComponent(input);
-      const decoder = UCD_STRING_DECODERS[decoded[0]];
+      const decoder = UCD_VALUE_DECODERS[decoded[0]];
 
       if (decoder) {
         decoder(reader, rx, decoded);
@@ -29,7 +28,7 @@ export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): voi
 
 type UcdValueDecoder = (reader: UcdReader, rx: UcdRx, input: string) => void;
 
-const UCD_STRING_DECODERS: {
+const UCD_VALUE_DECODERS: {
   readonly [prefix: string]: UcdValueDecoder;
 } = {
   '-': ucdDecodeMinusSigned,
@@ -44,34 +43,6 @@ const UCD_STRING_DECODERS: {
   8: ucdDecodeNumber,
   9: ucdDecodeNumber,
 };
-
-const UCD_VALUE_DECODERS: {
-  readonly [prefix: string]: UcdValueDecoder;
-} = {
-  $: ucdDecodeDollarPrefixed,
-  ...UCD_STRING_DECODERS,
-};
-
-function ucdDecodeDollarPrefixed(reader: UcdReader, rx: UcdRx, input: string): void {
-  const { map } = rx._;
-
-  if (!map) {
-    reader.error(ucdUnexpectedError('map', rx));
-
-    return;
-  }
-
-  if (input.length > 1) {
-    const key = unchargeURIKey(input);
-
-    // `$` treated as empty object.
-    if (map.for?.(key)) {
-      reader.error(ucdUnexpectedEntryError(key, rx));
-    }
-  }
-
-  map?.end();
-}
 
 function ucdDecodeMinusSigned(reader: UcdReader, rx: UcdRx, input: string): void {
   if (input.length === 1) {

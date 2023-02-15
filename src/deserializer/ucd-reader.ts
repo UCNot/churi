@@ -81,6 +81,7 @@ export class UcdReader {
 
   async search(
     searcher: { [Symbol.search](string: string): number } | string | RegExp,
+    multiline = false,
   ): Promise<number> {
     let { current: chunk = await this.next() } = this;
 
@@ -89,6 +90,9 @@ export class UcdReader {
 
       if (index >= 0) {
         return index;
+      }
+      if (!multiline) {
+        break;
       }
 
       chunk = await this.next();
