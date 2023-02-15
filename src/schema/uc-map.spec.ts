@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
+import { UcDeserializer } from '../deserializer/uc-deserializer.js';
+import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
@@ -252,6 +255,36 @@ describe('UcMap', () => {
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+    });
+  });
+
+  describe('deserializer', () => {
+    describe('single entry', () => {
+      let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcSchema.Spec<string> }> }>;
+      let readMap: UcDeserializer<{ foo: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap<{ foo: UcSchema.Spec<string> }>({
+              foo: String,
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entry', async () => {
+        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('deserializes $-escaped entry', async () => {
+        await expect(readMap(chunkStream('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('handles whitespace', async () => {
+        await expect(readMap(chunkStream('  foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+          foo: 'bar',
+        });
+      });
     });
   });
 });

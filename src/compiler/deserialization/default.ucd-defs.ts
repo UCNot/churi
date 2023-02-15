@@ -1,9 +1,12 @@
 import { UcdValueRx } from '../../deserializer/ucd-rx.js';
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcList } from '../../schema/uc-list.js';
+import { UcMap } from '../../schema/uc-map.js';
 import { UcPrimitive } from '../../schema/uc-primitive.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
+import { uccPropertyAccessExpr } from '../ucc-expr.js';
 import { UcdDef } from './ucd-def.js';
 
 export class Default$UcdDefs {
@@ -23,6 +26,10 @@ export class Default$UcdDefs {
       {
         type: 'list',
         deserialize: this.#readList.bind(this),
+      },
+      {
+        type: 'map',
+        deserialize: this.#readMap.bind(this),
       },
       {
         type: Number,
@@ -68,6 +75,80 @@ export class Default$UcdDefs {
         .write(`});`)
         .write(`${prefix}${listRx}.rx${suffix}`)
         .write(`${listRx}.end();`);
+    };
+  }
+
+  #readMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+    schema: UcMap.Schema<TEntriesSpec>,
+    { fn, setter, prefix, suffix }: UcdDef.Location,
+  ): UccCode.Source {
+    const { entries } = schema;
+    const {
+      lib,
+      args: { reader },
+    } = fn;
+    const serializer = lib.deserializerFor(schema);
+    const { aliases, declarations } = lib;
+    const targetMap = aliases.aliasFor('targetMap');
+    const setEntry = aliases.aliasFor('setEntry');
+    const entryValue = aliases.aliasFor('entryValue');
+
+    const entryDecls = declarations.declare(
+      `${serializer.name}$entries`,
+      (prefix, suffix) => code => {
+        code
+          .write(`${prefix}{`)
+          .indent(code => {
+            for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
+              code
+                .write(`${escapeJsString(key)}(${reader}, ${targetMap}){`)
+                .indent(code => {
+                  code
+                    .write(`const ${setEntry} = (${entryValue}) => {`)
+                    .indent(
+                      `${uccPropertyAccessExpr(targetMap, key)} = ${entryValue};`,
+                      'return 1;',
+                    )
+                    .write(`};`)
+                    .write(
+                      fn.deserialize(entrySchema, {
+                        setter: setEntry,
+                        prefix: 'return ',
+                        suffix: '',
+                      }),
+                    );
+                })
+                .write(`},`);
+            }
+          })
+          .write(`}${suffix}`);
+      },
+    );
+
+    return code => {
+      code
+        .write(`const ${targetMap} = {};`)
+        .write(`${prefix}{`)
+        .indent(code => {
+          code
+            .write(`_: {`)
+            .indent(code => {
+              code
+                .write(`map: {`)
+                .indent(code => {
+                  code.write(
+                    `for: key => ${entryDecls}[key]?.(${reader}, ${targetMap}),`,
+                    `end: () => ${setter}(${targetMap}),`,
+                  );
+                })
+                .write(`},`);
+              if (schema.nullable) {
+                code.write(`nul: () => ${setter}(null),`);
+              }
+            })
+            .write('},');
+        })
+        .write(`}${suffix}`);
     };
   }
 

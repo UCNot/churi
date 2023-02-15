@@ -13,7 +13,7 @@ export class UccDeclarations implements UccCode.Fragment {
 
   declare(
     id: string,
-    initializer: string,
+    initializer: string | ((prefix: string, suffix: string) => UccCode.Source),
     { key = id }: { readonly key?: string | undefined } = {},
   ): string {
     const snippetKey = key === id ? `id:${id}` : `key:${key}`;
@@ -25,7 +25,12 @@ export class UccDeclarations implements UccCode.Fragment {
 
     alias = this.#aliases.aliasFor(id);
 
-    this.#code.write(`const ${alias} = ${initializer};`);
+    if (typeof initializer === 'string') {
+      this.#code.write(`const ${alias} = ${initializer};`);
+    } else {
+      this.#code.write(initializer(`const ${alias} = `, `;`));
+    }
+
     this.#snippets.set(snippetKey, id);
 
     return alias;

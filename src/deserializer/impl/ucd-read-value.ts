@@ -76,17 +76,25 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     return await ucdReadItems(reader, rx);
   }
 
-  const delimiterIdx = await reader.search(UCD_DELIMITER_PATTERN);
+  let delimiterIdx = await reader.search(UCD_DELIMITER_PATTERN);
 
   if (delimiterIdx < 0) {
     // No delimiter found at the same line.
-    // Treat as single value.
-    if (!hasValue) {
-      const value = await ucdReadRawString(reader);
+    // Try to find on new line.
+    await reader.next();
 
-      ucdDecodeValue(reader, rx, value.trimEnd());
-      if (single) {
-        return;
+    delimiterIdx = await reader.search(UCD_NL_DELIMITER_PATTERN, true);
+
+    if (delimiterIdx < 0) {
+      // No delimiter found at all.
+      // Treat as single value.
+      if (!hasValue) {
+        const value = await ucdReadRawString(reader);
+
+        ucdDecodeValue(reader, rx, value.trimEnd());
+        if (single) {
+          return;
+        }
       }
     }
   }
@@ -131,10 +139,10 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     }
   } else {
     // Map.
-    const key = unchargeURIKey(reader.consume(delimiterIdx));
+    const key = unchargeURIKey(reader.consume(delimiterIdx).trimEnd());
 
     await ucdReadMap(reader, rx, key);
-    if (single || !reader.current.startsWith(',')) {
+    if (single || !reader.current || reader.current.startsWith(')')) {
       // No next item.
       return;
     }
@@ -207,6 +215,10 @@ async function ucdReadRawString(reader: UcdReader, balanceParentheses = false): 
 const UCD_PARENTHESIS_PATTERN = /[()]/;
 const UCD_DELIMITER_PATTERN = /[(),]/;
 
+// Opening parentheses only accepted as the first non-whitespace char of the line.
+// Comma and closing parenthesis accepted at any position.
+const UCD_NL_DELIMITER_PATTERN = /(?<=^\s*)\(|[),]/;
+
 async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
   let itemsRx = rx._.nls?.();
 
@@ -256,15 +268,12 @@ async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promi
   await ucdReadValue(reader, entryRx);
 
   if (reader.current) {
-    // End of input.
-    return;
+    // Skip closing parenthesis.
+    reader.consume(1);
+
+    // Read the rest of entries.
+    await ucdReadEntries(reader, mapRx);
   }
-
-  // Skip closing parenthesis.
-  reader.consume(1);
-
-  // Read the rest of entries.
-  await ucdReadEntries(reader, mapRx);
 
   mapRx.end();
 }

@@ -5,6 +5,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
+import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
@@ -18,6 +19,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   readonly #aliases: UccAliases;
   readonly #imports: UccImports;
+  readonly #declarations: UccDeclarations;
   readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializerArgs: UcdFunction.Args;
@@ -30,6 +32,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     resolver = new UcSchemaResolver(),
     aliases = new UccAliases(),
     imports = new UccImports(aliases),
+    declarations = new UccDeclarations(aliases),
     definitions = DefaultUcdDefs,
     createDeserializer = options => new UcdFunction(options),
   }: UcdLib.Options<TSchemae>) {
@@ -43,6 +46,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     };
     this.#aliases = aliases;
     this.#imports = imports;
+    this.#declarations = declarations;
     this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createDeserializer = createDeserializer;
 
@@ -62,6 +66,10 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   get imports(): UccImports {
     return this.#imports;
+  }
+
+  get declarations(): UccDeclarations {
+    return this.#declarations;
   }
 
   get deserializerArgs(): UcdFunction.Args {
@@ -124,6 +132,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
         .indent(
           this.imports.asDynamic(),
           '',
+          this.declarations,
+          '',
           this.#compileDeserializers(),
           '',
           this.#returnDeserializers(),
@@ -166,6 +176,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return code => code.write(
         this.#imports.asStatic(),
         '',
+        this.declarations,
+        '',
         this.#compileDeserializers(),
         '',
         this.#exportDeserializers(),
@@ -205,6 +217,7 @@ export namespace UcdLib {
     readonly resolver?: UcSchemaResolver | undefined;
     readonly aliases?: UccAliases | undefined;
     readonly imports?: UccImports | undefined;
+    readonly declarations?: UccDeclarations | undefined;
     readonly definitions?: UcdDef | readonly UcdDef[] | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
