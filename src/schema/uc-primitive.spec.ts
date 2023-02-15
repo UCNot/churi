@@ -144,9 +144,9 @@ describe('Boolean', () => {
     });
 
     it('deserializes boolean', async () => {
-      // await expect(readValue(chunkStream('!'))).resolves.toBe(true);
-      // await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
-      // await expect(readValue(chunkStream('-'))).resolves.toBe(false);
+      await expect(readValue(chunkStream('!'))).resolves.toBe(true);
+      await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
+      await expect(readValue(chunkStream('-'))).resolves.toBe(false);
       await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
     });
   });

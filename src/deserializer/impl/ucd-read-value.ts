@@ -316,7 +316,7 @@ async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void>
       suffix = rawKey;
     } else if (delimiterIdx < 0) {
       // End of input.
-      suffix = reader.consume();
+      suffix = reader.consume().trimEnd();
     } else {
       // No suffix.
       break;

@@ -280,9 +280,60 @@ describe('UcMap', () => {
       it('deserializes $-escaped entry', async () => {
         await expect(readMap(chunkStream('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
+      it('deserializes $-escaped suffix', async () => {
+        await expect(readMap(chunkStream('$foo'))).resolves.toEqual({ foo: '' });
+        await expect(readMap(chunkStream('$foo \r\n   '))).resolves.toEqual({ foo: '' });
+        await expect(readMap(chunkStream('\r\n $foo'))).resolves.toEqual({ foo: '' });
+      });
       it('handles whitespace', async () => {
-        await expect(readMap(chunkStream('  foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+        await expect(readMap(chunkStream(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
           foo: 'bar',
+        });
+      });
+    });
+
+    describe('multiple entries', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
+      }>;
+      let readMap: UcDeserializer<{ foo: string; bar: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>({
+              foo: String,
+              bar: String,
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entries', async () => {
+        await expect(readMap(chunkStream('foo(first)bar(second'))).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes $-escaped entries', async () => {
+        await expect(readMap(chunkStream('foo(first)$bar(second'))).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes suffix', async () => {
+        await expect(readMap(chunkStream('foo(first) \n  bar \r\n '))).resolves.toEqual({
+          foo: 'first',
+          bar: '',
+        });
+      });
+      it('handles whitespace', async () => {
+        await expect(
+          readMap(chunkStream('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
+        ).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
         });
       });
     });
