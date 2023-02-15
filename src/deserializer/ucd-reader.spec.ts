@@ -39,15 +39,14 @@ describe('UcdReader', () => {
     it('returns nothing after end of input', async () => {
       reader = readChunks('abc', 'def');
 
-      await expect(reader.next()).resolves.toBe('abc');
-      await expect(reader.next()).resolves.toBe('def');
+      await expect(reader.next()).resolves.toBe('abcdef');
       await expect(reader.next()).resolves.toBeUndefined();
       await expect(reader.next()).resolves.toBeUndefined();
     });
     it('handles Windows-style new lines splat across chunks', async () => {
       reader = readChunks('abc\r', '\ndef');
 
-      await expect(reader.next()).resolves.toBe('abc\r');
+      await expect(reader.next()).resolves.toBe('abc\r\n');
       await expect(reader.next()).resolves.toBe('def');
       expect(reader.current).toBe('def');
       expect(reader.prev).toEqual(['abc\r\n']);
@@ -55,7 +54,7 @@ describe('UcdReader', () => {
     it('handles Windows-style new lines splat across multiple chunks', async () => {
       reader = readChunks('abc\r', '', '\n', '', 'def');
 
-      await expect(reader.next()).resolves.toBe('abc\r');
+      await expect(reader.next()).resolves.toBe('abc\r\n');
       await expect(reader.next()).resolves.toBe('def');
       expect(reader.current).toBe('def');
       expect(reader.prev).toEqual(['abc\r\n']);
@@ -63,58 +62,58 @@ describe('UcdReader', () => {
     it('handles Windows-style new lines splat across chunks after consumption', async () => {
       reader = readChunks('abc\r', '\ndef');
 
-      await expect(reader.next()).resolves.toBe('abc\r');
-      expect(reader.consume()).toBe('abc\r');
+      await expect(reader.next()).resolves.toBe('abc\r\n');
+      expect(reader.consume()).toBe('abc\r\n');
 
       await expect(reader.next()).resolves.toBe('def');
       expect(reader.current).toBe('def');
-      expect(reader.prev).toEqual(['\n']);
+      expect(reader.prev).toHaveLength(0);
     });
   });
 
   describe('consume', () => {
     beforeEach(() => {
-      reader = readChunks('abc', 'def');
+      reader = readChunks('abc\n', 'def\n');
     });
 
     it('consumes nothing by default', () => {
       expect(reader.consume()).toBe('');
     });
     it('consumes fully', async () => {
-      await expect(reader.next()).resolves.toBe('abc');
-      await expect(reader.next()).resolves.toBe('def');
-      expect(reader.consume()).toBe('abcdef');
+      await expect(reader.next()).resolves.toBe('abc\n');
+      await expect(reader.next()).resolves.toBe('def\n');
+      expect(reader.consume()).toBe('abc\ndef\n');
       expect(reader.current).toBeUndefined();
       expect(reader.prev).toHaveLength(0);
 
       expect(reader.consume()).toBe('');
     });
     it('consumes partially', async () => {
-      await expect(reader.next()).resolves.toBe('abc');
-      await expect(reader.next()).resolves.toBe('def');
-      expect(reader.consume(2)).toBe('abcde');
-      expect(reader.current).toBe('f');
+      await expect(reader.next()).resolves.toBe('abc\n');
+      await expect(reader.next()).resolves.toBe('def\n');
+      expect(reader.consume(2)).toBe('abc\nde');
+      expect(reader.current).toBe('f\n');
       expect(reader.prev).toHaveLength(0);
 
-      expect(reader.consume()).toBe('f');
+      expect(reader.consume()).toBe('f\n');
       expect(reader.consume()).toBe('');
     });
   });
 
   describe('search', () => {
     beforeEach(() => {
-      reader = readChunks('abc', 'def');
+      reader = readChunks('abc\n', 'def\n');
     });
 
     it('searches across chunks', async () => {
       await expect(reader.search('e')).resolves.toBe(1);
-      expect(reader.current).toBe('def');
-      expect(reader.prev).toEqual(['abc']);
+      expect(reader.current).toBe('def\n');
+      expect(reader.prev).toEqual(['abc\n']);
     });
     it('iterates all chunks when not found', async () => {
       await expect(reader.search('Z')).resolves.toBe(-1);
-      expect(reader.current).toBe('def');
-      expect(reader.prev).toEqual(['abc']);
+      expect(reader.current).toBe('def\n');
+      expect(reader.prev).toEqual(['abc\n']);
     });
   });
 

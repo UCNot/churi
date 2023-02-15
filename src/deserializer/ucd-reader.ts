@@ -1,3 +1,4 @@
+import { PerLineStream } from './impl/per-line-stream.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
@@ -8,7 +9,6 @@ export class UcdReader {
   readonly #onError: (error: unknown) => void;
 
   #current: string | undefined;
-  #hasCR = false;
   readonly #prev: string[] = [];
   #hasNext = true;
 
@@ -18,7 +18,7 @@ export class UcdReader {
     stream: ReadableStream<string>,
     { onError = UcDeserializer$throwOnError }: UcDeserializer.Options = {},
   ) {
-    this.#reader = stream.getReader();
+    this.#reader = stream.pipeThrough(new PerLineStream()).getReader();
     this.#onError = onError;
   }
 
@@ -69,27 +69,12 @@ export class UcdReader {
       return false;
     }
 
-    let { current } = this;
-    let next = value;
+    const { current } = this;
 
-    if (this.#hasCR && value.startsWith('\n')) {
-      // Handle Windows-style new line that splat between chunks.
-      // Append NL to current chunk and remove it from the next one.
-      current = current != null ? current + '\n' : '\n';
-      if (value.length === 1) {
-        // Ignore chunk containing only NL as effectively empty.
-        this.#current = current;
-        this.#hasCR = false;
-
-        return false;
-      }
-      next = value.slice(1);
-    }
     if (current) {
       this.#prev.push(current);
     }
-    this.#current = next;
-    this.#hasCR = next.endsWith('\r');
+    this.#current = value;
 
     return true;
   }
