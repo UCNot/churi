@@ -1,6 +1,18 @@
 import { asis } from '@proc7ts/primitives';
 import { UcSchema } from './uc-schema.js';
 
+export type UcOptional<
+  T,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+  TOptional extends boolean | undefined = true,
+> = Omit<TSchema, 'optional'> & {
+  readonly optional: TOptional;
+};
+
+export type UcRequired<T, TSchema extends UcSchema<T> = UcSchema<T>> = Omit<TSchema, 'optional'> & {
+  readonly optional?: false | undefined;
+};
+
 /**
  * Modifies schema to allow `undefined` values.
  *
@@ -13,7 +25,7 @@ import { UcSchema } from './uc-schema.js';
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   optional?: true,
-): Omit<TSchema, 'optional'> & { readonly optional: true };
+): UcOptional<T, TSchema>;
 
 /**
  * Modifies schema to prohibit `undefined` values.
@@ -27,7 +39,7 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   optional: false,
-): Omit<TSchema, 'optional'> & { readonly optional?: false | undefined };
+): UcRequired<T, TSchema>;
 
 /**
  * Modifies schema to allow or prohibit `undefined` values.
@@ -44,10 +56,7 @@ export function ucOptional<
   T,
   TSchema extends UcSchema<T> = UcSchema<T>,
   TOptional extends boolean | undefined = true,
->(
-  schema: TSchema,
-  optional: TOptional,
-): Omit<TSchema, 'optional'> & { readonly optional: TOptional };
+>(schema: TSchema, optional: TOptional): UcOptional<T, TSchema, TOptional>;
 
 /**
  * Creates a schema for the given class that allows `undefined` values.
@@ -60,7 +69,7 @@ export function ucOptional<
 export function ucOptional<T>(
   dataClass: UcSchema.Class<T>,
   optional?: true,
-): Omit<UcSchema<T>, 'optional'> & { readonly optional: true };
+): UcOptional<T, UcSchema<T>>;
 
 /**
  * Creates a schema for the given class that prohibits `undefined` values.
@@ -73,7 +82,7 @@ export function ucOptional<T>(
 export function ucOptional<T>(
   dataClass: UcSchema.Class<T>,
   optional: false,
-): Omit<UcSchema<T>, 'optional'> & { readonly optional?: false | undefined };
+): UcRequired<T, UcSchema<T>>;
 
 /**
  * Creates a schema for the given class that allows or prohibits `undefined` values.
@@ -87,7 +96,7 @@ export function ucOptional<T>(
 export function ucOptional<T, TOptional extends boolean | undefined = true>(
   dataClass: UcSchema.Class<T>,
   optional: TOptional,
-): Omit<UcSchema<T>, 'optional'> & { readonly optional: TOptional };
+): UcOptional<T, UcSchema<T>, TOptional>;
 
 export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema | UcSchema.Class<T>,
