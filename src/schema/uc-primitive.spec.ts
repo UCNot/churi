@@ -161,7 +161,7 @@ describe('Boolean', () => {
             types: ['boolean'],
           },
         },
-        message: 'Unexpected null, while expected boolean',
+        message: 'Unexpected null, while boolean expected',
       });
     });
 

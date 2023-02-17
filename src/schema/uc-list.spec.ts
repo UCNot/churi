@@ -6,12 +6,13 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcError } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucSchemaRef } from './uc-schema.js';
+import { UcSchema, ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
   const spec = ucList<string>(ucSchemaRef(() => String));
@@ -195,12 +196,120 @@ describe('UcList', () => {
       await expect(readList(chunkStream('13'))).rejects.toMatchObject({
         code: 'unexpected',
         details: {
-          type: 'number',
+          types: ['number'],
           expected: {
             types: ['list'],
           },
         },
-        message: 'Unexpected single number, while expected list',
+        message: 'Unexpected single number, while list expected',
+      });
+    });
+
+    describe('with nullable items', () => {
+      let readList: UcDeserializer<(number | null)[]>;
+
+      beforeEach(async () => {
+        const nullableNumber = ucNullable<number>(Number);
+        const lib = new UcdLib({
+          schemae: {
+            readList: ucList<number | null>(nullableNumber),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes null item', async () => {
+        await expect(readList(chunkStream('--,'))).resolves.toEqual([null]);
+        await expect(readList(chunkStream(',--'))).resolves.toEqual([null]);
+        await expect(readList(chunkStream('--,1'))).resolves.toEqual([null, 1]);
+        await expect(readList(chunkStream('1, --'))).resolves.toEqual([1, null]);
+      });
+      it('rejects null', async () => {
+        const error = await readList(chunkStream('--')).catch(asis);
+
+        expect((error as UcError).toJSON()).toEqual({
+          code: 'unexpected',
+          details: {
+            types: ['number', 'null'],
+            expected: {
+              types: ['list'],
+            },
+          },
+          message: 'Unexpected single number or null, while list expected',
+        });
+      });
+    });
+
+    describe('nullable', () => {
+      let readList: UcDeserializer<number[] | null>;
+
+      beforeEach(async () => {
+        const lib = new UcdLib<{ readList: UcSchema.Spec<number[] | null> }>({
+          schemae: {
+            readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number>(Number)))),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes null', async () => {
+        await expect(readList(chunkStream('--'))).resolves.toBeNull();
+      });
+      it('rejects null items', async () => {
+        const error = {
+          code: 'unexpected',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['number'],
+            },
+          },
+          message: 'Unexpected null, while number expected',
+        };
+
+        await expect(
+          readList(chunkStream('--,'))
+            .catch(asis)
+            .then(error => (error as UcError).toJSON()),
+        ).resolves.toEqual(error);
+        await expect(
+          readList(chunkStream(',--'))
+            .catch(asis)
+            .then(error => (error as UcError).toJSON()),
+        ).resolves.toEqual(error);
+      });
+      it('deserializes list', async () => {
+        await expect(readList(chunkStream('1, 2'))).resolves.toEqual([1, 2]);
+      });
+    });
+
+    describe('nullable with nullable items', () => {
+      let readList: UcDeserializer<(number | null)[] | null>;
+
+      beforeEach(async () => {
+        const nullableNumber = ucNullable<number>(Number);
+        const lib = new UcdLib<{ readList: UcSchema.Spec<(number | null)[] | null> }>({
+          schemae: {
+            readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number | null>(nullableNumber)))),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes null', async () => {
+        await expect(readList(chunkStream('--'))).resolves.toBeNull();
+      });
+      it('deserializes list', async () => {
+        await expect(readList(chunkStream('1, 2'))).resolves.toEqual([1, 2]);
+      });
+      it('deserializes null item', async () => {
+        await expect(readList(chunkStream('--,'))).resolves.toEqual([null]);
+        await expect(readList(chunkStream(',--'))).resolves.toEqual([null]);
+        await expect(readList(chunkStream('--,1'))).resolves.toEqual([null, 1]);
+        await expect(readList(chunkStream('1, --'))).resolves.toEqual([1, null]);
       });
     });
 
@@ -242,6 +351,84 @@ describe('UcList', () => {
         const { readCube } = await lib.compile().toDeserializers();
 
         await expect(readCube(chunkStream('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
+      });
+    });
+
+    describe('nested or null', () => {
+      let readMatrix: UcDeserializer<(number[] | null)[]>;
+
+      beforeEach(async () => {
+        const list = ucList<number>(Number);
+        const lib = new UcdLib({
+          schemae: {
+            readMatrix: ucList<number[] | null>(
+              ucSchemaRef(resolver => ucNullable(resolver.schemaOf(list))),
+            ),
+          },
+        });
+
+        ({ readMatrix } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes nested list', async () => {
+        await expect(readMatrix(chunkStream(' ( 13 ) '))).resolves.toEqual([[13]]);
+      });
+      it('deserializes null items', async () => {
+        await expect(readMatrix(chunkStream('--,'))).resolves.toEqual([null]);
+        await expect(readMatrix(chunkStream(', --'))).resolves.toEqual([null]);
+        await expect(readMatrix(chunkStream('(13)--'))).resolves.toEqual([[13], null]);
+      });
+      it('rejects null', async () => {
+        const error = await readMatrix(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.());
+
+        expect(error).toEqual({
+          code: 'unexpected',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['nested list'],
+            },
+          },
+          message: 'Unexpected null, while nested list expected',
+        });
+      });
+    });
+
+    describe('nullable with nested', () => {
+      let readMatrix: UcDeserializer<number[][] | null>;
+
+      beforeEach(async () => {
+        const matrix = ucList<number[]>(ucList<number>(Number));
+        const lib = new UcdLib({
+          schemae: {
+            readMatrix: ucSchemaRef<number[][] | null>(resolver => ucNullable(resolver.schemaOf(matrix))),
+          },
+        });
+
+        ({ readMatrix } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes null', async () => {
+        await expect(readMatrix(chunkStream('--'))).resolves.toBeNull();
+      });
+      it('rejects null items', async () => {
+        const error = {
+          code: 'unexpected',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['nested list'],
+            },
+          },
+          message: 'Unexpected null, while nested list expected',
+        };
+
+        await expect(
+          readMatrix(chunkStream('--,')).catch(error => (error as UcError)?.toJSON?.()),
+        ).resolves.toEqual(error);
+        await expect(
+          readMatrix(chunkStream(',--')).catch(error => (error as UcError | null)?.toJSON?.()),
+        ).resolves.toEqual(error);
       });
     });
   });

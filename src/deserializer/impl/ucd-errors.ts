@@ -13,9 +13,7 @@ export function ucdUnexpectedError(type: string, rx: UcdRx): UcErrorInfo {
         types: expectedTypes,
       },
     },
-    message:
-      `Unexpected ${type}, while expected `
-      + (expectedTypes.length === 1 ? expectedTypes[0] : `one of ${expectedTypes.join(', ')}`),
+    message: `Unexpected ${type}, while ${ucdTypeNames(expectedTypes)} expected`,
   };
 }
 
@@ -33,6 +31,26 @@ export function ucdExpectedTypes(rx: UcdRx): readonly string[] {
   const types = Object.keys(rx._).map(key => UCD_TYPE_NAMES[key] ?? key);
 
   return types.length ? types : ['value'];
+}
+
+export function ucdTypeNames(types: readonly string[]): string {
+  if (types.length === 1) {
+    return types[0];
+  }
+  if (types.length === 2) {
+    return `${types[0]} or ${types[1]}`;
+  }
+
+  return types.reduce((prev, type, index) => {
+    if (!prev) {
+      return type;
+    }
+    if (index + 1 === types.length) {
+      return `${prev}, or ${type}`;
+    }
+
+    return `${prev}, ${type}`;
+  }, '');
 }
 
 const UCD_TYPE_NAMES: { [key: PropertyKey]: string | undefined } = {

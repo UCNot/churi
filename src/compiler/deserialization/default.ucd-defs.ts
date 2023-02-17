@@ -55,7 +55,7 @@ export class Default$UcdDefs {
   }
 
   #readList(
-    { item }: UcList.Schema,
+    { nullable, item }: UcList.Schema,
     { fn, setter, prefix, suffix }: UcdDef.Location,
   ): UccCode.Source {
     const {
@@ -69,10 +69,12 @@ export class Default$UcdDefs {
       const listRx = ns.name('listRx');
       const addItem = ns.name('addItem');
 
+      const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
+
       code
         .write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`)
         .indent(fn.deserialize(item, { setter: addItem, prefix: 'return ', suffix: ';' }))
-        .write(`});`)
+        .write(nullableFlag ? `}, ${nullableFlag});` : `});`)
         .write(`${prefix}${listRx}.rx${suffix}`)
         .write(`${listRx}.end();`);
     };
