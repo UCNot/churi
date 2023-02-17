@@ -2,10 +2,10 @@ import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
-import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
 import { UcSerializer } from './uc-serializer.js';
 import { UcsDef } from './ucs-def.js';
@@ -17,7 +17,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #aliases: UccAliases;
+  readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
   readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
@@ -29,9 +29,9 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   constructor({
     schemae,
     resolver = new UcSchemaResolver(),
-    aliases = new UccAliases(),
-    imports = new UccImports(aliases),
-    declarations = new UccDeclarations(aliases),
+    ns = new UccNamespace(),
+    imports = new UccImports(ns),
+    declarations = new UccDeclarations(ns),
     definitions = DefaultUcsDefs,
     createSerializer = options => new UcsFunction(options),
   }: UcsLib.Options<TSchemae>) {
@@ -43,16 +43,16 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
-    this.#aliases = aliases;
+    this.#ns = ns;
     this.#imports = imports;
     this.#declarations = declarations;
     this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createSerializer = createSerializer;
 
     this.#serializerArgs = {
-      writer: aliases.aliasFor('writer'),
-      value: aliases.aliasFor('value'),
-      asItem: aliases.aliasFor('asItem'),
+      writer: ns.name('writer'),
+      value: ns.name('value'),
+      asItem: ns.name('asItem'),
     };
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
@@ -60,8 +60,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     }
   }
 
-  get aliases(): UccAliases {
-    return this.#aliases;
+  get ns(): UccNamespace {
+    return this.#ns;
   }
 
   get imports(): UccImports {
@@ -106,7 +106,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
       serializer = this.#createSerializer({
         lib: this as UcsLib,
         schema,
-        name: this.aliases.aliasFor(`${name}${variant}`),
+        name: this.ns.name(`${name}${variant}`),
       });
       variants.set(variant, serializer);
     }
@@ -215,7 +215,7 @@ export namespace UcsLib {
   export interface Options<TSchemae extends Schemae> {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
-    readonly aliases?: UccAliases | undefined;
+    readonly ns?: UccNamespace | undefined;
     readonly imports?: UccImports | undefined;
     readonly declarations?: UccDeclarations | undefined;
     readonly definitions?: UcsDef | readonly UcsDef[] | undefined;

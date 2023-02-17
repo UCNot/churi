@@ -1,8 +1,8 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsLib } from './ucs-lib.js';
 
@@ -43,8 +43,8 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.lib.serializerArgs;
   }
 
-  get aliases(): UccAliases {
-    return this.#lib.aliases;
+  get ns(): UccNamespace {
+    return this.#lib.ns;
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {

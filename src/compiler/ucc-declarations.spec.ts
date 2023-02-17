@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
 import { UccDeclarations } from './ucc-declarations.js';
+import { UccNamespace } from './ucc-namespace.js';
 
 describe('UccDeclarations', () => {
   let declarations: UccDeclarations;
 
   beforeEach(() => {
-    declarations = new UccDeclarations(new UccAliases());
+    declarations = new UccDeclarations(new UccNamespace());
   });
 
   describe('declare', () => {

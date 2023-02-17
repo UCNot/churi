@@ -76,7 +76,7 @@ class Default$UcsDefs {
     value: string,
     asItem: string,
   ): UccCode.Source {
-    const { lib, aliases, args } = fn;
+    const { lib, ns, args } = fn;
     const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
     const emptyList = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_LIST');
@@ -84,8 +84,8 @@ class Default$UcsDefs {
     const itemSchema = schema.item.optional
       ? ucOptional(ucNullable(schema.item), false) // Write `undefined` items as `null`
       : schema.item;
-    const itemValue = aliases.aliasFor(`${value}$item`);
-    const itemWritten = aliases.aliasFor(`${value}$itemWritten`);
+    const itemValue = ns.name(`${value}$item`);
+    const itemWritten = ns.name(`${value}$itemWritten`);
 
     return this.#checkConstraints(fn, schema, value, code => {
       code
@@ -124,13 +124,13 @@ class Default$UcsDefs {
     schema: UcMap.Schema<TEntriesSpec>,
     value: string,
   ): UccCode.Source {
-    const { lib, aliases, args } = fn;
+    const { lib, ns, args } = fn;
     const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
     const emptyMap = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_MAP');
     const emptyEntryPrefix = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_ENTRY_PREFIX');
     const nullEntryValue = lib.import(SERIALIZER_MODULE, 'UCS_NULL_ENTRY_VALUE');
-    const entryValue = aliases.aliasFor(`${value}$entryValue`);
+    const entryValue = ns.name(`${value}$entryValue`);
 
     let startMap: UccCode.Builder = noop;
     let endMap: UccCode.Builder = noop;
@@ -150,7 +150,7 @@ class Default$UcsDefs {
     let writeEntryPrefix = writeDefaultEntryPrefix;
 
     if (this.#mayBeEmpty(schema)) {
-      const entryWritten = aliases.aliasFor(`${value}$entryWritten`);
+      const entryWritten = ns.name(`${value}$entryWritten`);
 
       startMap = code => code.write(`let ${entryWritten} = false;`);
       endMap = code => code

@@ -1,14 +1,14 @@
 import { escapeJsString } from '../impl/quote-property-key.js';
-import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
+import { UccNamespace } from './ucc-namespace.js';
 
 export class UccImports {
 
   readonly #imports = new Map<string, Map<string, string>>();
-  readonly #aliases: UccAliases;
+  readonly #ns: UccNamespace;
 
-  constructor(aliases: UccAliases) {
-    this.#aliases = aliases;
+  constructor(ns: UccNamespace) {
+    this.#ns = ns;
   }
 
   import(from: string, name: string): string {
@@ -25,7 +25,7 @@ export class UccImports {
       this.#imports.set(from, moduleImports);
     }
 
-    const alias = this.#aliases.aliasFor(name);
+    const alias = this.#ns.name(name);
 
     moduleImports.set(name, alias);
 

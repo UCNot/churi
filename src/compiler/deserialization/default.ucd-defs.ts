@@ -60,14 +60,14 @@ export class Default$UcdDefs {
   ): UccCode.Source {
     const {
       lib,
-      aliases,
+      ns,
       args: { reader },
     } = fn;
     const readUcList = lib.import(DESERIALIZER_MODULE, 'readUcList');
 
     return code => {
-      const listRx = aliases.aliasFor('listRx');
-      const addItem = aliases.aliasFor('addItem');
+      const listRx = ns.name('listRx');
+      const addItem = ns.name('addItem');
 
       code
         .write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`)
@@ -88,10 +88,10 @@ export class Default$UcdDefs {
       args: { reader },
     } = fn;
     const serializer = lib.deserializerFor(schema);
-    const { aliases, declarations } = lib;
-    const targetMap = aliases.aliasFor('targetMap');
-    const setEntry = aliases.aliasFor('setEntry');
-    const entryValue = aliases.aliasFor('entryValue');
+    const { ns, declarations } = lib;
+    const targetMap = ns.name('targetMap');
+    const setEntry = ns.name('setEntry');
+    const entryValue = ns.name('entryValue');
 
     const entryDecls = declarations.declare(
       `${serializer.name}$entries`,

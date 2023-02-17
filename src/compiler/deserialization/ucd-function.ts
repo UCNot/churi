@@ -1,8 +1,8 @@
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
@@ -44,8 +44,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.lib.deserializerArgs;
   }
 
-  get aliases(): UccAliases {
-    return this.#lib.aliases;
+  get ns(): UccNamespace {
+    return this.#lib.ns;
   }
 
   deserialize(schema: UcSchema, location: Omit<UcdDef.Location, 'fn'>): UccCode.Source {

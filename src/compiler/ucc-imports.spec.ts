@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
 import { UccImports } from './ucc-imports.js';
+import { UccNamespace } from './ucc-namespace.js';
 
 describe('UccImports', () => {
   let imports: UccImports;
 
   beforeEach(() => {
-    imports = new UccImports(new UccAliases());
+    imports = new UccImports(new UccNamespace());
   });
 
   describe('asStatic', () => {
