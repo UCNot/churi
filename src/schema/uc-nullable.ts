@@ -1,6 +1,21 @@
 import { asis } from '@proc7ts/primitives';
 import { UcSchema } from './uc-schema.js';
 
+export type UcNullable<
+  T,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+  TNullable extends boolean | undefined = true,
+> = Omit<TSchema, 'nullable'> & {
+  readonly nullable: TNullable;
+};
+
+export type UcNonNullable<T, TSchema extends UcSchema<T> = UcSchema<T>> = Omit<
+  TSchema,
+  'nullable'
+> & {
+  readonly nullable?: false | undefined;
+};
+
 /**
  * Modifies schema to allow `null` values.
  *
@@ -13,7 +28,7 @@ import { UcSchema } from './uc-schema.js';
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   nullable?: true,
-): Omit<TSchema, 'nullable'> & { readonly nullable: true };
+): UcNullable<T, TSchema>;
 
 /**
  * Modifies schema to prohibit `null` values.
@@ -27,7 +42,7 @@ export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema,
   nullable: false,
-): Omit<TSchema, 'nullable'> & { readonly nullable?: false | undefined };
+): UcNonNullable<T, TSchema>;
 
 /**
  * Modifies schema to allow or prohibit `null` values.
@@ -44,10 +59,7 @@ export function ucNullable<
   T,
   TSchema extends UcSchema<T> = UcSchema<T>,
   TNullable extends boolean | undefined = true,
->(
-  schema: TSchema,
-  nullable: TNullable,
-): Omit<TSchema, 'nullable'> & { readonly nullable: TNullable };
+>(schema: TSchema, nullable: TNullable): UcNullable<T, TSchema, TNullable>;
 
 /**
  * Creates a schema for the given class that allows `null` values.
@@ -60,7 +72,7 @@ export function ucNullable<
 export function ucNullable<T>(
   dataClass: UcSchema.Class<T>,
   nullable?: true,
-): Omit<UcSchema<T>, 'nullable'> & { readonly nullable: true };
+): UcNullable<T, UcSchema<T>>;
 
 /**
  * Creates a schema for the given class that prohibits `null` values.
@@ -73,7 +85,7 @@ export function ucNullable<T>(
 export function ucNullable<T>(
   dataClass: UcSchema.Class<T>,
   optional: false,
-): Omit<UcSchema<T>, 'nullable'> & { readonly nullable?: false | undefined };
+): UcNonNullable<T, UcSchema<T>>;
 
 /**
  * Creates a schema for the given class that allows or prohibits `null` values.
@@ -87,7 +99,7 @@ export function ucNullable<T>(
 export function ucNullable<T, TNullable extends boolean | undefined = true>(
   dataClass: UcSchema.Class<T>,
   optional: TNullable,
-): Omit<UcSchema<T>, 'nullable'> & { readonly nullable: TNullable };
+): UcNullable<T, UcSchema<T>, TNullable>;
 
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   schema: TSchema | UcSchema.Class<T>,
