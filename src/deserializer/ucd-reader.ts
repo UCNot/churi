@@ -57,18 +57,13 @@ export class UcdReader {
         }
       }
 
-      if (this.#push(value)) {
+      if (this.#push(value!)) {
         return this.current;
       }
     }
   }
 
-  #push(value: string | undefined): boolean {
-    if (!value) {
-      // Ignore empty chunk.
-      return false;
-    }
-
+  #push(value: string): boolean {
     const { current } = this;
 
     if (current) {

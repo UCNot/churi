@@ -43,6 +43,12 @@ describe('UcdReader', () => {
       await expect(reader.next()).resolves.toBeUndefined();
       await expect(reader.next()).resolves.toBeUndefined();
     });
+    it('ignores empty chunks', async () => {
+      reader = readChunks('');
+
+      await expect(reader.next()).resolves.toBeUndefined();
+      await expect(reader.next()).resolves.toBeUndefined();
+    });
     it('handles Windows-style new lines splat across chunks', async () => {
       reader = readChunks('abc\r', '\ndef');
 
