@@ -1,3 +1,4 @@
+import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { PerLineStream } from './impl/per-line-stream.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
@@ -6,7 +7,7 @@ import { UcdRx } from './ucd-rx.js';
 export class UcdReader {
 
   readonly #reader: ReadableStreamDefaultReader<string>;
-  readonly #onError: (error: unknown) => void;
+  readonly #onError: (error: UcErrorInfo) => void;
 
   #current: string | undefined;
   readonly #prev: string[] = [];
@@ -34,7 +35,7 @@ export class UcdReader {
     return this.#prev;
   }
 
-  error(error: unknown): void {
+  error(error: UcErrorInfo): void {
     this.#onError(error);
   }
 
@@ -124,5 +125,5 @@ export class UcdReader {
 }
 
 function UcDeserializer$throwOnError(error: unknown): never {
-  throw error;
+  throw UcError.create(error);
 }

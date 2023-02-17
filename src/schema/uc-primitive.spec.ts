@@ -6,6 +6,7 @@ import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcError } from './uc-error.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { UcSchema } from './uc-schema.js';
@@ -59,12 +60,14 @@ describe('BigInt', () => {
       await expect(readValue(chunkStream('-0n0'))).resolves.toBe(-0n);
     });
     it('fails to deserialize NaN', async () => {
-      await expect(readValue(chunkStream('0nz'))).rejects.toEqual({
-        code: 'invalidSyntax',
-        invalidSyntax: { type: 'bigint' },
-        message: 'Cannot convert z to a BigInt',
-        cause: new SyntaxError('Cannot convert z to a BigInt'),
-      });
+      await expect(readValue(chunkStream('0nz'))).rejects.toThrow(
+        new UcError({
+          code: 'invalidSyntax',
+          details: { type: 'bigint' },
+          message: 'Cannot convert z to a BigInt',
+          cause: new SyntaxError('Cannot convert z to a BigInt'),
+        }),
+      );
     });
   });
 });
@@ -149,6 +152,44 @@ describe('Boolean', () => {
       await expect(readValue(chunkStream('-'))).resolves.toBe(false);
       await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
     });
+    it('fails to deserialize null', async () => {
+      await expect(readValue(chunkStream('--'))).rejects.toMatchObject({
+        code: 'unexpected',
+        details: {
+          type: 'null',
+          expected: {
+            types: ['boolean'],
+          },
+        },
+        message: 'Unexpected null, while expected boolean',
+      });
+    });
+
+    describe('nullable', () => {
+      let lib: UcdLib<{ readValue: UcSchema.Spec<boolean | null> }>;
+      let readValue: UcDeserializer<boolean | null>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readValue: ucNullable<boolean>(Boolean),
+          },
+        });
+        ({ readValue } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes boolean', async () => {
+        await expect(readValue(chunkStream('!'))).resolves.toBe(true);
+        await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
+        await expect(readValue(chunkStream('-'))).resolves.toBe(false);
+        await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
+      });
+      it('deserializes null', async () => {
+        await expect(readValue(chunkStream('--'))).resolves.toBeNull();
+        await expect(readValue(chunkStream('   --'))).resolves.toBeNull();
+        await expect(readValue(chunkStream('--   \r\n'))).resolves.toBeNull();
+      });
+    });
   });
 });
 
@@ -209,9 +250,9 @@ describe('Number', () => {
       await expect(readValue(chunkStream('-0'))).resolves.toBe(-0);
     });
     it('fails to deserialize NaN', async () => {
-      await expect(readValue(chunkStream('0xz'))).rejects.toEqual({
+      await expect(readValue(chunkStream('0xz'))).rejects.toMatchObject({
         code: 'invalidSyntax',
-        invalidSyntax: { type: 'number' },
+        details: { type: 'number' },
         message: 'Not a number',
       });
     });

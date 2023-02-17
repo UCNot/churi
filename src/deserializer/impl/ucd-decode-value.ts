@@ -107,7 +107,7 @@ function ucdRxNumeric(
     } catch (cause) {
       reader.error({
         code: 'invalidSyntax',
-        invalidSyntax: { type: 'bigint' },
+        details: { type: 'bigint' },
         message: (cause as Error).message,
         cause,
       });
@@ -124,7 +124,7 @@ function ucdRxNumeric(
     } else {
       reader.error({
         code: 'invalidSyntax',
-        invalidSyntax: { type: 'number' },
+        details: { type: 'number' },
         message: 'Not a number',
       });
     }

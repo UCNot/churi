@@ -1,4 +1,5 @@
 export * from './uc-entity.js';
+export * from './uc-error.js';
 export * from './uc-list.js';
 export * from './uc-map.js';
 export * from './uc-nullable.js';

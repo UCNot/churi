@@ -59,26 +59,18 @@ export function readUcList(
     },
     end() {
       if (!listCreated) {
-        if (items.length) {
-          const [type] = ucdExpectedTypes(firstItemRx);
+        const [type] = ucdExpectedTypes(firstItemRx);
 
-          reader.error({
-            code: 'unexpected',
-            unexpected: {
-              type,
-              expected: ['list'],
+        reader.error({
+          code: 'unexpected',
+          details: {
+            type,
+            expected: {
+              types: ['list'],
             },
-            message: `Unexpected single ${type}, while expected list`,
-          });
-        } else {
-          reader.error({
-            code: 'missing',
-            missing: {
-              expected: ['list'],
-            },
-            message: `Missing list`,
-          });
-        }
+          },
+          message: `Unexpected single ${type}, while expected list`,
+        });
       }
     },
   };

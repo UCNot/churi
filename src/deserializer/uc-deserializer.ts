@@ -1,3 +1,5 @@
+import { UcErrorInfo } from '../schema/uc-error.js';
+
 export type UcDeserializer<T> = (
   input: ReadableStream<string>,
   options?: UcDeserializer.Options,
@@ -5,6 +7,6 @@ export type UcDeserializer<T> = (
 
 export namespace UcDeserializer {
   export interface Options {
-    readonly onError?: (error: unknown) => void;
+    readonly onError?: (error: UcErrorInfo) => void;
   }
 }

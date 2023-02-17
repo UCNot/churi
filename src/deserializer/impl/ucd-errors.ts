@@ -1,12 +1,13 @@
 import { quotePropertyKey } from '../../impl/quote-property-key.js';
+import { UcErrorInfo } from '../../schema/uc-error.js';
 import { UcdRx, UcdValueRx } from '../ucd-rx.js';
 
-export function ucdUnexpectedError(type: string, rx: UcdRx): unknown {
+export function ucdUnexpectedError(type: string, rx: UcdRx): UcErrorInfo {
   const expectedTypes = ucdExpectedTypes(rx);
 
   return {
     code: 'unexpected',
-    unexpected: {
+    details: {
       type,
       expected: {
         types: expectedTypes,
@@ -18,10 +19,10 @@ export function ucdUnexpectedError(type: string, rx: UcdRx): unknown {
   };
 }
 
-export function ucdUnexpectedEntryError(key: string): unknown {
+export function ucdUnexpectedEntryError(key: string): UcErrorInfo {
   return {
     code: 'unexpectedEntry',
-    unexpectedEntry: {
+    details: {
       key,
     },
     message: `Unexpected entry: ${quotePropertyKey(key, '"')}`,

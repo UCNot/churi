@@ -191,6 +191,18 @@ describe('UcList', () => {
     it('deserializes single item with trailing comma', async () => {
       await expect(readList(chunkStream('13 ,  '))).resolves.toEqual([13]);
     });
+    it('rejects item instead of list', async () => {
+      await expect(readList(chunkStream('13'))).rejects.toMatchObject({
+        code: 'unexpected',
+        details: {
+          type: 'number',
+          expected: {
+            types: ['list'],
+          },
+        },
+        message: 'Unexpected single number, while expected list',
+      });
+    });
 
     describe('nested', () => {
       let readMatrix: UcDeserializer<number[][]>;
