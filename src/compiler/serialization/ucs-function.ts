@@ -10,8 +10,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   implements UccCode.Fragment {
 
   readonly #lib: UcsLib;
+  readonly #ns: UccNamespace;
   readonly #schema: TSchema;
   readonly #name: string;
+  #args?: UcsFunction.Args;
   readonly #createWriter: Required<UcsFunction.Options<T, TSchema>>['createWriter'];
 
   constructor(options: UcsFunction.Options<T, TSchema>);
@@ -22,6 +24,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     createWriter = UcsFunction$createWriter,
   }: UcsFunction.Options<T, TSchema>) {
     this.#lib = lib;
+    this.#ns = lib.ns.nest();
     this.#schema = schema;
     this.#name = name;
     this.#createWriter = createWriter;
@@ -40,11 +43,15 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   get args(): UcsFunction.Args {
-    return this.lib.serializerArgs;
+    return (this.#args ??= {
+      writer: this.ns.name('writer'),
+      value: this.ns.name('value'),
+      asItem: this.ns.name('asItem'),
+    });
   }
 
   get ns(): UccNamespace {
-    return this.#lib.ns;
+    return this.#ns;
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {

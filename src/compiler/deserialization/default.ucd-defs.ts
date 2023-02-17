@@ -104,7 +104,7 @@ export class Default$UcdDefs {
                 .write(`${escapeJsString(key)}(${reader}, ${targetMap}){`)
                 .indent(code => {
                   code
-                    .write(`const ${setEntry} = (${entryValue}) => {`)
+                    .write(`const ${setEntry} = ${entryValue} => {`)
                     .indent(
                       `${uccPropertyAccessExpr(targetMap, key)} = ${entryValue};`,
                       'return 1;',
@@ -114,7 +114,7 @@ export class Default$UcdDefs {
                       fn.deserialize(entrySchema, {
                         setter: setEntry,
                         prefix: 'return ',
-                        suffix: '',
+                        suffix: ';',
                       }),
                     );
                 })

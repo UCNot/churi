@@ -1,19 +1,43 @@
 export class UccNamespace {
 
-  readonly #names = new Map<string, string[]>();
+  readonly #enclosing: UccNamespace | undefined;
 
-  name(preferred = 'tmp'): string {
+  constructor(enclosing?: UccNamespace) {
+    this.#enclosing = enclosing;
+  }
+
+  readonly #names = new Map<string, UccNames>();
+
+  name(preferred = 'tmp', forNested = false): string {
     let name: string;
     const names = this.#names.get(preferred);
 
     if (!names) {
-      name = preferred;
+      if (this.#enclosing) {
+        name = this.#enclosing.name(preferred, true);
+      } else {
+        name = preferred;
+      }
     } else {
-      name = this.#nextName(names);
-      names.push(name);
+      if (forNested && names.nested) {
+        return names.nested;
+      }
+
+      const { list } = names;
+
+      if (this.#enclosing) {
+        name = this.#enclosing.name(this.#nextName(list), true);
+      } else {
+        name = this.#nextName(list);
+      }
+
+      list.push(name);
+      if (forNested) {
+        names.nested = name;
+      }
     }
 
-    this.#names.set(name, [name]);
+    this.#names.set(name, { list: [name], nested: forNested ? name : undefined });
 
     return name;
   }
@@ -32,7 +56,16 @@ export class UccNamespace {
 
     const conflict = this.#names.get(name);
 
-    return conflict ? this.#nextName(conflict) : name;
+    return conflict ? this.#nextName(conflict.list) : name;
   }
 
+  nest(): UccNamespace {
+    return new UccNamespace(this);
+  }
+
+}
+
+interface UccNames {
+  readonly list: string[];
+  nested: string | undefined;
 }

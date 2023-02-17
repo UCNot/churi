@@ -11,8 +11,10 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   implements UccCode.Fragment {
 
   readonly #lib: UcdLib;
+  readonly #ns: UccNamespace;
   readonly #schema: TSchema;
   readonly #name: string;
+  #args?: UcdFunction.Args;
   readonly #createReader: Required<UcdFunction.Options<T, TSchema>>['createReader'];
 
   constructor(options: UcdFunction.Options<T, TSchema>);
@@ -23,6 +25,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     createReader = UcdFunction$createReader,
   }: UcdFunction.Options<T, TSchema>) {
     this.#lib = lib;
+    this.#ns = lib.ns.nest();
     this.#schema = schema;
     this.#name = name;
     this.#createReader = createReader;
@@ -41,11 +44,14 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   get args(): UcdFunction.Args {
-    return this.lib.deserializerArgs;
+    return (this.#args ??= {
+      reader: this.ns.name('reader'),
+      setter: this.ns.name('set'),
+    });
   }
 
   get ns(): UccNamespace {
-    return this.#lib.ns;
+    return this.#ns;
   }
 
   deserialize(schema: UcSchema, location: Omit<UcdDef.Location, 'fn'>): UccCode.Source {

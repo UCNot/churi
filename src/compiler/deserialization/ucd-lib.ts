@@ -22,7 +22,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #declarations: UccDeclarations;
   readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
-  readonly #deserializerArgs: UcdFunction.Args;
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
 
   constructor(options: UcdLib.Options<TSchemae>);
@@ -50,11 +49,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createDeserializer = createDeserializer;
 
-    this.#deserializerArgs = {
-      reader: 'reader',
-      setter: 'set',
-    };
-
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
       this.#deserializerFor(schema, `${externalName}$deserialize`);
     }
@@ -70,10 +64,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   get declarations(): UccDeclarations {
     return this.#declarations;
-  }
-
-  get deserializerArgs(): UcdFunction.Args {
-    return this.#deserializerArgs;
   }
 
   import(from: string, name: string): string {
@@ -157,6 +147,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   async #toDeserializers(): Promise<UcdLib.Exports<TSchemae>> {
     const code = new UccCode().write(this.#toFactoryCode()).toString();
+
+    console.debug(code);
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;

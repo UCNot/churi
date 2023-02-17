@@ -22,7 +22,6 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   readonly #declarations: UccDeclarations;
   readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
   readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
-  readonly #serializerArgs: UcsFunction.Args;
   readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>);
@@ -49,12 +48,6 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createSerializer = createSerializer;
 
-    this.#serializerArgs = {
-      writer: ns.name('writer'),
-      value: ns.name('value'),
-      asItem: ns.name('asItem'),
-    };
-
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
       this.#serializerFor(schema, `${externalName}$serialize`);
     }
@@ -70,10 +63,6 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 
   get declarations(): UccDeclarations {
     return this.#declarations;
-  }
-
-  get serializerArgs(): UcsFunction.Args {
-    return this.#serializerArgs;
   }
 
   import(from: string, name: string): string {
