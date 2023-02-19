@@ -199,6 +199,38 @@ describe('Boolean', () => {
         },
       ]);
     });
+    it('rejects nested list', async () => {
+      await expect(readValue(chunkStream('()'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          details: {
+            type: 'nested list',
+            expected: {
+              types: ['boolean'],
+            },
+          },
+          message: 'Unexpected nested list, while boolean expected',
+        },
+      ]);
+    });
+    it('rejects second item', async () => {
+      await expect(readValue(chunkStream('!,-'), { onError })).resolves.toBe(true);
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          details: {
+            type: 'list',
+            expected: {
+              types: ['boolean'],
+            },
+          },
+          message: 'Unexpected list, while boolean expected',
+        },
+      ]);
+    });
 
     describe('nullable', () => {
       let lib: UcdLib<{ readValue: UcSchema.Spec<boolean | null> }>;
@@ -425,6 +457,15 @@ describe('String', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     let lib: UcdLib<{ readValue: UcSchema.Spec<string> }>;
     let readValue: UcDeserializer<string>;
 
@@ -464,6 +505,38 @@ describe('String', () => {
     });
     it('does not close unbalanced parentheses within quoted string', async () => {
       await expect(readValue(chunkStream("'abc(def("))).resolves.toBe('abc(def(');
+    });
+    it('rejects map', async () => {
+      await expect(readValue(chunkStream('foo(bar)'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          details: {
+            type: 'map',
+            expected: {
+              types: ['string'],
+            },
+          },
+          message: 'Unexpected map, while string expected',
+        },
+      ]);
+    });
+    it('rejects suffix', async () => {
+      await expect(readValue(chunkStream('$foo'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          details: {
+            type: 'map',
+            expected: {
+              types: ['string'],
+            },
+          },
+          message: 'Unexpected map, while string expected',
+        },
+      ]);
     });
   });
 });

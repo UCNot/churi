@@ -40,17 +40,15 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (argIdx < 0) {
       // End of input.
       // Map containing single key with empty value.
-      const map = ucdRxMap(reader, rx);
-      const key = unchargeURIKey(reader.consume().trimEnd());
-      const entryRx = ucdRxEntry(reader, map, key);
-
-      ucdRxString(reader, entryRx, '');
-
-      map.end();
+      ucdRxSingleEntry(reader, rx, unchargeURIKey(reader.consume().trimEnd()));
     } else {
       const key = unchargeURIKey(reader.consume(argIdx).trimEnd());
 
-      await ucdReadMap(reader, rx, key);
+      if (reader.current?.startsWith('(')) {
+        await ucdReadMap(reader, rx, key);
+      } else {
+        ucdRxSingleEntry(reader, rx, key);
+      }
     }
 
     if (single) {
@@ -58,7 +56,11 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     }
 
     hasValue = true;
-  } else if (current.startsWith('(')) {
+  }
+
+  if (reader.current?.startsWith('(')) {
+    rx.lst?.();
+
     await ucdReadNestedList(reader, rx);
 
     if (single) {
@@ -119,8 +121,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   let itemsRx: UcdRx;
 
   if (delimiter === ',') {
-    // End of list item.
-    // List item.
+    // List.
     if (single || rx.lst?.()) {
       itemsRx = rx;
     } else {
@@ -128,7 +129,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
       itemsRx = UCD_OPAQUE_RX;
     }
     if (delimiterIdx) {
-      // Decode leading item, if eny.
+      // Decode leading item, if any.
       // Ignore empty leading item otherwise.
       ucdDecodeValue(reader, itemsRx, reader.consume(delimiterIdx).trimEnd());
     }
@@ -151,14 +152,18 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (rx.lst?.()) {
       itemsRx = rx;
     } else {
-      reader.error(ucdUnexpectedTypeError('list', rx));
+      reader.error(
+        ucdUnexpectedTypeError(reader.current.startsWith('(') ? 'nested list' : 'list', rx),
+      );
       itemsRx = UCD_OPAQUE_RX;
     }
   }
 
-  // Skip comma and whitespace after it.
-  reader.consume(1);
-  await ucdSkipWhitespace(reader);
+  if (reader.current.startsWith(',')) {
+    // Skip comma and whitespace after it.
+    reader.consume(1);
+    await ucdSkipWhitespace(reader);
+  }
 
   return await ucdReadItems(reader, itemsRx);
 }
@@ -223,7 +228,7 @@ async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
   let itemsRx = rx._.nls?.();
 
   if (!itemsRx) {
-    reader.error(ucdUnexpectedTypeError('list', rx));
+    reader.error(ucdUnexpectedTypeError('nested list', rx));
     itemsRx = UCD_OPAQUE_RX;
   }
 
@@ -259,6 +264,15 @@ async function ucdReadItems(reader: UcdReader, rx: UcdRx): Promise<void> {
   rx.end?.();
 }
 
+function ucdRxSingleEntry(reader: UcdReader, rx: UcdRx, key: string): void {
+  const map = ucdRxMap(reader, rx);
+  const entryRx = ucdRxEntry(reader, map, key);
+
+  ucdRxString(reader, entryRx, '');
+
+  map.end();
+}
+
 async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promise<void> {
   reader.consume(1); // Skip opening parentheses.
 
@@ -289,11 +303,6 @@ async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void>
       // Next item.
       const delimiter = reader.current![delimiterIdx];
       const rawKey = reader.consume(delimiterIdx).trimEnd();
-
-      if (!rawKey) {
-        // No next entry.
-        break;
-      }
 
       if (delimiter === '(') {
         // Next entry.

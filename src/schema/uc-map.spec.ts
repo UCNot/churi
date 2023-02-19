@@ -300,7 +300,7 @@ describe('UcMap', () => {
           foo: 'bar',
         });
       });
-      it('prohibits null', async () => {
+      it('rejects null', async () => {
         await expect(
           readMap(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual({
@@ -313,6 +313,38 @@ describe('UcMap', () => {
           },
           message: 'Unexpected null, while map expected',
         });
+      });
+      it('rejects second item', async () => {
+        await expect(readMap(chunkStream('foo(),'), { onError })).resolves.toEqual({ foo: '' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
+          },
+        ]);
+      });
+      it('rejects second item after $-prefixes map', async () => {
+        await expect(readMap(chunkStream('$foo(),'), { onError })).resolves.toEqual({ foo: '' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
+          },
+        ]);
       });
     });
 
@@ -351,6 +383,10 @@ describe('UcMap', () => {
           foo: 'first',
           bar: '',
         });
+        await expect(readMap(chunkStream('foo(first) \n  bar )'))).resolves.toEqual({
+          foo: 'first',
+          bar: '',
+        });
       });
       it('handles whitespace', async () => {
         await expect(
@@ -375,6 +411,42 @@ describe('UcMap', () => {
               key: 'wrong',
             },
             message: 'Unexpected entry: wrong',
+          },
+        ]);
+      });
+      it('rejects nested list', async () => {
+        await expect(
+          readMap(chunkStream('foo(first) bar(second) () '), { onError }),
+        ).resolves.toEqual({ foo: 'first', bar: 'second' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'nested list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected nested list, while map expected',
+          },
+        ]);
+      });
+      it('rejects second item', async () => {
+        await expect(
+          readMap(chunkStream('foo(first) bar(second) , '), { onError }),
+        ).resolves.toEqual({ foo: 'first', bar: 'second' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
           },
         ]);
       });

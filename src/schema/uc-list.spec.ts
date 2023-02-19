@@ -6,13 +6,14 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
-import { UcError } from './uc-error.js';
+import { UcError, UcErrorInfo } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
+import { ucMap } from './uc-map.js';
 import { UcNullable, ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { ucSchemaRef } from './uc-schema.js';
+import { UcSchema, ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
   const spec = ucList<string>(ucSchemaRef<string>(() => String));
@@ -165,6 +166,15 @@ describe('UcList', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     let readList: UcDeserializer<number[]>;
 
     beforeEach(async () => {
@@ -180,6 +190,9 @@ describe('UcList', () => {
     it('deserializes list', async () => {
       await expect(readList(chunkStream('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
+    it('deserializes empty list', async () => {
+      await expect(readList(chunkStream(', '))).resolves.toEqual([]);
+    });
     it('deserializes list with leading comma', async () => {
       await expect(readList(chunkStream(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
@@ -193,15 +206,135 @@ describe('UcList', () => {
       await expect(readList(chunkStream('13 ,  '))).resolves.toEqual([13]);
     });
     it('rejects item instead of list', async () => {
-      await expect(readList(chunkStream('13'))).rejects.toMatchObject({
-        code: 'unexpectedType',
-        details: {
-          types: ['number'],
-          expected: {
-            types: ['list'],
+      await expect(readList(chunkStream('13'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          details: {
+            types: ['number'],
+            expected: {
+              types: ['list'],
+            },
           },
+          message: 'Unexpected single number, while list expected',
         },
-        message: 'Unexpected single number, while list expected',
+      ]);
+    });
+
+    describe('of booleans', () => {
+      let readList: UcDeserializer<boolean[]>;
+
+      beforeEach(async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readList: ucList<boolean>(Boolean),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes items', async () => {
+        await expect(readList(chunkStream('-, ! , -  '))).resolves.toEqual([false, true, false]);
+      });
+    });
+
+    describe('of strings', () => {
+      let readList: UcDeserializer<string[]>;
+
+      beforeEach(async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readList: ucList<string>(String),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes quoted strings', async () => {
+        await expect(readList(chunkStream("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
+      });
+    });
+
+    describe('of maps', () => {
+      let readList: UcDeserializer<{ foo: string }[]>;
+
+      beforeEach(async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readList: ucList<{ foo: string }>(
+              ucMap<{ foo: UcSchema.Spec<string> }>({ foo: String }),
+            ),
+          },
+        });
+
+        ({ readList } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes items', async () => {
+        await expect(readList(chunkStream('$foo, foo(bar) , $foo(baz)'))).resolves.toEqual([
+          { foo: '' },
+          { foo: 'bar' },
+          { foo: 'baz' },
+        ]);
+        await expect(readList(chunkStream('$foo(), foo(bar) , foo(baz),'))).resolves.toEqual([
+          { foo: '' },
+          { foo: 'bar' },
+          { foo: 'baz' },
+        ]);
+        await expect(readList(chunkStream('foo(), foo(bar) , foo(baz)'))).resolves.toEqual([
+          { foo: '' },
+          { foo: 'bar' },
+          { foo: 'baz' },
+        ]);
+        await expect(readList(chunkStream(',foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+          { foo: '' },
+          { foo: 'bar' },
+          { foo: 'baz' },
+        ]);
+        await expect(readList(chunkStream(',$foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+          { foo: '' },
+          { foo: 'bar' },
+          { foo: 'baz' },
+        ]);
+      });
+      it('rejects nested list', async () => {
+        await expect(
+          readList(chunkStream('foo() () foo(bar) , $foo(baz)'), { onError }),
+        ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'nested list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected nested list, while map expected',
+          },
+        ]);
+      });
+      it('rejects nested list after $-prefixed map', async () => {
+        await expect(
+          readList(chunkStream('$foo() () foo(bar) , $foo(baz)'), { onError }),
+        ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'nested list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected nested list, while map expected',
+          },
+        ]);
       });
     });
 

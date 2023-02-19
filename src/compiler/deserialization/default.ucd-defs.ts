@@ -129,7 +129,7 @@ export class Default$UcdDefs {
 
     return code => {
       code
-        .write(`const ${targetMap} = {};`)
+        .write(`let ${targetMap} = {};`)
         .write(`${prefix}{`)
         .indent(code => {
           code
@@ -138,10 +138,11 @@ export class Default$UcdDefs {
               code
                 .write(`map: {`)
                 .indent(code => {
-                  code.write(
-                    `for: key => ${entryDecls}[key]?.(${reader}, ${targetMap}),`,
-                    `end: () => ${setter}(${targetMap}),`,
-                  );
+                  code
+                    .write(`for: key => ${entryDecls}[key]?.(${reader}, ${targetMap}),`)
+                    .write(`end: () => {`)
+                    .indent(`${setter}(${targetMap});`, `targetMap = {};`)
+                    .write(`},`);
                 })
                 .write(`},`);
               if (schema.nullable) {
