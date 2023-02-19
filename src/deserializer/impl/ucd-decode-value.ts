@@ -2,7 +2,7 @@ import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
 import { UcdReader } from '../ucd-reader.js';
 import { UcdRx } from '../ucd-rx.js';
-import { ucdUnexpectedError } from './ucd-errors.js';
+import { ucdUnexpectedTypeError } from './ucd-errors.js';
 
 export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): void {
   if (!input) {
@@ -70,25 +70,25 @@ function ucdDecodeUnsigned(reader: UcdReader, rx: UcdRx, input: string): void {
 
 function ucdRxBigInt(reader: UcdReader, rx: UcdRx, value: bigint): void {
   if (!rx._.big?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedError('bigint', rx));
+    reader.error(ucdUnexpectedTypeError('bigint', rx));
   }
 }
 
 export function ucdRxBoolean(reader: UcdReader, rx: UcdRx, value: boolean): void {
   if (!rx._.bol?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedError('boolean', rx));
+    reader.error(ucdUnexpectedTypeError('boolean', rx));
   }
 }
 
 function ucdRxNull(reader: UcdReader, rx: UcdRx): void {
   if (!rx._.nul?.()) {
-    reader.error(ucdUnexpectedError('null', rx));
+    reader.error(ucdUnexpectedTypeError('null', rx));
   }
 }
 
 function ucdRxNumber(reader: UcdReader, rx: UcdRx, value: number): void {
   if (!rx._.num?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedError('number', rx));
+    reader.error(ucdUnexpectedTypeError('number', rx));
   }
 }
 
@@ -133,6 +133,6 @@ function ucdRxNumeric(
 
 export function ucdRxString(reader: UcdReader, rx: UcdRx, value: string): void {
   if (!rx._.str?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedError('string', rx));
+    reader.error(ucdUnexpectedTypeError('string', rx));
   }
 }

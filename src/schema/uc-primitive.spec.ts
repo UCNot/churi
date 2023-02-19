@@ -85,7 +85,7 @@ describe('BigInt', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: { type: 'number', expected: { types: ['bigint'] } },
           message: 'Unexpected number, while bigint expected',
         },
@@ -188,7 +188,7 @@ describe('Boolean', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             type: 'null',
             expected: {
@@ -229,7 +229,7 @@ describe('Boolean', () => {
 
         expect(errors).toEqual([
           {
-            code: 'unexpected',
+            code: 'unexpectedType',
             details: {
               type: 'number',
               expected: {
@@ -329,7 +329,7 @@ describe('Number', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: { type: 'bigint', expected: { types: ['number'] } },
           message: 'Unexpected bigint, while number expected',
         },
@@ -340,7 +340,7 @@ describe('Number', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: { type: 'boolean', expected: { types: ['number'] } },
           message: 'Unexpected boolean, while number expected',
         },
@@ -351,7 +351,7 @@ describe('Number', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: { type: 'string', expected: { types: ['number'] } },
           message: 'Unexpected string, while number expected',
         },

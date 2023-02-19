@@ -1,4 +1,4 @@
-import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedError } from './impl/ucd-errors.js';
+import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './impl/ucd-errors.js';
 import { UcdReader } from './ucd-reader.js';
 import { UcdRx, UcdValueRx } from './ucd-rx.js';
 
@@ -54,7 +54,7 @@ export function readUcList(
 
         delete errorRx.nul;
 
-        reader.error(ucdUnexpectedError('null', { _: errorRx }));
+        reader.error(ucdUnexpectedTypeError('null', { _: errorRx }));
       };
 
       valueRx.nul = () => {
@@ -84,7 +84,7 @@ export function readUcList(
         } else {
           isNull = false;
           if (!firstItemValueRx.nul?.()) {
-            reader.error(ucdUnexpectedError('null', firstItemRx));
+            reader.error(ucdUnexpectedTypeError('null', firstItemRx));
           }
         }
 
@@ -117,7 +117,7 @@ export function readUcList(
         const types = ucdExpectedTypes(firstItemRx);
 
         reader.error({
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             types,
             expected: {

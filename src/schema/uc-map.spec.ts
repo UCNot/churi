@@ -304,7 +304,7 @@ describe('UcMap', () => {
         await expect(
           readMap(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual({
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             type: 'null',
             expected: {

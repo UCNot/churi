@@ -194,7 +194,7 @@ describe('UcList', () => {
     });
     it('rejects item instead of list', async () => {
       await expect(readList(chunkStream('13'))).rejects.toMatchObject({
-        code: 'unexpected',
+        code: 'unexpectedType',
         details: {
           types: ['number'],
           expected: {
@@ -229,7 +229,7 @@ describe('UcList', () => {
         const error = await readList(chunkStream('--')).catch(asis);
 
         expect((error as UcError).toJSON()).toEqual({
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             types: ['number', 'null'],
             expected: {
@@ -259,7 +259,7 @@ describe('UcList', () => {
       });
       it('rejects null items', async () => {
         const error = {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             type: 'null',
             expected: {
@@ -380,7 +380,7 @@ describe('UcList', () => {
         const error = await readMatrix(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.());
 
         expect(error).toEqual({
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             type: 'null',
             expected: {
@@ -411,7 +411,7 @@ describe('UcList', () => {
       });
       it('rejects null items', async () => {
         const error = {
-          code: 'unexpected',
+          code: 'unexpectedType',
           details: {
             type: 'null',
             expected: {

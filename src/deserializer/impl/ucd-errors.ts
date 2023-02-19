@@ -2,11 +2,11 @@ import { quotePropertyKey } from '../../impl/quote-property-key.js';
 import { UcErrorInfo } from '../../schema/uc-error.js';
 import { UcdRx, UcdValueRx } from '../ucd-rx.js';
 
-export function ucdUnexpectedError(type: string, rx: UcdRx): UcErrorInfo {
+export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
   const expectedTypes = ucdExpectedTypes(rx);
 
   return {
-    code: 'unexpected',
+    code: 'unexpectedType',
     details: {
       type,
       expected: {

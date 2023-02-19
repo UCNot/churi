@@ -2,7 +2,7 @@ import { unchargeURIKey } from '../../charge/charge-uri.js';
 import { UcdReader } from '../ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
 import { ucdDecodeValue, ucdRxBoolean, ucdRxString } from './ucd-decode-value.js';
-import { ucdUnexpectedEntryError, ucdUnexpectedError } from './ucd-errors.js';
+import { ucdUnexpectedEntryError, ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
 
 export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false): Promise<void> {
@@ -124,7 +124,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (single || rx.lst?.()) {
       itemsRx = rx;
     } else {
-      reader.error(ucdUnexpectedError('list', rx));
+      reader.error(ucdUnexpectedTypeError('list', rx));
       itemsRx = UCD_OPAQUE_RX;
     }
     if (delimiterIdx) {
@@ -151,7 +151,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     if (rx.lst?.()) {
       itemsRx = rx;
     } else {
-      reader.error(ucdUnexpectedError('list', rx));
+      reader.error(ucdUnexpectedTypeError('list', rx));
       itemsRx = UCD_OPAQUE_RX;
     }
   }
@@ -223,7 +223,7 @@ async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
   let itemsRx = rx._.nls?.();
 
   if (!itemsRx) {
-    reader.error(ucdUnexpectedError('list', rx));
+    reader.error(ucdUnexpectedTypeError('list', rx));
     itemsRx = UCD_OPAQUE_RX;
   }
 
@@ -340,7 +340,7 @@ function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx {
     return mapRx;
   }
 
-  reader.error(ucdUnexpectedError('map', rx));
+  reader.error(ucdUnexpectedTypeError('map', rx));
 
   return UCD_OPAQUE_RX._.map;
 }
