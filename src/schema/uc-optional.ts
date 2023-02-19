@@ -1,6 +1,13 @@
 import { asis } from '@proc7ts/primitives';
 import { UcSchema } from './uc-schema.js';
 
+/**
+ * URI charge {@link UcSchema schema} definition that permits `undefined` or missing values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ * @typeParam TOptional - Type of {@link UcSchema#optional optional} flag.
+ */
 export type UcOptional<
   T,
   TSchema extends UcSchema<T> = UcSchema<T>,
@@ -9,9 +16,63 @@ export type UcOptional<
   readonly optional: TOptional;
 };
 
+export namespace UcOptional {
+  /**
+   * Specifier of {@link UcOptional optional} URI charge schema.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export type Spec<T = unknown, TSchema extends UcOptional<T> = UcOptional<T>> = UcSchema.Spec<
+    T,
+    TSchema
+  >;
+
+  /**
+   * Reference to {@link UcOptional optional} URI charge schema.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export type Ref<
+    T = unknown,
+    TSchema extends UcOptional<T> = UcOptional<T>,
+  > = UcSchema.Ref<TSchema>;
+}
+
+/**
+ * URI charge {@link UcSchema schema} definition that prohibits `undefined` or missing values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ */
 export type UcRequired<T, TSchema extends UcSchema<T> = UcSchema<T>> = Omit<TSchema, 'optional'> & {
   readonly optional?: false | undefined;
 };
+
+export namespace UcRequired {
+  /**
+   * Specifier of {@link UcRequired required} URI charge schema.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export type Spec<T = unknown, TSchema extends UcRequired<T> = UcRequired<T>> = UcSchema.Spec<
+    T,
+    TSchema
+  >;
+
+  /**
+   * Reference to {@link UcRequired required} URI charge schema.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export type Ref<
+    T = unknown,
+    TSchema extends UcRequired<T> = UcRequired<T>,
+  > = UcSchema.Ref<TSchema>;
+}
 
 /**
  * Modifies schema to allow `undefined` values.
@@ -46,6 +107,7 @@ export function ucOptional<T, TSchema extends UcSchema<T> = UcSchema<T>>(
  *
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Original schema type.
+ * @typeParam TOptional - Type of {@link UcSchema#optional optional} flag.
  * @param schema - Schema to modify.
  * @param optional - Whether to allow `undefined` values.
  *
@@ -88,6 +150,7 @@ export function ucOptional<T>(
  * Creates a schema for the given class that allows or prohibits `undefined` values.
  *
  * @typeParam T - Implied data type.
+ * @typeParam TOptional - Type of {@link UcSchema#optional optional} flag.
  * @param dataClass - Target data class.
  * @param optional - Whether to allow `undefined` values.
  *
