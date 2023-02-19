@@ -64,9 +64,9 @@ export interface UcSchema<out T = unknown> {
  *
  * @returns Resolved schema instance or data class.
  */
-export function ucSchemaRef<T, TSchema extends UcSchema<T> | UcSchema.Class<T> = UcSchema<T>>(
-  resolve: (resolver: UcSchemaResolver) => TSchema,
-): UcSchema.Ref<T> {
+export function ucSchemaRef<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  resolve: (resolver: UcSchemaResolver) => TSchema | UcSchema.Class<T>,
+): UcSchema.Ref<T, TSchema> {
   return {
     [UcSchema__symbol]: resolve,
   };

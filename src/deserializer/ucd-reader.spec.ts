@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { Readable } from 'node:stream';
+import { UcError } from '../schema/uc-error.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { UcdReader } from './ucd-reader.js';
 
@@ -14,7 +15,7 @@ describe('UcdReader', () => {
     it('throws by default', () => {
       reader = readChunks('abc', 'def');
 
-      const error = new Error('Test!');
+      const error = new UcError({ code: 'test', message: 'Test!' });
 
       expect(() => reader.error(error)).toThrow(error);
     });
@@ -27,7 +28,7 @@ describe('UcdReader', () => {
         },
       });
 
-      const error = new Error('Test!');
+      const error = new UcError({ code: 'test', message: 'Test!' });
 
       reader.error(error);
 

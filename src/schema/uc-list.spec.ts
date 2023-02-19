@@ -8,14 +8,14 @@ import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
-import { ucNullable } from './uc-nullable.js';
+import { UcNullable, ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { UcSchema, ucSchemaRef } from './uc-schema.js';
+import { ucSchemaRef } from './uc-schema.js';
 
 describe('UcList', () => {
-  const spec = ucList<string>(ucSchemaRef(() => String));
+  const spec = ucList<string>(ucSchemaRef<string>(() => String));
 
   let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
@@ -245,7 +245,7 @@ describe('UcList', () => {
       let readList: UcDeserializer<number[] | null>;
 
       beforeEach(async () => {
-        const lib = new UcdLib<{ readList: UcSchema.Spec<number[] | null> }>({
+        const lib = new UcdLib<{ readList: UcNullable.Spec<number[]> }>({
           schemae: {
             readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number>(Number)))),
           },
@@ -290,7 +290,7 @@ describe('UcList', () => {
 
       beforeEach(async () => {
         const nullableNumber = ucNullable<number>(Number);
-        const lib = new UcdLib<{ readList: UcSchema.Spec<(number | null)[] | null> }>({
+        const lib = new UcdLib<{ readList: UcNullable.Spec<(number | null)[]> }>({
           schemae: {
             readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number | null>(nullableNumber)))),
           },
@@ -401,7 +401,7 @@ describe('UcList', () => {
         const matrix = ucList<number[]>(ucList<number>(Number));
         const lib = new UcdLib({
           schemae: {
-            readMatrix: ucSchemaRef<number[][] | null>(resolver => ucNullable(resolver.schemaOf(matrix))),
+            readMatrix: ucSchemaRef<number[][], UcNullable<number[][]>>(r => ucNullable(r.schemaOf(matrix))),
           },
         });
 
@@ -427,7 +427,7 @@ describe('UcList', () => {
           readMatrix(chunkStream('--,')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual(error);
         await expect(
-          readMatrix(chunkStream(',--')).catch(error => (error as UcError | null)?.toJSON?.()),
+          readMatrix(chunkStream(',--')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual(error);
       });
     });

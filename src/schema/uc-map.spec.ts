@@ -5,9 +5,10 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcError } from './uc-error.js';
 import { ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
-import { ucNullable } from './uc-nullable.js';
+import { UcNullable, ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
@@ -290,6 +291,20 @@ describe('UcMap', () => {
           foo: 'bar',
         });
       });
+      it('prohibits null', async () => {
+        await expect(
+          readMap(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.()),
+        ).resolves.toEqual({
+          code: 'unexpected',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['map'],
+            },
+          },
+          message: 'Unexpected null, while map expected',
+        });
+      });
     });
 
     describe('multiple entries', () => {
@@ -335,6 +350,33 @@ describe('UcMap', () => {
           foo: 'first',
           bar: 'second',
         });
+      });
+    });
+
+    describe('nullable', () => {
+      let lib: UcdLib<{ readMap: UcNullable.Spec<{ foo: string }> }>;
+      let readMap: UcDeserializer<{ foo: string } | null>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucSchemaRef<{ foo: string }, UcNullable<{ foo: string }>>(resolver => ucNullable(
+                resolver.schemaOf(
+                  ucMap<{ foo: UcSchema.Spec<string> }>({
+                    foo: String,
+                  }),
+                ),
+              )),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entry', async () => {
+        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('deserializes null', async () => {
+        await expect(readMap(chunkStream('--'))).resolves.toBeNull();
       });
     });
   });
