@@ -181,9 +181,9 @@ class Default$UcsDefs {
               } catch (cause) {
                 throw new UnsupportedUcSchemaError(
                   entrySchema,
-                  `${fn.name}: Can not serialize entry "${key}" of type "${ucSchemaName(
-                    entrySchema,
-                  )}"`,
+                  `${fn.name}: Can not serialize entry "${escapeJsString(
+                    key,
+                  )}" of type "${ucSchemaName(entrySchema)}"`,
                   { cause },
                 );
               }

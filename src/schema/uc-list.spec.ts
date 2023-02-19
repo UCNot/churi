@@ -221,6 +221,29 @@ describe('UcList', () => {
         },
       ]);
     });
+    it('does not deserialize unrecognized schema', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          readList: ucList<number>({ type: 'test-type', asis }),
+        },
+      });
+
+      let error: UnsupportedUcSchemaError | undefined;
+
+      try {
+        await lib.compile().toDeserializers();
+      } catch (e) {
+        error = e as UnsupportedUcSchemaError;
+      }
+
+      expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect(error?.schema.type).toBe('test-type');
+      expect(error?.message).toBe(
+        'readList$deserialize: Can not deserialize list item of type "test-type"',
+      );
+      expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+    });
 
     describe('of booleans', () => {
       let readList: UcDeserializer<boolean[]>;

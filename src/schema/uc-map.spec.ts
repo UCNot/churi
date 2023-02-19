@@ -346,6 +346,31 @@ describe('UcMap', () => {
           },
         ]);
       });
+      it('does not deserialize unrecognized schema', async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readMap: ucMap({
+              test: new EntrySchema<string>('test-type'),
+            }),
+          },
+        });
+
+        let error: UnsupportedUcSchemaError | undefined;
+
+        try {
+          await lib.compile().toDeserializers();
+        } catch (e) {
+          error = e as UnsupportedUcSchemaError;
+        }
+
+        expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect(error?.schema.type).toBe('test-type');
+        expect(error?.message).toBe(
+          'readMap$deserialize: Can not deserialize entry "test" of type "test-type"',
+        );
+        expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+      });
     });
 
     describe('multiple entries', () => {

@@ -4,9 +4,11 @@ import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcPrimitive } from '../../schema/uc-primitive.js';
+import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { uccPropertyAccessExpr } from '../ucc-expr.js';
+import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdDef } from './ucd-def.js';
 
 export class Default$UcdDefs {
@@ -71,9 +73,19 @@ export class Default$UcdDefs {
 
       const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
 
+      code.write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`);
+
+      try {
+        code.indent(fn.deserialize(item, { setter: addItem, prefix: 'return ', suffix: ';' }));
+      } catch (cause) {
+        throw new UnsupportedUcSchemaError(
+          item,
+          `${fn.name}: Can not deserialize list item of type "${ucSchemaName(item)}"`,
+          { cause },
+        );
+      }
+
       code
-        .write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`)
-        .indent(fn.deserialize(item, { setter: addItem, prefix: 'return ', suffix: ';' }))
         .write(nullableFlag ? `}, ${nullableFlag});` : `});`)
         .write(`${prefix}${listRx}.rx${suffix}`)
         .write(`${listRx}.end();`);
@@ -111,14 +123,25 @@ export class Default$UcdDefs {
                       `${uccPropertyAccessExpr(targetMap, key)} = ${entryValue};`,
                       'return 1;',
                     )
-                    .write(`};`)
-                    .write(
+                    .write(`};`);
+
+                  try {
+                    code.write(
                       fn.deserialize(entrySchema, {
                         setter: setEntry,
                         prefix: 'return ',
                         suffix: ';',
                       }),
                     );
+                  } catch (cause) {
+                    throw new UnsupportedUcSchemaError(
+                      entrySchema,
+                      `${fn.name}: Can not deserialize entry "${escapeJsString(
+                        key,
+                      )}" of type "${ucSchemaName(entrySchema)}"`,
+                      { cause },
+                    );
+                  }
                 })
                 .write(`},`);
             }
