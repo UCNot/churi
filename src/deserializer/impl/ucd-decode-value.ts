@@ -12,7 +12,7 @@ export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): voi
     const decoder = UCD_VALUE_DECODERS[input[0]];
 
     if (decoder) {
-      decoder(reader, rx, input);
+      decoder(reader, rx, decodeURIComponent(input));
     } else {
       const decoded = decodeURIComponent(input);
       const decoder = UCD_VALUE_DECODERS[decoded[0]];

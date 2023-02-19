@@ -6,7 +6,7 @@ import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
-import { UcError } from './uc-error.js';
+import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { UcSchema } from './uc-schema.js';
@@ -35,6 +35,15 @@ describe('BigInt', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     let lib: UcdLib<{ readValue: UcSchema.Spec<bigint> }>;
     let readValue: UcDeserializer<bigint>;
 
@@ -59,15 +68,28 @@ describe('BigInt', () => {
       await expect(readValue(chunkStream('0n0'))).resolves.toBe(0n);
       await expect(readValue(chunkStream('-0n0'))).resolves.toBe(-0n);
     });
-    it('fails to deserialize NaN', async () => {
-      await expect(readValue(chunkStream('0nz'))).rejects.toThrow(
-        new UcError({
+    it('rejects NaN', async () => {
+      await expect(readValue(chunkStream('0nz'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
           code: 'invalidSyntax',
           details: { type: 'bigint' },
           message: 'Cannot convert z to a BigInt',
           cause: new SyntaxError('Cannot convert z to a BigInt'),
-        }),
-      );
+        },
+      ]);
+    });
+    it('rejects number', async () => {
+      await expect(readValue(chunkStream('123'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpected',
+          details: { type: 'number', expected: { types: ['bigint'] } },
+          message: 'Unexpected number, while bigint expected',
+        },
+      ]);
     });
   });
 });
@@ -134,6 +156,15 @@ describe('Boolean', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     let lib: UcdLib<{ readValue: UcSchema.Spec<boolean> }>;
     let readValue: UcDeserializer<boolean>;
 
@@ -152,17 +183,21 @@ describe('Boolean', () => {
       await expect(readValue(chunkStream('-'))).resolves.toBe(false);
       await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
     });
-    it('fails to deserialize null', async () => {
-      await expect(readValue(chunkStream('--'))).rejects.toMatchObject({
-        code: 'unexpected',
-        details: {
-          type: 'null',
-          expected: {
-            types: ['boolean'],
+    it('rejects null', async () => {
+      await expect(readValue(chunkStream('--'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpected',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['boolean'],
+            },
           },
+          message: 'Unexpected null, while boolean expected',
         },
-        message: 'Unexpected null, while boolean expected',
-      });
+      ]);
     });
 
     describe('nullable', () => {
@@ -225,6 +260,15 @@ describe('Number', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     let lib: UcdLib<{ readValue: UcSchema.Spec<number> }>;
     let readValue: UcDeserializer<number>;
 
@@ -241,6 +285,10 @@ describe('Number', () => {
       await expect(readValue(chunkStream('123'))).resolves.toBe(123);
       await expect(readValue(chunkStream('-123'))).resolves.toBe(-123);
     });
+    it('deserializes percent-encoded number', async () => {
+      await expect(readValue(chunkStream('%3123'))).resolves.toBe(123);
+      await expect(readValue(chunkStream('%2D%3123'))).resolves.toBe(-123);
+    });
     it('deserializes hexadecimal number', async () => {
       await expect(readValue(chunkStream('0x123'))).resolves.toBe(0x123);
       await expect(readValue(chunkStream('-0x123'))).resolves.toBe(-0x123);
@@ -249,12 +297,49 @@ describe('Number', () => {
       await expect(readValue(chunkStream('0'))).resolves.toBe(0);
       await expect(readValue(chunkStream('-0'))).resolves.toBe(-0);
     });
-    it('fails to deserialize NaN', async () => {
-      await expect(readValue(chunkStream('0xz'))).rejects.toMatchObject({
-        code: 'invalidSyntax',
-        details: { type: 'number' },
-        message: 'Not a number',
-      });
+    it('rejects NaN', async () => {
+      await expect(readValue(chunkStream('0xz'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'invalidSyntax',
+          details: { type: 'number' },
+          message: 'Not a number',
+        },
+      ]);
+    });
+    it('rejects bigint', async () => {
+      await expect(readValue(chunkStream('0n1'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpected',
+          details: { type: 'bigint', expected: { types: ['number'] } },
+          message: 'Unexpected bigint, while number expected',
+        },
+      ]);
+    });
+    it('rejects boolean', async () => {
+      await expect(readValue(chunkStream('-'), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpected',
+          details: { type: 'boolean', expected: { types: ['number'] } },
+          message: 'Unexpected boolean, while number expected',
+        },
+      ]);
+    });
+    it('rejects string', async () => {
+      await expect(readValue(chunkStream("'1"), { onError })).resolves.toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'unexpected',
+          details: { type: 'string', expected: { types: ['number'] } },
+          message: 'Unexpected string, while number expected',
+        },
+      ]);
     });
   });
 });
@@ -349,6 +434,11 @@ describe('String', () => {
     });
     it('deserializes empty string', async () => {
       await expect(readValue(chunkStream(''))).resolves.toBe('');
+      await expect(readValue(chunkStream(')'))).resolves.toBe('');
+    });
+    it('deserializes minus-prefixed string', async () => {
+      await expect(readValue(chunkStream('-a%55c'))).resolves.toBe('-aUc');
+      await expect(readValue(chunkStream('%2Da%55c'))).resolves.toBe('-aUc');
     });
     it('deserializes quoted string', async () => {
       await expect(readValue(chunkStream("'abc"))).resolves.toBe('abc');
