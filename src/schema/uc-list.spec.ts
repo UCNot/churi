@@ -247,7 +247,7 @@ describe('UcList', () => {
       beforeEach(async () => {
         const lib = new UcdLib<{ readList: UcNullable.Spec<number[]> }>({
           schemae: {
-            readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number>(Number)))),
+            readList: ucNullable(ucList<number>(Number)),
           },
         });
 
@@ -292,7 +292,7 @@ describe('UcList', () => {
         const nullableNumber = ucNullable<number>(Number);
         const lib = new UcdLib<{ readList: UcNullable.Spec<(number | null)[]> }>({
           schemae: {
-            readList: ucSchemaRef(resolver => ucNullable(resolver.schemaOf(ucList<number | null>(nullableNumber)))),
+            readList: ucNullable(ucList<number | null>(nullableNumber)),
           },
         });
 
@@ -361,9 +361,7 @@ describe('UcList', () => {
         const list = ucList<number>(Number);
         const lib = new UcdLib({
           schemae: {
-            readMatrix: ucList<number[] | null>(
-              ucSchemaRef(resolver => ucNullable(resolver.schemaOf(list))),
-            ),
+            readMatrix: ucList<number[] | null>(ucNullable(list)),
           },
         });
 
@@ -401,7 +399,7 @@ describe('UcList', () => {
         const matrix = ucList<number[]>(ucList<number>(Number));
         const lib = new UcdLib({
           schemae: {
-            readMatrix: ucSchemaRef<number[][], UcNullable<number[][]>>(r => ucNullable(r.schemaOf(matrix))),
+            readMatrix: ucNullable(matrix),
           },
         });
 

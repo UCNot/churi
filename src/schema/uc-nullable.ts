@@ -1,5 +1,5 @@
 import { asis } from '@proc7ts/primitives';
-import { UcSchema } from './uc-schema.js';
+import { UcSchema, ucSchemaRef, UcSchema__symbol } from './uc-schema.js';
 
 /**
  * URI charge {@link UcSchema schema} definition that permits `null` values.
@@ -22,11 +22,13 @@ export namespace UcNullable {
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
+   * @typeParam TNullable - Type of {@link UcSchema#nullable nullable} flag.
    */
-  export type Spec<T = unknown, TSchema extends UcNullable<T> = UcNullable<T>> = UcSchema.Spec<
-    T,
-    TSchema
-  >;
+  export type Spec<
+    T = unknown,
+    TSchema extends UcSchema<T> = UcSchema<T>,
+    TNullable extends boolean | undefined = true,
+  > = UcSchema.Spec<T, UcNullable<T, TSchema, TNullable>>;
 
   /**
    * Reference to {@link UcNullable nullable} URI charge schema.
@@ -34,10 +36,10 @@ export namespace UcNullable {
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    */
-  export type Ref<
-    T = unknown,
-    TSchema extends UcNullable<T> = UcNullable<T>,
-  > = UcSchema.Ref<TSchema>;
+  export type Ref<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> = UcSchema.Ref<
+    T,
+    UcNullable<T, TSchema>
+  >;
 }
 
 /**
@@ -60,10 +62,10 @@ export namespace UcNonNullable {
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Nullable schema type.
    */
-  export type Spec<
-    T = unknown,
-    TSchema extends UcNonNullable<T> = UcNonNullable<T>,
-  > = UcSchema.Spec<T, TSchema>;
+  export type Spec<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> = UcSchema.Spec<
+    T,
+    UcNonNullable<T, TSchema>
+  >;
 
   /**
    * Reference to {@link UcNonNullable non-nullable} URI charge schema.
@@ -71,10 +73,10 @@ export namespace UcNonNullable {
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    */
-  export type Ref<
-    T = unknown,
-    TSchema extends UcNonNullable<T> = UcNonNullable<T>,
-  > = UcSchema.Ref<TSchema>;
+  export type Ref<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> = UcSchema.Ref<
+    T,
+    UcNonNullable<T, TSchema>
+  >;
 }
 
 /**
@@ -164,24 +166,78 @@ export function ucNullable<T, TNullable extends boolean | undefined = true>(
   optional: TNullable,
 ): UcNullable<T, UcSchema<T>, TNullable>;
 
+/**
+ * Modifies schema specifier to allow `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Original schema type.
+ * @param spec - Schema specifier to modify.
+ *
+ * @returns Modified schema specifier or original one if it is already nullable.
+ */
 export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-  schema: TSchema | UcSchema.Class<T>,
-  nullable = true,
-): Omit<TSchema, 'nullable'> & { readonly nullable?: boolean | undefined } {
-  if (typeof schema === 'function') {
+  spec: UcSchema.Spec<T, TSchema>,
+  nullable?: true,
+): UcNullable.Spec<T, TSchema>;
+
+/**
+ * Modifies schema specifier to prohibit `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Original schema type.
+ * @param spec - Schema specifier to modify.
+ *
+ * @returns Modified schema specifier or original one if it prohibits `null` values already.
+ */
+export function ucNullable<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  spec: UcSchema.Spec<T, TSchema>,
+  nullable: false,
+): UcNonNullable.Spec<T, TSchema>;
+
+/**
+ * Modifies schema to allow or prohibit `null` values.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Original schema type.
+ * @typeParam TNullable - Type of {@link UcSchema#nullable nullable} flag.
+ * @param spec - Schema specifier to modify.
+ * @param nullable - Whether to allow `null` values.
+ *
+ * @returns Modified schema specifier or original one if its {@link UcSchema#nullable nullable} constraint matches
+ * the requested one.
+ */
+export function ucNullable<
+  T,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+  TNullable extends boolean | undefined = true,
+>(spec: UcSchema.Spec<T, TSchema>, nullable: TNullable): UcNullable.Spec<T, TSchema, TNullable>;
+
+export function ucNullable<T, TSchema extends UcSchema<T>, TNullable extends boolean | undefined>(
+  spec: UcSchema.Spec<T, TSchema>,
+  nullable = true as TNullable,
+): unknown {
+  if (typeof spec === 'function') {
+    // Convert class to schema.
     return {
       optional: false,
       nullable,
-      type: schema,
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      type: spec as UcSchema.Class<T>,
       asis,
-    } as Omit<TSchema, 'nullable'> & { readonly nullable?: boolean | undefined };
+    } as UcNullable<T, TSchema, TNullable>;
   }
 
-  const { nullable: oldNullable = false } = schema;
+  if (spec[UcSchema__symbol]) {
+    // Convert reference.
+    return ucSchemaRef(resolver => ucNullable(resolver.schemaOf(spec), nullable));
+  }
+
+  // Convert schema instance.
+  const { nullable: oldNullable = false } = spec;
 
   if (nullable === oldNullable) {
-    return schema as Omit<TSchema, 'nullable'> & { readonly nullable: boolean };
+    return spec as UcNullable<T, TSchema, boolean>;
   }
 
-  return { ...schema, nullable };
+  return { ...spec, nullable } as UcNullable<T, TSchema, TNullable>;
 }

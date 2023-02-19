@@ -360,13 +360,11 @@ describe('UcMap', () => {
       beforeEach(async () => {
         lib = new UcdLib({
           schemae: {
-            readMap: ucSchemaRef<{ foo: string }, UcNullable<{ foo: string }>>(resolver => ucNullable(
-                resolver.schemaOf(
-                  ucMap<{ foo: UcSchema.Spec<string> }>({
-                    foo: String,
-                  }),
-                ),
-              )),
+            readMap: ucNullable(
+              ucMap<{ foo: UcSchema.Spec<string> }>({
+                foo: String,
+              }),
+            ),
           },
         });
         ({ readMap } = await lib.compile().toDeserializers());
