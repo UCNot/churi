@@ -224,6 +224,22 @@ describe('Boolean', () => {
         await expect(readValue(chunkStream('   --'))).resolves.toBeNull();
         await expect(readValue(chunkStream('--   \r\n'))).resolves.toBeNull();
       });
+      it('rejects number', async () => {
+        await expect(readValue(chunkStream('-1'), { onError })).resolves.toBeUndefined();
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpected',
+            details: {
+              type: 'number',
+              expected: {
+                types: ['boolean', 'null'],
+              },
+            },
+            message: 'Unexpected number, while boolean or null expected',
+          },
+        ]);
+      });
     });
   });
 });

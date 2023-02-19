@@ -5,7 +5,7 @@ import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.erro
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
-import { UcError } from './uc-error.js';
+import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
 import { UcNullable, ucNullable } from './uc-nullable.js';
@@ -260,6 +260,15 @@ describe('UcMap', () => {
   });
 
   describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
     describe('single entry', () => {
       let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcSchema.Spec<string> }> }>;
       let readMap: UcDeserializer<{ foo: string }>;
@@ -350,6 +359,24 @@ describe('UcMap', () => {
           foo: 'first',
           bar: 'second',
         });
+      });
+      it('rejects unknown entry', async () => {
+        await expect(
+          readMap(chunkStream('foo(first)wrong(123)bar(second'), { onError }),
+        ).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedEntry',
+            details: {
+              key: 'wrong',
+            },
+            message: 'Unexpected entry: wrong',
+          },
+        ]);
       });
     });
 
