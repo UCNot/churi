@@ -1,34 +1,39 @@
-import { UccAliases } from './ucc-aliases.js';
 import { UccCode } from './ucc-code.js';
+import { UccNamespace } from './ucc-namespace.js';
 
 export class UccDeclarations implements UccCode.Fragment {
 
-  readonly #aliases: UccAliases;
+  readonly #ns: UccNamespace;
   readonly #snippets = new Map<string, string>();
   readonly #code = new UccCode();
 
-  constructor(aliases: UccAliases) {
-    this.#aliases = aliases;
+  constructor(ns: UccNamespace) {
+    this.#ns = ns;
   }
 
   declare(
     id: string,
-    initializer: string,
+    initializer: string | ((prefix: string, suffix: string) => UccCode.Source),
     { key = id }: { readonly key?: string | undefined } = {},
   ): string {
     const snippetKey = key === id ? `id:${id}` : `key:${key}`;
-    let alias = this.#snippets.get(snippetKey);
+    let name = this.#snippets.get(snippetKey);
 
-    if (alias) {
-      return alias;
+    if (name) {
+      return name;
     }
 
-    alias = this.#aliases.aliasFor(id);
+    name = this.#ns.name(id);
 
-    this.#code.write(`const ${alias} = ${initializer};`);
+    if (typeof initializer === 'string') {
+      this.#code.write(`const ${name} = ${initializer};`);
+    } else {
+      this.#code.write(initializer(`const ${name} = `, `;`));
+    }
+
     this.#snippets.set(snippetKey, id);
 
-    return alias;
+    return name;
   }
 
   declareConst(

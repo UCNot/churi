@@ -1,5 +1,5 @@
 import { asis } from '@proc7ts/primitives';
-import { uccPropertyKey } from '../compiler/ucc-expr.js';
+import { quotePropertyKey } from '../impl/quote-property-key.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from './uc-schema.js';
@@ -126,7 +126,7 @@ export function ucMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
             if (i) {
               out += ', ';
             }
-            out += uccPropertyKey(key) + ': ' + ucSchemaName(entry);
+            out += quotePropertyKey(key) + ': ' + ucSchemaName(entry);
 
             if (i < 2) {
               return true;

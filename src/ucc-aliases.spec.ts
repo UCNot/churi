@@ -1,35 +1,35 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UccAliases } from './compiler/ucc-aliases.js';
+import { UccNamespace } from './compiler/ucc-namespace.js';
 
 describe('UccAliases', () => {
-  let aliases: UccAliases;
+  let aliases: UccNamespace;
 
   beforeEach(() => {
-    aliases = new UccAliases();
+    aliases = new UccNamespace();
   });
 
   it('uses name as alias for the first one', () => {
-    expect(aliases.aliasFor('test')).toBe('test');
+    expect(aliases.name('test')).toBe('test');
   });
   it('assigns counter to aliases', () => {
-    aliases.aliasFor('test');
+    aliases.name('test');
 
-    expect(aliases.aliasFor('test')).toBe('test$0');
-    expect(aliases.aliasFor('test')).toBe('test$1');
-    expect(aliases.aliasFor('test')).toBe('test$2');
+    expect(aliases.name('test')).toBe('test$0');
+    expect(aliases.name('test')).toBe('test$1');
+    expect(aliases.name('test')).toBe('test$2');
   });
   it('assigns counter to aliases with $', () => {
-    aliases.aliasFor('test$a');
+    aliases.name('test$a');
 
-    expect(aliases.aliasFor('test$a')).toBe('test$a$0');
-    expect(aliases.aliasFor('test$a')).toBe('test$a$1');
-    expect(aliases.aliasFor('test$a')).toBe('test$a$2');
+    expect(aliases.name('test$a')).toBe('test$a$0');
+    expect(aliases.name('test$a')).toBe('test$a$1');
+    expect(aliases.name('test$a')).toBe('test$a$2');
   });
   it('resolves conflicts', () => {
-    aliases.aliasFor('test');
-    aliases.aliasFor('test$0');
+    aliases.name('test');
+    aliases.name('test$0');
 
-    expect(aliases.aliasFor('test')).toBe('test$1');
-    expect(aliases.aliasFor('test$1')).toBe('test$2');
+    expect(aliases.name('test')).toBe('test$1');
+    expect(aliases.name('test$1')).toBe('test$2');
   });
 });

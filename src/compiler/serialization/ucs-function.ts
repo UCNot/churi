@@ -1,8 +1,8 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccAliases } from '../ucc-aliases.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsLib } from './ucs-lib.js';
 
@@ -10,8 +10,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   implements UccCode.Fragment {
 
   readonly #lib: UcsLib;
+  readonly #ns: UccNamespace;
   readonly #schema: TSchema;
   readonly #name: string;
+  #args?: UcsFunction.Args;
   readonly #createWriter: Required<UcsFunction.Options<T, TSchema>>['createWriter'];
 
   constructor(options: UcsFunction.Options<T, TSchema>);
@@ -22,6 +24,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     createWriter = UcsFunction$createWriter,
   }: UcsFunction.Options<T, TSchema>) {
     this.#lib = lib;
+    this.#ns = lib.ns.nest();
     this.#schema = schema;
     this.#name = name;
     this.#createWriter = createWriter;
@@ -40,11 +43,15 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   get args(): UcsFunction.Args {
-    return this.lib.serializerArgs;
+    return (this.#args ??= {
+      writer: this.ns.name('writer'),
+      value: this.ns.name('value'),
+      asItem: this.ns.name('asItem'),
+    });
   }
 
-  get aliases(): UccAliases {
-    return this.#lib.aliases;
+  get ns(): UccNamespace {
+    return this.#ns;
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {
@@ -69,13 +76,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write('}');
   }
 
-  toUcsSerializer(value: string): UccCode.Source {
+  toUcSerializer(stream: string, value: string): UccCode.Source {
     return code => code
-        .write(this.#createWriter(this, 'writer', 'stream'))
+        .write(this.#createWriter(this, this.args.writer, stream))
         .write(`try {`)
-        .indent(`await ${this.name}(writer, ${value});`)
+        .indent(`await ${this.name}(${this.args.writer}, ${value});`)
         .write(`} finally {`)
-        .indent(`await writer.done();`)
+        .indent(`await ${this.args.writer}.done();`)
         .write(`}`);
   }
 

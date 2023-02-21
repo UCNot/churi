@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
+import { UcDeserializer } from '../deserializer/uc-deserializer.js';
+import { chunkStream } from '../spec/chunk-stream.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
-import { ucNullable } from './uc-nullable.js';
+import { UcNullable, ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
@@ -252,6 +256,250 @@ describe('UcMap', () => {
       );
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+    });
+  });
+
+  describe('deserializer', () => {
+    const onError = (error: UcErrorInfo): void => {
+      errors.push(error instanceof UcError ? error.toJSON() : error);
+    };
+    let errors: UcErrorInfo[];
+
+    beforeEach(() => {
+      errors = [];
+    });
+
+    describe('single entry', () => {
+      let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcSchema.Spec<string> }> }>;
+      let readMap: UcDeserializer<{ foo: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap<{ foo: UcSchema.Spec<string> }>({
+              foo: String,
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entry', async () => {
+        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('deserializes $-escaped entry', async () => {
+        await expect(readMap(chunkStream('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('deserializes $-escaped suffix', async () => {
+        await expect(readMap(chunkStream('$foo'))).resolves.toEqual({ foo: '' });
+        await expect(readMap(chunkStream('$foo \r\n   '))).resolves.toEqual({ foo: '' });
+        await expect(readMap(chunkStream('\r\n $foo'))).resolves.toEqual({ foo: '' });
+      });
+      it('handles whitespace', async () => {
+        await expect(readMap(chunkStream(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+          foo: 'bar',
+        });
+      });
+      it('rejects null', async () => {
+        await expect(
+          readMap(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.()),
+        ).resolves.toEqual({
+          code: 'unexpectedType',
+          details: {
+            type: 'null',
+            expected: {
+              types: ['map'],
+            },
+          },
+          message: 'Unexpected null, while map expected',
+        });
+      });
+      it('rejects second item', async () => {
+        await expect(readMap(chunkStream('foo(),'), { onError })).resolves.toEqual({ foo: '' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
+          },
+        ]);
+      });
+      it('rejects second item after $-prefixes map', async () => {
+        await expect(readMap(chunkStream('$foo(),'), { onError })).resolves.toEqual({ foo: '' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
+          },
+        ]);
+      });
+      it('does not deserialize unrecognized schema', async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readMap: ucMap({
+              test: new EntrySchema<string>('test-type'),
+            }),
+          },
+        });
+
+        let error: UnsupportedUcSchemaError | undefined;
+
+        try {
+          await lib.compile().toDeserializers();
+        } catch (e) {
+          error = e as UnsupportedUcSchemaError;
+        }
+
+        expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect(error?.schema.type).toBe('test-type');
+        expect(error?.message).toBe(
+          'readMap$deserialize: Can not deserialize entry "test" of type "test-type"',
+        );
+        expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+      });
+    });
+
+    describe('multiple entries', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
+      }>;
+      let readMap: UcDeserializer<{ foo: string; bar: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>({
+              foo: String,
+              bar: String,
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entries', async () => {
+        await expect(readMap(chunkStream('foo(first)bar(second'))).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes $-escaped entries', async () => {
+        await expect(readMap(chunkStream('foo(first)$bar(second'))).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes suffix', async () => {
+        await expect(readMap(chunkStream('foo(first) \n  bar \r\n '))).resolves.toEqual({
+          foo: 'first',
+          bar: '',
+        });
+        await expect(readMap(chunkStream('foo(first) \n  bar )'))).resolves.toEqual({
+          foo: 'first',
+          bar: '',
+        });
+      });
+      it('handles whitespace', async () => {
+        await expect(
+          readMap(chunkStream('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
+        ).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('rejects unknown entry', async () => {
+        await expect(
+          readMap(chunkStream('foo(first)wrong(123)bar(second'), { onError }),
+        ).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedEntry',
+            details: {
+              key: 'wrong',
+            },
+            message: 'Unexpected entry: wrong',
+          },
+        ]);
+      });
+      it('rejects nested list', async () => {
+        await expect(
+          readMap(chunkStream('foo(first) bar(second) () '), { onError }),
+        ).resolves.toEqual({ foo: 'first', bar: 'second' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'nested list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected nested list, while map expected',
+          },
+        ]);
+      });
+      it('rejects second item', async () => {
+        await expect(
+          readMap(chunkStream('foo(first) bar(second) , '), { onError }),
+        ).resolves.toEqual({ foo: 'first', bar: 'second' });
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['map'],
+              },
+            },
+            message: 'Unexpected list, while map expected',
+          },
+        ]);
+      });
+    });
+
+    describe('nullable', () => {
+      let lib: UcdLib<{ readMap: UcNullable.Spec<{ foo: string }> }>;
+      let readMap: UcDeserializer<{ foo: string } | null>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucNullable(
+              ucMap<{ foo: UcSchema.Spec<string> }>({
+                foo: String,
+              }),
+            ),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes entry', async () => {
+        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      });
+      it('deserializes null', async () => {
+        await expect(readMap(chunkStream('--'))).resolves.toBeNull();
+      });
     });
   });
 });

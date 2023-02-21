@@ -1,3 +1,5 @@
+import { asis } from '@proc7ts/primitives';
+import { negate } from '../../impl/numeric.js';
 import { unchargeURIKey } from '../charge-uri.js';
 import { URIChargeRx } from '../uri-charge-rx.js';
 
@@ -9,13 +11,13 @@ export function decodeUcValue<TValue, TCharge>(
     // Empty string treated as is.
     rx.addValue('', 'string');
   } else {
-    const decoder = UC_VALUE_DECODERS[input[0]];
+    const decoder = UC_RAW_DECODERS[input[0]];
 
     if (decoder) {
       decoder(rx, input);
     } else {
       const decoded = decodeURIComponent(input);
-      const decoder = UC_STRING_DECODERS[decoded[0]];
+      const decoder = UC_VALUE_DECODERS[decoded[0]];
 
       if (decoder) {
         decoder(rx, decoded);
@@ -31,28 +33,36 @@ type UcValueDecoder = <TValue, TCharge>(
   input: string,
 ) => void;
 
-const UC_STRING_DECODERS: {
-  readonly [prefix: string]: UcValueDecoder;
-} = {
-  '-': decodeMinusSignedUcValue,
-  0: decodeUnsignedUcValue,
-  1: decodeNumberUcValue,
-  2: decodeNumberUcValue,
-  3: decodeNumberUcValue,
-  4: decodeNumberUcValue,
-  5: decodeNumberUcValue,
-  6: decodeNumberUcValue,
-  7: decodeNumberUcValue,
-  8: decodeNumberUcValue,
-  9: decodeNumberUcValue,
-};
+function createUcDecoders(): {
+  UC_VALUE_DECODERS: {
+    readonly [prefix: string]: UcValueDecoder;
+  };
+  UC_RAW_DECODERS: {
+    readonly [prefix: string]: UcValueDecoder;
+  };
+} {
+  const decoders: Record<string, UcValueDecoder> = {};
+  const rawDecoders: Record<string, UcValueDecoder> = {
+    $: decodeDollarPrefixedUcValue,
+  };
+  const addRawDecoder = (prefix: string | number, decoder: UcValueDecoder): void => {
+    decoders[prefix] = decoder;
+    rawDecoders[prefix] = (rx, input) => decoder(rx, decodeURIComponent(input));
+  };
 
-const UC_VALUE_DECODERS: {
-  readonly [prefix: string]: UcValueDecoder;
-} = {
-  $: decodeDollarPrefixedUcValue,
-  ...UC_STRING_DECODERS,
-};
+  addRawDecoder('-', decodeMinusSignedUcValue);
+  addRawDecoder(0, decodeUnsignedUcValue);
+  for (let i = 1; i < 10; ++i) {
+    addRawDecoder(i, decodeNumberUcValue);
+  }
+
+  return {
+    UC_VALUE_DECODERS: decoders,
+    UC_RAW_DECODERS: rawDecoders,
+  };
+}
+
+const { UC_VALUE_DECODERS, UC_RAW_DECODERS } = /*#__PURE__*/ createUcDecoders();
 
 function decodeDollarPrefixedUcValue<TValue, TCharge>(
   rx: URIChargeRx.ValueRx<TValue, TCharge>,
@@ -106,14 +116,6 @@ function decodeUnsignedUcValue<TValue, TCharge>(
   input: string,
 ): void {
   decodeNumericUcValue(rx, input, 0, asis);
-}
-
-function negate<T extends number | bigint>(value: T): T {
-  return -value as T;
-}
-
-function asis<T extends number | bigint>(value: T): T {
-  return value;
 }
 
 function decodeNumericUcValue<TValue, TCharge>(

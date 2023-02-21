@@ -1,4 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
+import { UcDeserializer } from '../../deserializer/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
@@ -6,12 +7,11 @@ import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { UccNamespace } from '../ucc-namespace.js';
-import { DefaultUcsDefs } from './default.ucs-defs.js';
-import { UcSerializer } from './uc-serializer.js';
-import { UcsDef } from './ucs-def.js';
-import { UcsFunction } from './ucs-function.js';
+import { DefaultUcdDefs } from './default.ucd-defs.js';
+import { UcdDef } from './ucd-def.js';
+import { UcdFunction } from './ucd-function.js';
 
-export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
+export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   readonly #schemae: {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
@@ -20,20 +20,21 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
-  readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
-  readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
-  readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
+  readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
+  readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
+  readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
 
-  constructor(options: UcsLib.Options<TSchemae>);
+  constructor(options: UcdLib.Options<TSchemae>);
+
   constructor({
     schemae,
     resolver = new UcSchemaResolver(),
     ns = new UccNamespace(),
     imports = new UccImports(ns),
     declarations = new UccDeclarations(ns),
-    definitions = DefaultUcsDefs,
-    createSerializer = options => new UcsFunction(options),
-  }: UcsLib.Options<TSchemae>) {
+    definitions = DefaultUcdDefs,
+    createDeserializer = options => new UcdFunction(options),
+  }: UcdLib.Options<TSchemae>) {
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
@@ -46,10 +47,10 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     this.#imports = imports;
     this.#declarations = declarations;
     this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
-    this.#createSerializer = createSerializer;
+    this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.#serializerFor(schema, `${externalName}$serialize`);
+      this.#deserializerFor(schema, `${externalName}$deserialize`);
     }
   }
 
@@ -69,49 +70,49 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     return this.imports.import(from, name);
   }
 
-  serializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcsFunction<T, TSchema> {
-    return this.#serializerFor(schema, '$serialize');
+  ): UcdFunction<T, TSchema> {
+    return this.#deserializerFor(schema, '$deserialize');
   }
 
-  #serializerFor<T, TSchema extends UcSchema<T>>(
+  #deserializerFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
     name: string,
-  ): UcsFunction<T, TSchema> {
+  ): UcdFunction<T, TSchema> {
     const { type } = schema;
     const variant = UcSchema$variantOf(schema);
 
-    let variants = this.#serializers.get(type);
+    let variants = this.#deserializers.get(type);
 
     if (!variants) {
       variants = new Map();
-      this.#serializers.set(type, variants);
+      this.#deserializers.set(type, variants);
     }
 
-    let serializer = variants.get(variant) as UcsFunction<T, TSchema> | undefined;
+    let deserializer = variants.get(variant) as UcdFunction<T, TSchema> | undefined;
 
-    if (!serializer) {
-      serializer = this.#createSerializer({
-        lib: this as UcsLib,
+    if (!deserializer) {
+      deserializer = this.#createDeserializer({
+        lib: this as UcdLib,
         schema,
         name: this.ns.name(`${name}${variant}`),
       });
-      variants.set(variant, serializer);
+      variants.set(variant, deserializer);
     }
 
-    return serializer;
+    return deserializer;
   }
 
-  definitionFor<T>(schema: UcSchema<T>): UcsDef<T> | undefined {
-    return this.#definitions.get(schema.type) as UcsDef<T> | undefined;
+  definitionFor<T>(schema: UcSchema<T>): UcdDef<T> | undefined {
+    return this.#definitions.get(schema.type) as UcdDef<T> | undefined;
   }
 
-  compile(): UcsLib.Compiled<TSchemae> {
+  compile(): UcdLib.Compiled<TSchemae> {
     return {
       lib: this,
       toCode: this.#toFactoryCode.bind(this),
-      toSerializers: this.#toSerializers.bind(this),
+      toDeserializers: this.#toDeserializers.bind(this),
     };
   }
 
@@ -123,37 +124,37 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
           '',
           this.declarations,
           '',
-          this.#compileSerializers(),
+          this.#compileDeserializers(),
           '',
-          this.#returnSerializers(),
+          this.#returnDeserializers(),
         )
         .write('})();');
   }
 
-  #returnSerializers(): UccCode.Builder {
+  #returnDeserializers(): UccCode.Builder {
     return code => code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
             code
-              .write(`async ${externalName}(stream, value) {`)
-              .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
+              .write(`async ${externalName}(stream, options) {`)
+              .indent(this.deserializerFor(schema).toUcDeserializer('stream', 'options'))
               .write('},');
           }
         })
         .write('};');
   }
 
-  async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
+  async #toDeserializers(): Promise<UcdLib.Exports<TSchemae>> {
     const code = new UccCode().write(this.#toFactoryCode()).toString();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;
 
     return await factory();
   }
 
-  compileModule(): UcsLib.Module<TSchemae> {
+  compileModule(): UcdLib.Module<TSchemae> {
     return {
       lib: this,
       toCode: this.#toModuleCode.bind(this),
@@ -167,18 +168,18 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
         '',
         this.declarations,
         '',
-        this.#compileSerializers(),
+        this.#compileDeserializers(),
         '',
-        this.#exportSerializers(),
+        this.#exportDeserializers(),
       );
   }
 
-  #exportSerializers(): UccCode.Builder {
+  #exportDeserializers(): UccCode.Builder {
     return code => {
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
         code
-          .write(`export async function ${externalName}(stream, value) {`)
-          .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
+          .write(`export async function ${externalName}(stream, options) {`)
+          .indent(this.deserializerFor(schema).toUcDeserializer('stream', 'options'))
           .write('}');
       }
     };
@@ -188,48 +189,48 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     return new UccCode().write(this.#toModuleCode()).toString();
   }
 
-  #compileSerializers(): UccCode.Builder {
-    return code => code.write(...this.#allSerializers());
+  #compileDeserializers(): UccCode.Builder {
+    return code => code.write(...this.#allDeserializers());
   }
 
-  *#allSerializers(): Iterable<UcsFunction> {
-    for (const variants of this.#serializers.values()) {
+  *#allDeserializers(): Iterable<UcdFunction> {
+    for (const variants of this.#deserializers.values()) {
       yield* variants.values();
     }
   }
 
 }
 
-export namespace UcsLib {
+export namespace UcdLib {
   export interface Options<TSchemae extends Schemae> {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
     readonly ns?: UccNamespace | undefined;
     readonly imports?: UccImports | undefined;
     readonly declarations?: UccDeclarations | undefined;
-    readonly definitions?: UcsDef | readonly UcsDef[] | undefined;
+    readonly definitions?: UcdDef | readonly UcdDef[] | undefined;
 
-    createSerializer?<T, TSchema extends UcSchema<T>>(
+    createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
-      options: UcsFunction.Options<T, TSchema>,
-    ): UcsFunction<T, TSchema>;
+      options: UcdFunction.Options<T, TSchema>,
+    ): UcdFunction<T, TSchema>;
   }
 
   export interface Schemae {
-    readonly [writer: string]: UcSchema.Spec;
+    readonly [reader: string]: UcSchema.Spec;
   }
 
   export type Exports<TSchemae extends Schemae> = {
-    readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.DataType<TSchemae[writer]>>;
+    readonly [reader in keyof TSchemae]: UcDeserializer<UcSchema.DataType<TSchemae[reader]>>;
   };
 
   export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
-    readonly lib: UcsLib<TSchemae>;
-    toSerializers(): Promise<Exports<TSchemae>>;
+    readonly lib: UcdLib<TSchemae>;
+    toDeserializers(): Promise<Exports<TSchemae>>;
   }
 
   export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {
-    readonly lib: UcsLib<TSchemae>;
+    readonly lib: UcdLib<TSchemae>;
     print(): string;
   }
 }

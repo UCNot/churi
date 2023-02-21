@@ -194,7 +194,9 @@ describe('parseUcValue', () => {
     it('recognized as top-level value', () => {
       expect(parse('123E-2')).toEqual({ charge: 123e-2, end: 6 });
       expect(parse('%3123E-2')).toEqual({ charge: 123e-2, end: 8 });
+      expect(parse('%3123E-2')).toEqual({ charge: 123e-2, end: 8 });
       expect(parse('-123E-2')).toEqual({ charge: -123e-2, end: 7 });
+      expect(parse('-%3123E-2')).toEqual({ charge: -123e-2, end: 9 });
       expect(parse('%2D123E-2')).toEqual({ charge: -123e-2, end: 9 });
       expect(parse('0')).toEqual({ charge: 0, end: 1 });
       expect(parse('-0')).toEqual({ charge: -0, end: 2 });

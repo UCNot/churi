@@ -1,14 +1,14 @@
-import { UccAliases } from './ucc-aliases.js';
+import { escapeJsString } from '../impl/quote-property-key.js';
 import { UccCode } from './ucc-code.js';
-import { uccStringExprContent } from './ucc-expr.js';
+import { UccNamespace } from './ucc-namespace.js';
 
 export class UccImports {
 
   readonly #imports = new Map<string, Map<string, string>>();
-  readonly #aliases: UccAliases;
+  readonly #ns: UccNamespace;
 
-  constructor(aliases: UccAliases) {
-    this.#aliases = aliases;
+  constructor(ns: UccNamespace) {
+    this.#ns = ns;
   }
 
   import(from: string, name: string): string {
@@ -25,7 +25,7 @@ export class UccImports {
       this.#imports.set(from, moduleImports);
     }
 
-    const alias = this.#aliases.aliasFor(name);
+    const alias = this.#ns.name(name);
 
     moduleImports.set(name, alias);
 
@@ -44,7 +44,7 @@ export class UccImports {
                   lines.print(`${this.#staticClause(name, alias)},`);
                 }
               })
-              .print(`} from '${uccStringExprContent(from)}';`);
+              .print(`} from '${escapeJsString(from)}';`);
           } else {
             for (const [name, alias] of moduleImports) {
               lines.print(`import { ${this.#staticClause(name, alias)} } from '${from}';`);
@@ -71,14 +71,13 @@ export class UccImports {
                   lines.print(`${this.#dynamicClause(name, alias)},`);
                 }
               })
-              .print(`} = await import('${uccStringExprContent(from)}');`);
+              .print(`} = await import('${escapeJsString(from)}');`);
           } else {
             for (const [name, alias] of moduleImports) {
               lines.print(
-                `const { ${this.#dynamicClause(
-                  name,
-                  alias,
-                )} } = await import('${uccStringExprContent(from)}');`,
+                `const { ${this.#dynamicClause(name, alias)} } = await import('${escapeJsString(
+                  from,
+                )}');`,
               );
             }
           }

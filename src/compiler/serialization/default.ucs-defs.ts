@@ -1,6 +1,7 @@
 import { noop } from '@proc7ts/primitives';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcList } from '../../schema/uc-list.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
@@ -8,7 +9,7 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
-import { uccPropertyAccessExpr, uccStringExprContent } from '../ucc-expr.js';
+import { uccPropertyAccessExpr } from '../ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
@@ -75,7 +76,7 @@ class Default$UcsDefs {
     value: string,
     asItem: string,
   ): UccCode.Source {
-    const { lib, aliases, args } = fn;
+    const { lib, ns, args } = fn;
     const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
     const emptyList = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_LIST');
@@ -83,8 +84,8 @@ class Default$UcsDefs {
     const itemSchema = schema.item.optional
       ? ucOptional(ucNullable(schema.item), false) // Write `undefined` items as `null`
       : schema.item;
-    const itemValue = aliases.aliasFor(`${value}$item`);
-    const itemWritten = aliases.aliasFor(`${value}$itemWritten`);
+    const itemValue = ns.name(`${value}$item`);
+    const itemWritten = ns.name(`${value}$itemWritten`);
 
     return this.#checkConstraints(fn, schema, value, code => {
       code
@@ -123,13 +124,13 @@ class Default$UcsDefs {
     schema: UcMap.Schema<TEntriesSpec>,
     value: string,
   ): UccCode.Source {
-    const { lib, aliases, args } = fn;
+    const { lib, ns, args } = fn;
     const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
     const emptyMap = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_MAP');
     const emptyEntryPrefix = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_ENTRY_PREFIX');
     const nullEntryValue = lib.import(SERIALIZER_MODULE, 'UCS_NULL_ENTRY_VALUE');
-    const entryValue = aliases.aliasFor(`${value}$entryValue`);
+    const entryValue = ns.name(`${value}$entryValue`);
 
     let startMap: UccCode.Builder = noop;
     let endMap: UccCode.Builder = noop;
@@ -137,7 +138,7 @@ class Default$UcsDefs {
       const entryPrefix = key
         ? lib.declarations.declareConst(
             key,
-            `${textEncoder}.encode('${uccStringExprContent(encodeUcsKey(key))}(')`,
+            `${textEncoder}.encode('${escapeJsString(encodeUcsKey(key))}(')`,
             {
               prefix: 'EP_',
             },
@@ -149,7 +150,7 @@ class Default$UcsDefs {
     let writeEntryPrefix = writeDefaultEntryPrefix;
 
     if (this.#mayBeEmpty(schema)) {
-      const entryWritten = aliases.aliasFor(`${value}$entryWritten`);
+      const entryWritten = ns.name(`${value}$entryWritten`);
 
       startMap = code => code.write(`let ${entryWritten} = false;`);
       endMap = code => code
@@ -180,9 +181,9 @@ class Default$UcsDefs {
               } catch (cause) {
                 throw new UnsupportedUcSchemaError(
                   entrySchema,
-                  `${fn.name}: Can not serialize entry "${key}" of type "${ucSchemaName(
-                    entrySchema,
-                  )}"`,
+                  `${fn.name}: Can not serialize entry "${escapeJsString(
+                    key,
+                  )}" of type "${ucSchemaName(entrySchema)}"`,
                   { cause },
                 );
               }

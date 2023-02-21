@@ -19,8 +19,10 @@ export namespace UcList {
    *
    * @typeParam TItemSpec - Type of list item schema specifier.
    */
-  export interface Schema<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>
-    extends UcSchema<TItem[]> {
+  export interface Schema<
+    TItem = unknown,
+    TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
+  > extends UcSchema<TItem[]> {
     readonly type: 'list';
     readonly item: UcSchema.Of<TItemSpec>;
   }
