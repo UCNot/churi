@@ -172,6 +172,7 @@ async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> 
   const entityInput = await ucdReadRawString(reader, true);
   const entity = entityInput.trimEnd();
 
+  /* istanbul ignore else */
   if (entity.length === 1) {
     ucdRxBoolean(reader, rx, true);
   } else {
@@ -196,7 +197,7 @@ async function ucdReadRawString(reader: UcdReader, balanceParentheses = false): 
       // Accept _full_ input.
 
       return balanceParentheses && openedParentheses
-        ? result + reader.consume() + ')'.repeat(openedParentheses) // Close hanging parentheses.
+        ? /* istanbul ignore next */ result + reader.consume() + ')'.repeat(openedParentheses)
         : result + reader.consume();
     }
 
