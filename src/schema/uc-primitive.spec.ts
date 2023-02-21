@@ -67,6 +67,8 @@ describe('BigInt', () => {
     it('deserializes zero', async () => {
       await expect(readValue(chunkStream('0n0'))).resolves.toBe(0n);
       await expect(readValue(chunkStream('-0n0'))).resolves.toBe(-0n);
+      await expect(readValue(chunkStream('0n'))).resolves.toBe(0n);
+      await expect(readValue(chunkStream('-0n'))).resolves.toBe(-0n);
     });
     it('rejects NaN', async () => {
       await expect(readValue(chunkStream('0nz'), { onError })).resolves.toBeUndefined();
