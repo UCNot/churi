@@ -3,6 +3,8 @@ export * from './churi.tag.js';
 export * from './opaque.uri-charge-rx.js';
 export * from './parse-uc-value.js';
 export * from './parse-uri-charge.js';
+export * from './uc-token.js';
+export * from './uc-tokenizer.js';
 export * from './uc-value-builder.js';
 export * from './uri-charge-builder.js';
 export * from './uri-charge-parser.js';
