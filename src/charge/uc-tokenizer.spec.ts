@@ -201,4 +201,14 @@ describe('UcTokenizer', () => {
 
     expect(tokens).toEqual(['abc   def']);
   });
+  it('URI-decodes strings', () => {
+    const input = '\u042a';
+    const encoded = encodeURIComponent('\u042a');
+
+    tokenizer.split(encoded.slice(0, 1));
+    tokenizer.split(encoded.slice(1));
+    tokenizer.flush();
+
+    expect(tokens).toEqual([input]);
+  });
 });
