@@ -1,4 +1,20 @@
-import { unchargeURIKey } from '../../charge/charge-uri.js';
+import { printUcTokens } from '../../syntax/print-uc-token.js';
+import {
+  isWhitespaceUcToken,
+  ucTokenKind,
+  UC_TOKEN_KIND_BOUND,
+  UC_TOKEN_KIND_IS_WHITESPACE,
+  UC_TOKEN_KIND_NL,
+} from '../../syntax/uc-token-kind.js';
+import {
+  UcToken,
+  UC_TOKEN_APOSTROPHE,
+  UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_COMMA,
+  UC_TOKEN_DOLLAR_SIGN,
+  UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_OPENING_PARENTHESIS,
+} from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
 import { ucdDecodeValue, ucdRxBoolean, ucdRxString } from './ucd-decode-value.js';
@@ -8,15 +24,15 @@ import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
 export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false): Promise<void> {
   await ucdSkipWhitespace(reader);
 
-  const { current } = reader;
+  const firstToken = reader.current();
   let hasValue = false;
 
-  if (!current) {
+  if (!firstToken) {
     // End of input.
     // Decode as empty string.
     return ucdRxString(reader, rx, '');
   }
-  if (current.startsWith('!')) {
+  if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
     await ucdReadEntityOrTrue(reader, rx);
 
     if (single) {
@@ -24,31 +40,33 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     }
 
     hasValue = true;
-  } else if (current.startsWith("'")) {
-    reader.consume(1); // Skip apostrophe.
+  } else if (firstToken === UC_TOKEN_APOSTROPHE) {
+    reader.skip(); // Skip apostrophe.
 
-    ucdRxString(reader, rx, decodeURIComponent(await ucdReadRawString(reader)));
+    ucdRxString(reader, rx, printUcTokens(await ucdReadTokens(reader)));
 
     if (single) {
       return;
     }
 
     hasValue = true;
-  } else if (current.startsWith('$')) {
-    const argIdx = await reader.search(UCD_DELIMITER_PATTERN, true);
+  } else if (firstToken === UC_TOKEN_DOLLAR_SIGN) {
+    reader.skip(); // Skip dollar prefix.
 
-    if (argIdx < 0) {
-      // End of input.
-      // Map containing single key with empty value.
-      ucdRxSingleEntry(reader, rx, unchargeURIKey(reader.consume().trimEnd()));
-    } else {
-      const key = unchargeURIKey(reader.consume(argIdx).trimEnd());
+    const bound = await ucdFindAnyBound(reader);
 
-      if (reader.current?.startsWith('(')) {
+    if (bound) {
+      const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
+
+      if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
         await ucdReadMap(reader, rx, key);
       } else {
         ucdRxSingleEntry(reader, rx, key);
       }
+    } else {
+      // End of input.
+      // Map containing single key with empty value.
+      ucdRxSingleEntry(reader, rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
     if (single) {
@@ -58,7 +76,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     hasValue = true;
   }
 
-  if (reader.current?.startsWith('(')) {
+  if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
     rx.lst?.();
 
     await ucdReadNestedList(reader, rx);
@@ -69,50 +87,38 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
 
     await ucdSkipWhitespace(reader);
 
-    if (reader.current?.startsWith(',')) {
+    if (reader.current() === UC_TOKEN_COMMA) {
       // Skip optional comma and whitespace after it.
-      reader.consume(1);
+      reader.skip();
       await ucdSkipWhitespace(reader);
     }
 
     return await ucdReadItems(reader, rx);
   }
 
-  let delimiterIdx = await reader.search(UCD_DELIMITER_PATTERN);
+  if (!(await ucdFindStrictBound(reader))) {
+    // No bound found at all.
+    // Treat as single value.
+    if (!hasValue) {
+      ucdDecodeValue(reader, rx, printUcTokens(trimUcTokensTail(await ucdReadTokens(reader))));
 
-  if (delimiterIdx < 0) {
-    // No delimiter found at the same line.
-    // Try to find on new line.
-    await reader.next();
-
-    delimiterIdx = await reader.search(UCD_NL_DELIMITER_PATTERN, true);
-
-    if (delimiterIdx < 0) {
-      // No delimiter found at all.
-      // Treat as single value.
-      if (!hasValue) {
-        const value = await ucdReadRawString(reader);
-
-        ucdDecodeValue(reader, rx, value.trimEnd());
-        if (single) {
-          return;
-        }
+      if (single) {
+        return;
       }
     }
   }
 
-  if (!reader.current) {
+  const bound = reader.current();
+
+  if (!bound) {
     // End of input.
     return;
   }
-
-  const delimiter = reader.current[delimiterIdx];
-
-  if (delimiter === ')') {
+  if (bound === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Unbalanced closing parenthesis.
     // Consume up to its position.
     if (!hasValue) {
-      ucdDecodeValue(reader, rx, reader.consume(delimiterIdx).trimEnd());
+      ucdDecodeValue(reader, rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
     return;
@@ -120,7 +126,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
 
   let itemsRx: UcdRx;
 
-  if (delimiter === ',') {
+  if (bound === UC_TOKEN_COMMA) {
     // List.
     if (single || rx.lst?.()) {
       itemsRx = rx;
@@ -128,10 +134,10 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
       reader.error(ucdUnexpectedTypeError('list', rx));
       itemsRx = UCD_OPAQUE_RX;
     }
-    if (delimiterIdx) {
+    if (reader.prev().length) {
       // Decode leading item, if any.
       // Ignore empty leading item otherwise.
-      ucdDecodeValue(reader, itemsRx, reader.consume(delimiterIdx).trimEnd());
+      ucdDecodeValue(reader, itemsRx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
     if (single) {
@@ -140,10 +146,10 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
     }
   } else {
     // Map.
-    const key = unchargeURIKey(reader.consume(delimiterIdx).trimEnd());
+    const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
 
     await ucdReadMap(reader, rx, key);
-    if (single || !reader.current || reader.current.startsWith(')')) {
+    if (single || !reader.current() || reader.current() === UC_TOKEN_CLOSING_PARENTHESIS) {
       // No next item.
       return;
     }
@@ -153,15 +159,18 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
       itemsRx = rx;
     } else {
       reader.error(
-        ucdUnexpectedTypeError(reader.current.startsWith('(') ? 'nested list' : 'list', rx),
+        ucdUnexpectedTypeError(
+          reader.current() === UC_TOKEN_OPENING_PARENTHESIS ? 'nested list' : 'list',
+          rx,
+        ),
       );
       itemsRx = UCD_OPAQUE_RX;
     }
   }
 
-  if (reader.current.startsWith(',')) {
+  if (reader.current() === UC_TOKEN_COMMA) {
     // Skip comma and whitespace after it.
-    reader.consume(1);
+    reader.skip();
     await ucdSkipWhitespace(reader);
   }
 
@@ -169,11 +178,11 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
 }
 
 async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> {
-  const entityInput = await ucdReadRawString(reader, true);
-  const entity = entityInput.trimEnd();
+  const tokens = await ucdReadTokens(reader, true);
 
   /* istanbul ignore else */
-  if (entity.length === 1) {
+  if (trimUcTokensTail(tokens).length === 1) {
+    // Single exclamation mark.
     ucdRxBoolean(reader, rx, true);
   } else {
     // TODO Process entities.
@@ -181,49 +190,49 @@ async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> 
   }
 }
 
-async function ucdReadRawString(reader: UcdReader, balanceParentheses = false): Promise<string> {
-  let result = '';
+async function ucdReadTokens(reader: UcdReader, balanceParentheses = false): Promise<UcToken[]> {
+  const tokens: UcToken[] = [];
   let openedParentheses = 0;
 
   for (;;) {
-    const delimiterIdx = await reader.search(
-      // Search for commas only _outside_ parentheses.
-      openedParentheses ? UCD_PARENTHESIS_PATTERN : UCD_DELIMITER_PATTERN,
-      true,
-    );
+    let bound: UcToken | undefined;
 
-    if (delimiterIdx < 0) {
-      // No delimiters found.
+    if (openedParentheses) {
+      bound = await reader.find(token => (isUcParenthesisToken(token) ? true : null));
+    } else {
+      // Search for commas only _outside_ parentheses.
+      bound = await reader.find(token => (isUcBoundToken(token) ? true : null));
+    }
+
+    if (!bound) {
+      // No bound found.
       // Accept _full_ input.
 
       return balanceParentheses && openedParentheses
-        ? /* istanbul ignore next */ result + reader.consume() + ')'.repeat(openedParentheses)
-        : result + reader.consume();
+        ? /* istanbul ignore next */ [
+            ...tokens,
+            ...reader.consume(),
+            ...new Array<UcToken>(openedParentheses).fill(UC_TOKEN_CLOSING_PARENTHESIS),
+          ]
+        : [...tokens, ...reader.consume()];
     }
 
-    if (reader.current![delimiterIdx] === '(') {
+    if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
       // Open one more parenthesis.
       ++openedParentheses;
-      result += reader.consume(delimiterIdx + 1);
+      tokens.push(...reader.consume());
     } else if (openedParentheses) {
       // Closing parenthesis matching the opened one.
       // This can not be a comma, as they are not searched for _inside_ parenthesis.
       --openedParentheses;
-      result += reader.consume(delimiterIdx + 1);
+      tokens.push(...reader.consume());
     } else {
       // Either closing parenthesis not matching the opening one, or a comma.
       // In either case, this is the end of input.
-      return result + reader.consume(delimiterIdx);
+      return [...tokens, ...reader.consumePrev()];
     }
   }
 }
-
-const UCD_PARENTHESIS_PATTERN = /[()]/;
-const UCD_DELIMITER_PATTERN = /[(),]/;
-
-// Opening parentheses only accepted as the first non-whitespace char of the line.
-// Comma and closing parenthesis accepted at any position.
-const UCD_NL_DELIMITER_PATTERN = /(?<=^\s*)\(|[),]/;
 
 async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
   let itemsRx = rx._.nls?.();
@@ -233,12 +242,15 @@ async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
     itemsRx = UCD_OPAQUE_RX;
   }
 
-  reader.consume(1); // Skip opening parenthesis.
+  // Skip opening parenthesis and whitespace following it.
+  reader.skip();
+  await ucdSkipWhitespace(reader);
+
   await ucdReadItems(reader, itemsRx);
 
-  if (reader.current?.startsWith(')')) {
+  if (reader.current() === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Skip closing parenthesis.
-    reader.consume(1);
+    reader.skip();
   }
 
   await ucdSkipWhitespace(reader);
@@ -246,18 +258,18 @@ async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
 
 async function ucdReadItems(reader: UcdReader, rx: UcdRx): Promise<void> {
   for (;;) {
-    const { current } = reader;
+    const current = reader.current();
 
-    if (!current || current.startsWith(')')) {
+    if (!current || current === UC_TOKEN_CLOSING_PARENTHESIS) {
       // End of list.
       break;
     }
 
     await ucdReadValue(reader, rx, true);
 
-    if (reader.current?.startsWith(',')) {
+    if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.
-      reader.consume(1);
+      reader.skip();
       await ucdSkipWhitespace(reader);
     }
   }
@@ -275,16 +287,16 @@ function ucdRxSingleEntry(reader: UcdReader, rx: UcdRx, key: string): void {
 }
 
 async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promise<void> {
-  reader.consume(1); // Skip opening parentheses.
+  reader.skip(); // Skip opening parentheses.
 
   const mapRx = ucdRxMap(reader, rx);
   const entryRx = ucdRxEntry(reader, mapRx, firstKey);
 
   await ucdReadValue(reader, entryRx);
 
-  if (reader.current) {
+  if (reader.current()) {
     // Skip closing parenthesis.
-    reader.consume(1);
+    reader.skip();
 
     // Read the rest of entries.
     await ucdReadEntries(reader, mapRx);
@@ -297,49 +309,40 @@ async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void>
   for (;;) {
     await ucdSkipWhitespace(reader);
 
-    const delimiterIdx = await reader.search(UCD_DELIMITER_PATTERN, true);
-    let suffix: string;
+    const bound = await ucdFindAnyBound(reader);
+    const keyTokens = trimUcTokensTail(reader.consumePrev());
 
-    if (delimiterIdx > 0) {
-      // Next item.
-      const delimiter = reader.current![delimiterIdx];
-      const rawKey = reader.consume(delimiterIdx).trimEnd();
-
-      if (delimiter === '(') {
-        // Next entry.
-        reader.consume(1); // Skip opening parenthesis.
-
-        const entryRx = ucdRxEntry(reader, mapRx, unchargeURIKey(rawKey));
-
-        await ucdReadValue(reader, entryRx);
-
-        if (!reader.current) {
-          // End of input.
-          return;
-        }
-
-        reader.consume(1); // Skip closing parenthesis.
-
-        continue;
-      }
-
-      suffix = rawKey;
-    } else if (delimiterIdx < 0) {
-      // End of input.
-      suffix = reader.consume().trimEnd();
-    } else {
-      // No suffix.
+    if (!keyTokens.length) {
+      // No key.
       break;
     }
 
-    if (suffix) {
-      const key = unchargeURIKey(suffix);
+    const key = printUcTokens(
+      keyTokens[0] === UC_TOKEN_DOLLAR_SIGN ? keyTokens.slice(1) : keyTokens,
+    );
+
+    if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
+      // Next entry.
+      reader.skip(); // Skip opening parenthesis.
+
+      const entryRx = ucdRxEntry(reader, mapRx, key);
+
+      await ucdReadValue(reader, entryRx);
+
+      if (!reader.current()) {
+        // End of input.
+        return;
+      }
+
+      reader.skip(); // Skip closing parenthesis.
+    } else {
+      // Suffix.
       const entryRx = ucdRxEntry(reader, mapRx, key);
 
       ucdRxString(reader, entryRx, '');
-    }
 
-    break;
+      break;
+    }
   }
 }
 
@@ -368,15 +371,62 @@ function ucdRxEntry(reader: UcdReader, mapRx: UcdMapRx, key: string): UcdRx {
 }
 
 async function ucdSkipWhitespace(reader: UcdReader): Promise<void> {
-  const nonSpaceStart = await reader.search(UCD_NON_SPACE_PATTERN, true);
-
-  if (nonSpaceStart > 0) {
-    // Some spaces found.
-    reader.consume(nonSpaceStart);
-  } else if (nonSpaceStart < 0) {
-    // Only spaces left.
-    reader.consume();
+  if (await reader.find(token => (isWhitespaceUcToken(token) ? null : true))) {
+    reader.omitPrev();
   }
 }
 
-const UCD_NON_SPACE_PATTERN = /\S/;
+async function ucdFindAnyBound(reader: UcdReader): Promise<UcToken | undefined> {
+  return await reader.find(token => (isUcBoundToken(token) ? true : null));
+}
+
+async function ucdFindStrictBound(reader: UcdReader): Promise<UcToken | undefined> {
+  let newLine = false;
+  let allowArgs = true;
+
+  return await reader.find(token => {
+    const kind = ucTokenKind(token);
+
+    if (kind & UC_TOKEN_KIND_BOUND) {
+      return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;
+    }
+
+    if (kind & UC_TOKEN_KIND_IS_WHITESPACE) {
+      if (kind === UC_TOKEN_KIND_NL) {
+        newLine = true;
+      }
+    } else if (newLine) {
+      // Prohibit arguments on a new line once there is some non-whitespace token on that line.
+      allowArgs = false;
+    }
+
+    return;
+  });
+}
+
+function isUcBoundToken(token: UcToken): boolean {
+  return (
+    token === UC_TOKEN_COMMA
+    || token === UC_TOKEN_OPENING_PARENTHESIS
+    || token === UC_TOKEN_CLOSING_PARENTHESIS
+  );
+}
+
+function isUcParenthesisToken(token: UcToken): boolean {
+  return token === UC_TOKEN_OPENING_PARENTHESIS || token === UC_TOKEN_CLOSING_PARENTHESIS;
+}
+
+function trimUcTokensTail(tokens: readonly UcToken[]): readonly UcToken[];
+function trimUcTokensTail(tokens: UcToken[]): UcToken[];
+
+function trimUcTokensTail(tokens: readonly UcToken[]): readonly UcToken[] {
+  const last = tokens.length - 1;
+
+  for (let i = last; i >= 0; --i) {
+    if (!isWhitespaceUcToken(tokens[i])) {
+      return i === last ? tokens : tokens.slice(0, i + 1);
+    }
+  }
+
+  return [];
+}

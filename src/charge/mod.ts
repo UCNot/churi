@@ -1,3 +1,4 @@
+export * from '../syntax/uc-token.js';
 export { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 export * from './churi.tag.js';
 export * from './opaque.uri-charge-rx.js';
