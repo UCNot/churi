@@ -35,9 +35,9 @@ export class UcTokenizer {
   static readonly #tokens: { [token: string]: (tokenizer: UcTokenizer) => void } = {
     '\r': tokenizer => tokenizer.#addCR(),
     '\n': tokenizer => tokenizer.#emitLF(),
-    '(': tokenizer => tokenizer.#emitSpecial(UC_TOKEN_OPENING_PARENTHESIS),
-    ')': tokenizer => tokenizer.#emitSpecial(UC_TOKEN_CLOSING_PARENTHESIS),
-    ',': tokenizer => tokenizer.#emitSpecial(UC_TOKEN_COMMA),
+    '(': tokenizer => tokenizer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
+    ')': tokenizer => tokenizer.#emitReserved(UC_TOKEN_CLOSING_PARENTHESIS),
+    ',': tokenizer => tokenizer.#emitReserved(UC_TOKEN_COMMA),
     '!': tokenizer => tokenizer.#emitReserved(UC_TOKEN_EXCLAMATION_MARK),
     '#': tokenizer => tokenizer.#emitReserved(UC_TOKEN_HASH),
     $: tokenizer => tokenizer.#emitReserved(UC_TOKEN_DOLLAR_SIGN),
@@ -57,7 +57,6 @@ export class UcTokenizer {
 
   readonly #emit: (token: UcToken) => void;
   #prev: string | typeof UC_TOKEN_CR | 0 = 0;
-  #leadingPads = false;
 
   /**
    * Constructs URI charge tokenizer.
@@ -91,7 +90,7 @@ export class UcTokenizer {
     this.#addString(token);
   }
 
-  #emitPrev(withTrailingPads: boolean): void {
+  #emitPrev(): void {
     const prev = this.#prev;
 
     if (!prev) {
@@ -101,12 +100,6 @@ export class UcTokenizer {
 
     if (typeof prev === 'number') {
       this.#emit(prev);
-
-      return;
-    }
-
-    if (!withTrailingPads) {
-      this.#emit(decodeURIComponent(prev));
 
       return;
     }
@@ -130,29 +123,19 @@ export class UcTokenizer {
       this.#emit(UC_TOKEN_CRLF);
       this.#prev = 0;
     } else {
-      this.#emitPrev(true);
+      this.#emitPrev();
       this.#emit(UC_TOKEN_LF);
     }
-
-    this.#leadingPads = true;
   }
 
   #addCR(): void {
-    this.#emitPrev(true);
+    this.#emitPrev();
     this.#prev = UC_TOKEN_CR;
-    this.#leadingPads = true;
-  }
-
-  #emitSpecial(token: number): void {
-    this.#emitPrev(true);
-    this.#emit(token);
-    this.#leadingPads = true;
   }
 
   #emitReserved(token: number): void {
-    this.#emitPrev(false);
+    this.#emitPrev();
     this.#emit(token);
-    this.#leadingPads = false;
   }
 
   #addString(token: string): void {
@@ -166,7 +149,9 @@ export class UcTokenizer {
       this.#emit(prev);
     }
 
-    if (this.#leadingPads) {
+    if (typeof prev === 'string') {
+      this.#prev += token;
+    } else {
       const padEnd = token.search(UC_FIRST_NON_PAD_PATTERN);
 
       if (padEnd < 0) {
@@ -182,12 +167,6 @@ export class UcTokenizer {
       } else {
         this.#prev = token;
       }
-
-      this.#leadingPads = false;
-    } else if (typeof prev === 'string') {
-      this.#prev += token;
-    } else {
-      this.#prev = token;
     }
   }
 
@@ -217,7 +196,7 @@ export class UcTokenizer {
    * Flushes the input emitting all pending tokens.
    */
   flush(): void {
-    this.#emitPrev(true);
+    this.#emitPrev();
   }
 
 }

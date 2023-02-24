@@ -3,10 +3,10 @@ export const UC_TOKEN_LF = 0x0a as const;
 export const UC_TOKEN_CR = 0x0d as const;
 export const UC_TOKEN_CRLF = 0x0d0a as const; // Windows-style
 
-// Paddings.
+// Padding prefixes.
 // Lowest byte is a code (space or tab), the rest is one lesser than number of characters.
-export const UC_TOKEN_MASK_TAB = 0x09 as const;
-export const UC_TOKEN_MASK_SPACE = 0x20 as const;
+export const UC_TOKEN_PREFIX_TAB = 0x09 as const;
+export const UC_TOKEN_PREFIX_SPACE = 0x20 as const;
 
 // [Reserved characters](https://www.rfc-editor.org/rfc/rfc3986#section-2.2).
 export const UC_TOKEN_EXCLAMATION_MARK = 0x21 as const;
@@ -43,11 +43,11 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *
  * - Number containing encoded padding.
 
- *   Contains one of {@link UC_TOKEN_MASK_SPACE} or {@link UC_TOKEN_MASK_TAB} in the lowest byte, and a number one less
- *   than the number of repeats in the higher bytes.
+ *   Contains one of {@link UC_TOKEN_PREFIX_SPACE} or {@link UC_TOKEN_PREFIX_TAB} as the lowest byte, and a number of
+ *   repeats (excluding the symbol itself) as the higher bytes.
  *
- *   Such padding may only present around _parentheses_ (`"(" (U+0028)` and `")" (U+0029)`), _comma_ (`"," (U+002c)`),
- *   and line terminators.
+ *   Such padding may only present around [reserved characters], line terminators, after input beginning, and before
+ *   input end.
  *
  * - Non-empty percent-decoded string.
  *

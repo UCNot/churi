@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { Readable } from 'node:stream';
 import { UcError } from '../schema/uc-error.js';
 import { chunkStream } from '../spec/chunk-stream.js';
+import { UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
 import { UcdReader } from './ucd-reader.js';
 
 describe('UcdReader', () => {
@@ -53,28 +54,31 @@ describe('UcdReader', () => {
     it('handles Windows-style new lines splat across chunks', async () => {
       reader = readChunks('abc\r', '\ndef');
 
-      await expect(reader.next()).resolves.toBe('abc\r\n');
+      await expect(reader.next()).resolves.toBe('abc');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_CRLF);
       await expect(reader.next()).resolves.toBe('def');
-      expect(reader.current).toBe('def');
-      expect(reader.prev).toEqual(['abc\r\n']);
+      expect(reader.current()).toBe('def');
+      expect(reader.prev()).toEqual(['abc', UC_TOKEN_CRLF]);
     });
     it('handles Windows-style new lines splat across multiple chunks', async () => {
       reader = readChunks('abc\r', '', '\n', '', 'def');
 
-      await expect(reader.next()).resolves.toBe('abc\r\n');
+      await expect(reader.next()).resolves.toBe('abc');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_CRLF);
       await expect(reader.next()).resolves.toBe('def');
-      expect(reader.current).toBe('def');
-      expect(reader.prev).toEqual(['abc\r\n']);
+      expect(reader.current()).toBe('def');
+      expect(reader.prev()).toEqual(['abc', UC_TOKEN_CRLF]);
     });
     it('handles Windows-style new lines splat across chunks after consumption', async () => {
       reader = readChunks('abc\r', '\ndef');
 
-      await expect(reader.next()).resolves.toBe('abc\r\n');
-      expect(reader.consume()).toBe('abc\r\n');
+      await expect(reader.next()).resolves.toBe('abc');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_CRLF);
+      expect(reader.consume()).toEqual(['abc', UC_TOKEN_CRLF]);
 
       await expect(reader.next()).resolves.toBe('def');
-      expect(reader.current).toBe('def');
-      expect(reader.prev).toHaveLength(0);
+      expect(reader.current()).toBe('def');
+      expect(reader.prev()).toEqual([]);
     });
   });
 
@@ -84,58 +88,64 @@ describe('UcdReader', () => {
     });
 
     it('consumes nothing by default', () => {
-      expect(reader.consume()).toBe('');
+      expect(reader.consume()).toHaveLength(0);
     });
     it('consumes fully', async () => {
-      await expect(reader.next()).resolves.toBe('abc\n');
-      await expect(reader.next()).resolves.toBe('def\n');
-      expect(reader.consume()).toBe('abc\ndef\n');
-      expect(reader.current).toBeUndefined();
-      expect(reader.prev).toHaveLength(0);
+      await expect(reader.next()).resolves.toBe('abc');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_LF);
+      await expect(reader.next()).resolves.toBe('def');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_LF);
+      expect(reader.consume()).toEqual(['abc', UC_TOKEN_LF, 'def', UC_TOKEN_LF]);
+      expect(reader.current()).toBeUndefined();
+      expect(reader.prev()).toHaveLength(0);
 
-      expect(reader.consume()).toBe('');
-    });
-    it('consumes partially', async () => {
-      await expect(reader.next()).resolves.toBe('abc\n');
-      await expect(reader.next()).resolves.toBe('def\n');
-      expect(reader.consume(2)).toBe('abc\nde');
-      expect(reader.current).toBe('f\n');
-      expect(reader.prev).toHaveLength(0);
-
-      expect(reader.consume()).toBe('f\n');
-      expect(reader.consume()).toBe('');
+      expect(reader.consume()).toHaveLength(0);
     });
   });
 
-  describe('search', () => {
+  describe('consumePrev', () => {
     beforeEach(() => {
       reader = readChunks('abc\n', 'def\n');
     });
 
-    describe('one-line', () => {
-      it('searches on the same line', async () => {
-        await expect(reader.search('c')).resolves.toBe(2);
-        expect(reader.current).toBe('abc\n');
-        expect(reader.prev).toHaveLength(0);
-      });
-      it('does not searches across chunks', async () => {
-        await expect(reader.search('e')).resolves.toBe(-1);
-        expect(reader.current).toBe('abc\n');
-        expect(reader.prev).toHaveLength(0);
-      });
+    it('consumes partially', async () => {
+      await expect(reader.next()).resolves.toBe('abc');
+      await expect(reader.next()).resolves.toBe(UC_TOKEN_LF);
+      await expect(reader.next()).resolves.toBe('def');
+      expect(reader.consumePrev()).toEqual(['abc', UC_TOKEN_LF]);
+      expect(reader.current()).toBe('def');
+      expect(reader.prev()).toHaveLength(0);
+
+      expect(reader.consume()).toEqual(['def']);
+      expect(reader.consume()).toHaveLength(0);
+    });
+  });
+
+  describe('find', () => {
+    beforeEach(() => {
+      reader = readChunks('abc\n', 'def\n');
     });
 
-    describe('multiline', () => {
-      it('searches across chunks', async () => {
-        await expect(reader.search('e', true)).resolves.toBe(1);
-        expect(reader.current).toBe('def\n');
-        expect(reader.prev).toEqual(['abc\n']);
-      });
-      it('iterates all chunks when not found', async () => {
-        await expect(reader.search('Z', true)).resolves.toBe(-1);
-        expect(reader.current).toBe('def\n');
-        expect(reader.prev).toEqual(['abc\n']);
-      });
+    it('searches for token', async () => {
+      await expect(
+        reader.find(token => (typeof token === 'string' && token.includes('e') ? true : null)),
+      ).resolves.toBe('def');
+      expect(reader.current()).toBe('def');
+      expect(reader.prev()).toEqual(['abc', UC_TOKEN_LF]);
+    });
+    it('searches until negative result received', async () => {
+      await expect(
+        reader.find(token => typeof token === 'string' ? (token.includes('e') ? true : null) : false),
+      ).resolves.toBeUndefined();
+      expect(reader.current()).toBe(UC_TOKEN_LF);
+      expect(reader.prev()).toEqual(['abc']);
+    });
+    it('iterates all tokens when not found', async () => {
+      await expect(
+        reader.find(token => (typeof token === 'string' && token.includes('Z') ? true : null)),
+      ).resolves.toBeUndefined();
+      expect(reader.current()).toBeUndefined();
+      expect(reader.prev()).toEqual(['abc', UC_TOKEN_LF, 'def', UC_TOKEN_LF]);
     });
   });
 

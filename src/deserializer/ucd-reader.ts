@@ -1,16 +1,17 @@
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
-import { PerLineStream } from './impl/per-line-stream.js';
+import { UcToken } from '../syntax/uc-token.js';
+import { UcTokenizerStream } from '../syntax/uc-tokenizer-stream.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
 export class UcdReader {
 
-  readonly #reader: ReadableStreamDefaultReader<string>;
+  readonly #reader: ReadableStreamDefaultReader<UcToken>;
   readonly #onError: (error: UcErrorInfo) => void;
 
-  #current: string | undefined;
-  readonly #prev: string[] = [];
+  #current: UcToken | undefined;
+  readonly #prev: UcToken[] = [];
   #hasNext = true;
 
   constructor(input: ReadableStream<string>, options?: UcDeserializer.Options);
@@ -19,19 +20,19 @@ export class UcdReader {
     stream: ReadableStream<string>,
     { onError = UcDeserializer$throwOnError }: UcDeserializer.Options = {},
   ) {
-    this.#reader = stream.pipeThrough(new PerLineStream()).getReader();
+    this.#reader = stream.pipeThrough(new UcTokenizerStream()).getReader();
     this.#onError = onError;
   }
 
-  get hasNext(): boolean {
+  hasNext(): boolean {
     return this.#hasNext;
   }
 
-  get current(): string | undefined {
+  current(): UcToken | undefined {
     return this.#current;
   }
 
-  get prev(): readonly string[] {
+  prev(): readonly UcToken[] {
     return this.#prev;
   }
 
@@ -43,79 +44,94 @@ export class UcdReader {
     await ucdReadValue(this, rx);
   }
 
-  async next(): Promise<string | undefined> {
-    if (!this.hasNext) {
+  async next(): Promise<UcToken | undefined> {
+    if (!this.hasNext()) {
       return;
     }
 
-    for (;;) {
-      const { done, value } = await this.#reader.read();
+    const { done, value } = await this.#reader.read();
 
-      if (done) {
-        this.#hasNext = false;
-        if (value == null) {
-          return;
-        }
-      }
-
-      if (this.#push(value!)) {
-        return this.current;
+    this.#push(value);
+    if (done) {
+      this.#hasNext = false;
+      if (value == null) {
+        return;
       }
     }
+
+    return this.current();
   }
 
-  #push(value: string): boolean {
-    const { current } = this;
+  #push(token: UcToken | undefined): void {
+    const current = this.current();
 
     if (current) {
       this.#prev.push(current);
     }
-    this.#current = value;
-
-    return true;
+    this.#current = token;
   }
 
-  async search(
-    searcher: { [Symbol.search](string: string): number } | string | RegExp,
-    multiline = false,
-  ): Promise<number> {
-    let { current: chunk = await this.next() } = this;
+  async find(
+    matcher: (token: UcToken) => boolean | null | undefined,
+  ): Promise<UcToken | undefined> {
+    let token = this.current() || (await this.next());
 
-    while (chunk != null) {
-      const index = chunk.search(searcher as { [Symbol.search](string: string): number });
+    while (token) {
+      const match = matcher(token);
 
-      if (index >= 0) {
-        return index;
-      }
-      if (!multiline) {
-        break;
+      if (match != null) {
+        return match ? token : undefined;
       }
 
-      chunk = await this.next();
+      token = await this.next();
     }
 
-    return -1;
+    return;
   }
 
-  consume(length = -1): string {
-    const { current } = this;
+  consume(): UcToken[] {
+    const prev = this.prev();
+    const current = this.current();
 
-    if (current == null) {
-      return '';
-    }
+    if (prev.length) {
+      const result = current ? [...prev, current] : prev.slice();
 
-    let result = this.prev.join('');
-
-    this.#prev.length = 0;
-    if (length < 0 || length >= current.length) {
-      result += current;
       this.#current = undefined;
-    } else {
-      result += current.slice(0, length);
-      this.#current = current.slice(length);
+      this.#prev.length = 0;
+
+      return result;
     }
 
-    return result;
+    if (current) {
+      this.#current = undefined;
+
+      return [current];
+    }
+
+    return [];
+  }
+
+  consumePrev(): UcToken[] {
+    const prev = this.prev();
+
+    if (prev.length) {
+      const result: UcToken[] = prev.slice();
+
+      this.#prev.length = 0;
+
+      return result;
+    }
+
+    return [];
+  }
+
+  skip(): void {
+    this.omitPrev();
+    this.#current = undefined;
+  }
+
+  omitPrev(): void {
+    this.#prev.length = 0;
   }
 
   done(): void {

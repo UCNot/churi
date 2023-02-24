@@ -16,11 +16,11 @@ import {
   UC_TOKEN_EXCLAMATION_MARK,
   UC_TOKEN_HASH,
   UC_TOKEN_LF,
-  UC_TOKEN_MASK_SPACE,
-  UC_TOKEN_MASK_TAB,
   UC_TOKEN_OPENING_BRACKET,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PLUS_SIGN,
+  UC_TOKEN_PREFIX_SPACE,
+  UC_TOKEN_PREFIX_TAB,
   UC_TOKEN_QUESTION_MARK,
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
@@ -92,59 +92,6 @@ describe('UcTokenizer', () => {
     ['comma', ',', UC_TOKEN_COMMA],
     ['opening parenthesis', '(', UC_TOKEN_OPENING_PARENTHESIS],
     ['closing parenthesis', ')', UC_TOKEN_CLOSING_PARENTHESIS],
-  ])('around %s', (_name, char, token) => {
-    it('reports pads', () => {
-      tokenizer.split(`abc   ${char}    def`);
-      tokenizer.flush();
-
-      expect(tokens).toEqual([
-        'abc',
-        UC_TOKEN_MASK_SPACE | (2 << 8),
-        token,
-        UC_TOKEN_MASK_SPACE | (3 << 8),
-        'def',
-      ]);
-      expect(tokens).toEqual([
-        'abc',
-        UC_TOKEN_MASK_SPACE | (2 << 8),
-        char.charCodeAt(0),
-        UC_TOKEN_MASK_SPACE | (3 << 8),
-        'def',
-      ]);
-    });
-    it('concatenates leading pads', () => {
-      tokenizer.split('abc  ');
-      tokenizer.split(' ');
-      tokenizer.split(char);
-      tokenizer.split('  ');
-      tokenizer.split('  def');
-      tokenizer.flush();
-
-      expect(tokens).toEqual([
-        'abc',
-        UC_TOKEN_MASK_SPACE | (2 << 8),
-        token,
-        UC_TOKEN_MASK_SPACE | (1 << 8),
-        UC_TOKEN_MASK_SPACE | (1 << 8),
-        'def',
-      ]);
-    });
-    it('handles mixed pads', () => {
-      tokenizer.split(`abc   ${char}   \t\tdef`);
-      tokenizer.flush();
-
-      expect(tokens).toEqual([
-        'abc',
-        UC_TOKEN_MASK_SPACE | (2 << 8),
-        token,
-        UC_TOKEN_MASK_SPACE | (2 << 8),
-        UC_TOKEN_MASK_TAB | (1 << 8),
-        'def',
-      ]);
-    });
-  });
-
-  describe.each([
     ['exclamation mark', '!', UC_TOKEN_EXCLAMATION_MARK],
     ['hash', '#', UC_TOKEN_HASH],
     ['dollar sign', '$', UC_TOKEN_DOLLAR_SIGN],
@@ -161,24 +108,54 @@ describe('UcTokenizer', () => {
     ['opening bracket', '[', UC_TOKEN_OPENING_BRACKET],
     ['closing bracket', ']', UC_TOKEN_CLOSING_BRACKET],
   ])('around %s', (_name, char, token) => {
-    it('emits pads as characters', () => {
+    it('reports pads', () => {
       tokenizer.split(`abc   ${char}    def`);
       tokenizer.flush();
 
-      expect(tokens).toEqual(['abc   ', token, '    def']);
-      expect(tokens).toEqual(['abc   ', char.charCodeAt(0), '    def']);
+      expect(tokens).toEqual([
+        'abc',
+        UC_TOKEN_PREFIX_SPACE | (2 << 8),
+        token,
+        UC_TOKEN_PREFIX_SPACE | (3 << 8),
+        'def',
+      ]);
+      expect(tokens).toEqual([
+        'abc',
+        UC_TOKEN_PREFIX_SPACE | (2 << 8),
+        char.charCodeAt(0),
+        UC_TOKEN_PREFIX_SPACE | (3 << 8),
+        'def',
+      ]);
     });
-    it('concatenates pads', () => {
-      tokenizer.split(`abc`);
-      tokenizer.split(`   `);
-      tokenizer.split(``);
+    it('concatenates leading pads', () => {
+      tokenizer.split('abc  ');
+      tokenizer.split(' ');
       tokenizer.split(char);
-      tokenizer.split(`  `);
-      tokenizer.split(`  `);
-      tokenizer.split(`def`);
+      tokenizer.split('  ');
+      tokenizer.split('  def');
       tokenizer.flush();
 
-      expect(tokens).toEqual(['abc   ', token, '    def']);
+      expect(tokens).toEqual([
+        'abc',
+        UC_TOKEN_PREFIX_SPACE | (2 << 8),
+        token,
+        UC_TOKEN_PREFIX_SPACE | (1 << 8),
+        UC_TOKEN_PREFIX_SPACE | (1 << 8),
+        'def',
+      ]);
+    });
+    it('handles mixed pads', () => {
+      tokenizer.split(`abc   ${char}   \t\tdef`);
+      tokenizer.flush();
+
+      expect(tokens).toEqual([
+        'abc',
+        UC_TOKEN_PREFIX_SPACE | (2 << 8),
+        token,
+        UC_TOKEN_PREFIX_SPACE | (2 << 8),
+        UC_TOKEN_PREFIX_TAB | (1 << 8),
+        'def',
+      ]);
     });
   });
 
@@ -188,11 +165,30 @@ describe('UcTokenizer', () => {
 
     expect(tokens).toEqual([
       'abc',
-      UC_TOKEN_MASK_SPACE | (255 << 8),
-      UC_TOKEN_MASK_SPACE | (255 << 8),
-      UC_TOKEN_MASK_SPACE | (255 << 8),
-      UC_TOKEN_MASK_SPACE | (231 << 8),
+      UC_TOKEN_PREFIX_SPACE | (255 << 8),
+      UC_TOKEN_PREFIX_SPACE | (255 << 8),
+      UC_TOKEN_PREFIX_SPACE | (255 << 8),
+      UC_TOKEN_PREFIX_SPACE | (231 << 8),
     ]);
+  });
+  it('handles paddings at the begin of input', () => {
+    tokenizer.split('  ');
+    tokenizer.split('  abc');
+    tokenizer.flush();
+
+    expect(tokens).toEqual([
+      UC_TOKEN_PREFIX_SPACE | (1 << 8),
+      UC_TOKEN_PREFIX_SPACE | (1 << 8),
+      'abc',
+    ]);
+  });
+  it('handles paddings at the end of input', () => {
+    tokenizer.split('');
+    tokenizer.split('abc  ');
+    tokenizer.split('  ');
+    tokenizer.flush();
+
+    expect(tokens).toEqual(['abc', UC_TOKEN_PREFIX_SPACE | (3 << 8)]);
   });
   it('concatenates string tokens', () => {
     tokenizer.split('abc ');
