@@ -1,10 +1,10 @@
 import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
-import { UcdReader } from '../ucd-reader.js';
+import { AbstractUcdReader } from '../abstract-ucd-reader.js';
 import { UcdRx } from '../ucd-rx.js';
-import { ucdUnexpectedTypeError } from './ucd-errors.js';
+import { ucdRxBigInt, ucdRxBoolean, ucdRxNull, ucdRxNumber, ucdRxString } from './ucd-rx-value.js';
 
-export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): void {
+export function ucdDecodeValue(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
   if (!input) {
     // Empty string treated as is.
     ucdRxString(reader, rx, '');
@@ -19,7 +19,7 @@ export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): voi
   }
 }
 
-type UcdValueDecoder = (reader: UcdReader, rx: UcdRx, input: string) => void;
+type UcdValueDecoder = (reader: AbstractUcdReader, rx: UcdRx, input: string) => void;
 
 const UCD_VALUE_DECODERS: {
   readonly [prefix: string]: UcdValueDecoder;
@@ -37,7 +37,7 @@ const UCD_VALUE_DECODERS: {
   9: ucdDecodeNumber,
 };
 
-function ucdDecodeMinusSigned(reader: UcdReader, rx: UcdRx, input: string): void {
+function ucdDecodeMinusSigned(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
   if (input.length === 1) {
     ucdRxBoolean(reader, rx, false);
   } else if (input === '--') {
@@ -46,47 +46,23 @@ function ucdDecodeMinusSigned(reader: UcdReader, rx: UcdRx, input: string): void
     const secondChar = input[1];
 
     if (secondChar >= '0' && secondChar <= '9') {
-      ucdRxNumeric(reader, rx, input, 1, negate);
+      ucdDecodeNumeric(reader, rx, input, 1, negate);
     } else {
       ucdRxString(reader, rx, input);
     }
   }
 }
 
-function ucdDecodeNumber(reader: UcdReader, rx: UcdRx, input: string): void {
+function ucdDecodeNumber(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
   ucdRxNumber(reader, rx, Number(input));
 }
 
-function ucdDecodeUnsigned(reader: UcdReader, rx: UcdRx, input: string): void {
-  ucdRxNumeric(reader, rx, input, 0, asis);
+function ucdDecodeUnsigned(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
+  ucdDecodeNumeric(reader, rx, input, 0, asis);
 }
 
-function ucdRxBigInt(reader: UcdReader, rx: UcdRx, value: bigint): void {
-  if (!rx._.big?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedTypeError('bigint', rx));
-  }
-}
-
-export function ucdRxBoolean(reader: UcdReader, rx: UcdRx, value: boolean): void {
-  if (!rx._.bol?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedTypeError('boolean', rx));
-  }
-}
-
-function ucdRxNull(reader: UcdReader, rx: UcdRx): void {
-  if (!rx._.nul?.()) {
-    reader.error(ucdUnexpectedTypeError('null', rx));
-  }
-}
-
-function ucdRxNumber(reader: UcdReader, rx: UcdRx, value: number): void {
-  if (!rx._.num?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedTypeError('number', rx));
-  }
-}
-
-function ucdRxNumeric(
-  reader: UcdReader,
+function ucdDecodeNumeric(
+  reader: AbstractUcdReader,
   rx: UcdRx,
   input: string,
   offset: number,
@@ -121,11 +97,5 @@ function ucdRxNumeric(
         message: 'Not a number',
       });
     }
-  }
-}
-
-export function ucdRxString(reader: UcdReader, rx: UcdRx, value: string): void {
-  if (!rx._.str?.(value) && !rx._.any?.(value)) {
-    reader.error(ucdUnexpectedTypeError('string', rx));
   }
 }

@@ -17,9 +17,17 @@ import {
 } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
-import { ucdDecodeValue, ucdRxBoolean, ucdRxString } from './ucd-decode-value.js';
-import { ucdUnexpectedEntryError, ucdUnexpectedTypeError } from './ucd-errors.js';
+import { ucdDecodeValue } from './ucd-decode-value.js';
+import { ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
+import {
+  ucdRxBoolean,
+  ucdRxEntry,
+  ucdRxMap,
+  ucdRxSingleEntry,
+  ucdRxString,
+} from './ucd-rx-value.js';
+import { isUcBoundToken, isUcParenthesisToken, trimUcTokensTail } from './ucd-tokens.js';
 
 export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false): Promise<void> {
   await ucdSkipWhitespace(reader);
@@ -277,15 +285,6 @@ async function ucdReadItems(reader: UcdReader, rx: UcdRx): Promise<void> {
   rx.end?.();
 }
 
-function ucdRxSingleEntry(reader: UcdReader, rx: UcdRx, key: string): void {
-  const map = ucdRxMap(reader, rx);
-  const entryRx = ucdRxEntry(reader, map, key);
-
-  ucdRxString(reader, entryRx, '');
-
-  map.end();
-}
-
 async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promise<void> {
   reader.skip(); // Skip opening parentheses.
 
@@ -346,30 +345,6 @@ async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void>
   }
 }
 
-function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx {
-  const mapRx = rx._.map;
-
-  if (mapRx) {
-    return mapRx;
-  }
-
-  reader.error(ucdUnexpectedTypeError('map', rx));
-
-  return UCD_OPAQUE_RX._.map;
-}
-
-function ucdRxEntry(reader: UcdReader, mapRx: UcdMapRx, key: string): UcdRx {
-  const entryRx = mapRx.for(key);
-
-  if (entryRx) {
-    return entryRx;
-  }
-
-  reader.error(ucdUnexpectedEntryError(key));
-
-  return UCD_OPAQUE_RX;
-}
-
 async function ucdSkipWhitespace(reader: UcdReader): Promise<void> {
   if (await reader.find(token => (isWhitespaceUcToken(token) ? null : true))) {
     reader.omitPrev();
@@ -402,31 +377,4 @@ async function ucdFindStrictBound(reader: UcdReader): Promise<UcToken | undefine
 
     return;
   });
-}
-
-function isUcBoundToken(token: UcToken): boolean {
-  return (
-    token === UC_TOKEN_COMMA
-    || token === UC_TOKEN_OPENING_PARENTHESIS
-    || token === UC_TOKEN_CLOSING_PARENTHESIS
-  );
-}
-
-function isUcParenthesisToken(token: UcToken): boolean {
-  return token === UC_TOKEN_OPENING_PARENTHESIS || token === UC_TOKEN_CLOSING_PARENTHESIS;
-}
-
-function trimUcTokensTail(tokens: readonly UcToken[]): readonly UcToken[];
-function trimUcTokensTail(tokens: UcToken[]): UcToken[];
-
-function trimUcTokensTail(tokens: readonly UcToken[]): readonly UcToken[] {
-  const last = tokens.length - 1;
-
-  for (let i = last; i >= 0; --i) {
-    if (!isWhitespaceUcToken(tokens[i])) {
-      return i === last ? tokens : tokens.slice(0, i + 1);
-    }
-  }
-
-  return [];
 }
