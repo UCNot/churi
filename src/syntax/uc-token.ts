@@ -46,8 +46,8 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *   Contains one of {@link UC_TOKEN_PREFIX_SPACE} or {@link UC_TOKEN_PREFIX_TAB} as the lowest byte, and a number of
  *   repeats (excluding the symbol itself) as the higher bytes.
  *
- *   Such padding may only present around [reserved characters], line terminators, after input beginning, and before
- *   input end.
+ *   Such padding always emitted for spaces and tabs around [reserved characters], line terminators, after input
+ *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
  * - Non-empty percent-decoded string.
  *
