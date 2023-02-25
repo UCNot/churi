@@ -43,8 +43,8 @@ const URI_CHARGE_ENCODERS: {
  *
  * @returns Encoded key.
  */
-export function chargeURIKey(key: string, subsequent = false): string {
-  return key ? escapeUcKey(encodeURIComponent(key), subsequent) : '$';
+export function chargeURIKey(key: string): string {
+  return key ? escapeUcKey(encodeURIComponent(key)) : '$';
 }
 
 /**
@@ -200,7 +200,6 @@ export function chargeURIMap(
   { omitCommaAfter }: URIChargeable.Placement,
 ): string {
   const mapCharge: string[] = [];
-  let index = 0;
   let hasSuffix = false;
 
   for (const [key, value] of entries) {
@@ -213,7 +212,7 @@ export function chargeURIMap(
         hasSuffix = false;
       }
 
-      const encodedKey = chargeURIKey(key, index > 0);
+      const encodedKey = chargeURIKey(key);
 
       if (entryCharge) {
         mapCharge.push(`${encodedKey}(${entryCharge})`);
@@ -222,8 +221,6 @@ export function chargeURIMap(
         mapCharge.push(encodedKey);
         hasSuffix = true;
       }
-
-      ++index;
     }
   }
 

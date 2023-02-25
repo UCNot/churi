@@ -195,9 +195,6 @@ The following rules apply to entry keys:
 - Since `"!" (U+0021)`, `"$" (U+0024)`, and `"'" (U+0027)` prefixes have special meaning, they should be escaped
   with _dollar sign_ (`"$" (U+0024)`).
 - Empty key represented by single _dollar sign_ (`"$" (U+0024)`).
-- **A non-escaped key having more than 63 octets is illegal for the first entry**. It is up to the parser how
-  to treat it, or raise an error instead. This requirement allows to quickly distinguish strings and maps when
-  processing a stream. This rule makes sense only for the first key and not applied to subsequent ones.
 
 A special case when key prefixed with _dollar sign_ is not followed by value is treated as entry with empty string
 value. I.e. `$key` is the same as `$key()`. Note that this rule does not work for single `$` symbol, which stands
