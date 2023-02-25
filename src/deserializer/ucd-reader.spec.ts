@@ -113,6 +113,7 @@ describe('UcdReader', () => {
       await expect(reader.next()).resolves.toBe(UC_TOKEN_LF);
       await expect(reader.next()).resolves.toBe('def');
       expect(reader.consumePrev()).toEqual(['abc', UC_TOKEN_LF]);
+      expect(reader.consumePrev()).toHaveLength(0);
       expect(reader.current()).toBe('def');
       expect(reader.prev()).toHaveLength(0);
 
