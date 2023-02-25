@@ -3,7 +3,7 @@ import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { chunkStream } from '../spec/chunk-stream.js';
+import { readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucList } from './uc-list.js';
@@ -285,24 +285,24 @@ describe('UcMap', () => {
       });
 
       it('deserializes entry', async () => {
-        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+        await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
       it('deserializes $-escaped entry', async () => {
-        await expect(readMap(chunkStream('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+        await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
       it('deserializes $-escaped suffix', async () => {
-        await expect(readMap(chunkStream('$foo'))).resolves.toEqual({ foo: '' });
-        await expect(readMap(chunkStream('$foo \r\n   '))).resolves.toEqual({ foo: '' });
-        await expect(readMap(chunkStream('\r\n $foo'))).resolves.toEqual({ foo: '' });
+        await expect(readMap(readTokens('$foo'))).resolves.toEqual({ foo: '' });
+        await expect(readMap(readTokens('$foo \r\n   '))).resolves.toEqual({ foo: '' });
+        await expect(readMap(readTokens('\r\n $foo'))).resolves.toEqual({ foo: '' });
       });
       it('handles whitespace', async () => {
-        await expect(readMap(chunkStream(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+        await expect(readMap(readTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
           foo: 'bar',
         });
       });
       it('rejects null', async () => {
         await expect(
-          readMap(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.()),
+          readMap(readTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual({
           code: 'unexpectedType',
           details: {
@@ -315,7 +315,7 @@ describe('UcMap', () => {
         });
       });
       it('rejects second item', async () => {
-        await expect(readMap(chunkStream('foo(),'), { onError })).resolves.toEqual({ foo: '' });
+        await expect(readMap(readTokens('foo(),'), { onError })).resolves.toEqual({ foo: '' });
 
         expect(errors).toEqual([
           {
@@ -331,7 +331,7 @@ describe('UcMap', () => {
         ]);
       });
       it('rejects second item after $-prefixes map', async () => {
-        await expect(readMap(chunkStream('$foo(),'), { onError })).resolves.toEqual({ foo: '' });
+        await expect(readMap(readTokens('$foo(),'), { onError })).resolves.toEqual({ foo: '' });
 
         expect(errors).toEqual([
           {
@@ -392,30 +392,30 @@ describe('UcMap', () => {
       });
 
       it('deserializes entries', async () => {
-        await expect(readMap(chunkStream('foo(first)bar(second'))).resolves.toEqual({
+        await expect(readMap(readTokens('foo(first)bar(second'))).resolves.toEqual({
           foo: 'first',
           bar: 'second',
         });
       });
       it('deserializes $-escaped entries', async () => {
-        await expect(readMap(chunkStream('foo(first)$bar(second'))).resolves.toEqual({
+        await expect(readMap(readTokens('foo(first)$bar(second'))).resolves.toEqual({
           foo: 'first',
           bar: 'second',
         });
       });
       it('deserializes suffix', async () => {
-        await expect(readMap(chunkStream('foo(first) \n  bar \r\n '))).resolves.toEqual({
+        await expect(readMap(readTokens('foo(first) \n  bar \r\n '))).resolves.toEqual({
           foo: 'first',
           bar: '',
         });
-        await expect(readMap(chunkStream('foo(first) \n  bar )'))).resolves.toEqual({
+        await expect(readMap(readTokens('foo(first) \n  bar )'))).resolves.toEqual({
           foo: 'first',
           bar: '',
         });
       });
       it('handles whitespace', async () => {
         await expect(
-          readMap(chunkStream('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
+          readMap(readTokens('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
         ).resolves.toEqual({
           foo: 'first',
           bar: 'second',
@@ -423,7 +423,7 @@ describe('UcMap', () => {
       });
       it('rejects unknown entry', async () => {
         await expect(
-          readMap(chunkStream('foo(first)wrong(123)bar(second'), { onError }),
+          readMap(readTokens('foo(first)wrong(123)bar(second'), { onError }),
         ).resolves.toEqual({
           foo: 'first',
           bar: 'second',
@@ -441,7 +441,7 @@ describe('UcMap', () => {
       });
       it('rejects nested list', async () => {
         await expect(
-          readMap(chunkStream('foo(first) bar(second) () '), { onError }),
+          readMap(readTokens('foo(first) bar(second) () '), { onError }),
         ).resolves.toEqual({ foo: 'first', bar: 'second' });
 
         expect(errors).toEqual([
@@ -459,7 +459,7 @@ describe('UcMap', () => {
       });
       it('rejects second item', async () => {
         await expect(
-          readMap(chunkStream('foo(first) bar(second) , '), { onError }),
+          readMap(readTokens('foo(first) bar(second) , '), { onError }),
         ).resolves.toEqual({ foo: 'first', bar: 'second' });
 
         expect(errors).toEqual([
@@ -495,10 +495,10 @@ describe('UcMap', () => {
       });
 
       it('deserializes entry', async () => {
-        await expect(readMap(chunkStream('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+        await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
       it('deserializes null', async () => {
-        await expect(readMap(chunkStream('--'))).resolves.toBeNull();
+        await expect(readMap(readTokens('--'))).resolves.toBeNull();
       });
     });
   });

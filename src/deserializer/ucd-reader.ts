@@ -1,6 +1,5 @@
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcTokenizerStream } from '../syntax/uc-tokenizer-stream.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
@@ -14,13 +13,13 @@ export class UcdReader {
   readonly #prev: UcToken[] = [];
   #hasNext = true;
 
-  constructor(input: ReadableStream<string>, options?: UcDeserializer.Options);
+  constructor(input: ReadableStream<UcToken>, options?: UcDeserializer.Options);
 
   constructor(
-    stream: ReadableStream<string>,
+    stream: ReadableStream<UcToken>,
     { onError = UcDeserializer$throwOnError }: UcDeserializer.Options = {},
   ) {
-    this.#reader = stream.pipeThrough(new UcTokenizerStream()).getReader();
+    this.#reader = stream.getReader();
     this.#onError = onError;
   }
 

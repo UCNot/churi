@@ -1,7 +1,8 @@
 import { UcErrorInfo } from '../schema/uc-error.js';
+import { UcToken } from '../syntax/uc-token.js';
 
 export type UcDeserializer<T> = (
-  input: ReadableStream<string>,
+  input: ReadableStream<UcToken>,
   options?: UcDeserializer.Options,
 ) => Promise<T>;
 

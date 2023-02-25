@@ -4,7 +4,7 @@ import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
 import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { chunkStream } from '../spec/chunk-stream.js';
+import { readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucNullable } from './uc-nullable.js';
@@ -57,21 +57,21 @@ describe('BigInt', () => {
     });
 
     it('deserializes number', async () => {
-      await expect(readValue(chunkStream(' 0n123   '))).resolves.toBe(123n);
-      await expect(readValue(chunkStream('-0n123'))).resolves.toBe(-123n);
+      await expect(readValue(readTokens(' 0n123   '))).resolves.toBe(123n);
+      await expect(readValue(readTokens('-0n123'))).resolves.toBe(-123n);
     });
     it('deserializes hexadecimal number', async () => {
-      await expect(readValue(chunkStream('0n0x123'))).resolves.toBe(0x123n);
-      await expect(readValue(chunkStream('-0n0x123'))).resolves.toBe(-0x123n);
+      await expect(readValue(readTokens('0n0x123'))).resolves.toBe(0x123n);
+      await expect(readValue(readTokens('-0n0x123'))).resolves.toBe(-0x123n);
     });
     it('deserializes zero', async () => {
-      await expect(readValue(chunkStream('0n0'))).resolves.toBe(0n);
-      await expect(readValue(chunkStream('-0n0'))).resolves.toBe(-0n);
-      await expect(readValue(chunkStream('0n'))).resolves.toBe(0n);
-      await expect(readValue(chunkStream('-0n'))).resolves.toBe(-0n);
+      await expect(readValue(readTokens('0n0'))).resolves.toBe(0n);
+      await expect(readValue(readTokens('-0n0'))).resolves.toBe(-0n);
+      await expect(readValue(readTokens('0n'))).resolves.toBe(0n);
+      await expect(readValue(readTokens('-0n'))).resolves.toBe(-0n);
     });
     it('rejects NaN', async () => {
-      await expect(readValue(chunkStream('0nz'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('0nz'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -83,7 +83,7 @@ describe('BigInt', () => {
       ]);
     });
     it('rejects number', async () => {
-      await expect(readValue(chunkStream('123'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('123'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -180,13 +180,13 @@ describe('Boolean', () => {
     });
 
     it('deserializes boolean', async () => {
-      // await expect(readValue(chunkStream('!'))).resolves.toBe(true);
-      await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
-      await expect(readValue(chunkStream('-'))).resolves.toBe(false);
-      await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
+      // await expect(readValue(readTokens('!'))).resolves.toBe(true);
+      await expect(readValue(readTokens(' ! '))).resolves.toBe(true);
+      await expect(readValue(readTokens('-'))).resolves.toBe(false);
+      await expect(readValue(readTokens(' -  '))).resolves.toBe(false);
     });
     it('rejects null', async () => {
-      await expect(readValue(chunkStream('--'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('--'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -202,7 +202,7 @@ describe('Boolean', () => {
       ]);
     });
     it('rejects nested list', async () => {
-      await expect(readValue(chunkStream('()'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('()'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -218,7 +218,7 @@ describe('Boolean', () => {
       ]);
     });
     it('rejects second item', async () => {
-      await expect(readValue(chunkStream('!,-'), { onError })).resolves.toBe(true);
+      await expect(readValue(readTokens('!,-'), { onError })).resolves.toBe(true);
 
       expect(errors).toEqual([
         {
@@ -248,18 +248,18 @@ describe('Boolean', () => {
       });
 
       it('deserializes boolean', async () => {
-        await expect(readValue(chunkStream('!'))).resolves.toBe(true);
-        await expect(readValue(chunkStream(' ! '))).resolves.toBe(true);
-        await expect(readValue(chunkStream('-'))).resolves.toBe(false);
-        await expect(readValue(chunkStream(' -  '))).resolves.toBe(false);
+        await expect(readValue(readTokens('!'))).resolves.toBe(true);
+        await expect(readValue(readTokens(' ! '))).resolves.toBe(true);
+        await expect(readValue(readTokens('-'))).resolves.toBe(false);
+        await expect(readValue(readTokens(' -  '))).resolves.toBe(false);
       });
       it('deserializes null', async () => {
-        await expect(readValue(chunkStream('--'))).resolves.toBeNull();
-        await expect(readValue(chunkStream('   --'))).resolves.toBeNull();
-        await expect(readValue(chunkStream('--   \r\n'))).resolves.toBeNull();
+        await expect(readValue(readTokens('--'))).resolves.toBeNull();
+        await expect(readValue(readTokens('   --'))).resolves.toBeNull();
+        await expect(readValue(readTokens('--   \r\n'))).resolves.toBeNull();
       });
       it('rejects number', async () => {
-        await expect(readValue(chunkStream('-1'), { onError })).resolves.toBeUndefined();
+        await expect(readValue(readTokens('-1'), { onError })).resolves.toBeUndefined();
 
         expect(errors).toEqual([
           {
@@ -332,23 +332,23 @@ describe('Number', () => {
     });
 
     it('deserializes number', async () => {
-      await expect(readValue(chunkStream('123'))).resolves.toBe(123);
-      await expect(readValue(chunkStream('-123'))).resolves.toBe(-123);
+      await expect(readValue(readTokens('123'))).resolves.toBe(123);
+      await expect(readValue(readTokens('-123'))).resolves.toBe(-123);
     });
     it('deserializes percent-encoded number', async () => {
-      await expect(readValue(chunkStream('%3123'))).resolves.toBe(123);
-      await expect(readValue(chunkStream('%2D%3123'))).resolves.toBe(-123);
+      await expect(readValue(readTokens('%3123'))).resolves.toBe(123);
+      await expect(readValue(readTokens('%2D%3123'))).resolves.toBe(-123);
     });
     it('deserializes hexadecimal number', async () => {
-      await expect(readValue(chunkStream('0x123'))).resolves.toBe(0x123);
-      await expect(readValue(chunkStream('-0x123'))).resolves.toBe(-0x123);
+      await expect(readValue(readTokens('0x123'))).resolves.toBe(0x123);
+      await expect(readValue(readTokens('-0x123'))).resolves.toBe(-0x123);
     });
     it('deserializes zero', async () => {
-      await expect(readValue(chunkStream('0'))).resolves.toBe(0);
-      await expect(readValue(chunkStream('-0'))).resolves.toBe(-0);
+      await expect(readValue(readTokens('0'))).resolves.toBe(0);
+      await expect(readValue(readTokens('-0'))).resolves.toBe(-0);
     });
     it('rejects NaN', async () => {
-      await expect(readValue(chunkStream('0xz'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('0xz'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -359,7 +359,7 @@ describe('Number', () => {
       ]);
     });
     it('rejects bigint', async () => {
-      await expect(readValue(chunkStream('0n1'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('0n1'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -370,7 +370,7 @@ describe('Number', () => {
       ]);
     });
     it('rejects boolean', async () => {
-      await expect(readValue(chunkStream('-'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('-'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -381,7 +381,7 @@ describe('Number', () => {
       ]);
     });
     it('rejects string', async () => {
-      await expect(readValue(chunkStream("'1"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens("'1"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -481,44 +481,44 @@ describe('String', () => {
     });
 
     it('deserializes string', async () => {
-      await expect(readValue(chunkStream('some string'))).resolves.toBe('some string');
+      await expect(readValue(readTokens('some string'))).resolves.toBe('some string');
     });
     it('deserializes multiline string', async () => {
-      await expect(readValue(chunkStream('prefix\r', '\n-end(suffix'))).resolves.toBe(
+      await expect(readValue(readTokens('prefix\r', '\n-end(suffix'))).resolves.toBe(
         'prefix\r\n-end(suffix',
       );
-      await expect(readValue(chunkStream('prefix\r', '\n!end(suffix'))).resolves.toBe(
+      await expect(readValue(readTokens('prefix\r', '\n!end(suffix'))).resolves.toBe(
         'prefix\r\n!end(suffix',
       );
     });
     it('URI-decodes string', async () => {
-      await expect(readValue(chunkStream('some%20string'))).resolves.toBe('some string');
+      await expect(readValue(readTokens('some%20string'))).resolves.toBe('some string');
     });
     it('ignores leading and trailing whitespace', async () => {
-      await expect(readValue(chunkStream('  \n some string  \n '))).resolves.toBe('some string');
+      await expect(readValue(readTokens('  \n some string  \n '))).resolves.toBe('some string');
     });
     it('deserializes empty string', async () => {
-      await expect(readValue(chunkStream(''))).resolves.toBe('');
-      await expect(readValue(chunkStream(')'))).resolves.toBe('');
+      await expect(readValue(readTokens(''))).resolves.toBe('');
+      await expect(readValue(readTokens(')'))).resolves.toBe('');
     });
     it('deserializes minus-prefixed string', async () => {
-      await expect(readValue(chunkStream('-a%55c'))).resolves.toBe('-aUc');
-      await expect(readValue(chunkStream('%2Da%55c'))).resolves.toBe('-aUc');
+      await expect(readValue(readTokens('-a%55c'))).resolves.toBe('-aUc');
+      await expect(readValue(readTokens('%2Da%55c'))).resolves.toBe('-aUc');
     });
     it('deserializes quoted string', async () => {
-      await expect(readValue(chunkStream("'abc"))).resolves.toBe('abc');
+      await expect(readValue(readTokens("'abc"))).resolves.toBe('abc');
     });
     it('respects trailing whitespace after quoted string', async () => {
-      await expect(readValue(chunkStream("'abc  \n  "))).resolves.toBe('abc  \n  ');
+      await expect(readValue(readTokens("'abc  \n  "))).resolves.toBe('abc  \n  ');
     });
     it('deserializes balanced parentheses within quoted string', async () => {
-      await expect(readValue(chunkStream("'abc(def()))"))).resolves.toBe('abc(def())');
+      await expect(readValue(readTokens("'abc(def()))"))).resolves.toBe('abc(def())');
     });
     it('does not close unbalanced parentheses within quoted string', async () => {
-      await expect(readValue(chunkStream("'abc(def("))).resolves.toBe('abc(def(');
+      await expect(readValue(readTokens("'abc(def("))).resolves.toBe('abc(def(');
     });
     it('rejects map', async () => {
-      await expect(readValue(chunkStream('foo(bar)'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('foo(bar)'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -534,7 +534,7 @@ describe('String', () => {
       ]);
     });
     it('rejects suffix', async () => {
-      await expect(readValue(chunkStream('$foo'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(readTokens('$foo'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {

@@ -4,7 +4,7 @@ import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { chunkStream } from '../spec/chunk-stream.js';
+import { readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
@@ -188,25 +188,25 @@ describe('UcList', () => {
     });
 
     it('deserializes list', async () => {
-      await expect(readList(chunkStream('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes empty list', async () => {
-      await expect(readList(chunkStream(', '))).resolves.toEqual([]);
+      await expect(readList(readTokens(', '))).resolves.toEqual([]);
     });
     it('deserializes list with leading comma', async () => {
-      await expect(readList(chunkStream(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(readTokens(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes list with trailing comma', async () => {
-      await expect(readList(chunkStream('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(readTokens('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes single item with leading comma', async () => {
-      await expect(readList(chunkStream(' ,13  '))).resolves.toEqual([13]);
+      await expect(readList(readTokens(' ,13  '))).resolves.toEqual([13]);
     });
     it('deserializes single item with trailing comma', async () => {
-      await expect(readList(chunkStream('13 ,  '))).resolves.toEqual([13]);
+      await expect(readList(readTokens('13 ,  '))).resolves.toEqual([13]);
     });
     it('rejects item instead of list', async () => {
-      await expect(readList(chunkStream('13'), { onError })).resolves.toBeUndefined();
+      await expect(readList(readTokens('13'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -259,7 +259,7 @@ describe('UcList', () => {
       });
 
       it('deserializes items', async () => {
-        await expect(readList(chunkStream('-, ! , -  '))).resolves.toEqual([false, true, false]);
+        await expect(readList(readTokens('-, ! , -  '))).resolves.toEqual([false, true, false]);
       });
     });
 
@@ -277,7 +277,7 @@ describe('UcList', () => {
       });
 
       it('deserializes quoted strings', async () => {
-        await expect(readList(chunkStream("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
+        await expect(readList(readTokens("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
       });
     });
 
@@ -297,27 +297,27 @@ describe('UcList', () => {
       });
 
       it('deserializes items', async () => {
-        await expect(readList(chunkStream('$foo, foo(bar) , $foo(baz)'))).resolves.toEqual([
+        await expect(readList(readTokens('$foo, foo(bar) , $foo(baz)'))).resolves.toEqual([
           { foo: '' },
           { foo: 'bar' },
           { foo: 'baz' },
         ]);
-        await expect(readList(chunkStream('$foo(), foo(bar) , foo(baz),'))).resolves.toEqual([
+        await expect(readList(readTokens('$foo(), foo(bar) , foo(baz),'))).resolves.toEqual([
           { foo: '' },
           { foo: 'bar' },
           { foo: 'baz' },
         ]);
-        await expect(readList(chunkStream('foo(), foo(bar) , foo(baz)'))).resolves.toEqual([
+        await expect(readList(readTokens('foo(), foo(bar) , foo(baz)'))).resolves.toEqual([
           { foo: '' },
           { foo: 'bar' },
           { foo: 'baz' },
         ]);
-        await expect(readList(chunkStream(',foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+        await expect(readList(readTokens(',foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
           { foo: '' },
           { foo: 'bar' },
           { foo: 'baz' },
         ]);
-        await expect(readList(chunkStream(',$foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+        await expect(readList(readTokens(',$foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
           { foo: '' },
           { foo: 'bar' },
           { foo: 'baz' },
@@ -325,7 +325,7 @@ describe('UcList', () => {
       });
       it('rejects nested list', async () => {
         await expect(
-          readList(chunkStream('foo() () foo(bar) , $foo(baz)'), { onError }),
+          readList(readTokens('foo() () foo(bar) , $foo(baz)'), { onError }),
         ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
 
         expect(errors).toEqual([
@@ -343,7 +343,7 @@ describe('UcList', () => {
       });
       it('rejects nested list after $-prefixed map', async () => {
         await expect(
-          readList(chunkStream('$foo() () foo(bar) , $foo(baz)'), { onError }),
+          readList(readTokens('$foo() () foo(bar) , $foo(baz)'), { onError }),
         ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
 
         expect(errors).toEqual([
@@ -376,13 +376,13 @@ describe('UcList', () => {
       });
 
       it('deserializes null item', async () => {
-        await expect(readList(chunkStream('--,'))).resolves.toEqual([null]);
-        await expect(readList(chunkStream(',--'))).resolves.toEqual([null]);
-        await expect(readList(chunkStream('--,1'))).resolves.toEqual([null, 1]);
-        await expect(readList(chunkStream('1, --'))).resolves.toEqual([1, null]);
+        await expect(readList(readTokens('--,'))).resolves.toEqual([null]);
+        await expect(readList(readTokens(',--'))).resolves.toEqual([null]);
+        await expect(readList(readTokens('--,1'))).resolves.toEqual([null, 1]);
+        await expect(readList(readTokens('1, --'))).resolves.toEqual([1, null]);
       });
       it('rejects null', async () => {
-        const error = await readList(chunkStream('--')).catch(asis);
+        const error = await readList(readTokens('--')).catch(asis);
 
         expect((error as UcError).toJSON()).toEqual({
           code: 'unexpectedType',
@@ -411,7 +411,7 @@ describe('UcList', () => {
       });
 
       it('deserializes null', async () => {
-        await expect(readList(chunkStream('--'))).resolves.toBeNull();
+        await expect(readList(readTokens('--'))).resolves.toBeNull();
       });
       it('rejects null items', async () => {
         const error = {
@@ -426,18 +426,18 @@ describe('UcList', () => {
         };
 
         await expect(
-          readList(chunkStream('--,'))
+          readList(readTokens('--,'))
             .catch(asis)
             .then(error => (error as UcError).toJSON()),
         ).resolves.toEqual(error);
         await expect(
-          readList(chunkStream(',--'))
+          readList(readTokens(',--'))
             .catch(asis)
             .then(error => (error as UcError).toJSON()),
         ).resolves.toEqual(error);
       });
       it('deserializes list', async () => {
-        await expect(readList(chunkStream('1, 2'))).resolves.toEqual([1, 2]);
+        await expect(readList(readTokens('1, 2'))).resolves.toEqual([1, 2]);
       });
     });
 
@@ -456,16 +456,16 @@ describe('UcList', () => {
       });
 
       it('deserializes null', async () => {
-        await expect(readList(chunkStream('--'))).resolves.toBeNull();
+        await expect(readList(readTokens('--'))).resolves.toBeNull();
       });
       it('deserializes list', async () => {
-        await expect(readList(chunkStream('1, 2'))).resolves.toEqual([1, 2]);
+        await expect(readList(readTokens('1, 2'))).resolves.toEqual([1, 2]);
       });
       it('deserializes null item', async () => {
-        await expect(readList(chunkStream('--,'))).resolves.toEqual([null]);
-        await expect(readList(chunkStream(',--'))).resolves.toEqual([null]);
-        await expect(readList(chunkStream('--,1'))).resolves.toEqual([null, 1]);
-        await expect(readList(chunkStream('1, --'))).resolves.toEqual([1, null]);
+        await expect(readList(readTokens('--,'))).resolves.toEqual([null]);
+        await expect(readList(readTokens(',--'))).resolves.toEqual([null]);
+        await expect(readList(readTokens('--,1'))).resolves.toEqual([null, 1]);
+        await expect(readList(readTokens('1, --'))).resolves.toEqual([1, null]);
       });
     });
 
@@ -483,16 +483,16 @@ describe('UcList', () => {
       });
 
       it('deserializes nested list', async () => {
-        await expect(readMatrix(chunkStream(' ( 13 ) '))).resolves.toEqual([[13]]);
+        await expect(readMatrix(readTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
       });
       it('deserializes comma-separated lists', async () => {
-        await expect(readMatrix(chunkStream(' (13, 14), (15, 16) '))).resolves.toEqual([
+        await expect(readMatrix(readTokens(' (13, 14), (15, 16) '))).resolves.toEqual([
           [13, 14],
           [15, 16],
         ]);
       });
       it('deserializes lists', async () => {
-        await expect(readMatrix(chunkStream(' (13, 14) (15, 16) '))).resolves.toEqual([
+        await expect(readMatrix(readTokens(' (13, 14) (15, 16) '))).resolves.toEqual([
           [13, 14],
           [15, 16],
         ]);
@@ -506,7 +506,7 @@ describe('UcList', () => {
 
         const { readCube } = await lib.compile().toDeserializers();
 
-        await expect(readCube(chunkStream('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
+        await expect(readCube(readTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
       });
     });
 
@@ -525,15 +525,15 @@ describe('UcList', () => {
       });
 
       it('deserializes nested list', async () => {
-        await expect(readMatrix(chunkStream(' ( 13 ) '))).resolves.toEqual([[13]]);
+        await expect(readMatrix(readTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
       });
       it('deserializes null items', async () => {
-        await expect(readMatrix(chunkStream('--,'))).resolves.toEqual([null]);
-        await expect(readMatrix(chunkStream(', --'))).resolves.toEqual([null]);
-        await expect(readMatrix(chunkStream('(13)--'))).resolves.toEqual([[13], null]);
+        await expect(readMatrix(readTokens('--,'))).resolves.toEqual([null]);
+        await expect(readMatrix(readTokens(', --'))).resolves.toEqual([null]);
+        await expect(readMatrix(readTokens('(13)--'))).resolves.toEqual([[13], null]);
       });
       it('rejects null', async () => {
-        const error = await readMatrix(chunkStream('--')).catch(error => (error as UcError)?.toJSON?.());
+        const error = await readMatrix(readTokens('--')).catch(error => (error as UcError)?.toJSON?.());
 
         expect(error).toEqual({
           code: 'unexpectedType',
@@ -563,7 +563,7 @@ describe('UcList', () => {
       });
 
       it('deserializes null', async () => {
-        await expect(readMatrix(chunkStream('--'))).resolves.toBeNull();
+        await expect(readMatrix(readTokens('--'))).resolves.toBeNull();
       });
       it('rejects null items', async () => {
         const error = {
@@ -578,10 +578,10 @@ describe('UcList', () => {
         };
 
         await expect(
-          readMatrix(chunkStream('--,')).catch(error => (error as UcError)?.toJSON?.()),
+          readMatrix(readTokens('--,')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual(error);
         await expect(
-          readMatrix(chunkStream(',--')).catch(error => (error as UcError)?.toJSON?.()),
+          readMatrix(readTokens(',--')).catch(error => (error as UcError)?.toJSON?.()),
         ).resolves.toEqual(error);
       });
     });

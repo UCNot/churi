@@ -126,7 +126,7 @@ function UcdFunction$createReader(
   stream: string,
   options: string,
 ): string {
-  const UcsWriter = deserializer.lib.import(DESERIALIZER_MODULE, 'UcdReader');
+  const UcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'UcdReader');
 
-  return `const ${reader} = new ${UcsWriter}(${stream}, ${options});`;
+  return `const ${reader} = new ${UcdReader}(${stream}, ${options});`;
 }
