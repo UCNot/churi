@@ -1,4 +1,4 @@
-import { asArray } from '@proc7ts/primitives';
+import { asArray, lazyValue } from '@proc7ts/primitives';
 import { UcDeserializer } from '../../deserializer/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
@@ -23,6 +23,10 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
+  readonly #streamVar = lazyValue(() => this.ns.name('stream'));
+  readonly #tokensVar = lazyValue(() => this.ns.name('tokens'));
+  readonly #inputVar = lazyValue(() => this.ns.name('input'));
+  readonly #optionsVar = lazyValue(() => this.ns.name('options'));
 
   constructor(options: UcdLib.Options<TSchemae>);
 
@@ -108,15 +112,19 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return this.#definitions.get(schema.type) as UcdDef<T> | undefined;
   }
 
-  compile(): UcdLib.Compiled<TSchemae> {
+  compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;
+  compile(mode: 'sync'): UcdLib.SyncCompiled<TSchemae>;
+  compile(mode?: UcDeserializer.Mode): UcdLib.Compiled<TSchemae>;
+
+  compile(mode: UcDeserializer.Mode = 'all'): UcdLib.Compiled<TSchemae> {
     return {
       lib: this,
-      toCode: this.#toFactoryCode.bind(this),
-      toDeserializers: this.#toDeserializers.bind(this),
+      toCode: () => this.#toFactoryCode(mode),
+      toDeserializers: () => this.#toDeserializers(mode),
     };
   }
 
-  #toFactoryCode(): UccCode.Builder {
+  #toFactoryCode(mode: UcDeserializer.Mode): UccCode.Builder {
     return code => code
         .write('return (async () => {')
         .indent(
@@ -124,29 +132,33 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
           '',
           this.declarations,
           '',
-          this.#compileDeserializers(),
+          this.#compileDeserializers(mode),
           '',
-          this.#returnDeserializers(),
+          this.#returnDeserializers(mode),
         )
         .write('})();');
   }
 
-  #returnDeserializers(): UccCode.Builder {
+  #returnDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
+    const input =
+      mode === 'async' ? this.#streamVar() : mode === 'sync' ? this.#tokensVar() : this.#inputVar();
+    const options = this.#optionsVar();
+
     return code => code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
             code
-              .write(`async ${externalName}(stream, options) {`)
-              .indent(this.deserializerFor(schema).toUcDeserializer('stream', 'options'))
+              .write(`${mode === 'async' ? 'async ' : ''}${externalName}(${input}, ${options}) {`)
+              .indent(this.deserializerFor(schema).toUcDeserializer(mode, input, options))
               .write('},');
           }
         })
         .write('};');
   }
 
-  async #toDeserializers(): Promise<UcdLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode()).toString();
+  async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TSchemae>> {
+    const code = new UccCode().write(this.#toFactoryCode(mode)).toString();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;
@@ -154,43 +166,73 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return await factory();
   }
 
-  compileModule(): UcdLib.Module<TSchemae> {
+  compileModule(mode: UcDeserializer.Mode = 'all'): UcdLib.Module<TSchemae> {
     return {
       lib: this,
-      toCode: this.#toModuleCode.bind(this),
-      print: this.#printModule.bind(this),
+      toCode: () => this.#toModuleCode(mode),
+      print: () => this.#printModule(mode),
     };
   }
 
-  #toModuleCode(): UccCode.Builder {
+  #toModuleCode(mode: UcDeserializer.Mode): UccCode.Builder {
     return code => code.write(
         this.#imports.asStatic(),
         '',
         this.declarations,
         '',
-        this.#compileDeserializers(),
+        this.#compileDeserializers(mode),
         '',
-        this.#exportDeserializers(),
+        this.#exportDeserializers(mode),
       );
   }
 
-  #exportDeserializers(): UccCode.Builder {
+  #exportDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
+    if (mode === 'async') {
+      return this.#exportAsyncDeserializers();
+    }
+
+    const input = mode === 'sync' ? this.#tokensVar() : this.#inputVar();
+    const options = this.#optionsVar();
+
     return code => {
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
         code
-          .write(`export async function ${externalName}(stream, options) {`)
-          .indent(this.deserializerFor(schema).toUcDeserializer('stream', 'options'))
+          .write(`export function ${externalName}(${input}, ${options}) {`)
+          .indent(this.deserializerFor(schema).toUcDeserializer(mode, input, options))
           .write('}');
       }
     };
   }
 
-  #printModule(): string {
-    return new UccCode().write(this.#toModuleCode()).toString();
+  #exportAsyncDeserializers(): UccCode.Builder {
+    const stream = this.#streamVar();
+    const options = this.#optionsVar();
+
+    return code => {
+      for (const [externalName, schema] of Object.entries(this.#schemae)) {
+        code
+          .write(`export async function ${externalName}(${stream}, ${options}) {`)
+          .indent(this.deserializerFor(schema).toUcDeserializer('async', stream, options))
+          .write('}');
+      }
+    };
   }
 
-  #compileDeserializers(): UccCode.Builder {
-    return code => code.write(...this.#allDeserializers());
+  #printModule(mode: UcDeserializer.Mode): string {
+    return new UccCode().write(this.#toModuleCode(mode)).toString();
+  }
+
+  #compileDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
+    return code => {
+      for (const fn of this.#allDeserializers()) {
+        if (mode !== 'sync') {
+          code.write(fn.asAsync());
+        }
+        if (mode !== 'async') {
+          code.write(fn.asSync());
+        }
+      }
+    };
   }
 
   *#allDeserializers(): Iterable<UcdFunction> {
@@ -224,9 +266,27 @@ export namespace UcdLib {
     readonly [reader in keyof TSchemae]: UcDeserializer<UcSchema.DataType<TSchemae[reader]>>;
   };
 
+  export type AsyncExports<TSchemae extends Schemae> = {
+    readonly [reader in keyof TSchemae]: UcDeserializer.Async<UcSchema.DataType<TSchemae[reader]>>;
+  };
+
+  export type SyncExports<TSchemae extends Schemae> = {
+    readonly [reader in keyof TSchemae]: UcDeserializer.Sync<UcSchema.DataType<TSchemae[reader]>>;
+  };
+
   export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
     readonly lib: UcdLib<TSchemae>;
     toDeserializers(): Promise<Exports<TSchemae>>;
+  }
+
+  export interface AsyncCompiled<TSchemae extends Schemae> extends UccCode.Fragment {
+    readonly lib: UcdLib<TSchemae>;
+    toDeserializers(): Promise<AsyncExports<TSchemae>>;
+  }
+
+  export interface SyncCompiled<TSchemae extends Schemae> extends UccCode.Fragment {
+    readonly lib: UcdLib<TSchemae>;
+    toDeserializers(): Promise<SyncExports<TSchemae>>;
   }
 
   export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {

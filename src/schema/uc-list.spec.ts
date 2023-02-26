@@ -4,7 +4,7 @@ import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { readTokens } from '../spec/read-chunks.js';
+import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
@@ -189,6 +189,9 @@ describe('UcList', () => {
 
     it('deserializes list', async () => {
       await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes list synchronously', () => {
+      expect(readList(parseTokens('1 , 2, 3  '))).toEqual([1, 2, 3]);
     });
     it('deserializes empty list', async () => {
       await expect(readList(readTokens(', '))).resolves.toEqual([]);

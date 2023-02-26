@@ -1,49 +1,39 @@
-import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
+import { AbstractUcdReader } from './abstract-ucd-reader.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
-export class UcdReader {
+export class UcdReader extends AbstractUcdReader {
 
   readonly #reader: ReadableStreamDefaultReader<UcToken>;
-  readonly #onError: (error: UcErrorInfo) => void;
 
   #current: UcToken | undefined;
   readonly #prev: UcToken[] = [];
   #hasNext = true;
 
-  constructor(input: ReadableStream<UcToken>, options?: UcDeserializer.Options);
-
-  constructor(
-    stream: ReadableStream<UcToken>,
-    { onError = UcDeserializer$throwOnError }: UcDeserializer.Options = {},
-  ) {
+  constructor(stream: ReadableStream<UcToken>, options?: UcDeserializer.Options) {
+    super(options);
     this.#reader = stream.getReader();
-    this.#onError = onError;
   }
 
-  hasNext(): boolean {
+  override hasNext(): boolean {
     return this.#hasNext;
   }
 
-  current(): UcToken | undefined {
+  override current(): UcToken | undefined {
     return this.#current;
   }
 
-  prev(): readonly UcToken[] {
+  override prev(): readonly UcToken[] {
     return this.#prev;
   }
 
-  error(error: UcErrorInfo): void {
-    this.#onError(error);
-  }
-
-  async read(rx: UcdRx): Promise<void> {
+  override async read(rx: UcdRx): Promise<void> {
     await ucdReadValue(this, rx);
   }
 
-  async next(): Promise<UcToken | undefined> {
+  override async next(): Promise<UcToken | undefined> {
     if (!this.hasNext()) {
       return;
     }
@@ -70,7 +60,7 @@ export class UcdReader {
     this.#current = token;
   }
 
-  async find(
+  override async find(
     matcher: (token: UcToken) => boolean | null | undefined,
   ): Promise<UcToken | undefined> {
     let token = this.current() || (await this.next());
@@ -88,7 +78,7 @@ export class UcdReader {
     return;
   }
 
-  consume(): UcToken[] {
+  override consume(): UcToken[] {
     const prev = this.prev();
     const current = this.current();
 
@@ -110,7 +100,7 @@ export class UcdReader {
     return [];
   }
 
-  consumePrev(): UcToken[] {
+  override consumePrev(): UcToken[] {
     const prev = this.prev();
 
     if (prev.length) {
@@ -124,21 +114,17 @@ export class UcdReader {
     return [];
   }
 
-  skip(): void {
+  override skip(): void {
     this.omitPrev();
     this.#current = undefined;
   }
 
-  omitPrev(): void {
+  override omitPrev(): void {
     this.#prev.length = 0;
   }
 
-  done(): void {
+  override done(): void {
     this.#reader.releaseLock();
   }
 
-}
-
-function UcDeserializer$throwOnError(error: unknown): never {
-  throw UcError.create(error);
 }
