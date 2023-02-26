@@ -1,5 +1,6 @@
 import { UcToken } from '../syntax/uc-token.js';
 import { AbstractUcdReader } from './abstract-ucd-reader.js';
+import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
@@ -28,8 +29,8 @@ export class SyncUcdReader extends AbstractUcdReader {
   }
 
   /* istanbul ignore next */
-  override read(_rx: UcdRx): void {
-    // TODO Read synchronously
+  override read(rx: UcdRx): void {
+    ucdReadValueSync(this, rx);
   }
 
   override next(): UcToken | undefined {

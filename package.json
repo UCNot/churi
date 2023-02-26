@@ -77,7 +77,8 @@
   },
   "scripts": {
     "all": "run-z build,lint,test",
-    "build": "run-z +z --then build-z",
+    "build": "run-z +z build:gen-sync --then build-z",
+    "build:gen-sync": "run-z +z --then node ./build/gen-sync.js",
     "ci:all": "run-z all +test/--ci/--runInBand",
     "clean": "run-z +z --then clean-z",
     "doc": "run-z +z --then typedoc",
