@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { UcToken, UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
-import { UcTokenizer } from '../syntax/uc-tokenizer.js';
+import { parseTokens } from '../spec/read-chunks.js';
+import { UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
 import { SyncUcdReader } from './sync-ucd-reader.js';
 
 describe('SyncUcdReader', () => {
@@ -172,17 +172,6 @@ describe('SyncUcdReader', () => {
   });
 
   function readChunks(...chunks: string[]): SyncUcdReader {
-    const tokens: UcToken[] = [];
-    const tokenizer = new UcTokenizer(token => {
-      tokens.push(token);
-    });
-
-    for (const chunk of chunks) {
-      tokenizer.split(chunk);
-    }
-
-    tokenizer.flush();
-
-    return new SyncUcdReader(tokens);
+    return new SyncUcdReader(parseTokens(...chunks));
   }
 });

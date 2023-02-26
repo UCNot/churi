@@ -28,7 +28,6 @@ export class SyncUcdReader extends AbstractUcdReader {
     return this.#consumed < this.#current ? this.#tokens.slice(this.#consumed, this.#current) : [];
   }
 
-  /* istanbul ignore next */
   override read(rx: UcdRx): void {
     ucdReadValueSync(this, rx);
   }

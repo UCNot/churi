@@ -3,7 +3,7 @@ import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../compiler/unsupported-uc-schema.error.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { readTokens } from '../spec/read-chunks.js';
+import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucList } from './uc-list.js';
@@ -287,6 +287,9 @@ describe('UcMap', () => {
       it('deserializes entry', async () => {
         await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
+      it('deserializes entry synchronously', () => {
+        expect(readMap(parseTokens('foo(bar)'))).toEqual({ foo: 'bar' });
+      });
       it('deserializes $-escaped entry', async () => {
         await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
       });
@@ -393,6 +396,12 @@ describe('UcMap', () => {
 
       it('deserializes entries', async () => {
         await expect(readMap(readTokens('foo(first)bar(second'))).resolves.toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes entries synchronously', () => {
+        expect(readMap(parseTokens('foo(first)bar(second'))).toEqual({
           foo: 'first',
           bar: 'second',
         });

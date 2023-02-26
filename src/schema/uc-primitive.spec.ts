@@ -4,7 +4,7 @@ import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
 import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
 import { UcDeserializer } from '../deserializer/uc-deserializer.js';
-import { readTokens } from '../spec/read-chunks.js';
+import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucNullable } from './uc-nullable.js';
@@ -334,6 +334,18 @@ describe('Number', () => {
     it('deserializes number', async () => {
       await expect(readValue(readTokens('123'))).resolves.toBe(123);
       await expect(readValue(readTokens('-123'))).resolves.toBe(-123);
+    });
+    it('deserializes number synchronously', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          parseValue: Number,
+        },
+      });
+
+      const { parseValue } = await lib.compile('sync').toDeserializers();
+
+      expect(parseValue(parseTokens('123'))).toBe(123);
+      expect(parseValue(parseTokens('-123'))).toBe(-123);
     });
     it('deserializes percent-encoded number', async () => {
       await expect(readValue(readTokens('%3123'))).resolves.toBe(123);
