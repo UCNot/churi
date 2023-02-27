@@ -32,6 +32,23 @@ import {
  */
 export class UcTokenizer {
 
+  /**
+   * Splits `input` string onto URI charge {@link UcToken tokens}.
+   *
+   * @param input - String to split.
+   *
+   * @returns Array of tokens.
+   */
+  static split(input: string): UcToken[] {
+    const tokens: UcToken[] = [];
+    const tokenizer = new UcTokenizer(token => tokens.push(token));
+
+    tokenizer.split(input);
+    tokenizer.flush();
+
+    return tokens;
+  }
+
   static readonly #tokens: { [token: string]: (tokenizer: UcTokenizer) => void } = {
     '\r': tokenizer => tokenizer.#addCR(),
     '\n': tokenizer => tokenizer.#emitLF(),

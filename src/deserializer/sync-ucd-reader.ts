@@ -1,4 +1,5 @@
 import { UcToken } from '../syntax/uc-token.js';
+import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { AbstractUcdReader } from './abstract-ucd-reader.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
 import { UcDeserializer } from './uc-deserializer.js';
@@ -101,4 +102,23 @@ export class SyncUcdReader extends AbstractUcdReader {
     // Nothing to do.
   }
 
+}
+
+export function createSyncUcdReader(input: string | readonly UcToken[]): SyncUcdReader;
+
+export function createSyncUcdReader(
+  input: string | readonly UcToken[] | unknown,
+): SyncUcdReader | undefined;
+
+export function createSyncUcdReader(
+  input: string | readonly UcToken[] | unknown,
+): SyncUcdReader | undefined {
+  if (typeof input === 'string') {
+    return new SyncUcdReader(UcTokenizer.split(input));
+  }
+  if (Array.isArray(input)) {
+    return new SyncUcdReader(input);
+  }
+
+  return;
 }

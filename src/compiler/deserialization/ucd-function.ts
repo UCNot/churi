@@ -1,3 +1,4 @@
+import { lazyValue } from '@proc7ts/primitives';
 import { UcDeserializer } from '../../deserializer/uc-deserializer.js';
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
@@ -18,6 +19,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   #args?: UcdFunction.Args;
   readonly #createReader: Required<UcdFunction.Options<T, TSchema>>['createReader'];
   readonly #createSyncReader: Required<UcdFunction.Options<T, TSchema>>['createSyncReader'];
+  readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
 
   constructor(options: UcdFunction.Options<T, TSchema>);
   constructor({
@@ -147,20 +149,22 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     }
 
     return code => {
+      const syncReader = this.#syncReaderVar();
+
       code
         .write('let result;')
         .write(`const ${this.args.setter} = $ => {`)
         .indent('result = $;', 'return 1;')
-        .write('}');
+        .write('}')
+        .write(this.#createSyncReader(this, syncReader, input, options));
 
       code
-        .write(`if (Array.isArray(${input})) {`)
+        .write(`if (${syncReader}) {`)
         .indent(code => code
-            .write(this.#createSyncReader(this, this.args.reader, input, options))
             .write(`try {`)
-            .indent(`${this.syncName}(${this.args.reader}, ${this.args.setter});`)
+            .indent(`${this.syncName}(${syncReader}, ${this.args.setter});`)
             .write(`} finally {`)
-            .indent(`${this.args.reader}.done();`)
+            .indent(`${syncReader}.done();`)
             .write(`}`)
             .write('return result;'))
         .write(`}`);
@@ -193,7 +197,7 @@ export namespace UcdFunction {
       this: void,
       deserializer: UcdFunction,
       reader: string,
-      tokens: string,
+      input: string,
       options: string,
     ): UccCode.Source;
   }
@@ -218,10 +222,10 @@ function UcdFunction$createReader(
 function UcdFunction$createSyncReader(
   deserializer: UcdFunction,
   reader: string,
-  tokens: string,
+  input: string,
   options: string,
 ): string {
-  const SyncUcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'SyncUcdReader');
+  const createSyncUcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'createSyncUcdReader');
 
-  return `const ${reader} = new ${SyncUcdReader}(${tokens}, ${options});`;
+  return `const ${reader} = ${createSyncUcdReader}(${input}, ${options});`;
 }

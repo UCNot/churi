@@ -24,7 +24,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   readonly #streamVar = lazyValue(() => this.ns.name('stream'));
-  readonly #tokensVar = lazyValue(() => this.ns.name('tokens'));
   readonly #inputVar = lazyValue(() => this.ns.name('input'));
   readonly #optionsVar = lazyValue(() => this.ns.name('options'));
 
@@ -140,8 +139,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   #returnDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    const input =
-      mode === 'async' ? this.#streamVar() : mode === 'sync' ? this.#tokensVar() : this.#inputVar();
+    const input = mode === 'async' ? this.#streamVar() : this.#inputVar();
     const options = this.#optionsVar();
 
     return code => code
@@ -191,7 +189,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
       return this.#exportAsyncDeserializers();
     }
 
-    const input = mode === 'sync' ? this.#tokensVar() : this.#inputVar();
+    const input = this.#inputVar();
     const options = this.#optionsVar();
 
     return code => {

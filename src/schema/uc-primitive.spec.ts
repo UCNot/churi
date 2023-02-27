@@ -347,6 +347,18 @@ describe('Number', () => {
       expect(parseValue(parseTokens('123'))).toBe(123);
       expect(parseValue(parseTokens('-123'))).toBe(-123);
     });
+    it('deserializes number from string', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          parseValue: Number,
+        },
+      });
+
+      const { parseValue } = await lib.compile('sync').toDeserializers();
+
+      expect(parseValue('123')).toBe(123);
+      expect(parseValue('-123')).toBe(-123);
+    });
     it('deserializes percent-encoded number', async () => {
       await expect(readValue(readTokens('%3123'))).resolves.toBe(123);
       await expect(readValue(readTokens('%2D%3123'))).resolves.toBe(-123);

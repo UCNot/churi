@@ -23,7 +23,7 @@ describe('UcdLib', () => {
       expect(code).toContain("import('@hatsy/churi/deserializer')");
       expect(code).toContain('async readValue(stream, options) {\n');
       expect(code).toMatch(/\bUcdReader\b/);
-      expect(code).not.toMatch(/\bSyncUcdReader\b/);
+      expect(code).not.toMatch(/\bcreateSyncUcdReader\b/);
     });
     it('creates sync factory', () => {
       const compiled = lib.compile('sync');
@@ -33,8 +33,8 @@ describe('UcdLib', () => {
       const code = new UccCode().write(compiled).toString();
 
       expect(code).toContain("import('@hatsy/churi/deserializer')");
-      expect(code).toContain('readValue(tokens, options) {\n');
-      expect(code).toMatch(/\bSyncUcdReader\b/);
+      expect(code).toContain('readValue(input, options) {\n');
+      expect(code).toMatch(/\bcreateSyncUcdReader\b/);
       expect(code).not.toMatch(/\bUcdReader\b/);
     });
     it('creates hybrid factory', () => {
@@ -46,7 +46,7 @@ describe('UcdLib', () => {
 
       expect(code).toContain("import('@hatsy/churi/deserializer')");
       expect(code).toContain('readValue(input, options) {\n');
-      expect(code).toMatch(/\bSyncUcdReader\b/);
+      expect(code).toMatch(/\bcreateSyncUcdReader\b/);
       expect(code).toMatch(/\bUcdReader\b/);
     });
   });
@@ -74,8 +74,8 @@ describe('UcdLib', () => {
 
       expect(new UccCode().write(module).toString()).toBe(code);
       expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
-      expect(code).toContain('export function readValue(tokens, options) {\n');
-      expect(code).toMatch(/\bSyncUcdReader\b/);
+      expect(code).toContain('export function readValue(input, options) {\n');
+      expect(code).toMatch(/\bcreateSyncUcdReader\b/);
       expect(code).not.toMatch(/\bUcdReader\b/);
     });
     it('compiles hybrid module', () => {
@@ -88,7 +88,7 @@ describe('UcdLib', () => {
       expect(new UccCode().write(module).toString()).toBe(code);
       expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
       expect(code).toContain('export function readValue(input, options) {\n');
-      expect(code).toMatch(/\bSyncUcdReader\b/);
+      expect(code).toMatch(/\bcreateSyncUcdReader\b/);
       expect(code).toMatch(/\bUcdReader\b/);
     });
   });
