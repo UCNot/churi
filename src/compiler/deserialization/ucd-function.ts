@@ -1,6 +1,6 @@
 import { lazyValue } from '@proc7ts/primitives';
-import { UcDeserializer } from '../../deserializer/uc-deserializer.js';
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';

@@ -1,8 +1,8 @@
+import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { AbstractUcdReader } from './abstract-ucd-reader.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
-import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
 export class SyncUcdReader extends AbstractUcdReader {

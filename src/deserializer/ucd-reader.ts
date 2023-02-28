@@ -1,7 +1,7 @@
+import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { AbstractUcdReader } from './abstract-ucd-reader.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
-import { UcDeserializer } from './uc-deserializer.js';
 import { UcdRx } from './ucd-rx.js';
 
 export class UcdReader extends AbstractUcdReader {

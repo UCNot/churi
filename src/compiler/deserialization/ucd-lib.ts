@@ -1,5 +1,5 @@
 import { asArray, lazyValue } from '@proc7ts/primitives';
-import { UcDeserializer } from '../../deserializer/uc-deserializer.js';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';

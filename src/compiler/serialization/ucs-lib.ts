@@ -1,13 +1,13 @@
 import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcSerializer } from '../../schema/uc-serializer.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
-import { UcSerializer } from './uc-serializer.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
 

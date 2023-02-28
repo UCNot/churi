@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
-import { UcSerializer } from '../compiler/serialization/uc-serializer.js';
 import { UcsFunction } from '../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../compiler/serialization/ucs-lib.js';
-import { UcDeserializer } from '../deserializer/uc-deserializer.js';
 import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
+import { UcDeserializer } from './uc-deserializer.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
 import { UcSchema } from './uc-schema.js';
+import { UcSerializer } from './uc-serializer.js';
 
 describe('BigInt', () => {
   describe('serializer', () => {
