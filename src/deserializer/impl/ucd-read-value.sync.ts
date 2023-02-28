@@ -37,7 +37,11 @@ import {
 } from './ucd-rx-value.js';
 import { isUcBoundToken, isUcParenthesisToken, trimUcTokensTail } from './ucd-tokens.js';
 
-export function ucdReadValueSync(reader: SyncUcdReader, rx: UcdRx, single = false): void {
+export function ucdReadValueSync(
+  reader: SyncUcdReader,
+  rx: UcdRx,
+  single = false,
+): void {
   ucdSkipWhitespaceSync(reader);
 
   const firstToken = reader.current();
@@ -206,7 +210,10 @@ function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcdRx): void {
   }
 }
 
-function ucdReadTokensSync(reader: SyncUcdReader, balanceParentheses = false): UcToken[] {
+function ucdReadTokensSync(
+  reader: SyncUcdReader,
+  balanceParentheses = false,
+): UcToken[] {
   const tokens: UcToken[] = [];
   let openedParentheses = 0;
 

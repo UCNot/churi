@@ -3,10 +3,10 @@ import { Readable } from 'node:stream';
 import { UcError } from '../schema/uc-error.js';
 import { readTokens } from '../spec/read-chunks.js';
 import { UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
-import { UcdReader } from './ucd-reader.js';
+import { AsyncUcdReader } from './async-ucd-reader.js';
 
 describe('UcdReader', () => {
-  let reader: UcdReader;
+  let reader: AsyncUcdReader;
 
   afterEach(() => {
     reader.done();
@@ -23,11 +23,14 @@ describe('UcdReader', () => {
     it('respects onError option', () => {
       let thrown: unknown;
 
-      reader = new UcdReader(Readable.toWeb(Readable.from(['abc'])) as ReadableStream<string>, {
-        onError: error => {
-          thrown = error;
+      reader = new AsyncUcdReader(
+        Readable.toWeb(Readable.from(['abc'])) as ReadableStream<string>,
+        {
+          onError: error => {
+            thrown = error;
+          },
         },
-      });
+      );
 
       const error = new UcError({ code: 'test', message: 'Test!' });
 
@@ -150,7 +153,7 @@ describe('UcdReader', () => {
     });
   });
 
-  function readChunks(...chunks: string[]): UcdReader {
-    return new UcdReader(readTokens(...chunks));
+  function readChunks(...chunks: string[]): AsyncUcdReader {
+    return new AsyncUcdReader(readTokens(...chunks));
   }
 });

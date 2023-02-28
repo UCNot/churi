@@ -1,9 +1,9 @@
-import { AbstractUcdReader } from '../abstract-ucd-reader.js';
+import { UcdReader } from '../ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
 import { ucdUnexpectedEntryError, ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
 
-export function ucdRxSingleEntry(reader: AbstractUcdReader, rx: UcdRx, key: string): void {
+export function ucdRxSingleEntry(reader: UcdReader, rx: UcdRx, key: string): void {
   const map = ucdRxMap(reader, rx);
   const entryRx = ucdRxEntry(reader, map, key);
 
@@ -12,7 +12,7 @@ export function ucdRxSingleEntry(reader: AbstractUcdReader, rx: UcdRx, key: stri
   map.end();
 }
 
-export function ucdRxMap(reader: AbstractUcdReader, rx: UcdRx): UcdMapRx {
+export function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx {
   const mapRx = rx._.map;
 
   if (mapRx) {
@@ -24,7 +24,7 @@ export function ucdRxMap(reader: AbstractUcdReader, rx: UcdRx): UcdMapRx {
   return UCD_OPAQUE_RX._.map;
 }
 
-export function ucdRxEntry(reader: AbstractUcdReader, mapRx: UcdMapRx, key: string): UcdRx {
+export function ucdRxEntry(reader: UcdReader, mapRx: UcdMapRx, key: string): UcdRx {
   const entryRx = mapRx.for(key);
 
   if (entryRx) {
@@ -36,31 +36,31 @@ export function ucdRxEntry(reader: AbstractUcdReader, mapRx: UcdMapRx, key: stri
   return UCD_OPAQUE_RX;
 }
 
-export function ucdRxString(reader: AbstractUcdReader, rx: UcdRx, value: string): void {
+export function ucdRxString(reader: UcdReader, rx: UcdRx, value: string): void {
   if (!rx._.str?.(value) && !rx._.any?.(value)) {
     reader.error(ucdUnexpectedTypeError('string', rx));
   }
 }
 
-export function ucdRxBigInt(reader: AbstractUcdReader, rx: UcdRx, value: bigint): void {
+export function ucdRxBigInt(reader: UcdReader, rx: UcdRx, value: bigint): void {
   if (!rx._.big?.(value) && !rx._.any?.(value)) {
     reader.error(ucdUnexpectedTypeError('bigint', rx));
   }
 }
 
-export function ucdRxBoolean(reader: AbstractUcdReader, rx: UcdRx, value: boolean): void {
+export function ucdRxBoolean(reader: UcdReader, rx: UcdRx, value: boolean): void {
   if (!rx._.bol?.(value) && !rx._.any?.(value)) {
     reader.error(ucdUnexpectedTypeError('boolean', rx));
   }
 }
 
-export function ucdRxNull(reader: AbstractUcdReader, rx: UcdRx): void {
+export function ucdRxNull(reader: UcdReader, rx: UcdRx): void {
   if (!rx._.nul?.()) {
     reader.error(ucdUnexpectedTypeError('null', rx));
   }
 }
 
-export function ucdRxNumber(reader: AbstractUcdReader, rx: UcdRx, value: number): void {
+export function ucdRxNumber(reader: UcdReader, rx: UcdRx, value: number): void {
   if (!rx._.num?.(value) && !rx._.any?.(value)) {
     reader.error(ucdUnexpectedTypeError('number', rx));
   }

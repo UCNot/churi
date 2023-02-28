@@ -1,130 +1,48 @@
 import { UcDeserializer } from '../schema/uc-deserializer.js';
+import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { AbstractUcdReader } from './abstract-ucd-reader.js';
-import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcdRx } from './ucd-rx.js';
 
-export class UcdReader extends AbstractUcdReader {
+export abstract class UcdReader {
 
-  readonly #reader: ReadableStreamDefaultReader<UcToken>;
+  readonly #onError: (error: UcErrorInfo) => void;
 
-  #current: UcToken | undefined;
-  readonly #prev: UcToken[] = [];
-  #hasNext = true;
+  constructor(options?: UcDeserializer.Options);
 
-  constructor(stream: ReadableStream<UcToken>, options?: UcDeserializer.Options) {
-    super(options);
-    this.#reader = stream.getReader();
+  constructor({ onError = UcDeserializer$throwOnError }: UcDeserializer.Options = {}) {
+    this.#onError = onError;
   }
 
-  override hasNext(): boolean {
-    return this.#hasNext;
+  abstract hasNext(): boolean;
+
+  abstract current(): UcToken | undefined;
+
+  abstract prev(): readonly UcToken[];
+
+  error(error: UcErrorInfo): void {
+    this.#onError(error);
   }
 
-  override current(): UcToken | undefined {
-    return this.#current;
-  }
+  abstract read(rx: UcdRx): Promise<void> | void;
 
-  override prev(): readonly UcToken[] {
-    return this.#prev;
-  }
+  abstract next(): Promise<UcToken | undefined> | UcToken | undefined;
 
-  override async read(rx: UcdRx): Promise<void> {
-    await ucdReadValue(this, rx);
-  }
-
-  override async next(): Promise<UcToken | undefined> {
-    if (!this.hasNext()) {
-      return;
-    }
-
-    const { done, value } = await this.#reader.read();
-
-    this.#push(value);
-    if (done) {
-      this.#hasNext = false;
-      if (value == null) {
-        return;
-      }
-    }
-
-    return this.current();
-  }
-
-  #push(token: UcToken | undefined): void {
-    const current = this.current();
-
-    if (current) {
-      this.#prev.push(current);
-    }
-    this.#current = token;
-  }
-
-  override async find(
+  abstract find(
     matcher: (token: UcToken) => boolean | null | undefined,
-  ): Promise<UcToken | undefined> {
-    let token = this.current() || (await this.next());
+  ): Promise<UcToken | undefined> | UcToken | undefined;
 
-    while (token) {
-      const match = matcher(token);
+  abstract consume(): UcToken[];
 
-      if (match != null) {
-        return match ? token : undefined;
-      }
+  abstract consumePrev(): UcToken[];
 
-      token = await this.next();
-    }
+  abstract skip(): void;
 
-    return;
-  }
+  abstract omitPrev(): void;
 
-  override consume(): UcToken[] {
-    const prev = this.prev();
-    const current = this.current();
+  abstract done(): void;
 
-    if (prev.length) {
-      const result = current ? [...prev, current] : prev.slice();
+}
 
-      this.#current = undefined;
-      this.#prev.length = 0;
-
-      return result;
-    }
-
-    if (current) {
-      this.#current = undefined;
-
-      return [current];
-    }
-
-    return [];
-  }
-
-  override consumePrev(): UcToken[] {
-    const prev = this.prev();
-
-    if (prev.length) {
-      const result: UcToken[] = prev.slice();
-
-      this.#prev.length = 0;
-
-      return result;
-    }
-
-    return [];
-  }
-
-  override skip(): void {
-    this.omitPrev();
-    this.#current = undefined;
-  }
-
-  override omitPrev(): void {
-    this.#prev.length = 0;
-  }
-
-  override done(): void {
-    this.#reader.releaseLock();
-  }
-
+function UcDeserializer$throwOnError(error: unknown): never {
+  throw UcError.create(error);
 }

@@ -50,7 +50,11 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     this.#ns = ns;
     this.#imports = imports;
     this.#declarations = declarations;
-    this.#typeDefs = new Map(asArray(definitions).map(def => [def.type, def]));
+    this.#typeDefs = new Map(
+      asArray(definitions)
+        .filter<UcdTypeDef>((def: UcdDef): def is UcdTypeDef => !!def.type)
+        .map(def => [def.type, def]),
+    );
     this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {

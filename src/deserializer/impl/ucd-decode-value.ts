@@ -1,10 +1,10 @@
 import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
-import { AbstractUcdReader } from '../abstract-ucd-reader.js';
+import { UcdReader } from '../ucd-reader.js';
 import { UcdRx } from '../ucd-rx.js';
 import { ucdRxBigInt, ucdRxBoolean, ucdRxNull, ucdRxNumber, ucdRxString } from './ucd-rx-value.js';
 
-export function ucdDecodeValue(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
+export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): void {
   if (!input) {
     // Empty string treated as is.
     ucdRxString(reader, rx, '');
@@ -19,7 +19,7 @@ export function ucdDecodeValue(reader: AbstractUcdReader, rx: UcdRx, input: stri
   }
 }
 
-type UcdValueDecoder = (reader: AbstractUcdReader, rx: UcdRx, input: string) => void;
+type UcdValueDecoder = (reader: UcdReader, rx: UcdRx, input: string) => void;
 
 const UCD_VALUE_DECODERS: {
   readonly [prefix: string]: UcdValueDecoder;
@@ -37,7 +37,7 @@ const UCD_VALUE_DECODERS: {
   9: ucdDecodeNumber,
 };
 
-function ucdDecodeMinusSigned(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
+function ucdDecodeMinusSigned(reader: UcdReader, rx: UcdRx, input: string): void {
   if (input.length === 1) {
     ucdRxBoolean(reader, rx, false);
   } else if (input === '--') {
@@ -53,16 +53,16 @@ function ucdDecodeMinusSigned(reader: AbstractUcdReader, rx: UcdRx, input: strin
   }
 }
 
-function ucdDecodeNumber(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
+function ucdDecodeNumber(reader: UcdReader, rx: UcdRx, input: string): void {
   ucdRxNumber(reader, rx, Number(input));
 }
 
-function ucdDecodeUnsigned(reader: AbstractUcdReader, rx: UcdRx, input: string): void {
+function ucdDecodeUnsigned(reader: UcdReader, rx: UcdRx, input: string): void {
   ucdDecodeNumeric(reader, rx, input, 0, asis);
 }
 
 function ucdDecodeNumeric(
-  reader: AbstractUcdReader,
+  reader: UcdReader,
   rx: UcdRx,
   input: string,
   offset: number,

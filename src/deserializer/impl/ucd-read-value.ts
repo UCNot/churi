@@ -15,7 +15,7 @@ import {
   UC_TOKEN_EXCLAMATION_MARK,
   UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
-import { UcdReader } from '../ucd-reader.js';
+import { AsyncUcdReader } from '../async-ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
 import { ucdUnexpectedTypeError } from './ucd-errors.js';
@@ -29,7 +29,11 @@ import {
 } from './ucd-rx-value.js';
 import { isUcBoundToken, isUcParenthesisToken, trimUcTokensTail } from './ucd-tokens.js';
 
-export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false): Promise<void> {
+export async function ucdReadValue(
+  reader: AsyncUcdReader,
+  rx: UcdRx,
+  single = false,
+): Promise<void> {
   await ucdSkipWhitespace(reader);
 
   const firstToken = reader.current();
@@ -185,7 +189,7 @@ export async function ucdReadValue(reader: UcdReader, rx: UcdRx, single = false)
   return await ucdReadItems(reader, itemsRx);
 }
 
-async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
   const tokens = await ucdReadTokens(reader, true);
 
   /* istanbul ignore else */
@@ -198,7 +202,10 @@ async function ucdReadEntityOrTrue(reader: UcdReader, rx: UcdRx): Promise<void> 
   }
 }
 
-async function ucdReadTokens(reader: UcdReader, balanceParentheses = false): Promise<UcToken[]> {
+async function ucdReadTokens(
+  reader: AsyncUcdReader,
+  balanceParentheses = false,
+): Promise<UcToken[]> {
   const tokens: UcToken[] = [];
   let openedParentheses = 0;
 
@@ -242,7 +249,7 @@ async function ucdReadTokens(reader: UcdReader, balanceParentheses = false): Pro
   }
 }
 
-async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
   let itemsRx = rx._.nls?.();
 
   if (!itemsRx) {
@@ -264,7 +271,7 @@ async function ucdReadNestedList(reader: UcdReader, rx: UcdRx): Promise<void> {
   await ucdSkipWhitespace(reader);
 }
 
-async function ucdReadItems(reader: UcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadItems(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
   for (;;) {
     const current = reader.current();
 
@@ -285,7 +292,7 @@ async function ucdReadItems(reader: UcdReader, rx: UcdRx): Promise<void> {
   rx.end?.();
 }
 
-async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promise<void> {
+async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): Promise<void> {
   reader.skip(); // Skip opening parentheses.
 
   const mapRx = ucdRxMap(reader, rx);
@@ -304,7 +311,7 @@ async function ucdReadMap(reader: UcdReader, rx: UcdRx, firstKey: string): Promi
   mapRx.end();
 }
 
-async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void> {
+async function ucdReadEntries(reader: AsyncUcdReader, mapRx: UcdMapRx): Promise<void> {
   for (;;) {
     await ucdSkipWhitespace(reader);
 
@@ -345,17 +352,17 @@ async function ucdReadEntries(reader: UcdReader, mapRx: UcdMapRx): Promise<void>
   }
 }
 
-async function ucdSkipWhitespace(reader: UcdReader): Promise<void> {
+async function ucdSkipWhitespace(reader: AsyncUcdReader): Promise<void> {
   if (await reader.find(token => (isWhitespaceUcToken(token) ? null : true))) {
     reader.omitPrev();
   }
 }
 
-async function ucdFindAnyBound(reader: UcdReader): Promise<UcToken | undefined> {
+async function ucdFindAnyBound(reader: AsyncUcdReader): Promise<UcToken | undefined> {
   return await reader.find(token => (isUcBoundToken(token) ? true : null));
 }
 
-async function ucdFindStrictBound(reader: UcdReader): Promise<UcToken | undefined> {
+async function ucdFindStrictBound(reader: AsyncUcdReader): Promise<UcToken | undefined> {
   let newLine = false;
   let allowArgs = true;
 
