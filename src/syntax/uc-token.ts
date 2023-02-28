@@ -4,7 +4,7 @@ export const UC_TOKEN_CR = 0x0d as const;
 export const UC_TOKEN_CRLF = 0x0d0a as const; // Windows-style
 
 // Padding prefixes.
-// Lowest byte is a code (space or tab), the rest is one lesser than number of characters.
+// Lowest byte is a code (space or tab), higher byte is the number of repeats.
 export const UC_TOKEN_PREFIX_TAB = 0x09 as const;
 export const UC_TOKEN_PREFIX_SPACE = 0x20 as const;
 
@@ -33,24 +33,28 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *
  * Can be one of:
  *
+ * - Non-empty [percent-decoded] string.
+ *
+ *   Subsequent string chunks allowed.
+ *
  * - Number corresponding to one of [reserved characters] represented as one of `UC_TOKEN_` constants.
  *
- * - Number corresponding to one of line terminators:
+ * - Number corresponding to one of the line terminators:
  *
  *    - {@link UC_TOKEN_LF},
  *    - {@link UC_TOKEN_CR},
  *    - {@link UC_TOKEN_CRLF}.
  *
  * - Number containing encoded padding.
-
+ *
  *   Contains one of {@link UC_TOKEN_PREFIX_SPACE} or {@link UC_TOKEN_PREFIX_TAB} as the lowest byte, and a number of
- *   repeats (excluding the symbol itself) as the higher bytes.
+ *   repeats (excluding the symbol itself) as the higher byte. At most 255 repeats corresponding to 256 chars.
  *
  *   Such padding always emitted for spaces and tabs around [reserved characters], line terminators, after input
  *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
- * - Non-empty percent-decoded string.
  *
+ * [percent-decoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
  * [reserved characters]: https://www.rfc-editor.org/rfc/rfc3986#section-2.2
  */
 export type UcToken = string | number;

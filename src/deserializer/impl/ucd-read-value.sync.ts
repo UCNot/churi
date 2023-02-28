@@ -25,6 +25,7 @@ import {
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { UcdMapRx, UcdRx } from '../ucd-rx.js';
+import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
 import { ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
@@ -230,14 +231,18 @@ function ucdReadTokensSync(
     if (!bound) {
       // No bound found.
       // Accept _full_ input.
+      appendUcTokens(tokens, reader.consume());
 
-      return balanceParentheses && openedParentheses
-        ? /* istanbul ignore next */ [
-            ...tokens,
-            ...reader.consume(),
-            ...new Array<UcToken>(openedParentheses).fill(UC_TOKEN_CLOSING_PARENTHESIS),
-          ]
-        : [...tokens, ...reader.consume()];
+      /* istanbul ignore next */
+      if (balanceParentheses && openedParentheses) {
+        tokens.fill(
+          UC_TOKEN_CLOSING_PARENTHESIS,
+          tokens.length,
+          tokens.length + openedParentheses - 1,
+        );
+      }
+
+      return tokens;
     }
 
     if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
@@ -248,11 +253,13 @@ function ucdReadTokensSync(
       // Closing parenthesis matching the opened one.
       // This can not be a comma, as they are not searched for _inside_ parenthesis.
       --openedParentheses;
-      tokens.push(...reader.consume());
+      appendUcTokens(tokens, reader.consume());
     } else {
       // Either closing parenthesis not matching the opening one, or a comma.
       // In either case, this is the end of input.
-      return [...tokens, ...reader.consumePrev()];
+      appendUcTokens(tokens, reader.consumePrev());
+
+      return tokens;
     }
   }
 }
