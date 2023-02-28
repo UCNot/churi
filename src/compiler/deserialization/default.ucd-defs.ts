@@ -10,6 +10,7 @@ import { UccCode } from '../ucc-code.js';
 import { uccPropertyAccessExpr } from '../ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdDef } from './ucd-def.js';
+import { UcdTypeDef } from './ucd-type-def.js';
 
 export class Default$UcdDefs {
 
@@ -48,17 +49,17 @@ export class Default$UcdDefs {
     return this.#list;
   }
 
-  #readBoolean(schema: UcSchema<boolean>, location: UcdDef.Location): UccCode.Source {
+  #readBoolean(schema: UcSchema<boolean>, location: UcdTypeDef.Location): UccCode.Source {
     return this.#readPrimitive(schema, location, 'bol');
   }
 
-  #readBigInt(schema: UcSchema<bigint>, location: UcdDef.Location): UccCode.Source {
+  #readBigInt(schema: UcSchema<bigint>, location: UcdTypeDef.Location): UccCode.Source {
     return this.#readPrimitive(schema, location, 'big');
   }
 
   #readList(
     { nullable, item }: UcList.Schema,
-    { fn, setter, prefix, suffix }: UcdDef.Location,
+    { fn, setter, prefix, suffix }: UcdTypeDef.Location,
   ): UccCode.Source {
     const {
       lib,
@@ -94,7 +95,7 @@ export class Default$UcdDefs {
 
   #readMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
     schema: UcMap.Schema<TEntriesSpec>,
-    { fn, setter, prefix, suffix }: UcdDef.Location,
+    { fn, setter, prefix, suffix }: UcdTypeDef.Location,
   ): UccCode.Source {
     const { entries } = schema;
     const {
@@ -178,17 +179,17 @@ export class Default$UcdDefs {
     };
   }
 
-  #readNumber(schema: UcSchema<number>, location: UcdDef.Location): UccCode.Source {
+  #readNumber(schema: UcSchema<number>, location: UcdTypeDef.Location): UccCode.Source {
     return this.#readPrimitive(schema, location, 'num');
   }
 
-  #readString(schema: UcSchema<string>, location: UcdDef.Location): UccCode.Source {
+  #readString(schema: UcSchema<string>, location: UcdTypeDef.Location): UccCode.Source {
     return this.#readPrimitive(schema, location, 'str');
   }
 
   #readPrimitive(
     schema: UcSchema<UcPrimitive>,
-    { setter, prefix, suffix }: UcdDef.Location,
+    { setter, prefix, suffix }: UcdTypeDef.Location,
     name: keyof UcdValueRx,
   ): UccCode.Source {
     return code => {

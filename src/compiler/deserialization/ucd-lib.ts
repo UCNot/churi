@@ -10,6 +10,7 @@ import { UccNamespace } from '../ucc-namespace.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdFunction } from './ucd-function.js';
+import { UcdTypeDef } from './ucd-type-def.js';
 
 export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
@@ -20,7 +21,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
-  readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
+  readonly #typeDefs: Map<string | UcSchema.Class, UcdTypeDef>;
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   readonly #streamVar = lazyValue(() => this.ns.name('stream'));
@@ -49,11 +50,11 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     this.#ns = ns;
     this.#imports = imports;
     this.#declarations = declarations;
-    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
+    this.#typeDefs = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.#deserializerFor(schema, `${externalName}$deserialize`);
+      this.#typeDefFor(schema, `${externalName}$deserialize`);
     }
   }
 
@@ -76,10 +77,10 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcdFunction<T, TSchema> {
-    return this.#deserializerFor(schema, '$deserialize');
+    return this.#typeDefFor(schema, '$deserialize');
   }
 
-  #deserializerFor<T, TSchema extends UcSchema<T>>(
+  #typeDefFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
     name: string,
   ): UcdFunction<T, TSchema> {
@@ -107,8 +108,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return deserializer;
   }
 
-  definitionFor<T>(schema: UcSchema<T>): UcdDef<T> | undefined {
-    return this.#definitions.get(schema.type) as UcdDef<T> | undefined;
+  definitionFor<T>(schema: UcSchema<T>): UcdTypeDef<T> | undefined {
+    return this.#typeDefs.get(schema.type) as UcdTypeDef<T> | undefined;
   }
 
   compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;

@@ -6,8 +6,8 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { UcdDef } from './ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdTypeDef } from './ucd-type-def.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -66,7 +66,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ns;
   }
 
-  deserialize(schema: UcSchema, location: Omit<UcdDef.Location, 'fn'>): UccCode.Source {
+  deserialize(schema: UcSchema, location: Omit<UcdTypeDef.Location, 'fn'>): UccCode.Source {
     const deserializer = this.lib
       .definitionFor(schema)
       ?.deserialize(schema, { ...location, fn: this as UcdFunction });
