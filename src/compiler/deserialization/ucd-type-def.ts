@@ -13,11 +13,14 @@ export interface UcdTypeDef<out T = unknown> {
    */
   readonly type: UcSchema<T>['type'];
 
+  readonly entity?: undefined;
+  readonly entityPrefix?: undefined;
+
   /**
    * Generates code for type instance deserialization.
    *
-   * Generated code expected to contain an {@link UcdRx deserialized value receiver} placed between the given
-   * {@link UcdTypeDef.Location#prefix prefix} and {@link UcdTypeDef.Location#suffix suffix}.
+   * Generated code expected to contain an {@link @hatsy/churi/deserializer!UcdRx deserialized value receiver} placed
+   * between the given {@link UcdTypeDef.Location#prefix prefix} and {@link UcdTypeDef.Location#suffix suffix}.
    *
    * @param schema - Schema of deserialized value.
    * @param location - A location inside deserializer function to insert generated code into.
@@ -45,16 +48,18 @@ export namespace UcdTypeDef {
     /**
      * Generated code prefix.
      *
-     * Generated {@link UcdRx receiver} expression expected to be placed right after this prefix.
+     * Generated {@link @hatsy/churi/deserializer!UcdRx receiver} expression expected to be placed right after this
+     * prefix.
      *
-     * This may be e.g. a {@link UcdReader#read function call}.
+     * This may be e.g. a {@link @hatsy/churi/deserializer!UcdReader#read function call}.
      */
     readonly prefix: string;
 
     /**
      * Generated code suffix.
      *
-     * Generated {@link UcdRx receiver} expression expected to be placed right before this suffix.
+     * Generated {@link @hatsy/churi/deserializer!UcdRx receiver} expression expected to be placed right before this
+     * suffix.
      *
      * This may be e.g. a closing parenthesis for function call.
      */
