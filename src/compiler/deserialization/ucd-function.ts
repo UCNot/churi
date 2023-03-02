@@ -6,8 +6,8 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { UcdDef } from './ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdTypeDef } from './ucd-type-def.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -17,7 +17,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #name: string;
   #syncName?: string;
   #args?: UcdFunction.Args;
-  readonly #createReader: Required<UcdFunction.Options<T, TSchema>>['createReader'];
+  #vars?: UcdFunction.Vars;
+  readonly #createAsyncReader: Required<UcdFunction.Options<T, TSchema>>['createAsyncReader'];
   readonly #createSyncReader: Required<UcdFunction.Options<T, TSchema>>['createSyncReader'];
   readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
 
@@ -27,7 +28,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     schema,
     name,
     syncName,
-    createReader = UcdFunction$createReader,
+    createAsyncReader: createReader = UcdFunction$createReader,
     createSyncReader = UcdFunction$createSyncReader,
   }: UcdFunction.Options<T, TSchema>) {
     this.#lib = lib;
@@ -35,7 +36,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     this.#schema = schema;
     this.#name = name;
     this.#syncName = syncName;
-    this.#createReader = createReader;
+    this.#createAsyncReader = createReader;
     this.#createSyncReader = createSyncReader;
   }
 
@@ -62,11 +63,19 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     });
   }
 
+  get vars(): UcdFunction.Vars {
+    return (this.#vars ??= {
+      input: this.ns.name('input'),
+      stream: this.ns.name('stream'),
+      options: this.ns.name('options'),
+    });
+  }
+
   get ns(): UccNamespace {
     return this.#ns;
   }
 
-  deserialize(schema: UcSchema, location: Omit<UcdDef.Location, 'fn'>): UccCode.Source {
+  deserialize(schema: UcSchema, location: Omit<UcdTypeDef.Location, 'fn'>): UccCode.Source {
     const deserializer = this.lib
       .definitionFor(schema)
       ?.deserialize(schema, { ...location, fn: this as UcdFunction });
@@ -129,7 +138,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
           .write('}')
           .write(
             mode === 'async'
-              ? this.#createReader(this, this.args.reader, input, options)
+              ? this.#createAsyncReader(this, this.args.reader, input, options)
               : this.#createSyncReader(this, this.args.reader, input, options),
           )
           .write(`try {`);
@@ -170,7 +179,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(`}`);
 
       code
-        .write(this.#createReader(this, this.args.reader, input, options))
+        .write(this.#createAsyncReader(this, this.args.reader, input, options))
         .write(`return ${this.name}(${this.args.reader}, ${this.args.setter})`)
         .indent(`.then(() => result)`, `.finally(() => ${this.args.reader}.done())`);
     };
@@ -185,7 +194,7 @@ export namespace UcdFunction {
     readonly name: string;
     readonly syncName?: string | undefined;
 
-    createReader?(
+    createAsyncReader?(
       this: void,
       deserializer: UcdFunction,
       reader: string,
@@ -206,6 +215,12 @@ export namespace UcdFunction {
     readonly reader: string;
     readonly setter: string;
   }
+
+  export interface Vars {
+    readonly input: string;
+    readonly stream: string;
+    readonly options: string;
+  }
 }
 
 function UcdFunction$createReader(
@@ -214,9 +229,9 @@ function UcdFunction$createReader(
   stream: string,
   options: string,
 ): string {
-  const UcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'UcdReader');
+  const AsyncUcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'AsyncUcdReader');
 
-  return `const ${reader} = new ${UcdReader}(${stream}, ${options});`;
+  return `const ${reader} = new ${AsyncUcdReader}(${stream}, ${options});`;
 }
 
 function UcdFunction$createSyncReader(

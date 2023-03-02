@@ -7,7 +7,10 @@
  * !!! DO NOT MODIFY !!!
  */
 import { printUcTokens } from '../../syntax/print-uc-token.js';
+import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
+  isUcBoundToken,
+  isUcParenthesisToken,
   isWhitespaceUcToken,
   ucTokenKind,
   UC_TOKEN_KIND_BOUND,
@@ -24,20 +27,23 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
-import { UcdMapRx, UcdRx } from '../ucd-rx.js';
-import { ucdDecodeValue } from './ucd-decode-value.js';
-import { ucdUnexpectedTypeError } from './ucd-errors.js';
-import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
+import { ucdUnexpectedTypeError } from '../ucd-errors.js';
 import {
   ucdRxBoolean,
   ucdRxEntry,
   ucdRxMap,
   ucdRxSingleEntry,
   ucdRxString,
-} from './ucd-rx-value.js';
-import { isUcBoundToken, isUcParenthesisToken, trimUcTokensTail } from './ucd-tokens.js';
+} from '../ucd-rx-value.js';
+import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
+import { appendUcTokens } from './append-uc-token.js';
+import { ucdDecodeValue } from './ucd-decode-value.js';
 
-export function ucdReadValueSync(reader: SyncUcdReader, rx: UcdRx, single = false): void {
+export function ucdReadValueSync(
+  reader: SyncUcdReader,
+  rx: UcdRx,
+  single = false,
+): void {
   ucdSkipWhitespaceSync(reader);
 
   const firstToken = reader.current();
@@ -196,17 +202,19 @@ export function ucdReadValueSync(reader: SyncUcdReader, rx: UcdRx, single = fals
 function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcdRx): void {
   const tokens = ucdReadTokensSync(reader, true);
 
-  /* istanbul ignore else */
   if (trimUcTokensTail(tokens).length === 1) {
-    // Single exclamation mark.
+    // Process single exclamation mark.
     ucdRxBoolean(reader, rx, true);
   } else {
-    // TODO Process entities.
-    throw new Error('TODO');
+    // Process entity.
+    reader.entity(rx, tokens);
   }
 }
 
-function ucdReadTokensSync(reader: SyncUcdReader, balanceParentheses = false): UcToken[] {
+function ucdReadTokensSync(
+  reader: SyncUcdReader,
+  balanceParentheses = false,
+): UcToken[] {
   const tokens: UcToken[] = [];
   let openedParentheses = 0;
 
@@ -223,14 +231,18 @@ function ucdReadTokensSync(reader: SyncUcdReader, balanceParentheses = false): U
     if (!bound) {
       // No bound found.
       // Accept _full_ input.
+      appendUcTokens(tokens, reader.consume());
 
-      return balanceParentheses && openedParentheses
-        ? /* istanbul ignore next */ [
-            ...tokens,
-            ...reader.consume(),
-            ...new Array<UcToken>(openedParentheses).fill(UC_TOKEN_CLOSING_PARENTHESIS),
-          ]
-        : [...tokens, ...reader.consume()];
+      /* istanbul ignore next */
+      if (balanceParentheses && openedParentheses) {
+        tokens.fill(
+          UC_TOKEN_CLOSING_PARENTHESIS,
+          tokens.length,
+          tokens.length + openedParentheses - 1,
+        );
+      }
+
+      return tokens;
     }
 
     if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
@@ -241,11 +253,13 @@ function ucdReadTokensSync(reader: SyncUcdReader, balanceParentheses = false): U
       // Closing parenthesis matching the opened one.
       // This can not be a comma, as they are not searched for _inside_ parenthesis.
       --openedParentheses;
-      tokens.push(...reader.consume());
+      appendUcTokens(tokens, reader.consume());
     } else {
       // Either closing parenthesis not matching the opening one, or a comma.
       // In either case, this is the end of input.
-      return [...tokens, ...reader.consumePrev()];
+      appendUcTokens(tokens, reader.consumePrev());
+
+      return tokens;
     }
   }
 }

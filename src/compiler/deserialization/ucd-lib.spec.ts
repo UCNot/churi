@@ -21,8 +21,10 @@ describe('UcdLib', () => {
       const code = new UccCode().write(compiled).toString();
 
       expect(code).toContain("import('@hatsy/churi/deserializer')");
-      expect(code).toContain('async readValue(stream, options) {\n');
-      expect(code).toMatch(/\bUcdReader\b/);
+      expect(code).toContain(
+        'async readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
+      expect(code).toMatch(/\bAsyncUcdReader\b/);
       expect(code).not.toMatch(/\bcreateSyncUcdReader\b/);
     });
     it('creates sync factory', () => {
@@ -33,9 +35,11 @@ describe('UcdLib', () => {
       const code = new UccCode().write(compiled).toString();
 
       expect(code).toContain("import('@hatsy/churi/deserializer')");
-      expect(code).toContain('readValue(input, options) {\n');
+      expect(code).toContain(
+        'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
       expect(code).toMatch(/\bcreateSyncUcdReader\b/);
-      expect(code).not.toMatch(/\bUcdReader\b/);
+      expect(code).not.toMatch(/\bAsyncUcdReader\b/);
     });
     it('creates hybrid factory', () => {
       const compiled = lib.compile();
@@ -45,9 +49,11 @@ describe('UcdLib', () => {
       const code = new UccCode().write(compiled).toString();
 
       expect(code).toContain("import('@hatsy/churi/deserializer')");
-      expect(code).toContain('readValue(input, options) {\n');
+      expect(code).toContain(
+        'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
       expect(code).toMatch(/\bcreateSyncUcdReader\b/);
-      expect(code).toMatch(/\bUcdReader\b/);
+      expect(code).toMatch(/\bAsyncUcdReader\b/);
     });
   });
 
@@ -61,8 +67,10 @@ describe('UcdLib', () => {
 
       expect(new UccCode().write(module).toString()).toBe(code);
       expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
-      expect(code).toContain('export async function readValue(stream, options) {\n');
-      expect(code).toMatch(/\bUcdReader\b/);
+      expect(code).toContain(
+        'export async function readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
+      expect(code).toMatch(/\bAsyncUcdReader\b/);
       expect(code).not.toMatch(/\bSyncUcdReader\b/);
     });
     it('compiles sync module', () => {
@@ -74,9 +82,11 @@ describe('UcdLib', () => {
 
       expect(new UccCode().write(module).toString()).toBe(code);
       expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
-      expect(code).toContain('export function readValue(input, options) {\n');
+      expect(code).toContain(
+        'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
       expect(code).toMatch(/\bcreateSyncUcdReader\b/);
-      expect(code).not.toMatch(/\bUcdReader\b/);
+      expect(code).not.toMatch(/\bAsyncUcdReader\b/);
     });
     it('compiles hybrid module', () => {
       const module = lib.compileModule();
@@ -87,9 +97,11 @@ describe('UcdLib', () => {
 
       expect(new UccCode().write(module).toString()).toBe(code);
       expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
-      expect(code).toContain('export function readValue(input, options) {\n');
+      expect(code).toContain(
+        'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
+      );
       expect(code).toMatch(/\bcreateSyncUcdReader\b/);
-      expect(code).toMatch(/\bUcdReader\b/);
+      expect(code).toMatch(/\bAsyncUcdReader\b/);
     });
   });
 });

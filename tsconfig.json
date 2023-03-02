@@ -4,5 +4,5 @@
     "lib": ["DOM", "ES2022"],
     "outDir": "target/js"
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "src/compiler/deserialization/basic.ucd-defs ts"]
 }

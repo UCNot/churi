@@ -1,9 +1,9 @@
-import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './impl/ucd-errors.js';
-import { UcdReader } from './ucd-reader.js';
+import { AsyncUcdReader } from './async-ucd-reader.js';
+import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UcdRx, UcdValueRx } from './ucd-rx.js';
 
 export function readUcList(
-  reader: UcdReader,
+  reader: AsyncUcdReader,
   setList: (value: unknown) => void,
   createItemRx: (addItem: (value: unknown) => 1) => UcdRx,
   nullable:

@@ -180,7 +180,7 @@ describe('Boolean', () => {
     });
 
     it('deserializes boolean', async () => {
-      // await expect(readValue(readTokens('!'))).resolves.toBe(true);
+      await expect(readValue(readTokens('!'))).resolves.toBe(true);
       await expect(readValue(readTokens(' ! '))).resolves.toBe(true);
       await expect(readValue(readTokens('-'))).resolves.toBe(false);
       await expect(readValue(readTokens(' -  '))).resolves.toBe(false);
@@ -414,6 +414,15 @@ describe('Number', () => {
           message: 'Unexpected string, while number expected',
         },
       ]);
+    });
+    it('deserializes infinity', async () => {
+      await expect(readValue(readTokens('!Infinity'))).resolves.toBe(Infinity);
+    });
+    it('deserializes negative infinity', async () => {
+      await expect(readValue(readTokens('!-Infinity'))).resolves.toBe(-Infinity);
+    });
+    it('deserializes NaN', async () => {
+      await expect(readValue(readTokens('!NaN'))).resolves.toBeNaN();
     });
   });
 });

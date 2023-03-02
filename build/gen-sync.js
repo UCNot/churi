@@ -13,8 +13,8 @@ await genSync(
   ['async ', ''],
   ['await ', ''],
   [/: Promise<(.*)> {/g, ': $1 {'],
-  ['./ucd-reader.js', './sync-ucd-reader.js'],
-  ['UcdReader', 'SyncUcdReader'],
+  ['./async-ucd-reader.js', './sync-ucd-reader.js'],
+  ['AsyncUcdReader', 'SyncUcdReader'],
   [/ucd(Read|Find|Skip)([\w$]+)/g, 'ucd$1$2Sync'],
 );
 

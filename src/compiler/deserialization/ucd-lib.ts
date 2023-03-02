@@ -1,7 +1,10 @@
-import { asArray, lazyValue } from '@proc7ts/primitives';
+import { asArray } from '@proc7ts/primitives';
+import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
@@ -9,7 +12,10 @@ import { UccImports } from '../ucc-imports.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
+import { UcdEntityDef } from './ucd-entity-def.js';
+import { UcdEntityPrefixDef } from './ucd-entity-prefix-def.js';
 import { UcdFunction } from './ucd-function.js';
+import { UcdTypeDef } from './ucd-type-def.js';
 
 export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
@@ -20,12 +26,11 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
-  readonly #definitions: Map<string | UcSchema.Class, UcdDef>;
+  readonly #typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
+  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
-  readonly #streamVar = lazyValue(() => this.ns.name('stream'));
-  readonly #inputVar = lazyValue(() => this.ns.name('input'));
-  readonly #optionsVar = lazyValue(() => this.ns.name('options'));
+  #entityHandler?: string;
 
   constructor(options: UcdLib.Options<TSchemae>);
 
@@ -49,11 +54,19 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     this.#ns = ns;
     this.#imports = imports;
     this.#declarations = declarations;
-    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
+
+    for (const def of asArray(definitions)) {
+      if (def.type) {
+        this.#typeDefs.set(def.type, def);
+      } else {
+        this.#entityDefs.push(def as UcdEntityDef | UcdEntityPrefixDef);
+      }
+    }
+
     this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.#deserializerFor(schema, `${externalName}$deserialize`);
+      this.#typeDefFor(schema, `${externalName}$deserialize`);
     }
   }
 
@@ -69,6 +82,49 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return this.#declarations;
   }
 
+  get entityHandler(): string {
+    return (this.#entityHandler ??= this.#createEntityHandler());
+  }
+
+  #createEntityHandler(): string {
+    return this.declarations.declare('onEntity$byDefault', (prefix, suffix) => code => {
+      if (!this.#entityDefs.length) {
+        return code.write(`${prefix}undefined${suffix}`);
+      }
+
+      const UcdEntityReader = this.import(DESERIALIZER_MODULE, 'UcdEntityReader');
+
+      return code.write(`${prefix}new ${UcdEntityReader}()`).indent(code => {
+        this.#entityDefs.forEach((def, index, { length }) => {
+          let entity = def.entity ?? def.entityPrefix;
+
+          if (typeof entity === 'string') {
+            entity = UcTokenizer.split(entity);
+          }
+
+          const tokenArray =
+            '['
+            + entity
+              .map(token => typeof token === 'number' ? token.toString() : `'${escapeJsString(token)}'`)
+              .join(', ')
+            + ']';
+
+          code.write(
+            def.addHandler({
+              lib: this,
+              prefix: `${def.entity ? '.addEntity' : '.addPrefix'}(${tokenArray}, `,
+              suffix: ')',
+            }),
+          );
+
+          if (index + 2 > length) {
+            code.write(`.toHandler()${suffix}`);
+          }
+        });
+      });
+    });
+  }
+
   import(from: string, name: string): string {
     return this.imports.import(from, name);
   }
@@ -76,10 +132,10 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcdFunction<T, TSchema> {
-    return this.#deserializerFor(schema, '$deserialize');
+    return this.#typeDefFor(schema, '$deserialize');
   }
 
-  #deserializerFor<T, TSchema extends UcSchema<T>>(
+  #typeDefFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
     name: string,
   ): UcdFunction<T, TSchema> {
@@ -107,8 +163,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return deserializer;
   }
 
-  definitionFor<T>(schema: UcSchema<T>): UcdDef<T> | undefined {
-    return this.#definitions.get(schema.type) as UcdDef<T> | undefined;
+  definitionFor<T>(schema: UcSchema<T>): UcdTypeDef<T> | undefined {
+    return this.#typeDefs.get(schema.type) as UcdTypeDef<T> | undefined;
   }
 
   compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;
@@ -139,16 +195,24 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   #returnDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    const input = mode === 'async' ? this.#streamVar() : this.#inputVar();
-    const options = this.#optionsVar();
+    const prefix = mode === 'async' ? 'async' : '';
 
     return code => code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
+            const fn = this.deserializerFor(schema);
+            const input = mode === 'async' ? fn.vars.stream : fn.vars.input;
+            const options = fn.vars.options;
+
             code
-              .write(`${mode === 'async' ? 'async ' : ''}${externalName}(${input}, ${options}) {`)
-              .indent(this.deserializerFor(schema).toUcDeserializer(mode, input, options))
+              .write(
+                `${prefix} ${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
+              )
+              .indent(
+                `const ${options} = { onError, onEntity };`,
+                fn.toUcDeserializer(mode, input, options),
+              )
               .write('},');
           }
         })
@@ -185,32 +249,22 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   #exportDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    if (mode === 'async') {
-      return this.#exportAsyncDeserializers();
-    }
-
-    const input = this.#inputVar();
-    const options = this.#optionsVar();
+    const exportFn = mode === 'async' ? 'export async function' : 'export function';
 
     return code => {
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
-        code
-          .write(`export function ${externalName}(${input}, ${options}) {`)
-          .indent(this.deserializerFor(schema).toUcDeserializer(mode, input, options))
-          .write('}');
-      }
-    };
-  }
+        const fn = this.deserializerFor(schema);
+        const input = mode === 'async' ? fn.vars.stream : fn.vars.input;
+        const options = fn.vars.options;
 
-  #exportAsyncDeserializers(): UccCode.Builder {
-    const stream = this.#streamVar();
-    const options = this.#optionsVar();
-
-    return code => {
-      for (const [externalName, schema] of Object.entries(this.#schemae)) {
         code
-          .write(`export async function ${externalName}(${stream}, ${options}) {`)
-          .indent(this.deserializerFor(schema).toUcDeserializer('async', stream, options))
+          .write(
+            `${exportFn} ${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
+          )
+          .indent(
+            `const ${options} = { onError, onEntity };`,
+            fn.toUcDeserializer(mode, input, options),
+          )
           .write('}');
       }
     };

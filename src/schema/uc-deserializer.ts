@@ -1,3 +1,4 @@
+import { UcdEntityHandler } from '../deserializer/ucd-entity-handler.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
 
@@ -92,6 +93,15 @@ export namespace UcDeserializer {
      *
      * @param error - Error info.
      */
-    readonly onError?: (this: void, error: UcErrorInfo) => void;
+    readonly onError?: ((this: void, error: UcErrorInfo) => void) | undefined;
+
+    /**
+     * Function to call to deserialize entities.
+     *
+     * By default, entities will be deserialized with {@link @hatsy/churi/compiler!UcdEntityDef entity} and
+     * {@link @hatsy/churi/compiler!UcdEntityPrefixDef entity prefix} definitions available to
+     * {@link @hatsy/churi/compiler!UcdLib.Options#definitions compiler}.
+     */
+    readonly onEntity?: UcdEntityHandler | undefined;
   }
 }

@@ -63,3 +63,15 @@ export function isWhitespaceUcToken(token: UcToken): boolean {
     || mask === UC_TOKEN_CR
   );
 }
+
+export function isUcBoundToken(token: UcToken): boolean {
+  return (
+    token === UC_TOKEN_COMMA
+    || token === UC_TOKEN_OPENING_PARENTHESIS
+    || token === UC_TOKEN_CLOSING_PARENTHESIS
+  );
+}
+
+export function isUcParenthesisToken(token: UcToken): boolean {
+  return token === UC_TOKEN_OPENING_PARENTHESIS || token === UC_TOKEN_CLOSING_PARENTHESIS;
+}
