@@ -84,14 +84,14 @@ export class Basic$UcdDefs {
       lib,
       args: { reader },
     } = fn;
-    const serializer = lib.deserializerFor(schema);
+    const deserializer = lib.deserializerFor(schema);
     const { ns, declarations } = lib;
     const targetMap = ns.name('targetMap');
     const setEntry = ns.name('setEntry');
     const entryValue = ns.name('entryValue');
 
     const entryDecls = declarations.declare(
-      `${serializer.name}$entries`,
+      `${deserializer.name}$entries`,
       (prefix, suffix) => code => {
         code
           .write(`${prefix}{`)

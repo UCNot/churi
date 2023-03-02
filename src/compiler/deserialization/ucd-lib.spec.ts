@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { asis } from '@proc7ts/primitives';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { UcdLib } from './ucd-lib.js';
@@ -9,6 +10,19 @@ describe('UcdLib', () => {
   beforeEach(() => {
     lib = new UcdLib<{ readValue: UcSchema.Spec<number> }>({
       schemae: { readValue: Number },
+    });
+  });
+
+  describe('deserializerFor', () => {
+    it('obtains serializer for unknown schema', () => {
+      const fn = lib.deserializerFor({ type: String, asis });
+
+      expect(fn.name).toBe('String$deserialize');
+    });
+    it('obtains serializer for unknown named schema', () => {
+      const fn = lib.deserializerFor({ type: 'string', asis });
+
+      expect(fn.name).toBe('string$deserialize');
     });
   });
 

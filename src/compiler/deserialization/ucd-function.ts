@@ -77,7 +77,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   deserialize(schema: UcSchema, location: Omit<UcdTypeDef.Location, 'fn'>): UccCode.Source {
     const deserializer = this.lib
-      .definitionFor(schema)
+      .typeDefFor(schema)
       ?.deserialize(schema, { ...location, fn: this as UcdFunction });
 
     if (deserializer == null) {

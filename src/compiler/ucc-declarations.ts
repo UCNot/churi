@@ -1,3 +1,4 @@
+import { safeJsId } from './impl/safe-js-id.js';
 import { UccCode } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 
@@ -43,11 +44,7 @@ export class UccDeclarations implements UccCode.Fragment {
       prefix = 'CONST_',
     }: { readonly prefix?: string | undefined; readonly key?: string | undefined } = {},
   ): string {
-    const id =
-      prefix
-      + key.replace(UCC_NON_ID_REPLACEMENT_PATTERN, c => '_x' + c.charCodeAt(0).toString(16) + '_');
-
-    return this.declare(id, initializer, { key: initializer });
+    return this.declare(prefix + safeJsId(key), initializer, { key: initializer });
   }
 
   toCode(): UccCode.Source {
@@ -55,5 +52,3 @@ export class UccDeclarations implements UccCode.Fragment {
   }
 
 }
-
-const UCC_NON_ID_REPLACEMENT_PATTERN = /(?:^[^a-zA-Z_$]|(?<!^)[^0-9a-zA-Z_$])/g;

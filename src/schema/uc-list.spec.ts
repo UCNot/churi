@@ -14,6 +14,7 @@ import { ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { UcSchema, ucSchemaRef } from './uc-schema.js';
+import { UcSerializer } from './uc-serializer.js';
 
 describe('UcList', () => {
   const spec = ucList<string>(ucSchemaRef<string>(() => String));
@@ -99,6 +100,28 @@ describe('UcList', () => {
       await expect(
         TextOutStream.read(async to => await writeList(to, [1, undefined, 333])),
       ).resolves.toBe(',1,--,333');
+    });
+
+    describe('of maps', () => {
+      let writeList: UcSerializer<{ foo: string }[]>;
+
+      beforeEach(async () => {
+        const lib = new UcsLib({
+          schemae: {
+            writeList: ucList<{ foo: string }>(
+              ucMap<{ foo: UcSchema.Spec<string> }>({ foo: String }),
+            ),
+          },
+        });
+
+        ({ writeList } = await lib.compile().toSerializers());
+      });
+
+      it('serializes list', async () => {
+        await expect(
+          TextOutStream.read(async to => await writeList(to, [{ foo: 'bar' }, { foo: 'baz' }])),
+        ).resolves.toBe(",foo('bar),foo('baz)");
+      });
     });
 
     describe('nested list', () => {
@@ -291,7 +314,14 @@ describe('UcList', () => {
         const lib = new UcdLib({
           schemae: {
             readList: ucList<{ foo: string }>(
-              ucMap<{ foo: UcSchema.Spec<string> }>({ foo: String }),
+              ucMap<{ foo: UcSchema.Spec<string> }>(
+                { foo: String },
+                {
+                  id: function NestedMap() {
+                    return;
+                  },
+                },
+              ),
             ),
           },
         });

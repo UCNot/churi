@@ -5,6 +5,7 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
@@ -66,7 +67,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.#typeDefFor(schema, `${externalName}$deserialize`);
+      this.deserializerFor(schema, externalName);
     }
   }
 
@@ -129,24 +130,18 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return this.imports.import(from, name);
   }
 
-  deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  deserializerFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
+    externalName?: string,
   ): UcdFunction<T, TSchema> {
-    return this.#typeDefFor(schema, '$deserialize');
-  }
-
-  #typeDefFor<T, TSchema extends UcSchema<T>>(
-    schema: TSchema,
-    name: string,
-  ): UcdFunction<T, TSchema> {
-    const { type } = schema;
+    const { id = schema.type } = schema;
     const variant = UcSchema$variantOf(schema);
 
-    let variants = this.#deserializers.get(type);
+    let variants = this.#deserializers.get(id);
 
     if (!variants) {
       variants = new Map();
-      this.#deserializers.set(type, variants);
+      this.#deserializers.set(id, variants);
     }
 
     let deserializer = variants.get(variant) as UcdFunction<T, TSchema> | undefined;
@@ -155,7 +150,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
       deserializer = this.#createDeserializer({
         lib: this as UcdLib,
         schema,
-        name: this.ns.name(`${name}${variant}`),
+        name: this.ns.name(`${externalName ?? ucSchemaSymbol(id)}$deserialize${variant}`),
       });
       variants.set(variant, deserializer);
     }
@@ -163,7 +158,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     return deserializer;
   }
 
-  definitionFor<T>(schema: UcSchema<T>): UcdTypeDef<T> | undefined {
+  typeDefFor<T>(schema: UcSchema<T>): UcdTypeDef<T> | undefined {
     return this.#typeDefs.get(schema.type) as UcdTypeDef<T> | undefined;
   }
 
