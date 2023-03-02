@@ -2,6 +2,7 @@ import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UccCode } from '../ucc-code.js';
 import { UccDeclarations } from '../ucc-declarations.js';
@@ -49,7 +50,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     this.#createSerializer = createSerializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.#serializerFor(schema, `${externalName}$serialize`);
+      this.serializerFor(schema, externalName);
     }
   }
 
@@ -69,24 +70,18 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     return this.imports.import(from, name);
   }
 
-  serializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  serializerFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
+    externalName?: string,
   ): UcsFunction<T, TSchema> {
-    return this.#serializerFor(schema, '$serialize');
-  }
-
-  #serializerFor<T, TSchema extends UcSchema<T>>(
-    schema: TSchema,
-    name: string,
-  ): UcsFunction<T, TSchema> {
-    const { type } = schema;
+    const { id = schema.type } = schema;
     const variant = UcSchema$variantOf(schema);
 
-    let variants = this.#serializers.get(type);
+    let variants = this.#serializers.get(id);
 
     if (!variants) {
       variants = new Map();
-      this.#serializers.set(type, variants);
+      this.#serializers.set(id, variants);
     }
 
     let serializer = variants.get(variant) as UcsFunction<T, TSchema> | undefined;
@@ -95,7 +90,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
       serializer = this.#createSerializer({
         lib: this as UcsLib,
         schema,
-        name: this.ns.name(`${name}${variant}`),
+        name: this.ns.name(`${externalName ?? ucSchemaSymbol(id)}$serialize${variant}`),
       });
       variants.set(variant, serializer);
     }

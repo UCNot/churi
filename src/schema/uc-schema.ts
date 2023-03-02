@@ -41,6 +41,17 @@ export interface UcSchema<out T = unknown> {
   readonly type: UcSchema.Class<T> | string;
 
   /**
+   * Unique schema identifier.
+   *
+   * Types with different {@link optional} and {@link nullable} flags may share the same identifier.
+   *
+   * Is is up to schema author (or factory function) to make this identifier unique.
+   *
+   * @defaultValue Equal to {@link type}.
+   */
+  readonly id?: string | UcSchema.Class | undefined;
+
+  /**
    * Returns the passed-in value.
    *
    * This is a marker method that needs to present in order the type inference to work properly.
