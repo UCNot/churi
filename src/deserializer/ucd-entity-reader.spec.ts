@@ -1,26 +1,27 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcErrorInfo } from '../../schema/uc-error.js';
-import { UC_TOKEN_COLON } from '../../syntax/uc-token.js';
-import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
-import { SyncUcdReader } from '../sync-ucd-reader.js';
-import { UcdRx } from '../ucd-rx.js';
+import { UcErrorInfo } from '../schema/uc-error.js';
+import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
+import { UcTokenizer } from '../syntax/uc-tokenizer.js';
+import { SyncUcdReader } from './sync-ucd-reader.js';
+import { UcdRx } from './ucd-rx.js';
 import { UcdEntityReader } from './ucd-entity-reader.js';
 
 describe('UcdEntityReader', () => {
+  let ucdReader: SyncUcdReader;
   let reader: UcdEntityReader;
   let errors: UcErrorInfo[];
   let rx: UcdRx;
   let value: unknown;
 
   beforeEach(() => {
-    const ucdReader = new SyncUcdReader([], {
+    ucdReader = new SyncUcdReader([], {
       onError(error) {
         errors.push(error);
       },
     });
 
     errors = [];
-    reader = new UcdEntityReader(ucdReader);
+    reader = new UcdEntityReader();
     value = undefined;
     rx = {
       _: {
@@ -40,7 +41,7 @@ describe('UcdEntityReader', () => {
       reader.addEntity(entity, (_reader, rx, entity) => {
         rx._.any?.(entity);
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual(entity);
     });
@@ -51,7 +52,7 @@ describe('UcdEntityReader', () => {
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx._.any?.(entity);
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -71,7 +72,7 @@ describe('UcdEntityReader', () => {
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx._.any?.(entity);
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -91,7 +92,7 @@ describe('UcdEntityReader', () => {
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx._.any?.(entity);
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -113,7 +114,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -123,7 +124,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -134,7 +135,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix, args: entity.slice(prefix.length) });
     });
@@ -145,7 +146,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -165,7 +166,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -185,7 +186,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toBeUndefined();
       expect(errors).toEqual([
@@ -205,7 +206,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix, args: ['-baz'] });
     });
@@ -220,7 +221,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
@@ -235,7 +236,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix: prefix2, args: [UC_TOKEN_COLON] });
     });
@@ -250,7 +251,7 @@ describe('UcdEntityReader', () => {
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
         rx._.any?.({ prefix, args });
       });
-      reader.read(rx, entity);
+      reader.read(ucdReader, rx, entity);
 
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });

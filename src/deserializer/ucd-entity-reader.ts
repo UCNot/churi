@@ -1,29 +1,32 @@
-import { UcdEntityPrefixDef } from '../../compiler/deserialization/ucd-entity-prefix-def.js';
-import { UcToken } from '../../syntax/uc-token.js';
-import { UcdEntityHandler, UcdEntityPrefixHandler } from '../ucd-entity-handler.js';
-import { UcdReader } from '../ucd-reader.js';
-import { UcdRx } from '../ucd-rx.js';
-import { ucdUnrecognizedEntityError } from './ucd-errors.js';
+import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
+import { UcToken } from '../syntax/uc-token.js';
+import { ucdUnrecognizedEntityError } from './impl/ucd-errors.js';
+import { UcdEntityHandler, UcdEntityPrefixHandler } from './ucd-entity-handler.js';
+import { UcdReader } from './ucd-reader.js';
+import { UcdRx } from './ucd-rx.js';
 
 export class UcdEntityReader {
 
-  readonly #reader: UcdReader;
   readonly #root = new UcdTokenTree();
 
-  constructor(reader: UcdReader) {
-    this.#reader = reader;
+  read(reader: UcdReader, rx: UcdRx, entity: readonly UcToken[]): void {
+    this.#root.read(reader, rx, entity, 0);
   }
 
-  read(rx: UcdRx, entity: readonly UcToken[]): void {
-    this.#root.read(this.#reader, rx, entity, 0);
-  }
-
-  addEntity(entity: readonly UcToken[], handler: UcdEntityHandler): void {
+  addEntity(entity: readonly UcToken[], handler: UcdEntityHandler): this {
     this.#root.add(entity, 0, handler, false);
+
+    return this;
   }
 
-  addPrefix(entity: readonly UcToken[], handler: UcdEntityPrefixHandler): void {
+  addPrefix(entity: readonly UcToken[], handler: UcdEntityPrefixHandler): this {
     this.#root.add(entity, 0, handler, true);
+
+    return this;
+  }
+
+  toHandler(): UcdEntityHandler {
+    return this.read.bind(this);
   }
 
 }

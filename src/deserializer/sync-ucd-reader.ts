@@ -104,20 +104,25 @@ export class SyncUcdReader extends UcdReader {
 
 }
 
-export function createSyncUcdReader(input: string | readonly UcToken[]): SyncUcdReader;
+export function createSyncUcdReader(
+  input: string | readonly UcToken[],
+  options?: UcDeserializer.Options,
+): SyncUcdReader;
 
 export function createSyncUcdReader(
   input: string | readonly UcToken[] | unknown,
+  options?: UcDeserializer.Options,
 ): SyncUcdReader | undefined;
 
 export function createSyncUcdReader(
   input: string | readonly UcToken[] | unknown,
+  options?: UcDeserializer.Options,
 ): SyncUcdReader | undefined {
   if (typeof input === 'string') {
-    return new SyncUcdReader(UcTokenizer.split(input));
+    return new SyncUcdReader(UcTokenizer.split(input), options);
   }
   if (Array.isArray(input)) {
-    return new SyncUcdReader(input);
+    return new SyncUcdReader(input, options);
   }
 
   return;

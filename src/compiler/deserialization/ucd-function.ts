@@ -17,6 +17,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #name: string;
   #syncName?: string;
   #args?: UcdFunction.Args;
+  #vars?: UcdFunction.Vars;
   readonly #createAsyncReader: Required<UcdFunction.Options<T, TSchema>>['createAsyncReader'];
   readonly #createSyncReader: Required<UcdFunction.Options<T, TSchema>>['createSyncReader'];
   readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
@@ -59,6 +60,14 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return (this.#args ??= {
       reader: this.ns.name('reader'),
       setter: this.ns.name('set'),
+    });
+  }
+
+  get vars(): UcdFunction.Vars {
+    return (this.#vars ??= {
+      input: this.ns.name('input'),
+      stream: this.ns.name('stream'),
+      options: this.ns.name('options'),
     });
   }
 
@@ -205,6 +214,12 @@ export namespace UcdFunction {
   export interface Args {
     readonly reader: string;
     readonly setter: string;
+  }
+
+  export interface Vars {
+    readonly input: string;
+    readonly stream: string;
+    readonly options: string;
   }
 }
 

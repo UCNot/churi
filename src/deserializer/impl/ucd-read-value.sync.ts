@@ -201,13 +201,12 @@ export function ucdReadValueSync(
 function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcdRx): void {
   const tokens = ucdReadTokensSync(reader, true);
 
-  /* istanbul ignore else */
   if (trimUcTokensTail(tokens).length === 1) {
-    // Single exclamation mark.
+    // Process single exclamation mark.
     ucdRxBoolean(reader, rx, true);
   } else {
-    // TODO Process entities.
-    throw new Error('TODO');
+    // Process entity.
+    reader.entity(rx, tokens);
   }
 }
 
