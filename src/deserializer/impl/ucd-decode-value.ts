@@ -1,8 +1,8 @@
 import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
 import { UcdReader } from '../ucd-reader.js';
+import { ucdRxBigInt, ucdRxBoolean, ucdRxNull, ucdRxNumber, ucdRxString } from '../ucd-rx-value.js';
 import { UcdRx } from '../ucd-rx.js';
-import { ucdRxBigInt, ucdRxBoolean, ucdRxNull, ucdRxNumber, ucdRxString } from './ucd-rx-value.js';
 
 export function ucdDecodeValue(reader: UcdReader, rx: UcdRx, input: string): void {
   if (!input) {

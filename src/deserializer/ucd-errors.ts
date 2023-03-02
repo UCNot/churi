@@ -1,8 +1,8 @@
-import { quotePropertyKey } from '../../impl/quote-property-key.js';
-import { UcErrorInfo } from '../../schema/uc-error.js';
-import { printUcTokens } from '../../syntax/print-uc-token.js';
-import { UcToken } from '../../syntax/uc-token.js';
-import { UcdRx, UcdValueRx } from '../ucd-rx.js';
+import { quotePropertyKey } from '../impl/quote-property-key.js';
+import { UcErrorInfo } from '../schema/uc-error.js';
+import { printUcTokens } from '../syntax/print-uc-token.js';
+import { UcToken } from '../syntax/uc-token.js';
+import { UcdRx, UcdValueRx } from './ucd-rx.js';
 
 export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
   const expectedTypes = ucdExpectedTypes(rx);

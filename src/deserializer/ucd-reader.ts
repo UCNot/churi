@@ -1,8 +1,8 @@
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { ucdUnrecognizedEntityError } from './impl/ucd-errors.js';
 import { UcdEntityHandler } from './ucd-entity-handler.js';
+import { ucdUnrecognizedEntityError } from './ucd-errors.js';
 import { UcdRx } from './ucd-rx.js';
 
 export abstract class UcdReader {

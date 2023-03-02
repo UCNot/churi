@@ -1,7 +1,7 @@
 import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { ucdUnrecognizedEntityError } from './impl/ucd-errors.js';
 import { UcdEntityHandler, UcdEntityPrefixHandler } from './ucd-entity-handler.js';
+import { ucdUnrecognizedEntityError } from './ucd-errors.js';
 import { UcdReader } from './ucd-reader.js';
 import { UcdRx } from './ucd-rx.js';
 

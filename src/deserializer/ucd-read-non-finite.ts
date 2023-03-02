@@ -1,6 +1,6 @@
 import { UcToken } from '../syntax/uc-token.js';
-import { ucdRxNumber } from './impl/ucd-rx-value.js';
 import { UcdReader } from './ucd-reader.js';
+import { ucdRxNumber } from './ucd-rx-value.js';
 import { UcdRx } from './ucd-rx.js';
 
 export function ucdReadInfinity(reader: UcdReader, rx: UcdRx, _entity: readonly UcToken[]): void {

@@ -1,7 +1,6 @@
-import { UcdReader } from '../ucd-reader.js';
-import { UcdMapRx, UcdRx } from '../ucd-rx.js';
 import { ucdUnexpectedEntryError, ucdUnexpectedTypeError } from './ucd-errors.js';
-import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
+import { UcdReader } from './ucd-reader.js';
+import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from './ucd-rx.js';
 
 export function ucdRxSingleEntry(reader: UcdReader, rx: UcdRx, key: string): void {
   const map = ucdRxMap(reader, rx);

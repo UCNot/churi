@@ -1,5 +1,5 @@
 import { AsyncUcdReader } from './async-ucd-reader.js';
-import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './impl/ucd-errors.js';
+import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './ucd-errors.js';
 import { UcdRx, UcdValueRx } from './ucd-rx.js';
 
 export function readUcList(

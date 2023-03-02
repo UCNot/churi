@@ -1,5 +1,8 @@
 import { printUcTokens } from '../../syntax/print-uc-token.js';
+import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
+  isUcBoundToken,
+  isUcParenthesisToken,
   isWhitespaceUcToken,
   ucTokenKind,
   UC_TOKEN_KIND_BOUND,
@@ -16,19 +19,17 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
 import { AsyncUcdReader } from '../async-ucd-reader.js';
-import { UcdMapRx, UcdRx } from '../ucd-rx.js';
-import { appendUcTokens } from './append-uc-token.js';
-import { ucdDecodeValue } from './ucd-decode-value.js';
-import { ucdUnexpectedTypeError } from './ucd-errors.js';
-import { UCD_OPAQUE_RX } from './ucd-opaque-rx.js';
+import { ucdUnexpectedTypeError } from '../ucd-errors.js';
 import {
   ucdRxBoolean,
   ucdRxEntry,
   ucdRxMap,
   ucdRxSingleEntry,
   ucdRxString,
-} from './ucd-rx-value.js';
-import { isUcBoundToken, isUcParenthesisToken, trimUcTokensTail } from './ucd-tokens.js';
+} from '../ucd-rx-value.js';
+import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
+import { appendUcTokens } from './append-uc-token.js';
+import { ucdDecodeValue } from './ucd-decode-value.js';
 
 export async function ucdReadValue(
   reader: AsyncUcdReader,

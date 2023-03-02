@@ -1,5 +1,5 @@
-import { ucdRxString } from '../deserializer/impl/ucd-rx-value.js';
 import { UcdReader } from '../deserializer/ucd-reader.js';
+import { ucdRxString } from '../deserializer/ucd-rx-value.js';
 import { UcdRx } from '../deserializer/ucd-rx.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
