@@ -147,7 +147,7 @@ export class Basic$UcdDefs {
                   code
                     .write(`for: key => ${entryDecls}[key]?.(${reader}, ${targetMap}),`)
                     .write(`end: () => {`)
-                    .indent(`${setter}(${targetMap});`, `targetMap = {};`)
+                    .indent(`${setter}(${targetMap});`, `${targetMap} = {};`)
                     .write(`},`);
                 })
                 .write(`},`);
