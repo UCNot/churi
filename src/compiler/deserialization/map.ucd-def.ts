@@ -1,3 +1,4 @@
+import { lazyValue } from '@proc7ts/primitives';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
@@ -25,12 +26,10 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
   readonly #location: UcdTypeDef.Location;
 
   readonly #entryNs: UccNamespace;
-  #setEntryVar?: string;
-  #entryDeclsVar?: string;
-  #entryValueVar?: string;
+  readonly #varEntrySetter = lazyValue(() => this.#entryNs.name('setEntry'));
+  readonly #argEntryValue = lazyValue(() => this.#entryNs.name('entryValue'));
 
   readonly #ns: UccNamespace;
-  #targetVar?: string;
 
   constructor(schema: UcMap.Schema<TEntriesSpec>, location: UcdTypeDef.Location) {
     this.#schema = schema;
@@ -47,23 +46,7 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
     return this.#location;
   }
 
-  get targetVar(): string {
-    return (this.#targetVar ??= this.#ns.name('target'));
-  }
-
-  get entryDeclsVar(): string {
-    return (this.#entryDeclsVar ??= this.#declareEntries());
-  }
-
-  get setEntryVar(): string {
-    return (this.#setEntryVar ??= this.#entryNs.name('setEntry'));
-  }
-
-  get entryValueVar(): string {
-    return (this.#entryValueVar ??= this.#entryNs.name('entryValue'));
-  }
-
-  #declareEntries(): string {
+  declareRxs(): string {
     const { entries } = this.schema;
     const { fn } = this.location;
     const {
@@ -71,15 +54,16 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
       args: { reader },
     } = fn;
     const deserializer = lib.deserializerFor(this.schema);
+    const targetMap = this.#entryNs.name('targetMap');
 
-    return lib.declarations.declare(`${deserializer.name}$entries`, (prefix, suffix) => code => {
+    return lib.declarations.declare(`${deserializer.name}$rx`, (prefix, suffix) => code => {
       code
         .write(`${prefix}{`)
         .indent(code => {
           for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
             code
-              .write(`${escapeJsString(key)}(${reader}, ${this.targetVar}){`)
-              .indent(this.declareEntry(key, entrySchema))
+              .write(`${escapeJsString(key)}(${reader}, ${targetMap}){`)
+              .indent(this.declareEntryRx(targetMap, key, entrySchema))
               .write(`},`);
           }
         })
@@ -87,22 +71,21 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
     });
   }
 
-  declareEntry(key: string, entrySchema: UcSchema): UccCode.Source {
+  declareEntryRx(targetMap: string, key: string, entrySchema: UcSchema): UccCode.Source {
     const { fn } = this.location;
+    const setEntry = this.#varEntrySetter();
+    const entryValue = this.#argEntryValue();
 
     return code => {
       code
-        .write(`const ${this.setEntryVar} = ${this.entryValueVar} => {`)
-        .indent(
-          `${uccPropertyAccessExpr(this.targetVar, key)} = ${this.entryValueVar};`,
-          'return 1;',
-        )
+        .write(`const ${setEntry} = ${entryValue} => {`)
+        .indent(this.setEntry(targetMap, key, entryValue), 'return 1;')
         .write(`};`);
 
       try {
         code.write(
           fn.deserialize(entrySchema, {
-            setter: this.setEntryVar,
+            setter: setEntry,
             prefix: 'return ',
             suffix: ';',
           }),
@@ -119,26 +102,43 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
     };
   }
 
-  createMap(): UccCode.Source {
-    return `let ${this.targetVar} = {};`;
+  setEntry(targetMap: string, key: string, value: string): UccCode.Source {
+    return `${uccPropertyAccessExpr(targetMap, key)} = ${value};`;
   }
 
-  setEntry(key: string, prefix: string, suffix: string): UccCode.Source {
-    return `${prefix}${this.entryDeclsVar}[${key}]?.(${this.location.fn.args.reader}, ${this.targetVar})${suffix}`;
+  allocateMap(prefix: string, suffix: string): UccCode.Source {
+    return `${prefix}{}${suffix}`;
   }
 
-  endMap(): UccCode.Source {
-    return code => code.write(`${this.location.setter}(${this.targetVar});`, `${this.targetVar} = {};`);
+  rxEntry(
+    rxs: string,
+    targetMap: string,
+    key: string,
+    prefix: string,
+    suffix: string,
+  ): UccCode.Source {
+    return `${prefix}${rxs}[${key}]?.(${this.location.fn.args.reader}, ${targetMap})${suffix}`;
+  }
+
+  storeMap(setter: string, targetMap: string): UccCode.Source {
+    return `${setter}(${targetMap});`;
+  }
+
+  reclaimMap(targetMap: string): UccCode.Source {
+    // Allocate map instance for the next list item.
+    return this.allocateMap(`${targetMap} = `, `;`);
   }
 
   toCode(): UccCode.Source {
+    const rxs = this.declareRxs();
     const { schema, location } = this;
     const { setter, prefix, suffix } = location;
+    const targetMap = this.#ns.name('targetMap');
     const key = this.#ns.name('key');
 
     return code => {
       code
-        .write(this.createMap())
+        .write(this.allocateMap(`let ${targetMap} = `, ';'))
         .write(`${prefix}{`)
         .indent(code => {
           code
@@ -149,10 +149,10 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec> implement
                 .indent(code => {
                   code
                     .write(`for(${key}) {`)
-                    .indent(this.setEntry(key, 'return ', ';'))
+                    .indent(this.rxEntry(rxs, targetMap, key, 'return ', ';'))
                     .write(`},`)
                     .write(`end: () => {`)
-                    .indent(this.endMap())
+                    .indent(this.storeMap(setter, targetMap), this.reclaimMap(targetMap))
                     .write(`},`);
                 })
                 .write(`},`);
