@@ -349,7 +349,7 @@ describe('UcMap', () => {
           },
         ]);
       });
-      it('does not deserialize unrecognized schema', async () => {
+      it('does not deserialize unrecognized entity schema', async () => {
         const lib = new UcdLib({
           schemae: {
             readMap: ucMap({
@@ -483,6 +483,67 @@ describe('UcMap', () => {
             message: 'Unexpected list, while map expected',
           },
         ]);
+      });
+    });
+
+    describe('extra entries', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
+      }>;
+      let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap(
+              {
+                length: Number as UcSchema.Class<number>,
+              },
+              {
+                extra: String as UcSchema.Class<string>,
+              },
+            ),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes extra entries', () => {
+        expect(readMap('foo(first)bar(second)length(3)')).toEqual({
+          foo: 'first',
+          bar: 'second',
+          length: 3,
+        });
+      });
+      it('does not deserialize unrecognized extra schema', async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readMap: ucMap(
+              {
+                test: String,
+              },
+              {
+                extra: new EntrySchema<string>('test-type'),
+              },
+            ),
+          },
+        });
+
+        let error: UnsupportedUcSchemaError | undefined;
+
+        try {
+          await lib.compile().toDeserializers();
+        } catch (e) {
+          error = e as UnsupportedUcSchemaError;
+        }
+
+        expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect(error?.schema.type).toBe('test-type');
+        expect(error?.message).toBe(
+          'readMap$deserialize: Can not deserialize extra entry of type "test-type"',
+        );
+        expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
       });
     });
 
