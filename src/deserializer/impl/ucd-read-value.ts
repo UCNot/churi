@@ -148,7 +148,7 @@ export async function ucdReadValue(
       reader.error(ucdUnexpectedTypeError('list', rx));
       itemsRx = UCD_OPAQUE_RX;
     }
-    if (reader.prev().length) {
+    if (reader.hasPrev()) {
       // Decode leading item, if any.
       // Ignore empty leading item otherwise.
       ucdDecodeValue(reader, itemsRx, printUcTokens(trimUcTokensTail(reader.consumePrev())));

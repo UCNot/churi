@@ -1,4 +1,4 @@
-import { quotePropertyKey } from '../impl/quote-property-key.js';
+import { escapeJsString, quotePropertyKey } from '../impl/quote-property-key.js';
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
@@ -16,6 +16,27 @@ export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
       },
     },
     message: `Unexpected ${type}, while ${ucdTypeNames(expectedTypes)} expected`,
+  };
+}
+
+export function ucdMissingEntriesError(
+  received: { readonly [key: string]: undefined },
+  required: { readonly [key: string]: 1 | undefined },
+): UcErrorInfo {
+  const requiredKeys = new Set(Object.keys(required));
+
+  for (const receivedKey of Object.keys(received)) {
+    requiredKeys.delete(receivedKey);
+  }
+
+  const keys = [...requiredKeys];
+
+  return {
+    code: 'missingEntries',
+    details: {
+      keys,
+    },
+    message: `Map entries missing: ${keys.map(escapeJsString).join(', ')}`,
   };
 }
 

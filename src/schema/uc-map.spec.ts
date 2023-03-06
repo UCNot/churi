@@ -6,7 +6,7 @@ import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
-import { ucList } from './uc-list.js';
+import { UcList, ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
 import { UcNullable, ucNullable } from './uc-nullable.js';
 import { ucOptional } from './uc-optional.js';
@@ -544,6 +544,31 @@ describe('UcMap', () => {
         );
         expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
         expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+      });
+    });
+
+    describe('list entry', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ foo: UcList.Schema.Spec<string> }>;
+      }>;
+      let readMap: UcDeserializer.Sync<{ foo: string[] }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap<{ foo: UcList.Schema.Spec<string> }>({
+              foo: ucList(String),
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile('sync').toDeserializers());
+      });
+
+      it('deserializes comma-separated items', () => {
+        expect(readMap('foo(,bar,baz)')).toEqual({ foo: ['bar', 'baz'] });
+      });
+      it.skip('deserializes same-named entity', () => {
+        expect(readMap('foo(bar)foo(baz)')).toEqual({ foo: ['bar', 'baz'] });
       });
     });
 

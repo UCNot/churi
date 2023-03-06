@@ -25,6 +25,10 @@ export class AsyncUcdReader extends UcdReader {
     return this.#current;
   }
 
+  override hasPrev(): boolean {
+    return this.#prev.length > 0;
+  }
+
   override prev(): readonly UcToken[] {
     return this.#prev;
   }

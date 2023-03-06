@@ -22,11 +22,15 @@ export class SyncUcdReader extends UcdReader {
   }
 
   override current(): UcToken | undefined {
-    return this.#current < this.#tokens.length ? this.#tokens[this.#current] : undefined;
+    return this.#current < this.#next ? this.#tokens[this.#current] : undefined;
+  }
+
+  override hasPrev(): boolean {
+    return this.#consumed < this.#current;
   }
 
   override prev(): UcToken[] {
-    return this.#consumed < this.#current ? this.#tokens.slice(this.#consumed, this.#current) : [];
+    return this.hasPrev() ? this.#tokens.slice(this.#consumed, this.#current) : [];
   }
 
   override read(rx: UcdRx): void {
@@ -46,6 +50,8 @@ export class SyncUcdReader extends UcdReader {
   override find(matcher: (token: UcToken) => boolean | null | undefined): UcToken | undefined {
     if (this.#current < 0) {
       this.#current = this.#next++;
+    } else if (this.#current === this.#next && ++this.#next >= this.#tokens.length) {
+      this.#next = this.#tokens.length;
     }
 
     while (this.#current < this.#tokens.length) {
@@ -87,7 +93,7 @@ export class SyncUcdReader extends UcdReader {
   }
 
   override skip(): void {
-    if (this.#current < this.#next) {
+    if (this.#consumed < this.#next) {
       this.#consumed = this.#current = this.#next;
     }
   }
