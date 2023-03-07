@@ -3,7 +3,7 @@ import { ucdExpectedTypes, ucdTypeNames } from './ucd-errors.js';
 
 describe('ucdExpectedTypes', () => {
   it('never empty', () => {
-    expect(ucdExpectedTypes({ _: {} })).toEqual(['value']);
+    expect(ucdExpectedTypes({ _: {} })).toEqual(['none']);
   });
 });
 

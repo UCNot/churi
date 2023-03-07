@@ -6,10 +6,10 @@ import { parseTokens, readTokens } from '../spec/read-chunks.js';
 import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
-import { ucList } from './uc-list.js';
+import { UcList, ucList } from './uc-list.js';
 import { ucMap, UcMap } from './uc-map.js';
 import { UcNullable, ucNullable } from './uc-nullable.js';
-import { ucOptional } from './uc-optional.js';
+import { UcOptional, ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { UcSchema, ucSchemaRef } from './uc-schema.js';
@@ -286,9 +286,11 @@ describe('UcMap', () => {
 
       it('deserializes entry', async () => {
         await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+        await expect(readMap(readTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
       });
       it('deserializes entry synchronously', () => {
         expect(readMap(parseTokens('foo(bar)'))).toEqual({ foo: 'bar' });
+        expect(readMap(parseTokens('foo(bar'))).toEqual({ foo: 'bar' });
       });
       it('deserializes $-escaped entry', async () => {
         await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
@@ -302,6 +304,25 @@ describe('UcMap', () => {
         await expect(readMap(readTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
           foo: 'bar',
         });
+      });
+      it('rejects repeating entry', async () => {
+        const errors: unknown[] = [];
+
+        await expect(
+          readMap(readTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
+        ).resolves.toEqual({ foo: 'bar' });
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'list',
+              expected: {
+                types: ['string'],
+              },
+            },
+            message: 'Unexpected list, while string expected',
+          },
+        ]);
       });
       it('rejects null', async () => {
         await expect(
@@ -349,7 +370,7 @@ describe('UcMap', () => {
           },
         ]);
       });
-      it('does not deserialize unrecognized schema', async () => {
+      it('does not deserialize unrecognized entity schema', async () => {
         const lib = new UcdLib({
           schemae: {
             readMap: ucMap({
@@ -430,6 +451,23 @@ describe('UcMap', () => {
           bar: 'second',
         });
       });
+      it('rejects incomplete map', async () => {
+        const errors: UcErrorInfo[] = [];
+
+        await expect(
+          readMap(readTokens('foo(first)'), { onError: error => errors.push(error) }),
+        ).resolves.toBeUndefined();
+
+        expect(errors).toEqual([
+          {
+            code: 'missingEntries',
+            details: {
+              keys: ['bar'],
+            },
+            message: `Map entries missing: "bar"`,
+          },
+        ]);
+      });
       it('rejects unknown entry', async () => {
         await expect(
           readMap(readTokens('foo(first)wrong(123)bar(second'), { onError }),
@@ -483,6 +521,133 @@ describe('UcMap', () => {
             message: 'Unexpected list, while map expected',
           },
         ]);
+      });
+    });
+
+    describe('extra entries', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
+      }>;
+      let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap(
+              {
+                length: Number as UcSchema.Class<number>,
+              },
+              {
+                extra: String as UcSchema.Class<string>,
+              },
+            ),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes extra entries', () => {
+        expect(readMap('foo(first)bar(second)length(3)')).toEqual({
+          foo: 'first',
+          bar: 'second',
+          length: 3,
+        });
+      });
+      it('does not deserialize unrecognized extra schema', async () => {
+        const lib = new UcdLib({
+          schemae: {
+            readMap: ucMap(
+              {
+                test: String,
+              },
+              {
+                extra: new EntrySchema<string>('test-type'),
+              },
+            ),
+          },
+        });
+
+        let error: UnsupportedUcSchemaError | undefined;
+
+        try {
+          await lib.compile().toDeserializers();
+        } catch (e) {
+          error = e as UnsupportedUcSchemaError;
+        }
+
+        expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect(error?.schema.type).toBe('test-type');
+        expect(error?.message).toBe(
+          'readMap$deserialize: Can not deserialize extra entry of type "test-type"',
+        );
+        expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+        expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+      });
+    });
+
+    describe('optional entries', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
+      }>;
+      let readMap: UcDeserializer<
+        { length?: number } & { [key in Exclude<string, 'foo'>]: string }
+      >;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap(
+              {
+                length: ucOptional<number>(Number),
+              },
+              {
+                extra: String as UcSchema.Class<string>,
+              },
+            ),
+          },
+        });
+        ({ readMap } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes extra entries', () => {
+        expect(readMap('foo(first)bar(second)')).toEqual({
+          foo: 'first',
+          bar: 'second',
+        });
+      });
+      it('deserializes optional entry', () => {
+        expect(readMap('length(0)')).toEqual({
+          length: 0,
+        });
+      });
+    });
+
+    describe('list entry', () => {
+      let lib: UcdLib<{
+        readMap: UcMap.Schema<{ foo: UcList.Schema.Spec<string>; bar: UcList.Schema.Spec<number> }>;
+      }>;
+      let readMap: UcDeserializer.Sync<{ foo: string[] }>;
+
+      beforeEach(async () => {
+        lib = new UcdLib({
+          schemae: {
+            readMap: ucMap({
+              foo: ucList<string>(String),
+              bar: ucList<number>(Number),
+            }),
+          },
+        });
+        ({ readMap } = await lib.compile('sync').toDeserializers());
+      });
+
+      it('deserializes comma-separated items', () => {
+        expect(readMap('foo(,bar,baz)bar(1, 2)')).toEqual({ foo: ['bar', 'baz'], bar: [1, 2] });
+      });
+      it('deserializes same-named entity', () => {
+        expect(readMap('foo(bar)bar(1) foo(baz)bar(2)')).toEqual({
+          foo: ['bar', 'baz'],
+          bar: [1, 2],
+        });
       });
     });
 

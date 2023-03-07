@@ -25,12 +25,16 @@ export class AsyncUcdReader extends UcdReader {
     return this.#current;
   }
 
+  override hasPrev(): boolean {
+    return this.#prev.length > 0;
+  }
+
   override prev(): readonly UcToken[] {
     return this.#prev;
   }
 
   override async read(rx: UcdRx): Promise<void> {
-    await ucdReadValue(this, rx);
+    await ucdReadValue(this, rx, () => rx.ls?.());
   }
 
   override async next(): Promise<UcToken | undefined> {

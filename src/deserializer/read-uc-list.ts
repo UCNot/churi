@@ -1,35 +1,35 @@
 import { AsyncUcdReader } from './async-ucd-reader.js';
 import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './ucd-errors.js';
-import { UcdRx, UcdValueRx } from './ucd-rx.js';
+import { UcdItemRx, UcdRx } from './ucd-rx.js';
 
 export function readUcList(
   reader: AsyncUcdReader,
   setList: (value: unknown) => void,
-  createItemRx: (addItem: (value: unknown) => 1) => UcdRx,
+  createRx: (addItem: (value: unknown) => 1) => UcdRx,
   nullable:
     | 0
     | 1 /* nullable list, but not items */
     | 2 /* nullable items, but not list */
     | 3 /* nullable list and items */ = 0,
-): { rx: UcdRx; end: () => void } {
+): UcdRx {
   let listCreated = false;
   const items: unknown[] | null = [];
   let isNull = false;
 
-  const firstItemRx = createItemRx((item: unknown): 1 => {
+  const firstRx = createRx((item: unknown): 1 => {
     items.push(item);
 
     return 1;
   });
 
-  const firstItemValueRx = firstItemRx._;
-  let valueRx: UcdValueRx;
+  const firstItemRx = firstRx._;
+  let itemRx: UcdItemRx;
 
-  if (firstItemRx.end) {
+  if (firstRx.ls) {
     // Nested list items expected.
     let firstItem = true;
 
-    valueRx = {
+    itemRx = {
       nls() {
         listCreated = true;
 
@@ -37,10 +37,10 @@ export function readUcList(
           // Reuse the first item receiver only once.
           firstItem = false;
 
-          return firstItemRx;
+          return firstRx;
         }
 
-        return createItemRx((item: unknown): 1 => {
+        return createRx((item: unknown): 1 => {
           items.push(item);
 
           return 1;
@@ -50,14 +50,14 @@ export function readUcList(
 
     if (nullable) {
       const rejectNullItem = (): void => {
-        const errorRx = { ...valueRx };
+        const errorRx = { ...itemRx };
 
         delete errorRx.nul;
 
         reader.error(ucdUnexpectedTypeError('null', { _: errorRx }));
       };
 
-      valueRx.nul = () => {
+      itemRx.nul = () => {
         if (listCreated) {
           isNull = false;
           if (nullable & 2) {
@@ -76,15 +76,15 @@ export function readUcList(
     }
   } else if (nullable & 1) {
     // Nullable list, with possibly nullable single items.
-    valueRx = {
-      ...firstItemValueRx,
+    itemRx = {
+      ...firstItemRx,
       nul: (): 1 => {
         if (!listCreated) {
           isNull = true;
         } else {
           isNull = false;
-          if (!firstItemValueRx.nul?.()) {
-            reader.error(ucdUnexpectedTypeError('null', firstItemRx));
+          if (!firstItemRx.nul?.()) {
+            reader.error(ucdUnexpectedTypeError('null', firstRx));
           }
         }
 
@@ -93,28 +93,23 @@ export function readUcList(
     };
   } else {
     // Nested single items expected.
-    valueRx = firstItemValueRx;
+    itemRx = firstItemRx;
   }
 
   return {
-    rx: {
-      _: valueRx,
-      lst() {
-        listCreated = true;
+    _: itemRx,
+    em() {
+      listCreated = true;
 
-        return 1;
-      },
-      end() {
-        if (!isNull) {
-          setList(items);
-        }
-      },
+      return 1;
     },
-    end() {
+    ls() {
       if (isNull) {
         setList(null);
-      } else if (!listCreated) {
-        const types = ucdExpectedTypes(firstItemRx);
+      } else if (listCreated) {
+        setList(items);
+      } else {
+        const types = ucdExpectedTypes(firstRx);
 
         reader.error({
           code: 'unexpectedType',

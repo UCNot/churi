@@ -24,6 +24,8 @@ export abstract class UcdReader {
 
   abstract current(): UcToken | undefined;
 
+  abstract hasPrev(): boolean;
+
   abstract prev(): readonly UcToken[];
 
   error(error: UcErrorInfo): void {
