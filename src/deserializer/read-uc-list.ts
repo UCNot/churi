@@ -11,7 +11,7 @@ export function readUcList(
     | 1 /* nullable list, but not items */
     | 2 /* nullable items, but not list */
     | 3 /* nullable list and items */ = 0,
-): { rx: UcdRx; end: () => void } {
+): UcdRx {
   let listCreated = false;
   const items: unknown[] | null = [];
   let isNull = false;
@@ -97,23 +97,18 @@ export function readUcList(
   }
 
   return {
-    rx: {
-      _: valueRx,
-      lst() {
-        listCreated = true;
+    _: valueRx,
+    lst() {
+      listCreated = true;
 
-        return 1;
-      },
-      end() {
-        if (!isNull) {
-          setList(items);
-        }
-      },
+      return 1;
     },
     end() {
       if (isNull) {
         setList(null);
-      } else if (!listCreated) {
+      } else if (listCreated) {
+        setList(items);
+      } else {
         const types = ucdExpectedTypes(firstItemRx);
 
         reader.error({

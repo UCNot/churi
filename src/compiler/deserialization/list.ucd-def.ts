@@ -50,14 +50,13 @@ export class ListUcdDef<
 
     const { nullable, item } = this.schema;
     const { fn, setter, prefix, suffix } = this.location;
-    const listRx = this.#ns.name('listRx');
     const addItem = this.#ns.name('addItem');
     const readUcList = lib.import(DESERIALIZER_MODULE, 'readUcList');
 
     return code => {
       const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
 
-      code.write(`const ${listRx} = ${readUcList}(${reader}, ${setter}, ${addItem} => {`);
+      code.write(`${prefix}${readUcList}(${reader}, ${setter}, ${addItem} => {`);
 
       try {
         code.indent(fn.deserialize(item, { setter: addItem, prefix: 'return ', suffix: ';' }));
@@ -69,10 +68,7 @@ export class ListUcdDef<
         );
       }
 
-      code
-        .write(nullableFlag ? `}, ${nullableFlag});` : `});`)
-        .write(`${prefix}${listRx}.rx${suffix}`)
-        .write(`${listRx}.end();`);
+      code.write('}' + (nullableFlag ? `, ${nullableFlag}` : ``) + ')' + suffix);
     };
   }
 

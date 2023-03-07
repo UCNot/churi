@@ -34,7 +34,7 @@ export class SyncUcdReader extends UcdReader {
   }
 
   override read(rx: UcdRx): void {
-    ucdReadValueSync(this, rx);
+    ucdReadValueSync(this, rx, () => rx.end?.());
   }
 
   override next(): UcToken | undefined {

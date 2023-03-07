@@ -26,6 +26,11 @@ export namespace UcList {
     TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
   > extends UcSchema<TItem[]> {
     readonly type: 'list';
+    readonly isList: true;
+
+    /**
+     * List item schema.
+     */
     readonly item: UcSchema.Of<TItemSpec>;
 
     /**
@@ -119,6 +124,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       return {
         type: 'list',
         id: id ?? `list_${++UcList$idSeq}`,
+        isList: true,
         item,
         asis,
         toString() {

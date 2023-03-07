@@ -52,6 +52,13 @@ export interface UcSchema<out T = unknown> {
   readonly id?: string | UcSchema.Class | undefined;
 
   /**
+   * Whether this schema accepts a list of items.
+   *
+   * @defaultValue `false`
+   */
+  readonly isList?: boolean | undefined;
+
+  /**
    * Returns the passed-in value.
    *
    * This is a marker method that needs to present in order the type inference to work properly.

@@ -42,7 +42,8 @@ import { ucdDecodeValue } from './ucd-decode-value.js';
 export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcdRx,
-  single = false,
+  end?: () => void,
+  single?: boolean,
 ): void {
   ucdSkipWhitespaceSync(reader);
 
@@ -134,7 +135,7 @@ export function ucdReadValueSync(
 
   if (!bound) {
     // End of input.
-    return;
+    return end?.();
   }
   if (bound === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Unbalanced closing parenthesis.
@@ -143,7 +144,7 @@ export function ucdReadValueSync(
       ucdDecodeValue(reader, rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
-    return;
+    return end?.();
   }
 
   let itemsRx: UcdRx;
@@ -272,6 +273,8 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcdRx): void {
     itemsRx = UCD_OPAQUE_RX;
   }
 
+  itemsRx.lst?.();
+
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
   ucdSkipWhitespaceSync(reader);
@@ -295,7 +298,7 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: UcdRx): void {
       break;
     }
 
-    ucdReadValueSync(reader, rx, true);
+    ucdReadValueSync(reader, rx, undefined, true);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.
@@ -313,7 +316,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcdRx, firstKey: string): voi
   const mapRx = ucdRxMap(reader, rx);
   const entryRx = ucdRxEntry(reader, mapRx, firstKey);
 
-  ucdReadValueSync(reader, entryRx);
+  ucdReadValueSync(reader, entryRx, () => entryRx.end?.());
 
   if (reader.current()) {
     // Skip closing parenthesis.
@@ -348,7 +351,7 @@ function ucdReadEntriesSync(reader: SyncUcdReader, mapRx: UcdMapRx): void {
 
       const entryRx = ucdRxEntry(reader, mapRx, key);
 
-      ucdReadValueSync(reader, entryRx);
+      ucdReadValueSync(reader, entryRx, () => entryRx.end?.());
 
       if (!reader.current()) {
         // End of input.
