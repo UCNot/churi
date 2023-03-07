@@ -24,6 +24,7 @@ import { ucdRxBoolean, ucdRxEntry, ucdRxMap, ucdRxString, ucdRxSuffix } from '..
 import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
+import { cacheUcdEntry, startUcdEntry, UcdEntryCache } from './ucd-entity-cache.js';
 
 export async function ucdReadValue(
   reader: AsyncUcdReader,
@@ -297,20 +298,30 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): 
   const mapRx = ucdRxMap(reader, rx);
   const entryRx = ucdRxEntry(reader, mapRx, firstKey);
 
-  await ucdReadValue(reader, entryRx, () => entryRx.end?.());
+  await ucdReadValue(reader, entryRx);
 
   if (reader.current()) {
     // Skip closing parenthesis.
     reader.skip();
 
+    const cache: UcdEntryCache = { rxs: {}, end: null };
+
+    cacheUcdEntry(cache, firstKey, entryRx);
+
     // Read the rest of entries.
-    await ucdReadEntries(reader, mapRx);
+    await ucdReadEntries(reader, mapRx, cache);
+  } else {
+    entryRx.end?.();
   }
 
   mapRx.end();
 }
 
-async function ucdReadEntries(reader: AsyncUcdReader, mapRx: UcdMapRx): Promise<void> {
+async function ucdReadEntries(
+  reader: AsyncUcdReader,
+  mapRx: UcdMapRx,
+  cache: UcdEntryCache,
+): Promise<void> {
   for (;;) {
     await ucdSkipWhitespace(reader);
 
@@ -330,25 +341,27 @@ async function ucdReadEntries(reader: AsyncUcdReader, mapRx: UcdMapRx): Promise<
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = ucdRxEntry(reader, mapRx, key);
+      const entryRx = startUcdEntry(reader, mapRx, key, cache);
 
-      await ucdReadValue(reader, entryRx, () => entryRx.end?.());
+      await ucdReadValue(reader, entryRx);
 
       if (!reader.current()) {
         // End of input.
-        return;
+        break;
       }
 
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = ucdRxEntry(reader, mapRx, key);
+      const entryRx = startUcdEntry(reader, mapRx, key, cache);
 
       ucdRxString(reader, entryRx, '');
 
       break;
     }
   }
+
+  cache?.end?.forEach(rx => rx.end!());
 }
 
 async function ucdSkipWhitespace(reader: AsyncUcdReader): Promise<void> {

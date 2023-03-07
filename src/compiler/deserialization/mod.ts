@@ -1,5 +1,6 @@
 export * from './basic.ucd-defs.js';
 export * from './default.ucd-defs.js';
+export * from './entry.ucd-def.js';
 export * from './list.ucd-def.js';
 export * from './map.ucd-def.js';
 export * from './non-finite.ucd-defs.js';

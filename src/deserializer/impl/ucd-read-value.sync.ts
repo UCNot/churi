@@ -32,6 +32,7 @@ import { ucdRxBoolean, ucdRxEntry, ucdRxMap, ucdRxString, ucdRxSuffix } from '..
 import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
+import { cacheUcdEntry, startUcdEntry, UcdEntryCache } from './ucd-entity-cache.js';
 
 export function ucdReadValueSync(
   reader: SyncUcdReader,
@@ -305,20 +306,30 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcdRx, firstKey: string): voi
   const mapRx = ucdRxMap(reader, rx);
   const entryRx = ucdRxEntry(reader, mapRx, firstKey);
 
-  ucdReadValueSync(reader, entryRx, () => entryRx.end?.());
+  ucdReadValueSync(reader, entryRx);
 
   if (reader.current()) {
     // Skip closing parenthesis.
     reader.skip();
 
+    const cache: UcdEntryCache = { rxs: {}, end: null };
+
+    cacheUcdEntry(cache, firstKey, entryRx);
+
     // Read the rest of entries.
-    ucdReadEntriesSync(reader, mapRx);
+    ucdReadEntriesSync(reader, mapRx, cache);
+  } else {
+    entryRx.end?.();
   }
 
   mapRx.end();
 }
 
-function ucdReadEntriesSync(reader: SyncUcdReader, mapRx: UcdMapRx): void {
+function ucdReadEntriesSync(
+  reader: SyncUcdReader,
+  mapRx: UcdMapRx,
+  cache: UcdEntryCache,
+): void {
   for (;;) {
     ucdSkipWhitespaceSync(reader);
 
@@ -338,25 +349,27 @@ function ucdReadEntriesSync(reader: SyncUcdReader, mapRx: UcdMapRx): void {
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = ucdRxEntry(reader, mapRx, key);
+      const entryRx = startUcdEntry(reader, mapRx, key, cache);
 
-      ucdReadValueSync(reader, entryRx, () => entryRx.end?.());
+      ucdReadValueSync(reader, entryRx);
 
       if (!reader.current()) {
         // End of input.
-        return;
+        break;
       }
 
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = ucdRxEntry(reader, mapRx, key);
+      const entryRx = startUcdEntry(reader, mapRx, key, cache);
 
       ucdRxString(reader, entryRx, '');
 
       break;
     }
   }
+
+  cache?.end?.forEach(rx => rx.end!());
 }
 
 function ucdSkipWhitespaceSync(reader: SyncUcdReader): void {

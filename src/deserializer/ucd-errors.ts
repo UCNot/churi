@@ -20,13 +20,17 @@ export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
 }
 
 export function ucdMissingEntriesError(
-  received: { readonly [key: string]: undefined },
-  required: { readonly [key: string]: 1 | undefined },
+  assigned: { readonly [key: string]: 1 | undefined },
+  entries: { readonly [key: string]: { use: 1 | 0 } },
 ): UcErrorInfo {
-  const requiredKeys = new Set(Object.keys(required));
+  const requiredKeys = new Set(
+    Object.entries(entries)
+      .filter(([, { use }]) => use)
+      .map(([key]) => key),
+  );
 
-  for (const receivedKey of Object.keys(received)) {
-    requiredKeys.delete(receivedKey);
+  for (const assignedKey of Object.keys(assigned)) {
+    requiredKeys.delete(assignedKey);
   }
 
   const keys = [...requiredKeys];
@@ -36,7 +40,7 @@ export function ucdMissingEntriesError(
     details: {
       keys,
     },
-    message: `Map entries missing: ${keys.map(escapeJsString).join(', ')}`,
+    message: `Map entries missing: ${keys.map(key => '"' + escapeJsString(key) + '"').join(', ')}`,
   };
 }
 
