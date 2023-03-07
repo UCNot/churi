@@ -11,7 +11,7 @@ export interface UcdEntryCache {
 export function cacheUcdEntry(cache: UcdEntryCache, key: string, entryRx: UcdRx): void {
   cache.rxs[key] = entryRx;
 
-  if (entryRx.end) {
+  if (entryRx.ls) {
     if (cache.end) {
       cache.end.push(entryRx);
     } else {
@@ -29,7 +29,7 @@ export function startUcdEntry(
   const cached = cache.rxs[key];
 
   if (cached) {
-    if (!cached.lst?.()) {
+    if (!cached.em?.()) {
       reader.error(ucdUnexpectedTypeError('list', cached));
 
       return (cache.rxs[key] = UCD_OPAQUE_RX);

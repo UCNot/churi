@@ -3,8 +3,8 @@ import { noop } from '@proc7ts/primitives';
 export interface UcdRx {
   _: UcdItemRx;
 
-  lst?(this: void): 1;
-  end?(this: void): void;
+  em?(this: void): 1;
+  ls?(this: void): void;
 }
 
 export interface UcdItemRx {
@@ -39,8 +39,8 @@ export const UCD_OPAQUE_RX = {
       return 1;
     },
   },
-  lst(): 1 {
+  em(): 1 {
     return 1;
   },
-  end: noop,
+  ls: noop,
 } satisfies UcdRx;

@@ -34,7 +34,7 @@ export class AsyncUcdReader extends UcdReader {
   }
 
   override async read(rx: UcdRx): Promise<void> {
-    await ucdReadValue(this, rx, () => rx.end?.());
+    await ucdReadValue(this, rx, () => rx.ls?.());
   }
 
   override async next(): Promise<UcToken | undefined> {

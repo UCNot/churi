@@ -25,7 +25,7 @@ export function readUcList(
   const firstItemRx = firstRx._;
   let itemRx: UcdItemRx;
 
-  if (firstRx.end) {
+  if (firstRx.ls) {
     // Nested list items expected.
     let firstItem = true;
 
@@ -98,12 +98,12 @@ export function readUcList(
 
   return {
     _: itemRx,
-    lst() {
+    em() {
       listCreated = true;
 
       return 1;
     },
-    end() {
+    ls() {
       if (isNull) {
         setList(null);
       } else if (listCreated) {

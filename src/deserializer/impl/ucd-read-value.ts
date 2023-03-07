@@ -131,7 +131,7 @@ export async function ucdReadValue(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (single || rx.lst?.()) {
+    if (single || rx.em?.()) {
       itemsRx = rx;
     } else {
       reader.error(ucdUnexpectedTypeError('list', rx));
@@ -158,7 +158,7 @@ export async function ucdReadValue(
     }
 
     // Consume the rest of items.
-    if (rx.lst?.()) {
+    if (rx.em?.()) {
       itemsRx = rx;
     } else {
       reader.error(
@@ -246,7 +246,7 @@ async function ucdReadTokens(
 }
 
 async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
-  rx.lst?.(); // Enclosing value is a list.
+  rx.em?.(); // Enclosing value is a list.
 
   let itemsRx = rx._.nls?.();
 
@@ -255,7 +255,7 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<voi
     itemsRx = UCD_OPAQUE_RX;
   }
 
-  itemsRx.lst!();
+  itemsRx.em!();
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -289,7 +289,7 @@ async function ucdReadItems(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
     }
   }
 
-  rx.end?.();
+  rx.ls?.();
 }
 
 async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): Promise<void> {
@@ -311,7 +311,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): 
     // Read the rest of entries.
     await ucdReadEntries(reader, mapRx, cache);
   } else {
-    entryRx.end?.();
+    entryRx.ls?.();
   }
 
   mapRx.map();
@@ -361,7 +361,7 @@ async function ucdReadEntries(
     }
   }
 
-  cache?.end?.forEach(rx => rx.end!());
+  cache?.end?.forEach(rx => rx.ls!());
 }
 
 async function ucdSkipWhitespace(reader: AsyncUcdReader): Promise<void> {

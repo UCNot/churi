@@ -15,7 +15,7 @@ import {
   ucTokenKind,
   UC_TOKEN_KIND_BOUND,
   UC_TOKEN_KIND_IS_WHITESPACE,
-  UC_TOKEN_KIND_NL,
+  UC_TOKEN_KIND_NL
 } from '../../syntax/uc-token-kind.js';
 import {
   UcToken,
@@ -24,7 +24,7 @@ import {
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
-  UC_TOKEN_OPENING_PARENTHESIS,
+  UC_TOKEN_OPENING_PARENTHESIS
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { ucdUnexpectedTypeError } from '../ucd-errors.js';
@@ -139,7 +139,7 @@ export function ucdReadValueSync(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (single || rx.lst?.()) {
+    if (single || rx.em?.()) {
       itemsRx = rx;
     } else {
       reader.error(ucdUnexpectedTypeError('list', rx));
@@ -166,7 +166,7 @@ export function ucdReadValueSync(
     }
 
     // Consume the rest of items.
-    if (rx.lst?.()) {
+    if (rx.em?.()) {
       itemsRx = rx;
     } else {
       reader.error(
@@ -254,7 +254,7 @@ function ucdReadTokensSync(
 }
 
 function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcdRx): void {
-  rx.lst?.(); // Enclosing value is a list.
+  rx.em?.(); // Enclosing value is a list.
 
   let itemsRx = rx._.nls?.();
 
@@ -263,7 +263,7 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcdRx): void {
     itemsRx = UCD_OPAQUE_RX;
   }
 
-  itemsRx.lst!();
+  itemsRx.em!();
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -297,7 +297,7 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: UcdRx): void {
     }
   }
 
-  rx.end?.();
+  rx.ls?.();
 }
 
 function ucdReadMapSync(reader: SyncUcdReader, rx: UcdRx, firstKey: string): void {
@@ -319,7 +319,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcdRx, firstKey: string): voi
     // Read the rest of entries.
     ucdReadEntriesSync(reader, mapRx, cache);
   } else {
-    entryRx.end?.();
+    entryRx.ls?.();
   }
 
   mapRx.map();
@@ -369,7 +369,7 @@ function ucdReadEntriesSync(
     }
   }
 
-  cache?.end?.forEach(rx => rx.end!());
+  cache?.end?.forEach(rx => rx.ls!());
 }
 
 function ucdSkipWhitespaceSync(reader: SyncUcdReader): void {
