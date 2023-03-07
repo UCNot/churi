@@ -180,10 +180,20 @@ An entry value is encoded in URI charge format. Thus it can be anything:
 - `null`: `is-null(--)`
 - nested map: `foo(bar(baz))`
 - nested empty map: `foo($)`
-- array: `foo(bar,baz)`
-- empty array: `foo(,)`
-- multi-dimensional array: `foo((item1.1,item1.2)(item2.1,item2.2))
+- list: `foo(bar,baz)`
+- empty list: `foo(,)`
+- multi-dimensional list: `foo((item1.1,item1.2)(item2.1,item2.2))
 - empty string: `foo()`
+
+Map entry may have multiple values. This effectively makes it at list. So, the following charges are equal:
+
+```
+entry(1)entry(2)entry(3)
+entry(1,2)entry(3)
+entry(1)entry(2,3)
+entry(1,2,3)
+entry(,)entry(1,2,3)
+```
 
 The following rules apply to entry keys:
 
@@ -201,7 +211,7 @@ value. I.e. `$key` is the same as `$key()`. Note that this rule does not work fo
 for empty object. The `$()` has to be used for object with empty key and empty value (`{ '': '' }`).
 
 A map may have _suffix_. I.e. the last entry key without value. Such suffix is treated as entry with empty string
-value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`)
+value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`).
 
 [object literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
 
