@@ -41,4 +41,5 @@ export const UCD_OPAQUE_RX = {
   lst(): 1 {
     return 1;
   },
+  end: noop,
 } satisfies UcdRx;

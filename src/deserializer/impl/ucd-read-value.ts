@@ -20,13 +20,7 @@ import {
 } from '../../syntax/uc-token.js';
 import { AsyncUcdReader } from '../async-ucd-reader.js';
 import { ucdUnexpectedTypeError } from '../ucd-errors.js';
-import {
-  ucdRxBoolean,
-  ucdRxEntry,
-  ucdRxMap,
-  ucdRxSingleEntry,
-  ucdRxString,
-} from '../ucd-rx-value.js';
+import { ucdRxBoolean, ucdRxEntry, ucdRxMap, ucdRxString, ucdRxSuffix } from '../ucd-rx-value.js';
 import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
@@ -69,19 +63,14 @@ export async function ucdReadValue(
     reader.skip(); // Skip dollar prefix.
 
     const bound = await ucdFindAnyBound(reader);
+    const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
 
-    if (bound) {
-      const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
-
-      if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
-        await ucdReadMap(reader, rx, key);
-      } else {
-        ucdRxSingleEntry(reader, rx, key);
-      }
+    if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
+      await ucdReadMap(reader, rx, key);
     } else {
       // End of input.
       // Map containing single key with empty value.
-      ucdRxSingleEntry(reader, rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
+      ucdRxSuffix(reader, rx, key);
     }
 
     if (single) {
@@ -92,8 +81,6 @@ export async function ucdReadValue(
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
-    rx.lst?.();
-
     await ucdReadNestedList(reader, rx);
 
     if (single) {
@@ -258,6 +245,8 @@ async function ucdReadTokens(
 }
 
 async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
+  rx.lst?.(); // Enclosing value is a list.
+
   let itemsRx = rx._.nls?.();
 
   if (!itemsRx) {
@@ -265,7 +254,7 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<voi
     itemsRx = UCD_OPAQUE_RX;
   }
 
-  itemsRx.lst?.();
+  itemsRx.lst!();
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
