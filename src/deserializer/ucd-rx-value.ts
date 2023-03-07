@@ -2,16 +2,16 @@ import { ucdUnexpectedEntryError, ucdUnexpectedTypeError } from './ucd-errors.js
 import { UcdReader } from './ucd-reader.js';
 import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from './ucd-rx.js';
 
-export function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx {
-  const mapRx = rx._.map;
+export function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx;
 
-  if (mapRx) {
-    return mapRx;
+export function ucdRxMap(reader: UcdReader, rx: UcdRx): UcdMapRx {
+  if (rx._.map) {
+    return rx._ as UcdMapRx;
   }
 
   reader.error(ucdUnexpectedTypeError('map', rx));
 
-  return UCD_OPAQUE_RX._.map;
+  return UCD_OPAQUE_RX._;
 }
 
 export function ucdRxSuffix(reader: UcdReader, rx: UcdRx, key: string): void {
@@ -20,7 +20,7 @@ export function ucdRxSuffix(reader: UcdReader, rx: UcdRx, key: string): void {
 
   ucdRxString(reader, entryRx, '');
 
-  map.end();
+  map.map();
 }
 
 export function ucdRxEntry(reader: UcdReader, mapRx: UcdMapRx, key: string): UcdRx {

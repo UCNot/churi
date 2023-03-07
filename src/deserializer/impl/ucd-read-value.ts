@@ -314,7 +314,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): 
     entryRx.end?.();
   }
 
-  mapRx.end();
+  mapRx.map();
 }
 
 async function ucdReadEntries(

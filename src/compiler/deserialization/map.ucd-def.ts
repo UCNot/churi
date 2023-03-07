@@ -137,16 +137,11 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
             .write(`_: {`)
             .indent(code => {
               code
-                .write(`map: {`)
-                .indent(code => {
-                  code
-                    .write(`for(${key}) {`)
-                    .indent(this.#rxEntry(allocation, key))
-                    .write(`},`)
-                    .write(`end: () => {`)
-                    .indent(this.#endMap(setter, allocation))
-                    .write(`},`);
-                })
+                .write(`for(${key}) {`)
+                .indent(this.#rxEntry(allocation, key))
+                .write(`},`)
+                .write(`map() {`)
+                .indent(this.#endMap(setter, allocation))
                 .write(`},`);
               if (schema.nullable) {
                 code.write(`nul: () => ${setter}(null),`);

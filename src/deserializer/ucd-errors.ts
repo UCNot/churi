@@ -2,7 +2,7 @@ import { escapeJsString, quotePropertyKey } from '../impl/quote-property-key.js'
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcdRx, UcdValueRx } from './ucd-rx.js';
+import { UcdItemRx, UcdRx } from './ucd-rx.js';
 
 export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
   const expectedTypes = ucdExpectedTypes(rx);
@@ -65,9 +65,11 @@ export function ucdUnrecognizedEntityError(entity: readonly UcToken[]): UcErrorI
 }
 
 export function ucdExpectedTypes(rx: UcdRx): readonly string[] {
-  const types = Object.keys(rx._).map(key => UCD_TYPE_NAMES[key] ?? key);
+  const types = Object.keys(rx._)
+    .map(key => UCD_TYPE_NAMES[key] ?? key)
+    .filter((name): name is string => !!name);
 
-  return types.length ? types : ['value'];
+  return types.length ? types : ['none'];
 }
 
 export function ucdTypeNames(types: readonly string[]): string {
@@ -90,11 +92,12 @@ export function ucdTypeNames(types: readonly string[]): string {
   }, '');
 }
 
-const UCD_TYPE_NAMES: { [key: PropertyKey]: string | undefined } = {
+const UCD_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
   bol: 'boolean',
   big: 'bigint',
   nls: 'nested list',
   nul: 'null',
   num: 'number',
   str: 'string',
-} satisfies { [key in keyof UcdValueRx]: string };
+  for: 0,
+} satisfies { [key in keyof UcdItemRx]: string | 0 };

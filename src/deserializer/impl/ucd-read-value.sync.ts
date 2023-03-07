@@ -322,7 +322,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcdRx, firstKey: string): voi
     entryRx.end?.();
   }
 
-  mapRx.end();
+  mapRx.map();
 }
 
 function ucdReadEntriesSync(
