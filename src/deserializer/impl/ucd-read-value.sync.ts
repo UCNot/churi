@@ -15,7 +15,7 @@ import {
   ucTokenKind,
   UC_TOKEN_KIND_BOUND,
   UC_TOKEN_KIND_IS_WHITESPACE,
-  UC_TOKEN_KIND_NL
+  UC_TOKEN_KIND_NL,
 } from '../../syntax/uc-token-kind.js';
 import {
   UcToken,
@@ -24,7 +24,7 @@ import {
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
-  UC_TOKEN_OPENING_PARENTHESIS
+  UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { ucdUnexpectedTypeError } from '../ucd-errors.js';
