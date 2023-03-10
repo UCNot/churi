@@ -1,9 +1,9 @@
+import { ucrxUnrecognizedEntityError } from '../rx/ucrx-errors.js';
+import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcdEntityHandler } from './ucd-entity-handler.js';
-import { ucdUnrecognizedEntityError } from './ucd-errors.js';
-import { UcdRx } from './ucd-rx.js';
 
 export abstract class UcdReader {
 
@@ -32,9 +32,9 @@ export abstract class UcdReader {
     this.#onError(error);
   }
 
-  abstract read(rx: UcdRx): Promise<void> | void;
+  abstract read(rx: Ucrx): Promise<void> | void;
 
-  entity(rx: UcdRx, entity: readonly UcToken[]): void {
+  entity(rx: Ucrx, entity: readonly UcToken[]): void {
     this.#onEntity(this, rx, entity);
   }
 
@@ -62,8 +62,8 @@ function UcDeserializer$throwOnError(error: unknown): never {
 
 function UcDeserializer$errorOnEntity(
   reader: UcdReader,
-  _rx: UcdRx,
+  _rx: Ucrx,
   entity: readonly UcToken[],
 ): void {
-  reader.error(ucdUnrecognizedEntityError(entity));
+  reader.error(ucrxUnrecognizedEntityError(entity));
 }

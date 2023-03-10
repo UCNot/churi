@@ -2,10 +2,10 @@ import { escapeJsString, quotePropertyKey } from '../impl/quote-property-key.js'
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcdItemRx, UcdRx } from './ucd-rx.js';
+import { Ucrx, UcrxItem } from './ucrx.js';
 
-export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
-  const expectedTypes = ucdExpectedTypes(rx);
+export function ucrxUnexpectedTypeError(type: string, rx: Ucrx): UcErrorInfo {
+  const expectedTypes = ucrxExpectedTypes(rx);
 
   return {
     code: 'unexpectedType',
@@ -15,11 +15,11 @@ export function ucdUnexpectedTypeError(type: string, rx: UcdRx): UcErrorInfo {
         types: expectedTypes,
       },
     },
-    message: `Unexpected ${type}, while ${ucdTypeNames(expectedTypes)} expected`,
+    message: `Unexpected ${type}, while ${ucrxTypeNames(expectedTypes)} expected`,
   };
 }
 
-export function ucdMissingEntriesError(
+export function ucrxMissingEntriesError(
   assigned: { readonly [key: string]: 1 | undefined },
   entries: { readonly [key: string]: { use: 1 | 0 } },
 ): UcErrorInfo {
@@ -44,7 +44,22 @@ export function ucdMissingEntriesError(
   };
 }
 
-export function ucdUnexpectedEntryError(key: string): UcErrorInfo {
+export function ucrxUnexpectedSingleItem(rx: Ucrx): UcErrorInfo {
+  const types = ucrxExpectedTypes(rx);
+
+  return {
+    code: 'unexpectedType',
+    details: {
+      types,
+      expected: {
+        types: ['list'],
+      },
+    },
+    message: `Unexpected single ${ucrxTypeNames(types)}, while list expected`,
+  };
+}
+
+export function ucrxUnexpectedEntryError(key: string): UcErrorInfo {
   return {
     code: 'unexpectedEntry',
     details: {
@@ -54,7 +69,7 @@ export function ucdUnexpectedEntryError(key: string): UcErrorInfo {
   };
 }
 
-export function ucdUnrecognizedEntityError(entity: readonly UcToken[]): UcErrorInfo {
+export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcErrorInfo {
   return {
     code: 'unrecognizedEntity',
     details: {
@@ -64,15 +79,15 @@ export function ucdUnrecognizedEntityError(entity: readonly UcToken[]): UcErrorI
   };
 }
 
-export function ucdExpectedTypes(rx: UcdRx): readonly string[] {
-  const types = Object.keys(rx._)
-    .map(key => UCD_TYPE_NAMES[key] ?? key)
+export function ucrxExpectedTypes(rx: Ucrx): readonly string[] {
+  const types = Object.entries(rx._)
+    .map(([key, value]) => (value ? UCRX_TYPE_NAMES[key] ?? key : 0))
     .filter((name): name is string => !!name);
 
   return types.length ? types : ['none'];
 }
 
-export function ucdTypeNames(types: readonly string[]): string {
+export function ucrxTypeNames(types: readonly string[]): string {
   if (types.length === 1) {
     return types[0];
   }
@@ -92,7 +107,7 @@ export function ucdTypeNames(types: readonly string[]): string {
   }, '');
 }
 
-const UCD_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
+const UCRX_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
   bol: 'boolean',
   big: 'bigint',
   nls: 'nested list',
@@ -100,4 +115,4 @@ const UCD_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
   num: 'number',
   str: 'string',
   for: 0,
-} satisfies { [key in keyof UcdItemRx]: string | 0 };
+} satisfies { [key in keyof UcrxItem]: string | 0 };

@@ -1,5 +1,10 @@
 {
-  "entryPoints": ["src/mod.ts", "src/compiler/mod.ts"],
+  "entryPoints": [
+    "src/mod.ts",
+    "src/compiler/mod.ts",
+    "src/deserializer/mod.ts",
+    "src/serializer/mod.ts"
+  ],
   "excludePrivate": true,
   "name": "Charged URI",
   "out": "./target/typedoc",

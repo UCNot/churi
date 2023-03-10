@@ -1,9 +1,7 @@
-import { UcdItemRx } from '../../deserializer/ucd-rx.js';
-import { UcPrimitive } from '../../schema/uc-primitive.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcrxItem } from '../../rx/ucrx.js';
 import { UccCode } from '../ucc-code.js';
 import { UcdDef } from './ucd-def.js';
-import { UcdTypeDef } from './ucd-type-def.js';
+import { UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class Primitive$UcdDefs {
 
@@ -11,10 +9,10 @@ export class Primitive$UcdDefs {
 
   constructor() {
     this.#list = [
-      { type: Boolean, deserialize: this.#readBoolean.bind(this) },
-      { type: BigInt, deserialize: this.#readBigInt.bind(this) },
-      { type: Number, deserialize: this.#readNumber.bind(this) },
-      { type: String, deserialize: this.#readString.bind(this) },
+      { type: Boolean, initRx: this.#initBooleanRx.bind(this) },
+      { type: BigInt, initRx: this.#initBigIntRx.bind(this) },
+      { type: Number, initRx: this.#initNumberRx.bind(this) },
+      { type: String, initRx: this.#initStringRx.bind(this) },
     ];
   }
 
@@ -22,42 +20,35 @@ export class Primitive$UcdDefs {
     return this.#list;
   }
 
-  #readBoolean(schema: UcSchema<boolean>, location: UcdTypeDef.Location): UccCode.Source {
-    return this.#readPrimitive(schema, location, 'bol');
+  #initBooleanRx(location: UcdUcrxLocation<boolean>): UcdUcrx {
+    return this.#createRxFor('bol', location);
   }
 
-  #readBigInt(schema: UcSchema<bigint>, location: UcdTypeDef.Location): UccCode.Source {
-    return this.#readPrimitive(schema, location, 'big');
+  #initBigIntRx(location: UcdUcrxLocation): UcdUcrx {
+    return this.#createRxFor('big', location);
   }
 
-  #readNumber(schema: UcSchema<number>, location: UcdTypeDef.Location): UccCode.Source {
-    return this.#readPrimitive(schema, location, 'num');
+  #initNumberRx(location: UcdUcrxLocation): UcdUcrx {
+    return this.#createRxFor('num', location);
   }
 
-  #readString(schema: UcSchema<string>, location: UcdTypeDef.Location): UccCode.Source {
-    return this.#readPrimitive(schema, location, 'str');
+  #initStringRx(location: UcdUcrxLocation): UcdUcrx {
+    return this.#createRxFor('str', location);
   }
 
-  #readPrimitive(
-    schema: UcSchema<UcPrimitive>,
-    { setter, prefix, suffix }: UcdTypeDef.Location,
-    name: keyof UcdItemRx,
-  ): UccCode.Source {
-    return code => {
-      code
-        .write(`${prefix}{`)
-        .indent(code => {
-          code
-            .write('_: {')
-            .indent(code => {
-              code.write(`${name}: ${setter},`);
-              if (schema.nullable) {
-                code.write(`nul: () => ${setter}(null),`);
-              }
-            })
-            .write('},');
-        })
-        .write(`}${suffix}`);
+  #createRxFor(key: keyof UcrxItem, { schema, setter }: UcdUcrxLocation): UcdUcrx {
+    return {
+      item: {
+        [key]:
+          (prefix: string, suffix: string): UccCode.Source => code => {
+            code.write(`${prefix}${setter}${suffix}`);
+          },
+        nul: schema.nullable
+          ? (prefix, suffix) => code => {
+              code.write(`${prefix}() => ${setter}(null)${suffix}`);
+            }
+          : undefined,
+      },
     };
   }
 

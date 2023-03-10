@@ -1,8 +1,8 @@
+import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcdReader } from './ucd-reader.js';
-import { UcdRx } from './ucd-rx.js';
 
 export class AsyncUcdReader extends UcdReader {
 
@@ -33,7 +33,7 @@ export class AsyncUcdReader extends UcdReader {
     return this.#prev;
   }
 
-  override async read(rx: UcdRx): Promise<void> {
+  override async read(rx: Ucrx): Promise<void> {
     await ucdReadValue(this, rx, () => rx.ls?.());
   }
 

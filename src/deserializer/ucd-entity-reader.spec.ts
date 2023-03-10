@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { Ucrx } from '../rx/ucrx.js';
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
 import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { SyncUcdReader } from './sync-ucd-reader.js';
-import { UcdRx } from './ucd-rx.js';
 import { UcdEntityReader } from './ucd-entity-reader.js';
 
 describe('UcdEntityReader', () => {
   let ucdReader: SyncUcdReader;
   let reader: UcdEntityReader;
   let errors: UcErrorInfo[];
-  let rx: UcdRx;
+  let rx: Ucrx;
   let value: unknown;
 
   beforeEach(() => {

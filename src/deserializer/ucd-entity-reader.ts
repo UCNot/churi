@@ -1,15 +1,15 @@
 import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
+import { ucrxUnrecognizedEntityError } from '../rx/ucrx-errors.js';
+import { Ucrx } from '../rx/ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcdEntityHandler, UcdEntityPrefixHandler } from './ucd-entity-handler.js';
-import { ucdUnrecognizedEntityError } from './ucd-errors.js';
 import { UcdReader } from './ucd-reader.js';
-import { UcdRx } from './ucd-rx.js';
 
 export class UcdEntityReader {
 
   readonly #root = new UcdTokenTree();
 
-  read(reader: UcdReader, rx: UcdRx, entity: readonly UcToken[]): void {
+  read(reader: UcdReader, rx: Ucrx, entity: readonly UcToken[]): void {
     this.#root.read(reader, rx, entity, 0);
   }
 
@@ -41,14 +41,14 @@ class UcdTokenTree {
   readonly #byPrefixLen = new Map<number, UcdEntityPrefix>();
   #prefixes: UcdEntityPrefix[] | null = []; // Sorted by length.
 
-  read(reader: UcdReader, rx: UcdRx, entity: readonly UcToken[], from: number): void {
+  read(reader: UcdReader, rx: Ucrx, entity: readonly UcToken[], from: number): void {
     if (from >= entity.length) {
       if (this.#onEntity) {
         this.#onEntity(reader, rx, entity);
       } else if (this.#onPrefix) {
         this.#onPrefix(reader, rx, entity, []);
       } else {
-        reader.error(ucdUnrecognizedEntityError(entity));
+        reader.error(ucrxUnrecognizedEntityError(entity));
       }
 
       return;
@@ -64,7 +64,7 @@ class UcdTokenTree {
       } else if (this.#onPrefix) {
         this.#onPrefix(reader, rx, entity.slice(0, from), entity.slice(from));
       } else {
-        reader.error(ucdUnrecognizedEntityError(entity));
+        reader.error(ucrxUnrecognizedEntityError(entity));
       }
 
       return;
@@ -81,7 +81,7 @@ class UcdTokenTree {
 
   #readPrefix(
     reader: UcdReader,
-    rx: UcdRx,
+    rx: Ucrx,
     entity: readonly UcToken[],
     from: number,
     token: string,
@@ -101,7 +101,7 @@ class UcdTokenTree {
     if (this.#onPrefix) {
       this.#onPrefix(reader, rx, entity.slice(0, from), entity.slice(from));
     } else {
-      reader.error(ucdUnrecognizedEntityError(entity));
+      reader.error(ucrxUnrecognizedEntityError(entity));
     }
 
     return;
@@ -181,7 +181,7 @@ class UcdEntityPrefix {
 
   read(
     reader: UcdReader,
-    rx: UcdRx,
+    rx: Ucrx,
     entity: readonly UcToken[],
     from: number,
     token: string,

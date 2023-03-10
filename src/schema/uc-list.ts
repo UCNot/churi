@@ -1,6 +1,5 @@
 import { asis } from '@proc7ts/primitives';
-import { UcdTypeDef } from '../compiler/deserialization/ucd-type-def.js';
-import { UccCode } from '../compiler/ucc-code.js';
+import { UcdUcrx, UcdUcrxLocation } from '../compiler/deserialization/ucd-ucrx.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from './uc-schema.js';
@@ -26,7 +25,6 @@ export namespace UcList {
     TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
   > extends UcSchema<TItem[]> {
     readonly type: 'list';
-    readonly isList: true;
 
     /**
      * List item schema.
@@ -34,20 +32,17 @@ export namespace UcList {
     readonly item: UcSchema.Of<TItemSpec>;
 
     /**
-     * Generates list deserialization code.
+     * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
      *
-     * {@link @hatsy/churi/compiler!UcdListDef List deserializer definition} is used by default.
+     * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
      *
-     * @param schema - Schema of deserialized value.
      * @param location - A location inside deserializer function to insert generated code into.
      *
-     * @returns Deserializer code source, or `undefined` to generate one automatically.
+     * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
      */
-    deserialize?(
-      this: void,
-      schema: Schema<TItem, TItemSpec>,
-      location: UcdTypeDef.Location,
-    ): UccCode.Source | undefined;
+    initRx?(
+      location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>,
+    ): UcdUcrx | undefined;
   }
 
   export namespace Schema {
@@ -82,20 +77,17 @@ export namespace UcList {
       readonly id?: string | UcSchema.Class | undefined;
 
       /**
-       * Generates list deserialization code.
+       * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
        *
-       * {@link @hatsy/churi/compiler!UcdListDef List deserializer definition} is used by default.
+       * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
        *
-       * @param schema - Schema of deserialized value.
        * @param location - A location inside deserializer function to insert generated code into.
        *
-       * @returns Deserializer code source, or `undefined` to generate one automatically.
+       * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
        */
-      deserialize?(
-        this: void,
-        schema: Schema<TItem, TItemSpec>,
-        location: UcdTypeDef.Location,
-      ): UccCode.Source | undefined;
+      initRx?(
+        location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>,
+      ): UcdUcrx | undefined;
     }
   }
 }
@@ -115,7 +107,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
 
 export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
-  { id }: UcList.Schema.Options<TItem, TItemSpec> = {},
+  { id, initRx }: UcList.Schema.Options<TItem, TItemSpec> = {},
 ): UcList.Schema.Ref<TItem, TItemSpec> {
   return {
     [UcSchema__symbol]: resolver => {
@@ -124,9 +116,9 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       return {
         type: 'list',
         id: id ?? `list_${++UcList$idSeq}`,
-        isList: true,
-        item,
         asis,
+        item,
+        initRx,
         toString() {
           return `${ucSchemaName(item)}[]`;
         },

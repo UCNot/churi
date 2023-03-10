@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { PromiseResolver } from '@proc7ts/async';
-import { UrtMemory } from './urt-memory.js';
+import { UcdMemory } from './ucd-memory.js';
 
-describe('UrtMemory', () => {
-  let memory: UrtMemory;
+describe('UcdMemory', () => {
+  let memory: UcdMemory;
 
   beforeEach(() => {
-    memory = new UrtMemory(10);
+    memory = new UcdMemory(10);
   });
 
   describe('use', () => {

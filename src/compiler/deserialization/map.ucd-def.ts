@@ -1,44 +1,55 @@
 import { lazyValue } from '@proc7ts/primitives';
-import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE } from '../../impl/module-names.js';
 import { quotePropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
-import { UcdTypeDef } from './ucd-type-def.js';
+import { UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
-export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec> {
+export class MapUcdDef<
+  TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
+  TExtraSpec extends UcSchema.Spec | false = false,
+> {
 
   static get type(): string | UcSchema.Class {
     return 'map';
   }
 
-  static deserialize<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
-    schema: UcMap.Schema<TEntriesSpec>,
-    location: UcdTypeDef.Location,
-  ): UccCode.Source {
-    return schema.deserialize?.(schema, location) ?? new this(schema, location);
+  static initRx<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+    location: UcdUcrxLocation<UcMap.ObjectType<TEntriesSpec>, UcMap.Schema<TEntriesSpec>>,
+  ): UcdUcrx {
+    return location.schema.initRx?.(location) ?? new this(location).initRx();
   }
 
-  readonly #schema: UcMap.Schema<TEntriesSpec>;
-  readonly #location: UcdTypeDef.Location;
+  readonly #location: UcdUcrxLocation<
+    UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+    UcMap.Schema<TEntriesSpec, TExtraSpec>
+  >;
 
   readonly #ns: UccNamespace;
   readonly #varEntry = lazyValue(() => this.#ns.name('entry'));
   readonly #varRx = lazyValue(() => this.#ns.name('rx'));
 
-  constructor(schema: UcMap.Schema<TEntriesSpec>, location: UcdTypeDef.Location) {
-    this.#schema = schema;
+  constructor(
+    location: UcdUcrxLocation<
+      UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+      UcMap.Schema<TEntriesSpec, TExtraSpec>
+    >,
+  ) {
     this.#location = location;
     this.#ns = location.fn.ns.nest();
   }
 
-  get schema(): UcMap.Schema<TEntriesSpec> {
-    return this.#schema;
+  get schema(): UcMap.Schema<TEntriesSpec, TExtraSpec> {
+    return this.location.schema;
   }
 
-  get location(): UcdTypeDef.Location {
+  get location(): UcdUcrxLocation<
+    UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+    UcMap.Schema<TEntriesSpec, TExtraSpec>
+  > {
     return this.#location;
   }
 
@@ -76,7 +87,7 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
   }
 
   createEntry(key: string | null, schema: UcSchema): EntryUcdDef {
-    return new EntryUcdDef(this, key, schema);
+    return new EntryUcdDef(this as MapUcdDef, key, schema);
   }
 
   allocateMap(prefix: string, suffix: string): UccCode.Source {
@@ -92,11 +103,13 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
     return this.allocateMap(`${map}[0] = `, `;`);
   }
 
-  toCode(): UccCode.Source {
+  initRx(): UcdUcrx {
     const entries = this.#declareEntries();
     const extra = this.#declareExtra();
-    const { schema, location } = this;
-    const { setter, prefix, suffix } = location;
+    const {
+      schema,
+      location: { setter },
+    } = this;
     const map = this.#ns.name('map');
     const assigned = this.#ns.name('assigned');
     const requiredCount = this.#countRequired();
@@ -124,39 +137,39 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
     const { missingCount } = allocation;
     const key = this.#ns.name('key');
 
-    return code => {
-      if (missingCount) {
-        code.write(`let ${missingCount} = ${requiredCount};`, `let ${assigned} = {};`);
-      }
-
-      code
-        .write(this.allocateMap(`const ${map} = [`, '];'))
-        .write(`${prefix}{`)
-        .indent(code => {
+    return {
+      init: code => {
+        if (missingCount) {
+          code.write(`let ${missingCount} = ${requiredCount};`, `let ${assigned} = {};`);
+        }
+        code.write(this.allocateMap(`const ${map} = [`, '];'));
+      },
+      item: {
+        for: (prefix, suffix) => code => {
           code
-            .write(`_: {`)
-            .indent(code => {
-              code
-                .write(`for(${key}) {`)
-                .indent(this.#rxEntry(allocation, key))
-                .write(`},`)
-                .write(`map() {`)
-                .indent(this.#endMap(setter, allocation))
-                .write(`},`);
-              if (schema.nullable) {
-                code.write(`nul: () => ${setter}(null),`);
-              }
-            })
-            .write('},');
-        })
-        .write(`}${suffix}`);
+            .write(`${prefix}(${key}) => {`)
+            .indent(this.#rxEntry(allocation, key))
+            .write(`}${suffix}`);
+        },
+        map: (prefix, suffix) => code => {
+          code
+            .write(`${prefix}() => {`)
+            .indent(this.#endMap(setter, allocation))
+            .write(`}${suffix}`);
+        },
+        nul: schema.nullable
+          ? (prefix, suffix) => code => {
+              code.write(`${prefix}() => ${setter}(null)${suffix}`);
+            }
+          : undefined,
+      },
     };
   }
 
   #countRequired(): number {
     let requiredCount = 0;
 
-    for (const { optional } of Object.values(this.#schema.entries)) {
+    for (const { optional } of Object.values(this.schema.entries)) {
       if (!optional) {
         ++requiredCount;
       }
@@ -208,7 +221,7 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
         },
       },
     } = this;
-    const entriesMissing = lib.import(DESERIALIZER_MODULE, 'ucdMissingEntriesError');
+    const entriesMissing = lib.import(CHURI_MODULE, 'ucrxMissingEntriesError');
 
     return code => {
       code

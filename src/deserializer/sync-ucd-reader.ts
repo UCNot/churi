@@ -1,9 +1,9 @@
+import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
 import { UcdReader } from './ucd-reader.js';
-import { UcdRx } from './ucd-rx.js';
 
 export class SyncUcdReader extends UcdReader {
 
@@ -33,7 +33,7 @@ export class SyncUcdReader extends UcdReader {
     return this.hasPrev() ? this.#tokens.slice(this.#consumed, this.#current) : [];
   }
 
-  override read(rx: UcdRx): void {
+  override read(rx: Ucrx): void {
     ucdReadValueSync(this, rx, () => rx.ls?.());
   }
 
