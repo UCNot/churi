@@ -11,3 +11,4 @@ export * from './ucd-entity-prefix-def.js';
 export * from './ucd-function.js';
 export * from './ucd-lib.js';
 export * from './ucd-type-def.js';
+export * from './ucd-ucrx.js';

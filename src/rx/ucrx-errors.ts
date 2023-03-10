@@ -65,8 +65,8 @@ export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcError
 }
 
 export function ucrxExpectedTypes(rx: Ucrx): readonly string[] {
-  const types = Object.keys(rx._)
-    .map(key => UCRX_TYPE_NAMES[key] ?? key)
+  const types = Object.entries(rx._)
+    .map(([key, value]) => (value ? UCRX_TYPE_NAMES[key] ?? key : 0))
     .filter((name): name is string => !!name);
 
   return types.length ? types : ['none'];

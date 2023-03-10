@@ -7,7 +7,7 @@ import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
-import { UcdTypeDef } from './ucd-type-def.js';
+import { ucdInitUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -75,19 +75,28 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ns;
   }
 
-  deserialize(schema: UcSchema, location: Omit<UcdTypeDef.Location, 'fn'>): UccCode.Source {
-    const deserializer = this.lib
-      .typeDefFor(schema)
-      ?.deserialize(schema, { ...location, fn: this as UcdFunction });
+  /**
+   * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver}.
+   *
+   * Generated code expected to contain an {@link @hatsy/churi!Ucrx deserialized value receiver} placed
+   * between the given {@link UcdUcrxLocation#prefix prefix} and {@link UcdUcrxLocation#suffix suffix}.
+   *
+   * @param location - A location inside deserializer function to insert generated code into.
+   *
+   * @returns Initializer code.
+   */
+  initRx(location: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx;
+  initRx({ schema, setter }: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx {
+    const rxInit = this.lib.typeDefFor(schema)?.initRx({ fn: this, schema, setter });
 
-    if (deserializer == null) {
+    if (rxInit == null) {
       throw new UnsupportedUcSchemaError(
         schema,
         `${this.name}: Can not deserialize type "${ucSchemaName(schema)}"`,
       );
     }
 
-    return deserializer;
+    return rxInit;
   }
 
   asAsync(): UccCode.Fragment {
@@ -100,11 +109,16 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          this.deserialize(this.schema, {
-            setter: this.args.setter,
-            prefix: `await ${this.args.reader}.read(`,
-            suffix: ');',
-          }),
+          ucdInitUcrx(
+            this.initRx({
+              schema: this.schema,
+              setter: this.args.setter,
+            }),
+            {
+              prefix: `await ${this.args.reader}.read(`,
+              suffix: ');',
+            },
+          ),
         )
         .write('}');
   }
@@ -119,11 +133,16 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`function ${this.syncName}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          this.deserialize(this.schema, {
-            setter: this.args.setter,
-            prefix: `${this.args.reader}.read(`,
-            suffix: ');',
-          }),
+          ucdInitUcrx(
+            this.initRx({
+              schema: this.schema,
+              setter: this.args.setter,
+            }),
+            {
+              prefix: `${this.args.reader}.read(`,
+              suffix: ');',
+            },
+          ),
         )
         .write('}');
   }
@@ -220,6 +239,45 @@ export namespace UcdFunction {
     readonly input: string;
     readonly stream: string;
     readonly options: string;
+  }
+
+  /**
+   * A location inside deserializer function to insert {@link @hatsy/churi!Ucrx charge receiver} initialization code
+   * into.
+   *
+   * @typeParam T - Deserialized value type.
+   * @typeParam TSchema - Supported schema type.
+   */
+  export interface RxLocation<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+    /**
+     * Schema to deserialize.
+     */
+    readonly schema: TSchema;
+
+    /**
+     * An expression resolved to deserialized value setter function.
+     */
+    readonly setter: string;
+
+    /**
+     * Generated code prefix.
+     *
+     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right after this
+     * prefix.
+     *
+     * This may be e.g. a {@link @hatsy/churi/deserializer!UcdReader#read function call}.
+     */
+    readonly prefix: string;
+
+    /**
+     * Generated code suffix.
+     *
+     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right before this
+     * suffix.
+     *
+     * This may be e.g. a closing parenthesis for function call.
+     */
+    readonly suffix: string;
   }
 }
 

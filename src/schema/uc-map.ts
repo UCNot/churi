@@ -1,6 +1,5 @@
 import { asis } from '@proc7ts/primitives';
-import { UcdTypeDef } from '../compiler/deserialization/ucd-type-def.js';
-import { UccCode } from '../compiler/ucc-code.js';
+import { UcdUcrx, UcdUcrxLocation } from '../compiler/deserialization/ucd-ucrx.js';
 import { quotePropertyKey } from '../impl/quote-property-key.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
@@ -23,6 +22,7 @@ export namespace UcMap {
    * Such schema can be built with {@link ucMap} function.
    *
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
+   * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
    */
   export interface Schema<
     TEntriesSpec extends Schema.Entries.Spec,
@@ -33,26 +33,27 @@ export namespace UcMap {
     readonly extra: TExtraSpec extends UcSchema.Spec ? UcSchema.Of<TExtraSpec> : false;
 
     /**
-     * Generates map deserialization code.
+     * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
      *
      * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
      *
-     * @param schema - Schema of deserialized value.
      * @param location - A location inside deserializer function to insert generated code into.
      *
-     * @returns Deserializer code source, or `undefined` to generate one automatically.
+     * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
      */
-    deserialize?(
-      this: void,
-      schema: UcMap.Schema<TEntriesSpec>,
-      location: UcdTypeDef.Location,
-    ): UccCode.Source | undefined;
+    initRx?(
+      location: UcdUcrxLocation<
+        UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+        UcMap.Schema<TEntriesSpec, TExtraSpec>
+      >,
+    ): UcdUcrx | undefined;
   }
 
   /**
    * Type of object compatible with schema of URI charge map.
    *
    * @typeParam TEntriesSpec - Per-entry schema specifier type.
+   * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
    */
   export type ObjectType<
     TEntriesSpec extends Schema.Entries.Spec,
@@ -90,6 +91,7 @@ export namespace UcMap {
      * Schema specifier of URI charge map.
      *
      * @typeParam TEntriesSpec - Per-entry schema specifier type.
+     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Spec<
       TEntriesSpec extends Entries.Spec,
@@ -100,6 +102,7 @@ export namespace UcMap {
      * Reference to schema of URI charge map.
      *
      * @typeParam TEntriesSpec - Per-entry schema specifier type.
+     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Ref<
       TEntriesSpec extends Entries.Spec,
@@ -110,6 +113,7 @@ export namespace UcMap {
      * Per-entry schema of URI charge map.
      *
      * @typeParam TEntriesSpec - Per-entry schema specifier type.
+     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Entries<TEntriesSpec extends Entries.Spec> = {
       readonly [key in keyof TEntriesSpec]: UcSchema.Of<TEntriesSpec[key]>;
@@ -129,9 +133,13 @@ export namespace UcMap {
     /**
      * Additional options for URI charge map schema.
      *
-     * @typeParam
+     * @typeParam TEntriesSpec - Per-entry schema specifier type.
+     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
-    export interface BaseOptions<TEntriesSpec extends Entries.Spec> {
+    export interface BaseOptions<
+      TEntriesSpec extends Entries.Spec,
+      TExtraSpec extends UcSchema.Spec | false,
+    > {
       /**
        * Unique schema identifier.
        *
@@ -140,20 +148,20 @@ export namespace UcMap {
       readonly id?: string | UcSchema.Class | undefined;
 
       /**
-       * Generates map deserialization code.
+       * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
        *
        * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
        *
-       * @param schema - Schema of deserialized value.
        * @param location - A location inside deserializer function to insert generated code into.
        *
-       * @returns Deserializer code source, or `undefined` to generate one automatically.
+       * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
        */
-      deserialize?(
-        this: void,
-        schema: UcMap.Schema<TEntriesSpec>,
-        location: UcdTypeDef.Location,
-      ): UccCode.Source | undefined;
+      initRx?(
+        location: UcdUcrxLocation<
+          UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+          UcMap.Schema<TEntriesSpec, TExtraSpec>
+        >,
+      ): UcdUcrx | undefined;
     }
 
     export type Options<TEntriesSpec extends Entries.Spec, TExtraSpec extends UcSchema.Spec> =
@@ -161,14 +169,14 @@ export namespace UcMap {
       | ExtraOptions<TEntriesSpec, TExtraSpec>;
 
     export interface ExactOptions<TEntriesSpec extends Entries.Spec>
-      extends BaseOptions<TEntriesSpec> {
+      extends BaseOptions<TEntriesSpec, false> {
       readonly extra?: false | undefined;
     }
 
     export interface ExtraOptions<
       TEntriesSpec extends Entries.Spec,
       TExtraSpec extends UcSchema.Spec,
-    > extends BaseOptions<TEntriesSpec> {
+    > extends BaseOptions<TEntriesSpec, TExtraSpec> {
       readonly extra: TExtraSpec;
     }
   }
@@ -201,7 +209,7 @@ export function ucMap<
   TExtraSpec extends UcSchema.Spec,
 >(
   spec: TEntriesSpec,
-  { id, extra }: UcMap.Schema.Options<TEntriesSpec, TExtraSpec> = {},
+  { id, extra, initRx }: UcMap.Schema.Options<TEntriesSpec, TExtraSpec> = {},
 ): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec> {
   return {
     [UcSchema__symbol]: resolver => {
@@ -216,12 +224,13 @@ export function ucMap<
       return {
         type: 'map',
         id: id ?? `map_${++UcMap$idSeq}`,
+        asis,
         entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
         extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
           TEntriesSpec,
           TExtraSpec
         >['extra'],
-        asis,
+        initRx: initRx as UcMap.Schema<TEntriesSpec, TExtraSpec>['initRx'],
         toString() {
           let out = '{';
 
