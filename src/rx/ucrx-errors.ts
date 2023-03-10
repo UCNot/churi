@@ -44,6 +44,21 @@ export function ucrxMissingEntriesError(
   };
 }
 
+export function ucrxUnexpectedSingleItem(rx: Ucrx): UcErrorInfo {
+  const types = ucrxExpectedTypes(rx);
+
+  return {
+    code: 'unexpectedType',
+    details: {
+      types,
+      expected: {
+        types: ['list'],
+      },
+    },
+    message: `Unexpected single ${ucrxTypeNames(types)}, while list expected`,
+  };
+}
+
 export function ucrxUnexpectedEntryError(key: string): UcErrorInfo {
   return {
     code: 'unexpectedEntry',

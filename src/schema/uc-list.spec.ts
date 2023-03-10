@@ -504,8 +504,11 @@ describe('UcList', () => {
 
     describe('nested', () => {
       let readMatrix: UcDeserializer<number[][]>;
+      let errors: UcErrorInfo[];
 
       beforeEach(async () => {
+        errors = [];
+
         const lib = new UcdLib({
           schemae: {
             readMatrix: ucList<number[]>(ucList<number>(Number)),
@@ -517,6 +520,24 @@ describe('UcList', () => {
 
       it('deserializes nested list', async () => {
         await expect(readMatrix(readTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
+      });
+      it('rejects missing items', async () => {
+        await expect(
+          readMatrix(readTokens(''), { onError: error => errors.push(error) }),
+        ).resolves.toBeUndefined();
+
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              type: 'string',
+              expected: {
+                types: ['nested list'],
+              },
+            },
+            message: 'Unexpected string, while nested list expected',
+          },
+        ]);
       });
       it('deserializes comma-separated lists', async () => {
         await expect(readMatrix(readTokens(' (13, 14), (15, 16) '))).resolves.toEqual([

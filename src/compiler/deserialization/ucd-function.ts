@@ -7,7 +7,7 @@ import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
-import { ucdInitUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
+import { ucdCreateUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -109,7 +109,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          ucdInitUcrx(
+          ucdCreateUcrx(
             this.initRx({
               schema: this.schema,
               setter: this.args.setter,
@@ -133,7 +133,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`function ${this.syncName}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          ucdInitUcrx(
+          ucdCreateUcrx(
             this.initRx({
               schema: this.schema,
               setter: this.args.setter,

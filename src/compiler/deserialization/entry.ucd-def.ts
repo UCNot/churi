@@ -6,7 +6,7 @@ import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcdDef } from './map.ucd-def.js';
-import { ucdInitUcrx, UcdUcrx } from './ucd-ucrx.js';
+import { ucdCreateUcrx, UcdUcrx } from './ucd-ucrx.js';
 
 export class EntryUcdDef {
 
@@ -53,7 +53,7 @@ export class EntryUcdDef {
         .write(`const ${setEntry} = ${value} => {`)
         .indent(this.setEntry(`${map}[0]`, key, value), 'return 1;')
         .write(`};`)
-        .write(ucdInitUcrx(this.#initRx(setEntry), { prefix, suffix }));
+        .write(ucdCreateUcrx(this.#initRx(setEntry), { prefix, suffix }));
     };
   }
 

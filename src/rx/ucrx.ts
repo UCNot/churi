@@ -22,8 +22,13 @@ export interface UcrxItem {
 }
 
 export interface UcrxMap extends UcrxItem {
-  for(key: PropertyKey): Ucrx;
-  map(): void;
+  for(this: void, key: PropertyKey): Ucrx;
+  map(this: void): void;
+}
+
+export interface UcrxList extends Ucrx {
+  em(this: void): 1;
+  ls(this: void): void;
 }
 
 export const UCRX_OPAQUE = {

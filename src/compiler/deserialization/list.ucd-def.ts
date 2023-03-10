@@ -4,7 +4,7 @@ import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { ucdInitUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
+import { ucdCreateUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class ListUcdDef<
   TItem = unknown,
@@ -47,29 +47,39 @@ export class ListUcdDef<
     const { nullable, item } = this.schema;
     const { fn, setter } = this.location;
     const addItem = this.#ns.name('addItem');
-    const readUcList = lib.import(DESERIALIZER_MODULE, 'readUcList');
+    let itemRx: UcdUcrx;
 
-    return (prefix, suffix) => code => {
-      const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
+    try {
+      itemRx = fn.initRx({ schema: item, setter: addItem });
+    } catch (cause) {
+      throw new UnsupportedUcSchemaError(
+        item,
+        `${fn.name}: Can not deserialize list item of type "${ucSchemaName(item)}"`,
+        { cause },
+      );
+    }
 
-      code.write(`${prefix}${readUcList}(${reader}, ${setter}, ${addItem} => {`);
+    const isMatrix = !!itemRx.list;
+    const readList = lib.import(DESERIALIZER_MODULE, isMatrix ? 'readUcMatrix' : 'readUcList');
+    const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
 
-      try {
+    return {
+      create: (prefix, suffix) => code => {
+        code.write(`${prefix}${readList}(${reader}, ${setter}, ${addItem} => {`);
+
         code.indent(
-          ucdInitUcrx(fn.initRx({ schema: item, setter: addItem }), {
+          ucdCreateUcrx(itemRx, {
             prefix: 'return ',
             suffix: ';',
           }),
         );
-      } catch (cause) {
-        throw new UnsupportedUcSchemaError(
-          item,
-          `${fn.name}: Can not deserialize list item of type "${ucSchemaName(item)}"`,
-          { cause },
-        );
-      }
 
-      code.write('}' + (nullableFlag ? `, ${nullableFlag}` : ``) + ')' + suffix);
+        code.write('}' + (nullableFlag ? `, ${nullableFlag}` : ``) + ')' + suffix);
+      },
+      item: isMatrix
+        ? { nls: true, nul: !!nullableFlag }
+        : Object.fromEntries(Object.entries(itemRx.item).map(([key, value]) => [key, !!value])),
+      list: true,
     };
   }
 
