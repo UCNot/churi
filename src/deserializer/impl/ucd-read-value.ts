@@ -1,3 +1,6 @@
+import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
+import { ucrxBoolean, ucrxEntry, ucrxMap, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
+import { Ucrx, UcrxMap, UCRX_OPAQUE } from '../../rx/ucrx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
@@ -19,16 +22,13 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
 import { AsyncUcdReader } from '../async-ucd-reader.js';
-import { ucdUnexpectedTypeError } from '../ucd-errors.js';
-import { ucdRxBoolean, ucdRxEntry, ucdRxMap, ucdRxString, ucdRxSuffix } from '../ucd-rx-value.js';
-import { UcdMapRx, UcdRx, UCD_OPAQUE_RX } from '../ucd-rx.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
 import { cacheUcdEntry, startUcdEntry, UcdEntryCache } from './ucd-entity-cache.js';
 
 export async function ucdReadValue(
   reader: AsyncUcdReader,
-  rx: UcdRx,
+  rx: Ucrx,
   end?: () => void,
   single?: boolean,
 ): Promise<void> {
@@ -40,7 +40,7 @@ export async function ucdReadValue(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    return ucdRxString(reader, rx, '');
+    return ucrxString(reader, rx, '');
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
     await ucdReadEntityOrTrue(reader, rx);
@@ -53,7 +53,7 @@ export async function ucdReadValue(
   } else if (firstToken === UC_TOKEN_APOSTROPHE) {
     reader.skip(); // Skip apostrophe.
 
-    ucdRxString(reader, rx, printUcTokens(await ucdReadTokens(reader)));
+    ucrxString(reader, rx, printUcTokens(await ucdReadTokens(reader)));
 
     if (single) {
       return;
@@ -71,7 +71,7 @@ export async function ucdReadValue(
     } else {
       // End of input.
       // Map containing single key with empty value.
-      ucdRxSuffix(reader, rx, key);
+      ucrxSuffix(reader, rx, key);
     }
 
     if (single) {
@@ -127,15 +127,15 @@ export async function ucdReadValue(
     return end?.();
   }
 
-  let itemsRx: UcdRx;
+  let itemsRx: Ucrx;
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
     if (single || rx.em?.()) {
       itemsRx = rx;
     } else {
-      reader.error(ucdUnexpectedTypeError('list', rx));
-      itemsRx = UCD_OPAQUE_RX;
+      reader.error(ucrxUnexpectedTypeError('list', rx));
+      itemsRx = UCRX_OPAQUE;
     }
     if (reader.hasPrev()) {
       // Decode leading item, if any.
@@ -162,12 +162,12 @@ export async function ucdReadValue(
       itemsRx = rx;
     } else {
       reader.error(
-        ucdUnexpectedTypeError(
+        ucrxUnexpectedTypeError(
           reader.current() === UC_TOKEN_OPENING_PARENTHESIS ? 'nested list' : 'list',
           rx,
         ),
       );
-      itemsRx = UCD_OPAQUE_RX;
+      itemsRx = UCRX_OPAQUE;
     }
   }
 
@@ -180,12 +180,12 @@ export async function ucdReadValue(
   return await ucdReadItems(reader, itemsRx);
 }
 
-async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: Ucrx): Promise<void> {
   const tokens = await ucdReadTokens(reader, true);
 
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
-    ucdRxBoolean(reader, rx, true);
+    ucrxBoolean(reader, rx, true);
   } else {
     // Process entity.
     reader.entity(rx, tokens);
@@ -245,14 +245,14 @@ async function ucdReadTokens(
   }
 }
 
-async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadNestedList(reader: AsyncUcdReader, rx: Ucrx): Promise<void> {
   rx.em?.(); // Enclosing value is a list.
 
   let itemsRx = rx._.nls?.();
 
   if (!itemsRx) {
-    reader.error(ucdUnexpectedTypeError('nested list', rx));
-    itemsRx = UCD_OPAQUE_RX;
+    reader.error(ucrxUnexpectedTypeError('nested list', rx));
+    itemsRx = UCRX_OPAQUE;
   }
 
   itemsRx.em!();
@@ -271,7 +271,7 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcdRx): Promise<voi
   await ucdSkipWhitespace(reader);
 }
 
-async function ucdReadItems(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
+async function ucdReadItems(reader: AsyncUcdReader, rx: Ucrx): Promise<void> {
   for (;;) {
     const current = reader.current();
 
@@ -292,11 +292,11 @@ async function ucdReadItems(reader: AsyncUcdReader, rx: UcdRx): Promise<void> {
   rx.ls?.();
 }
 
-async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): Promise<void> {
+async function ucdReadMap(reader: AsyncUcdReader, rx: Ucrx, firstKey: string): Promise<void> {
   reader.skip(); // Skip opening parentheses.
 
-  const mapRx = ucdRxMap(reader, rx);
-  const entryRx = ucdRxEntry(reader, mapRx, firstKey);
+  const mapRx = ucrxMap(reader, rx);
+  const entryRx = ucrxEntry(reader, mapRx, firstKey);
 
   await ucdReadValue(reader, entryRx);
 
@@ -319,7 +319,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcdRx, firstKey: string): 
 
 async function ucdReadEntries(
   reader: AsyncUcdReader,
-  mapRx: UcdMapRx,
+  mapRx: UcrxMap,
   cache: UcdEntryCache,
 ): Promise<void> {
   for (;;) {
@@ -355,7 +355,7 @@ async function ucdReadEntries(
       // Suffix.
       const entryRx = startUcdEntry(reader, mapRx, key, cache);
 
-      ucdRxString(reader, entryRx, '');
+      ucrxString(reader, entryRx, '');
 
       break;
     }

@@ -1,5 +1,5 @@
 import { lazyValue } from '@proc7ts/primitives';
-import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE } from '../../impl/module-names.js';
 import { quotePropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
@@ -208,7 +208,7 @@ export class MapUcdDef<TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Sc
         },
       },
     } = this;
-    const entriesMissing = lib.import(DESERIALIZER_MODULE, 'ucdMissingEntriesError');
+    const entriesMissing = lib.import(CHURI_MODULE, 'ucrxMissingEntriesError');
 
     return code => {
       code

@@ -36,7 +36,7 @@ export namespace UcList {
     /**
      * Generates list deserialization code.
      *
-     * {@link @hatsy/churi/compiler!UcdListDef List deserializer definition} is used by default.
+     * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
      *
      * @param schema - Schema of deserialized value.
      * @param location - A location inside deserializer function to insert generated code into.
@@ -84,7 +84,7 @@ export namespace UcList {
       /**
        * Generates list deserialization code.
        *
-       * {@link @hatsy/churi/compiler!UcdListDef List deserializer definition} is used by default.
+       * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
        *
        * @param schema - Schema of deserialized value.
        * @param location - A location inside deserializer function to insert generated code into.

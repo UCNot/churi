@@ -1,17 +1,17 @@
+import { ucrxExpectedTypes, ucrxTypeNames, ucrxUnexpectedTypeError } from '../rx/ucrx-errors.js';
+import { Ucrx, UcrxItem } from '../rx/ucrx.js';
 import { AsyncUcdReader } from './async-ucd-reader.js';
-import { ucdExpectedTypes, ucdTypeNames, ucdUnexpectedTypeError } from './ucd-errors.js';
-import { UcdItemRx, UcdRx } from './ucd-rx.js';
 
 export function readUcList(
   reader: AsyncUcdReader,
   setList: (value: unknown) => void,
-  createRx: (addItem: (value: unknown) => 1) => UcdRx,
+  createRx: (addItem: (value: unknown) => 1) => Ucrx,
   nullable:
     | 0
     | 1 /* nullable list, but not items */
     | 2 /* nullable items, but not list */
     | 3 /* nullable list and items */ = 0,
-): UcdRx {
+): Ucrx {
   let listCreated = false;
   const items: unknown[] | null = [];
   let isNull = false;
@@ -23,7 +23,7 @@ export function readUcList(
   });
 
   const firstItemRx = firstRx._;
-  let itemRx: UcdItemRx;
+  let itemRx: UcrxItem;
 
   if (firstRx.ls) {
     // Nested list items expected.
@@ -54,7 +54,7 @@ export function readUcList(
 
         delete errorRx.nul;
 
-        reader.error(ucdUnexpectedTypeError('null', { _: errorRx }));
+        reader.error(ucrxUnexpectedTypeError('null', { _: errorRx }));
       };
 
       itemRx.nul = () => {
@@ -84,7 +84,7 @@ export function readUcList(
         } else {
           isNull = false;
           if (!firstItemRx.nul?.()) {
-            reader.error(ucdUnexpectedTypeError('null', firstRx));
+            reader.error(ucrxUnexpectedTypeError('null', firstRx));
           }
         }
 
@@ -109,7 +109,7 @@ export function readUcList(
       } else if (listCreated) {
         setList(items);
       } else {
-        const types = ucdExpectedTypes(firstRx);
+        const types = ucrxExpectedTypes(firstRx);
 
         reader.error({
           code: 'unexpectedType',
@@ -119,7 +119,7 @@ export function readUcList(
               types: ['list'],
             },
           },
-          message: `Unexpected single ${ucdTypeNames(types)}, while list expected`,
+          message: `Unexpected single ${ucrxTypeNames(types)}, while list expected`,
         });
       }
     },

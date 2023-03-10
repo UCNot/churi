@@ -1,39 +1,39 @@
 import { noop } from '@proc7ts/primitives';
 
-export interface UcdRx {
-  _: UcdItemRx;
+export interface Ucrx {
+  _: UcrxItem;
 
   em?(this: void): 1;
   ls?(this: void): void;
 }
 
-export interface UcdItemRx {
+export interface UcrxItem {
   bol?(this: void, value: boolean): 1;
   big?(this: void, value: bigint): 1;
-  nls?(this: void): UcdRx | undefined;
+  nls?(this: void): Ucrx | undefined;
   nul?(this: void): 1;
   num?(this: void, value: number): 1;
   str?(this: void, value: string): 1;
 
-  for?(this: void, key: PropertyKey): UcdRx | undefined;
+  for?(this: void, key: PropertyKey): Ucrx | undefined;
   map?(this: void): void;
 
   any?(this: void, value: bigint | boolean | number | string | symbol | object): 1 | 0 | undefined;
 }
 
-export interface UcdMapRx extends UcdItemRx {
-  for(key: PropertyKey): UcdRx;
+export interface UcrxMap extends UcrxItem {
+  for(key: PropertyKey): Ucrx;
   map(): void;
 }
 
-export const UCD_OPAQUE_RX = {
+export const UCRX_OPAQUE = {
   _: {
-    for(_key: string): UcdRx {
-      return UCD_OPAQUE_RX;
+    for(_key: string): Ucrx {
+      return UCRX_OPAQUE;
     },
     map: noop,
-    nls(): UcdRx {
-      return UCD_OPAQUE_RX;
+    nls(): Ucrx {
+      return UCRX_OPAQUE;
     },
     any(_value: unknown): 1 {
       return 1;
@@ -43,4 +43,4 @@ export const UCD_OPAQUE_RX = {
     return 1;
   },
   ls: noop,
-} satisfies UcdRx;
+} satisfies Ucrx;

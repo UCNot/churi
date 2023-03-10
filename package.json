@@ -36,10 +36,6 @@
       "types": "./dist/churi.deserializer.d.ts",
       "default": "./dist/churi.deserializer.js"
     },
-    "./runtime": {
-      "types": "./dist/churi.runtime.d.ts",
-      "default": "./dist/churi.runtime.js"
-    },
     "./serializer": {
       "types": "./dist/churi.serializer.d.ts",
       "default": "./dist/churi.serializer.js"

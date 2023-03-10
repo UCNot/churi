@@ -19,7 +19,7 @@ export interface UcdTypeDef<out T = unknown> {
   /**
    * Generates code for type instance deserialization.
    *
-   * Generated code expected to contain an {@link @hatsy/churi/deserializer!UcdRx deserialized value receiver} placed
+   * Generated code expected to contain an {@link @hatsy/churi!Ucrx deserialized value receiver} placed
    * between the given {@link UcdTypeDef.Location#prefix prefix} and {@link UcdTypeDef.Location#suffix suffix}.
    *
    * @param schema - Schema of deserialized value.
@@ -48,7 +48,7 @@ export namespace UcdTypeDef {
     /**
      * Generated code prefix.
      *
-     * Generated {@link @hatsy/churi/deserializer!UcdRx receiver} expression expected to be placed right after this
+     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right after this
      * prefix.
      *
      * This may be e.g. a {@link @hatsy/churi/deserializer!UcdReader#read function call}.
@@ -58,7 +58,7 @@ export namespace UcdTypeDef {
     /**
      * Generated code suffix.
      *
-     * Generated {@link @hatsy/churi/deserializer!UcdRx receiver} expression expected to be placed right before this
+     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right before this
      * suffix.
      *
      * This may be e.g. a closing parenthesis for function call.

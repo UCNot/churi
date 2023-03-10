@@ -35,7 +35,7 @@ export namespace UcMap {
     /**
      * Generates map deserialization code.
      *
-     * {@link @hatsy/churi/compiler!UcdMapDef Map deserializer definition} is used by default.
+     * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
      *
      * @param schema - Schema of deserialized value.
      * @param location - A location inside deserializer function to insert generated code into.
@@ -142,7 +142,7 @@ export namespace UcMap {
       /**
        * Generates map deserialization code.
        *
-       * {@link @hatsy/churi/compiler!UcdMapDef Map deserializer definition} is used by default.
+       * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
        *
        * @param schema - Schema of deserialized value.
        * @param location - A location inside deserializer function to insert generated code into.

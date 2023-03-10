@@ -1,4 +1,6 @@
 /**
+ * Schema compiler API.
+ *
  * @module @hatsy/churi/compiler
  */
 export * from './deserialization/mod.js';

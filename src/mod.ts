@@ -3,6 +3,7 @@
  */
 export * from './charge/mod.js';
 export * from './churi.js';
+export * from './rx/mod.js';
 export * from './schema/mod.js';
 export * from './syntax/mod.js';
 export * from './uc-matrix-params.js';

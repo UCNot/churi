@@ -1,4 +1,4 @@
-import { UcdItemRx } from '../../deserializer/ucd-rx.js';
+import { UcrxItem } from '../../rx/ucrx.js';
 import { UcPrimitive } from '../../schema/uc-primitive.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
@@ -41,7 +41,7 @@ export class Primitive$UcdDefs {
   #readPrimitive(
     schema: UcSchema<UcPrimitive>,
     { setter, prefix, suffix }: UcdTypeDef.Location,
-    name: keyof UcdItemRx,
+    name: keyof UcrxItem,
   ): UccCode.Source {
     return code => {
       code
