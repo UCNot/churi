@@ -1,30 +1,20 @@
 import { Ucrx } from '../../rx/ucrx.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { uccInitObject, UccPropertyInit } from '../ucc-object-init.js';
 import { UcdFunction } from './ucd-function.js';
 
 /**
- * Initializer of {@link @hatsy/churi!Ucrx charge receiver}.
+ * Per-property initializer of {@link @hatsy/churi!Ucrx charge receiver}.
  */
-export type UcdUcrx = UcdUcrx.Code | UcdUcrx.Init;
+export interface UcdUcrx {
+  readonly init?: UccCode.Source | undefined;
+  readonly create?: undefined;
+  readonly properties: UcdUcrxProperties;
+}
 
 export namespace UcdUcrx {
-  export type Code = {
-    readonly init?: undefined;
-    create(prefix: string, suffix: string): UccCode.Source;
-    readonly properties: { readonly [key in keyof Ucrx]?: boolean | undefined };
-  };
-
-  /**
-   * Per-property initializer of {@link @hatsy/churi!Ucrx charge receiver}.
-   */
-  export interface Init {
-    readonly init?: UccCode.Source | undefined;
-    readonly create?: undefined;
-    readonly properties: UcdUcrxProperties;
-  }
-
   export interface Placement {
     readonly prefix: string;
     readonly suffix: string;
@@ -50,6 +40,11 @@ export interface UcdUcrxLocation<out T = unknown, out TSchema extends UcSchema<T
   readonly fn: UcdFunction;
 
   /**
+   * Enclosing deserialization namespace.
+   */
+  readonly ns: UccNamespace;
+
+  /**
    * Schema of deserialized value.
    */
   readonly schema: TSchema;
@@ -65,10 +60,6 @@ export function ucdCreateUcrx(
   rxInit: UcdUcrx,
   { prefix, suffix }: UcdUcrx.Placement,
 ): UccCode.Source {
-  if (rxInit.create) {
-    return rxInit.create(prefix, suffix);
-  }
-
   return code => {
     const { init, properties } = rxInit;
 
@@ -96,6 +87,6 @@ const UCRX_ITEM_PROPERTIES: (keyof Ucrx)[] = [
   'nul',
 ];
 
-function uccInitPropertyToNull(prefix: string, suffix: string): UccCode.Source {
+function uccInitPropertyToNull(prefix: UccPropertyInit.Prefix, suffix: string): UccCode.Source {
   return `${prefix}null${suffix}`;
 }

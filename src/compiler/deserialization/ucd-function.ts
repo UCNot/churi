@@ -86,8 +86,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
    * @returns Initializer code.
    */
   initRx(location: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx;
-  initRx({ schema, setter }: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx {
-    const rxInit = this.lib.typeDefFor(schema)?.initRx({ fn: this, schema, setter });
+  initRx({ ns, schema, setter }: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx {
+    const rxInit = this.lib.typeDefFor(schema)?.initRx({ fn: this, ns, schema, setter });
 
     if (rxInit == null) {
       throw new UnsupportedUcSchemaError(
@@ -111,6 +111,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .indent(
           ucdCreateUcrx(
             this.initRx({
+              ns: this.ns,
               schema: this.schema,
               setter: this.args.setter,
             }),
@@ -135,6 +136,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .indent(
           ucdCreateUcrx(
             this.initRx({
+              ns: this.ns,
               schema: this.schema,
               setter: this.args.setter,
             }),

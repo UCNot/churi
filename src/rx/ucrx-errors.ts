@@ -4,8 +4,12 @@ import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
 
-export function ucrxUnexpectedTypeError(type: string, rx: Ucrx): UcErrorInfo {
-  const expectedTypes = ucrxExpectedTypes(rx);
+export function ucrxUnexpectedTypeError(
+  type: string,
+  rx: Ucrx,
+  filterKey?: (key: keyof Ucrx) => boolean,
+): UcErrorInfo {
+  const expectedTypes = ucrxExpectedTypes(rx, filterKey);
 
   return {
     code: 'unexpectedType',
@@ -17,6 +21,10 @@ export function ucrxUnexpectedTypeError(type: string, rx: Ucrx): UcErrorInfo {
     },
     message: `Unexpected ${type}, while ${ucrxTypeNames(expectedTypes)} expected`,
   };
+}
+
+export function ucrxUnexpectedNullError(rx: Ucrx): UcErrorInfo {
+  return ucrxUnexpectedTypeError('null', rx, key => key !== 'nul');
 }
 
 export function ucrxMissingEntriesError(
@@ -44,7 +52,7 @@ export function ucrxMissingEntriesError(
   };
 }
 
-export function ucrxUnexpectedSingleItem(rx: Ucrx): UcErrorInfo {
+export function ucrxUnexpectedSingleItemError(rx: Ucrx): UcErrorInfo {
   const types = ucrxExpectedTypes(rx);
 
   return {
@@ -79,12 +87,19 @@ export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcError
   };
 }
 
-export function ucrxExpectedTypes(rx: Ucrx): readonly string[] {
+export function ucrxExpectedTypes(
+  rx: Ucrx,
+  filterKey: (key: keyof Ucrx) => boolean = ucrxExpectedTypes$acceptKey,
+): readonly string[] {
   const types = Object.entries(rx)
-    .map(([key, value]) => (value ? UCRX_TYPE_NAMES[key] ?? key : 0))
+    .map(([key, value]) => filterKey(key as keyof Ucrx) && value ? UCRX_TYPE_NAMES[key] ?? key : 0)
     .filter((name): name is string => !!name);
 
   return types.length ? types : ['none'];
+}
+
+function ucrxExpectedTypes$acceptKey(_key: keyof Ucrx): boolean {
+  return true;
 }
 
 export function ucrxTypeNames(types: readonly string[]): string {

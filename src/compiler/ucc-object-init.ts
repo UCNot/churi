@@ -1,3 +1,4 @@
+import { quotePropertyKey } from '../impl/quote-property-key.js';
 import { UccCode } from './ucc-code.js';
 
 /**
@@ -11,7 +12,18 @@ import { UccCode } from './ucc-code.js';
  *
  * @returns Initializer code source.
  */
-export type UccPropertyInit = (prefix: string, suffix: string, key: PropertyKey) => UccCode.Source;
+export type UccPropertyInit = (
+  prefix: UccPropertyInit.Prefix,
+  suffix: string,
+  key: PropertyKey,
+) => UccCode.Source;
+
+export namespace UccPropertyInit {
+  export interface Prefix {
+    asMethod(...args: string[]): string;
+    toString(this: void): string;
+  }
+}
 
 export type UccObjectInit<TKey extends keyof any = keyof any> = {
   readonly [key in TKey]?: UccPropertyInit | null | undefined;
@@ -39,11 +51,34 @@ export function uccInitProperties<T extends UccObjectInit, TKey extends keyof T 
 ): UccCode.Source {
   return code => {
     for (const key of keys) {
+      const k = quotePropertyKey(key as string);
       const initProperty = initObject[key] ?? defaultInit;
 
       if (initProperty) {
-        code.write(initProperty(`${key as string}: `, `,`, key));
+        code.write(
+          uccInitProperty(
+            initProperty,
+            { asMethod: (...args) => `${k}(${args.join(', ')}) `, toString: () => `${k}: ` },
+            `,`,
+            key,
+          ),
+        );
       }
     }
   };
+}
+
+export function uccInitProperty(
+  propertyInit: UccPropertyInit,
+  prefix: string | UccPropertyInit.Prefix,
+  suffix: string,
+  key: PropertyKey,
+): UccCode.Source {
+  return propertyInit(
+    typeof prefix === 'string'
+      ? { toString: () => prefix, asMethod: (...args) => `${prefix}(${args.join(', ')}) => ` }
+      : prefix,
+    suffix,
+    key,
+  );
 }

@@ -39,7 +39,7 @@ export class MapUcdDef<
     >,
   ) {
     this.#location = location;
-    this.#ns = location.fn.ns.nest();
+    this.#ns = location.ns.nest();
   }
 
   get schema(): UcMap.Schema<TEntriesSpec, TExtraSpec> {
@@ -51,6 +51,10 @@ export class MapUcdDef<
     UcMap.Schema<TEntriesSpec, TExtraSpec>
   > {
     return this.#location;
+  }
+
+  get ns(): UccNamespace {
+    return this.#ns;
   }
 
   #declareEntries(): string {
@@ -110,8 +114,8 @@ export class MapUcdDef<
       schema,
       location: { setter },
     } = this;
-    const map = this.#ns.name('map');
-    const assigned = this.#ns.name('assigned');
+    const map = this.ns.name('map');
+    const assigned = this.ns.name('assigned');
     const requiredCount = this.#countRequired();
     let allocation: MapUcdDef.Allocation;
     const decls: MapUcdDef.Decls = {
@@ -125,7 +129,7 @@ export class MapUcdDef<
         decls,
         map,
         assigned,
-        missingCount: this.#ns.name('missingCount'),
+        missingCount: this.ns.name('missingCount'),
       };
     } else {
       allocation = {
@@ -135,7 +139,7 @@ export class MapUcdDef<
     }
 
     const { missingCount } = allocation;
-    const key = this.#ns.name('key');
+    const key = this.ns.name('key');
 
     return {
       init: code => {
