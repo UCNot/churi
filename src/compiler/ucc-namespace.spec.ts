@@ -9,6 +9,9 @@ describe('UccNamespace', () => {
   });
 
   describe('name', () => {
+    it('uses preferred name by default', () => {
+      expect(ns.name('test')).toBe('test');
+    });
     it('declares "tmp" name by default', () => {
       expect(ns.name()).toBe('tmp');
     });
@@ -25,6 +28,27 @@ describe('UccNamespace', () => {
       expect(ns.nest().name('test')).toBe('test');
       expect(ns.name('test')).toBe('test$0');
       expect(ns.nest().name('test')).toBe('test');
+    });
+    it('assigns counter to aliases', () => {
+      ns.name('test');
+
+      expect(ns.name('test')).toBe('test$0');
+      expect(ns.name('test')).toBe('test$1');
+      expect(ns.name('test')).toBe('test$2');
+    });
+    it('assigns counter to aliases with $', () => {
+      ns.name('test$a');
+
+      expect(ns.name('test$a')).toBe('test$a$0');
+      expect(ns.name('test$a')).toBe('test$a$1');
+      expect(ns.name('test$a')).toBe('test$a$2');
+    });
+    it('resolves conflicts', () => {
+      ns.name('test');
+      ns.name('test$0');
+
+      expect(ns.name('test')).toBe('test$1');
+      expect(ns.name('test$1')).toBe('test$2');
     });
   });
 });
