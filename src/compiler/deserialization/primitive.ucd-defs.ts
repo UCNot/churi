@@ -1,4 +1,4 @@
-import { UcrxItem } from '../../rx/ucrx.js';
+import { Ucrx } from '../../rx/ucrx.js';
 import { UccCode } from '../ucc-code.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
@@ -36,9 +36,9 @@ export class Primitive$UcdDefs {
     return this.#createRxFor('str', location);
   }
 
-  #createRxFor(key: keyof UcrxItem, { schema, setter }: UcdUcrxLocation): UcdUcrx {
+  #createRxFor(key: keyof Ucrx, { schema, setter }: UcdUcrxLocation): UcdUcrx {
     return {
-      item: {
+      properties: {
         [key]:
           (prefix: string, suffix: string): UccCode.Source => code => {
             code.write(`${prefix}${setter}${suffix}`);

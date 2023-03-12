@@ -1,11 +1,11 @@
-import { UcdMemory } from '../deserializer/ucd-memory.js';
+import { UcsMemory } from './ucs-memory.js';
 
 export class UcsWriter {
 
   readonly #writer: WritableStreamDefaultWriter;
   #whenWritten: Promise<unknown> = Promise.resolve();
 
-  #memory?: UcdMemory;
+  #memory?: UcsMemory;
   #encoder?: TextEncoder;
 
   constructor(stream: WritableStream<Uint8Array>) {
@@ -16,8 +16,8 @@ export class UcsWriter {
     return this.#writer.ready;
   }
 
-  get memory(): UcdMemory {
-    return (this.#memory ??= new UcdMemory());
+  get memory(): UcsMemory {
+    return (this.#memory ??= new UcsMemory());
   }
 
   get encoder(): TextEncoder {

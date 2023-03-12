@@ -1,32 +1,20 @@
-import { UcrxItem } from '../../rx/ucrx.js';
+import { Ucrx } from '../../rx/ucrx.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
 import { uccInitObject, UccPropertyInit } from '../ucc-object-init.js';
 import { UcdFunction } from './ucd-function.js';
 
 /**
- * Initializer of {@link @hatsy/churi!Ucrx charge receiver}.
+ * Per-property initializer of {@link @hatsy/churi!Ucrx charge receiver}.
  */
-export type UcdUcrx = UcdUcrx.Code | UcdUcrx.Init;
+export interface UcdUcrx {
+  readonly init?: UccCode.Source | undefined;
+  readonly create?: undefined;
+  readonly properties: UcdUcrxProperties;
+}
 
 export namespace UcdUcrx {
-  export type Code = {
-    readonly init?: undefined;
-    create(prefix: string, suffix: string): UccCode.Source;
-    readonly item: { readonly [key in keyof UcrxItem]?: boolean | undefined };
-    readonly list?: boolean | undefined;
-  };
-
-  /**
-   * Per-property initializer of {@link @hatsy/churi!Ucrx charge receiver}.
-   */
-  export interface Init {
-    readonly init?: UccCode.Source | undefined;
-    readonly create?: undefined;
-    readonly item: UcdUcrxItem;
-    readonly list?: undefined;
-  }
-
   export interface Placement {
     readonly prefix: string;
     readonly suffix: string;
@@ -36,8 +24,8 @@ export namespace UcdUcrx {
 /**
  * Per-property initializers of {@link @hatsy/churi!UcrxItem charge item receiver}.
  */
-export type UcdUcrxItem = {
-  readonly [key in keyof UcrxItem]?: UccPropertyInit | undefined;
+export type UcdUcrxProperties = {
+  readonly [key in keyof Ucrx]?: UccPropertyInit | undefined;
 };
 
 /**
@@ -50,6 +38,11 @@ export interface UcdUcrxLocation<out T = unknown, out TSchema extends UcSchema<T
    * Enclosing deserializer function. Not necessarily for the target value.
    */
   readonly fn: UcdFunction;
+
+  /**
+   * Enclosing deserialization namespace.
+   */
+  readonly ns: UccNamespace;
 
   /**
    * Schema of deserialized value.
@@ -67,25 +60,20 @@ export function ucdCreateUcrx(
   rxInit: UcdUcrx,
   { prefix, suffix }: UcdUcrx.Placement,
 ): UccCode.Source {
-  if (rxInit.create) {
-    return rxInit.create(prefix, suffix);
-  }
-
   return code => {
-    const { init, item } = rxInit;
+    const { init, properties } = rxInit;
 
     if (init) {
       code.write(init);
     }
 
-    code
-      .write(`${prefix}{`)
-      .indent(uccInitObject(`_: `, `,`, item, UCRX_ITEM_PROPERTIES, uccInitPropertyToNull))
-      .write(`}${suffix}`);
+    code.write(
+      uccInitObject(prefix, suffix, properties, UCRX_ITEM_PROPERTIES, uccInitPropertyToNull),
+    );
   };
 }
 
-const UCRX_ITEM_PROPERTIES: (keyof UcrxItem)[] = [
+const UCRX_ITEM_PROPERTIES: (keyof Ucrx)[] = [
   'big',
   'bol',
   'nls',
@@ -93,10 +81,12 @@ const UCRX_ITEM_PROPERTIES: (keyof UcrxItem)[] = [
   'str',
   'for',
   'map',
+  'em',
+  'ls',
   'any',
   'nul',
 ];
 
-function uccInitPropertyToNull(prefix: string, suffix: string): UccCode.Source {
+function uccInitPropertyToNull(prefix: UccPropertyInit.Prefix, suffix: string): UccCode.Source {
   return `${prefix}null${suffix}`;
 }

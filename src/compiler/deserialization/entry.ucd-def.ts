@@ -67,6 +67,7 @@ export class EntryUcdDef {
 
     try {
       return fn.initRx({
+        ns: this.mapDef.ns,
         schema,
         setter: setEntry,
       });

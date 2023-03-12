@@ -1,11 +1,11 @@
-import { UcdMemory } from '../deserializer/ucd-memory.js';
+import { UcsMemory } from '../serializer/ucs-memory.js';
 import { UcsWriter } from '../serializer/ucs-writer.js';
 
 export class SmallChunkUcsWriter extends UcsWriter {
 
-  readonly #memory = new UcdMemory(4);
+  readonly #memory = new UcsMemory(4);
 
-  override get memory(): UcdMemory {
+  override get memory(): UcsMemory {
     return this.#memory;
   }
 

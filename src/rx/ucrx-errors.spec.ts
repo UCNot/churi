@@ -3,7 +3,7 @@ import { ucrxExpectedTypes, ucrxTypeNames } from './ucrx-errors.js';
 
 describe('ucrxExpectedTypes', () => {
   it('never empty', () => {
-    expect(ucrxExpectedTypes({ _: {} })).toEqual(['none']);
+    expect(ucrxExpectedTypes({})).toEqual(['none']);
   });
 });
 

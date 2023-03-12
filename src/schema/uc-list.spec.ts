@@ -639,5 +639,30 @@ describe('UcList', () => {
         ).resolves.toEqual(error);
       });
     });
+
+    describe('nullable with nested or null', () => {
+      let readMatrix: UcDeserializer<(number[] | null)[] | null>;
+
+      beforeEach(async () => {
+        const list = ucList<number>(Number);
+        const matrix = ucList<number[] | null>(ucNullable(list));
+        const lib = new UcdLib({
+          schemae: {
+            readMatrix: ucNullable(matrix),
+          },
+        });
+
+        ({ readMatrix } = await lib.compile().toDeserializers());
+      });
+
+      it('deserializes null', async () => {
+        await expect(readMatrix(readTokens('--'))).resolves.toBeNull();
+      });
+      it('deserializes null items', async () => {
+        await expect(readMatrix(readTokens('--,'))).resolves.toEqual([null]);
+        await expect(readMatrix(readTokens(', --'))).resolves.toEqual([null]);
+        await expect(readMatrix(readTokens('(13)--'))).resolves.toEqual([[13], null]);
+      });
+    });
   });
 });

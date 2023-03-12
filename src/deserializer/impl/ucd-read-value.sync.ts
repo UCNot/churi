@@ -12,22 +12,22 @@ import { Ucrx, UcrxMap, UCRX_OPAQUE } from '../../rx/ucrx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
-    isUcBoundToken,
-    isUcParenthesisToken,
-    isWhitespaceUcToken,
-    ucTokenKind,
-    UC_TOKEN_KIND_BOUND,
-    UC_TOKEN_KIND_IS_WHITESPACE,
-    UC_TOKEN_KIND_NL
+  isUcBoundToken,
+  isUcParenthesisToken,
+  isWhitespaceUcToken,
+  ucTokenKind,
+  UC_TOKEN_KIND_BOUND,
+  UC_TOKEN_KIND_IS_WHITESPACE,
+  UC_TOKEN_KIND_NL,
 } from '../../syntax/uc-token-kind.js';
 import {
-    UcToken,
-    UC_TOKEN_APOSTROPHE,
-    UC_TOKEN_CLOSING_PARENTHESIS,
-    UC_TOKEN_COMMA,
-    UC_TOKEN_DOLLAR_SIGN,
-    UC_TOKEN_EXCLAMATION_MARK,
-    UC_TOKEN_OPENING_PARENTHESIS
+  UcToken,
+  UC_TOKEN_APOSTROPHE,
+  UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_COMMA,
+  UC_TOKEN_DOLLAR_SIGN,
+  UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_OPENING_PARENTHESIS,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
@@ -256,7 +256,7 @@ function ucdReadTokensSync(
 function ucdReadNestedListSync(reader: SyncUcdReader, rx: Ucrx): void {
   rx.em?.(); // Enclosing value is a list.
 
-  let itemsRx = rx._.nls?.();
+  let itemsRx = rx.nls?.();
 
   if (!itemsRx) {
     reader.error(ucrxUnexpectedTypeError('nested list', rx));

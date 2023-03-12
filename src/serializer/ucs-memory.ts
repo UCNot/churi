@@ -1,4 +1,4 @@
-export class UcdMemory {
+export class UcsMemory {
 
   readonly #blockSize: number;
   readonly #blocks: UcsMemoryBlock[];
