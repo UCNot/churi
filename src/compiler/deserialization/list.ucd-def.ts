@@ -59,7 +59,7 @@ export class ListUcdDef<
       );
     }
 
-    const isMatrix = !!itemRx.list;
+    const isMatrix = !!itemRx.properties.ls;
     const readList = lib.import(DESERIALIZER_MODULE, isMatrix ? 'readUcMatrix' : 'readUcList');
     const nullableFlag = (nullable ? 1 : 0) | (item.nullable ? 2 : 0);
 
@@ -76,10 +76,15 @@ export class ListUcdDef<
 
         code.write('}' + (nullableFlag ? `, ${nullableFlag}` : ``) + ')' + suffix);
       },
-      item: isMatrix
-        ? { nls: true, nul: !!nullableFlag }
-        : Object.fromEntries(Object.entries(itemRx.item).map(([key, value]) => [key, !!value])),
-      list: true,
+      properties: isMatrix
+        ? { nls: true, nul: !!nullableFlag, em: true, ls: true }
+        : {
+            ...Object.fromEntries(
+              Object.entries(itemRx.properties).map(([key, value]) => [key, !!value]),
+            ),
+            em: true,
+            ls: true,
+          },
     };
   }
 

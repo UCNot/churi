@@ -24,12 +24,10 @@ describe('UcdEntityReader', () => {
     reader = new UcdEntityReader();
     value = undefined;
     rx = {
-      _: {
-        any: v => {
-          value = v;
+      any: v => {
+        value = v;
 
-          return 1;
-        },
+        return 1;
       },
     };
   });
@@ -39,7 +37,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar');
 
       reader.addEntity(entity, (_reader, rx, entity) => {
-        rx._.any?.(entity);
+        rx.any?.(entity);
       });
       reader.read(ucdReader, rx, entity);
 
@@ -50,7 +48,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:baz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx._.any?.(entity);
+        rx.any?.(entity);
       });
       reader.read(ucdReader, rx, entity);
 
@@ -70,7 +68,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar:baz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx._.any?.(entity);
+        rx.any?.(entity);
       });
       reader.read(ucdReader, rx, entity);
 
@@ -90,7 +88,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:barbaz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx._.any?.(entity);
+        rx.any?.(entity);
       });
       reader.read(ucdReader, rx, entity);
 
@@ -112,7 +110,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar');
 
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -122,7 +120,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar:');
 
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -133,7 +131,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar:baz');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -144,7 +142,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -164,7 +162,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar!!');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -184,7 +182,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar:bat');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -204,7 +202,7 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar-baz');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -216,10 +214,10 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar:baz');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -231,10 +229,10 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar::');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 
@@ -246,10 +244,10 @@ describe('UcdEntityReader', () => {
       const entity = UcTokenizer.split('!foo:bar-baz');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx._.any?.({ prefix, args });
+        rx.any?.({ prefix, args });
       });
       reader.read(ucdReader, rx, entity);
 

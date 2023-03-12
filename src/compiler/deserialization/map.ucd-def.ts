@@ -144,7 +144,7 @@ export class MapUcdDef<
         }
         code.write(this.allocateMap(`const ${map} = [`, '];'));
       },
-      item: {
+      properties: {
         for: (prefix, suffix) => code => {
           code
             .write(`${prefix}(${key}) => {`)

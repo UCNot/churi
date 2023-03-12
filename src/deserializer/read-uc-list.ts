@@ -1,5 +1,5 @@
 import { ucrxUnexpectedSingleItem, ucrxUnexpectedTypeError } from '../rx/ucrx-errors.js';
-import { Ucrx, UcrxItem, UcrxList } from '../rx/ucrx.js';
+import { Ucrx, UcrxList } from '../rx/ucrx.js';
 import { AsyncUcdReader } from './async-ucd-reader.js';
 
 export function readUcList(
@@ -11,43 +11,19 @@ export function readUcList(
     | 1 /* nullable list, but not items */
     | 2 /* nullable items, but not list */
     | 3 /* nullable list and items */ = 0,
-): Ucrx {
+): UcrxList {
   let listCreated = false;
   const items: unknown[] | null = [];
   let isNull = false;
 
-  const firstRx = createRx((item: unknown): 1 => {
+  const itemRx = createRx((item: unknown): 1 => {
     items.push(item);
 
     return 1;
   });
 
-  const firstItemRx = firstRx._;
-  let itemRx: UcrxItem;
-
-  if (nullable & 1) {
-    // Nullable list, with possibly nullable single items.
-    itemRx = {
-      ...firstItemRx,
-      nul: (): 1 => {
-        if (!listCreated) {
-          isNull = true;
-        } else {
-          isNull = false;
-          if (!firstItemRx.nul?.()) {
-            reader.error(ucrxUnexpectedTypeError('null', firstRx));
-          }
-        }
-
-        return 1;
-      },
-    };
-  } else {
-    itemRx = firstItemRx;
-  }
-
-  return {
-    _: itemRx,
+  const listRx: UcrxList = {
+    ...itemRx,
     em() {
       listCreated = true;
 
@@ -59,10 +35,28 @@ export function readUcList(
       } else if (listCreated) {
         setList(items);
       } else {
-        reader.error(ucrxUnexpectedSingleItem(firstRx));
+        reader.error(ucrxUnexpectedSingleItem(itemRx));
       }
     },
   };
+
+  if (nullable & 1) {
+    // Nullable list, with possibly nullable single items.
+    listRx.nul = (): 1 => {
+      if (!listCreated) {
+        isNull = true;
+      } else {
+        isNull = false;
+        if (!itemRx.nul?.()) {
+          reader.error(ucrxUnexpectedTypeError('null', itemRx));
+        }
+      }
+
+      return 1;
+    };
+  }
+
+  return listRx;
 }
 
 export function readUcMatrix(
@@ -74,12 +68,12 @@ export function readUcMatrix(
     | 1 /* nullable list, but not items */
     | 2 /* nullable items, but not list */
     | 3 /* nullable list and items */ = 0,
-): Ucrx {
+): UcrxList {
   let listCreated = false;
   const items: unknown[] | null = [];
   let isNull = false;
 
-  const itemRx: UcrxItem = {
+  const listRx: UcrxList = {
     nls() {
       listCreated = true;
 
@@ -89,18 +83,32 @@ export function readUcMatrix(
         return 1;
       });
     },
+    em() {
+      listCreated = true;
+
+      return 1;
+    },
+    ls() {
+      if (isNull) {
+        setList(null);
+      } else if (listCreated) {
+        setList(items);
+      }
+      // No need to report missing items, as type mismatch already reported.
+    },
   };
 
   if (nullable) {
     const rejectNullItem = (): void => {
-      const errorRx = { ...itemRx };
+      const errorRx: Ucrx = { ...listRx };
 
       delete errorRx.nul;
+      delete errorRx.ls;
 
-      reader.error(ucrxUnexpectedTypeError('null', { _: errorRx }));
+      reader.error(ucrxUnexpectedTypeError('null', errorRx));
     };
 
-    itemRx.nul = () => {
+    listRx.nul = () => {
       if (listCreated) {
         isNull = false;
         if (nullable & 2) {
@@ -118,20 +126,5 @@ export function readUcMatrix(
     };
   }
 
-  return {
-    _: itemRx,
-    em() {
-      listCreated = true;
-
-      return 1;
-    },
-    ls() {
-      if (isNull) {
-        setList(null);
-      } else if (listCreated) {
-        setList(items);
-      }
-      // No need to report missing items, as type mismatch already reported.
-    },
-  };
+  return listRx;
 }

@@ -248,7 +248,7 @@ async function ucdReadTokens(
 async function ucdReadNestedList(reader: AsyncUcdReader, rx: Ucrx): Promise<void> {
   rx.em?.(); // Enclosing value is a list.
 
-  let itemsRx = rx._.nls?.();
+  let itemsRx = rx.nls?.();
 
   if (!itemsRx) {
     reader.error(ucrxUnexpectedTypeError('nested list', rx));

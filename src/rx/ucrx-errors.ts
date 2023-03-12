@@ -2,7 +2,7 @@ import { escapeJsString, quotePropertyKey } from '../impl/quote-property-key.js'
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { Ucrx, UcrxItem } from './ucrx.js';
+import { Ucrx } from './ucrx.js';
 
 export function ucrxUnexpectedTypeError(type: string, rx: Ucrx): UcErrorInfo {
   const expectedTypes = ucrxExpectedTypes(rx);
@@ -80,7 +80,7 @@ export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcError
 }
 
 export function ucrxExpectedTypes(rx: Ucrx): readonly string[] {
-  const types = Object.entries(rx._)
+  const types = Object.entries(rx)
     .map(([key, value]) => (value ? UCRX_TYPE_NAMES[key] ?? key : 0))
     .filter((name): name is string => !!name);
 
@@ -111,8 +111,10 @@ const UCRX_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
   bol: 'boolean',
   big: 'bigint',
   nls: 'nested list',
-  nul: 'null',
   num: 'number',
   str: 'string',
   for: 0,
-} satisfies { [key in keyof UcrxItem]: string | 0 };
+  em: 0,
+  ls: 0,
+  nul: 'null',
+} satisfies { [key in keyof Ucrx]: string | 0 };
