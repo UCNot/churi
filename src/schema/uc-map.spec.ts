@@ -133,7 +133,7 @@ describe('UcMap', () => {
       ).resolves.toBe("$('test)");
     });
     it('serializes entry with special keys', async () => {
-      const specialKey = '(%)\r\n\t\u042a ' as const;
+      const specialKey = '(%)\r\n\t\uD83D\uDFB1 ' as const;
       const lib = new UcsLib({
         schemae: {
           writeMap: ucMap({
@@ -158,7 +158,9 @@ describe('UcMap', () => {
               [specialKey]: '13',
             }),
         ),
-      ).resolves.toBe("$'('quote)$!('exclamation)$$('dollar)\\(13)%28%25%29%0D%0A%09Ъ ('13)");
+      ).resolves.toBe(
+        "$'('quote)$!('exclamation)$$('dollar)\\(13)%28%25%29%0D%0A%09\uD83D\uDFB1 ('13)",
+      );
     });
     it('serializes nullable entry', async () => {
       const lib = new UcsLib({
