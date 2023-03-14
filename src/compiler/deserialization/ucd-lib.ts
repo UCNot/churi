@@ -7,10 +7,8 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UccCode } from '../ucc-code.js';
-import { UccDeclarations } from '../ucc-declarations.js';
-import { UccImports } from '../ucc-imports.js';
-import { UccNamespace } from '../ucc-namespace.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
@@ -18,32 +16,29 @@ import { UcdEntityPrefixDef } from './ucd-entity-prefix-def.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdTypeDef } from './ucd-type-def.js';
 
-export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
+export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends UcrxLib {
 
   readonly #schemae: {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #ns: UccNamespace;
-  readonly #imports: UccImports;
-  readonly #declarations: UccDeclarations;
   readonly #typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
   readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
 
-  constructor(options: UcdLib.Options<TSchemae>);
+  constructor(options: UcdLib.Options<TSchemae>) {
+    super(options);
 
-  constructor({
-    schemae,
-    resolver = new UcSchemaResolver(),
-    ns = new UccNamespace(),
-    imports = new UccImports(ns),
-    declarations = new UccDeclarations(ns),
-    definitions = DefaultUcdDefs,
-    createDeserializer = options => new UcdFunction(options),
-  }: UcdLib.Options<TSchemae>) {
+    const {
+      schemae,
+      resolver = new UcSchemaResolver(),
+
+      definitions = DefaultUcdDefs,
+      createDeserializer = options => new UcdFunction(options),
+    } = options;
+
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
@@ -52,9 +47,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
-    this.#ns = ns;
-    this.#imports = imports;
-    this.#declarations = declarations;
 
     for (const def of asArray(definitions)) {
       if (def.type) {
@@ -69,18 +61,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
       this.deserializerFor(schema, externalName);
     }
-  }
-
-  get ns(): UccNamespace {
-    return this.#ns;
-  }
-
-  get imports(): UccImports {
-    return this.#imports;
-  }
-
-  get declarations(): UccDeclarations {
-    return this.#declarations;
   }
 
   get entityHandler(): string {
@@ -124,10 +104,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
         });
       });
     });
-  }
-
-  import(from: string, name: string): string {
-    return this.imports.import(from, name);
   }
 
   deserializerFor<T, TSchema extends UcSchema<T>>(
@@ -233,7 +209,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   #toModuleCode(mode: UcDeserializer.Mode): UccCode.Builder {
     return code => code.write(
-        this.#imports.asStatic(),
+        this.imports.asStatic(),
         '',
         this.declarations,
         '',
@@ -291,12 +267,9 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 }
 
 export namespace UcdLib {
-  export interface Options<TSchemae extends Schemae> {
+  export interface Options<TSchemae extends Schemae> extends UcrxLib.Options {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
-    readonly ns?: UccNamespace | undefined;
-    readonly imports?: UccImports | undefined;
-    readonly declarations?: UccDeclarations | undefined;
     readonly definitions?: UcdDef | readonly UcdDef[] | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
