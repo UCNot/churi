@@ -1,12 +1,18 @@
+import { VoidUcrx } from '../../rx/void.ucrx.js';
+import { BaseUcrxTemplate } from '../impl/base.ucrx-template.js';
 import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { UccNamespace } from '../ucc-namespace.js';
+import { UcrxMethod } from './ucrx-method.js';
+import { UcrxTemplate } from './ucrx-template.js';
 
 export abstract class UcrxLib {
 
   readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
+  #baseUcrxTemplate?: BaseUcrxTemplate;
+  #ucrxMethodNs?: UccNamespace;
 
   constructor(options?: UcrxLib.Options);
 
@@ -30,6 +36,24 @@ export abstract class UcrxLib {
 
   get declarations(): UccDeclarations {
     return this.#declarations;
+  }
+
+  get baseUcrxTemplate(): UcrxTemplate<void> {
+    return (this.#baseUcrxTemplate ??= new BaseUcrxTemplate(this));
+  }
+
+  ucrxMethodKey<TArgs extends string[]>(method: UcrxMethod<TArgs>): string;
+  ucrxMethodKey<TArgs extends string[]>({ key }: UcrxMethod<TArgs>): string {
+    if (!this.#ucrxMethodNs) {
+      this.#ucrxMethodNs = new UccNamespace();
+
+      // Reserve `VoidUcrx` interface methods.
+      for (const key of Object.keys(VoidUcrx.prototype)) {
+        this.#ucrxMethodNs.name(key);
+      }
+    }
+
+    return this.#ucrxMethodNs.name(key);
   }
 
   import(from: string, name: string): string {

@@ -1,4 +1,4 @@
-import { quotePropertyKey } from '../impl/quote-property-key.js';
+import { jsPropertyKey } from '../impl/quote-property-key.js';
 import { UccCode } from './ucc-code.js';
 
 /**
@@ -51,7 +51,7 @@ export function uccInitProperties<T extends UccObjectInit, TKey extends keyof T 
 ): UccCode.Source {
   return code => {
     for (const key of keys) {
-      const k = quotePropertyKey(key as string);
+      const k = jsPropertyKey(key as string);
       const initProperty = initObject[key] ?? defaultInit;
 
       if (initProperty) {

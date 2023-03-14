@@ -1,3 +1,4 @@
+import { UcrxContext } from '../rx/ucrx-context.js';
 import { ucrxUnrecognizedEntityError } from '../rx/ucrx-errors.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
@@ -5,7 +6,7 @@ import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcdEntityHandler } from './ucd-entity-handler.js';
 
-export abstract class UcdReader {
+export abstract class UcdReader implements UcrxContext {
 
   readonly #onError: (error: UcErrorInfo) => void;
   readonly #onEntity: UcdEntityHandler;

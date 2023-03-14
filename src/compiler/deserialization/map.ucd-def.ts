@@ -1,6 +1,6 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
-import { quotePropertyKey } from '../../impl/quote-property-key.js';
+import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../ucc-code.js';
@@ -69,7 +69,7 @@ export class MapUcdDef<
           for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
             const entry = this.createEntry(key, entrySchema);
 
-            code.write(entry.declare(`${quotePropertyKey(key)}: `, `,`));
+            code.write(entry.declare(`${jsPropertyKey(key)}: `, `,`));
           }
         })
         .write(`}${suffix}`);

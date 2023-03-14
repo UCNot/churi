@@ -3,8 +3,12 @@ export const PROPERTY_KEY_PATTERN = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/;
 // eslint-disable-next-line no-control-regex
 const JS_STRING_ESCAPE_PATTERN = /[\u0000-\u001f\\'"\u007f-\uffff]/g;
 
-export function quotePropertyKey(key: string, quote: "'" | '"' = "'"): string {
-  return PROPERTY_KEY_PATTERN.test(key) ? key : `${quote}${escapeJsString(key)}${quote}`;
+export function jsPropertyKey(key: string, quote: "'" | '"' = "'"): string {
+  return PROPERTY_KEY_PATTERN.test(key) ? key : jsStringLiteral(key, quote);
+}
+
+export function jsStringLiteral(value: string, quote: "'" | '"' = "'"): string {
+  return `${quote}${escapeJsString(value)}${quote}`;
 }
 
 export function escapeJsString(value: string): string {
