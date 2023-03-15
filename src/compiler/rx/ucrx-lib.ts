@@ -42,8 +42,8 @@ export abstract class UcrxLib {
     return (this.#baseUcrxTemplate ??= new BaseUcrxTemplate(this));
   }
 
-  ucrxMethodKey<TArgs extends string[]>(method: UcrxMethod<TArgs>): string;
-  ucrxMethodKey<TArgs extends string[]>({ key }: UcrxMethod<TArgs>): string {
+  ucrxMethodKey<TArg extends string>(method: UcrxMethod<TArg>): string;
+  ucrxMethodKey<TArg extends string>({ key }: UcrxMethod<TArg>): string {
     if (!this.#ucrxMethodNs) {
       this.#ucrxMethodNs = new UccNamespace();
 

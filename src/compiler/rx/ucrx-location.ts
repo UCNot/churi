@@ -1,19 +1,16 @@
+import { UccArgs } from '../ucc-args.js';
+
 /**
  * A location within source code to place charge receiver {@link UcrxTemplate#newInstance instantiation} code.
  *
  * The generated code expected to be placed between the give {@link UcrxLocation#prefix prefix}
  * and {@link UcrxLocation#suffix suffix}.
  */
-export interface UcrxLocation {
+export interface UcrxLocation<TArg extends string = string> {
   /**
-   * An expression resolved to value setter function.
+   * New instance arguments.
    */
-  readonly setter: string;
-
-  /**
-   * An expression resolved to charge processing {@link UcrxContext context}.
-   */
-  readonly context: string;
+  readonly args: UccArgs.ByName<TArg>;
 
   /**
    * The code immediately preceding the instantiation.

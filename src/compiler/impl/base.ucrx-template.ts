@@ -12,7 +12,7 @@ export class BaseUcrxTemplate extends UcrxTemplate<void> {
       base: CHURI_MODULE,
       schema: UcSchema$Void,
       className: 'VoidUcrx',
-      needsContext: false,
+      args: [],
     });
   }
 

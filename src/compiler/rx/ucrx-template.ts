@@ -1,40 +1,48 @@
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccArgs } from '../ucc-args.js';
 import { UccCode } from '../ucc-code.js';
+import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxLocation } from './ucrx-location.js';
 import { UcrxMethod } from './ucrx-method.js';
 
-export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+export class UcrxTemplate<
+  out T = unknown,
+  out TSchema extends UcSchema<T> = UcSchema<T>,
+  in out TArg extends string = string,
+> {
 
   readonly #lib: UcrxLib;
   readonly #schema: TSchema;
   readonly #base: UcrxTemplate | string;
   readonly #className: string;
-  readonly #needsContext: boolean;
-  readonly #methodDecls: UcrxTemplate.Options<T, TSchema>['methods'];
+  readonly #args: UccArgs<TArg>;
+  readonly #methodDecls: UcrxTemplate.Options<T, TSchema, TArg>['methods'];
   #ownMethods?: UcrxTemplate.Methods;
+  #definedMethods?: UcrxTemplate.Methods;
+  #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
 
-  constructor(options: UcrxTemplate.Options<T, TSchema>);
+  constructor(options: UcrxTemplate.Options<T, TSchema, TArg>);
   constructor({
     lib,
     schema,
     base = lib.baseUcrxTemplate,
     className,
-    needsContext,
+    args,
     methods,
-  }: UcrxTemplate.Options<T, TSchema>) {
+  }: UcrxTemplate.Options<T, TSchema, TArg>) {
     this.#lib = lib;
     this.#schema = schema;
     this.#base = base;
     this.#methodDecls = methods;
 
     if (typeof base === 'string') {
-      this.#needsContext = needsContext ?? false;
       this.#className = this.lib.import(base, className);
+      this.#args = args ? new UccArgs(...args) : new UccArgs('set' as TArg);
     } else {
-      this.#needsContext = needsContext ?? base.needsContext;
       this.#className = lib.ns.name(className);
+      this.#args = args ? new UccArgs(...args) : (base.args as UccArgs<any>);
     }
   }
 
@@ -54,22 +62,58 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     return this.#className;
   }
 
-  get needsContext(): boolean {
-    return this.#needsContext;
+  get args(): UccArgs<TArg> {
+    return this.#args;
+  }
+
+  get expectedTypes(): ReadonlySet<string> {
+    return this.#getExpectedTypes()[0];
+  }
+
+  #getExpectedTypes(): readonly [set: ReadonlySet<string>, sameAsBase: boolean] {
+    return (this.#expectedTypes ??= this.#buildExpectedTypes());
+  }
+
+  #buildExpectedTypes(): readonly [set: ReadonlySet<string>, sameAsBase: boolean] {
+    const types = new Set<string>();
+
+    for (const {
+      method: { typeName },
+    } of Object.values(this.ownMethods)) {
+      if (typeName) {
+        types.add(typeName);
+      }
+    }
+
+    const { base } = this;
+    const sameAsBase = !types.size;
+
+    if (typeof base !== 'string') {
+      base.expectedTypes.forEach(type => types.add(type));
+    }
+
+    return [types, sameAsBase];
   }
 
   get ownMethods(): UcrxTemplate.Methods {
     return (this.#ownMethods ??= this.#buildOwnMethods());
   }
 
+  get definedMethods(): UcrxTemplate.Methods {
+    return (this.#definedMethods ??=
+      typeof this.base === 'string'
+        ? this.ownMethods
+        : { ...this.base.definedMethods, ...this.ownMethods });
+  }
+
   #buildOwnMethods(): UcrxTemplate.Methods {
-    const methods: Record<string, UcrxTemplate.Method<string[]>> = {};
+    const methods: Record<string, UcrxTemplate.Method<string>> = {};
 
     if (this.#methodDecls) {
       for (const [key, value] of Object.entries(this.#methodDecls)) {
         if (value) {
           if (key === 'custom') {
-            for (const { method, declare } of value as UcrxTemplate.Method<string[]>[]) {
+            for (const { method, declare } of value as UcrxTemplate.Method<string>[]) {
               methods[this.#lib.ucrxMethodKey(method)] = {
                 method,
                 declare,
@@ -77,8 +121,8 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
             }
           } else {
             methods[key] = {
-              method: UcrxMethod.predefined[key as keyof UcrxMethod.Predefined] as UcrxMethod<any>,
-              declare: value as UcrxMethod.Decl<string[]>,
+              method: UcrxCore[key as keyof UcrxCore] as UcrxMethod<any>,
+              declare: value as UcrxMethod.Decl<string>,
             };
           }
         }
@@ -88,11 +132,9 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     return methods as UcrxTemplate.Methods;
   }
 
-  newInstance(location: UcrxLocation): UccCode.Source;
-  newInstance({ context, setter, prefix, suffix }: UcrxLocation): UccCode.Source {
-    return `${prefix}new ${this.className}(${setter}${
-      this.needsContext ? ', ' + context : ''
-    })${suffix}`;
+  newInstance(location: UcrxLocation<TArg>): UccCode.Source;
+  newInstance({ args, prefix, suffix }: UcrxLocation<TArg>): UccCode.Source {
+    return `${prefix}new ${this.className}(${this.args.call(args)})${suffix}`;
   }
 
   declare(): UccCode.Source {
@@ -102,24 +144,47 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
       code
         .write(`class ${this.className} extends ${base} {`)
         .indent(code => {
-          code.write(this.#declareTypes());
+          code.write(this.#declareConstructor(), this.#declareTypes());
           for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
-            code.write(method.declare(this, key, declare as UcrxMethod.Decl<string[]>));
+            code.write(
+              method.declare(
+                this as unknown as UcrxTemplate,
+                key,
+                declare as UcrxMethod.Decl<string>,
+              ),
+            );
           }
         })
         .write(`}`);
     };
   }
 
+  #declareConstructor(): UccCode.Source {
+    const base = typeof this.base === 'string' ? this.lib.baseUcrxTemplate : this.base;
+
+    return code => {
+      if (!this.args.equals(base.args)) {
+        const args = this.args.declare(this.lib.ns.nest());
+
+        code
+          .write(`constructor(${args}) {`)
+          .indent(code => {
+            code.write(`super(${base.args.call(args.args)});`);
+          })
+          .write(`}`);
+      }
+    };
+  }
+
   #declareTypes(): UccCode.Source {
     return code => {
-      const types = this.#expectedTypes();
+      const [types, baseTypes] = this.#getExpectedTypes();
 
-      if (types) {
+      if (!baseTypes) {
         code
           .write('get types() {')
           .indent(code => {
-            const typeNames = types.map(type => jsStringLiteral(type)).join(', ');
+            const typeNames = [...types].map(type => jsStringLiteral(type)).join(', ');
 
             code.write(`return [${typeNames}];`);
           })
@@ -128,61 +193,33 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     };
   }
 
-  #expectedTypes(full?: false): readonly string[] | undefined;
-  #expectedTypes(full: true): readonly string[];
-  #expectedTypes(full = false): readonly string[] | undefined {
-    const types: string[] = [];
-
-    for (const {
-      method: { typeName },
-    } of Object.values(this.ownMethods)) {
-      if (typeName) {
-        types.push(typeName);
-      }
-    }
-
-    if (!types.length && !full) {
-      return;
-    }
-
-    const { base } = this;
-
-    if (typeof base !== 'string') {
-      types.push(...base.#expectedTypes(true));
-    }
-
-    return types;
-  }
-
 }
 
 export namespace UcrxTemplate {
-  export interface Options<out T, out TSchema extends UcSchema<T>> {
+  export interface Options<out T, out TSchema extends UcSchema<T>, out TArg extends string> {
     readonly lib: UcrxLib;
     readonly schema: TSchema;
     readonly base?: UcrxTemplate | string | undefined;
     readonly className: string;
-    readonly needsContext?: boolean | undefined;
+    readonly args?: readonly TArg[] | undefined;
 
     readonly methods?: {
-      readonly [key in keyof UcrxMethod.Predefined]?:
-        | UcrxMethod.Decl<UcrxMethod.ArgsType<UcrxMethod.Predefined[key]>>
+      readonly [key in keyof UcrxCore]?:
+        | UcrxMethod.Decl<UcrxMethod.ArgType<UcrxCore[key]>>
         | undefined;
     } & {
-      readonly custom?: Method<string[]>[] | undefined;
+      readonly custom?: Method[] | undefined;
     };
   }
 
   export type Methods = {
-    readonly [key in keyof UcrxMethod.Predefined]?:
-      | Method<UcrxMethod.ArgsType<UcrxMethod.Predefined[key]>>
-      | undefined;
+    readonly [key in keyof UcrxCore]?: Method<UcrxMethod.ArgType<UcrxCore[key]>> | undefined;
   } & {
-    readonly [key in Exclude<string, keyof UcrxMethod.Predefined>]: Method<string[]>;
+    readonly [key in Exclude<string, keyof UcrxCore>]: Method;
   };
 
-  export interface Method<in out TArgs extends string[] = [string]> {
-    readonly method: UcrxMethod<TArgs>;
-    readonly declare: UcrxMethod.Decl<TArgs>;
+  export interface Method<in out TArg extends string = string> {
+    readonly method: UcrxMethod<TArg>;
+    readonly declare: UcrxMethod.Decl<TArg>;
   }
 }
