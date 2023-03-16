@@ -15,26 +15,15 @@ export class UccDeclarations implements UccCode.Fragment {
   declare(
     id: string,
     initializer: string | ((prefix: string, suffix: string) => UccCode.Source),
-    { key = id }: { readonly key?: string | undefined } = {},
+    options?: { readonly key?: string | undefined },
   ): string {
-    const snippetKey = key === id ? `id:${id}` : `key:${key}`;
-    let name = this.#snippets.get(snippetKey);
-
-    if (name) {
-      return name;
-    }
-
-    name = this.#ns.name(id);
-
-    if (typeof initializer === 'string') {
-      this.#code.write(`const ${name} = ${initializer};`);
-    } else {
-      this.#code.write(initializer(`const ${name} = `, `;`));
-    }
-
-    this.#snippets.set(snippetKey, id);
-
-    return name;
+    return this.#declare(
+      id,
+      typeof initializer === 'string'
+        ? name => `const ${name} = ${initializer};`
+        : name => initializer(`const ${name} = `, `;`),
+      options,
+    );
   }
 
   declareConst(
@@ -47,8 +36,42 @@ export class UccDeclarations implements UccCode.Fragment {
     return this.declare(prefix + safeJsId(key), initializer, { key: initializer });
   }
 
+  declareClass(
+    className: string,
+    body: (name: string) => UccCode.Source,
+    { baseClass }: { readonly baseClass?: string | undefined } = {},
+  ): string {
+    return this.#declare(className, name => code => {
+      code
+        .write(`class ${name} ` + (baseClass ? `extends ${baseClass} {` : `{`))
+        .indent(body(name))
+        .write(`}`);
+    });
+  }
+
   toCode(): UccCode.Source {
     return code => code.write(this.#code);
+  }
+
+  #declare(
+    id: string,
+    snippet: (name: string) => UccCode.Source,
+    { key = id }: { readonly key?: string | undefined } = {},
+  ): string {
+    const snippetKey = key === id ? `id:${id}` : `key:${key}`;
+    let name = this.#snippets.get(snippetKey);
+
+    if (name) {
+      return name;
+    }
+
+    name = this.#ns.name(id);
+
+    this.#code.write(snippet(name));
+
+    this.#snippets.set(snippetKey, name);
+
+    return name;
   }
 
 }

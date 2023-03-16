@@ -16,7 +16,8 @@ export class UcrxTemplate<
   readonly #lib: UcrxLib;
   readonly #schema: TSchema;
   readonly #base: UcrxTemplate | string;
-  readonly #className: string;
+  readonly #preferredClassName: string;
+  #className?: string;
   readonly #args: UccArgs<TArg>;
   readonly #methodDecls: UcrxTemplate.Options<T, TSchema, TArg>['methods'];
   #ownMethods?: UcrxTemplate.Methods;
@@ -35,13 +36,12 @@ export class UcrxTemplate<
     this.#lib = lib;
     this.#schema = schema;
     this.#base = base;
+    this.#preferredClassName = className;
     this.#methodDecls = methods;
 
     if (typeof base === 'string') {
-      this.#className = this.lib.import(base, className);
       this.#args = args ? new UccArgs(...args) : new UccArgs('set' as TArg);
     } else {
-      this.#className = lib.ns.name(className);
       this.#args = args ? new UccArgs(...args) : (base.args as UccArgs<any>);
     }
   }
@@ -59,7 +59,21 @@ export class UcrxTemplate<
   }
 
   get className(): string {
-    return this.#className;
+    return (this.#className ??= this.#declare());
+  }
+
+  #declare(): string {
+    const { base } = this;
+
+    if (typeof base === 'string') {
+      return this.lib.import(base, this.#preferredClassName);
+    }
+
+    return this.#lib.declarations.declareClass(
+      this.#preferredClassName,
+      name => this.#declareClass(name),
+      { baseClass: base.className },
+    );
   }
 
   get args(): UccArgs<TArg> {
@@ -137,25 +151,14 @@ export class UcrxTemplate<
     return `${prefix}new ${this.className}(${this.args.call(args)})${suffix}`;
   }
 
-  declare(): UccCode.Source {
+  #declareClass(_className: string): UccCode.Source {
     return code => {
-      const base = typeof this.base === 'string' ? this.base : this.base.className;
-
-      code
-        .write(`class ${this.className} extends ${base} {`)
-        .indent(code => {
-          code.write(this.#declareConstructor(), this.#declareTypes());
-          for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
-            code.write(
-              method.declare(
-                this as unknown as UcrxTemplate,
-                key,
-                declare as UcrxMethod.Decl<string>,
-              ),
-            );
-          }
-        })
-        .write(`}`);
+      code.write(this.#declareConstructor(), this.#declareTypes());
+      for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
+        code.write(
+          method.declare(this as unknown as UcrxTemplate, key, declare as UcrxMethod.Decl<string>),
+        );
+      }
     };
   }
 
