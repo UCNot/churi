@@ -1,6 +1,6 @@
 import { Ucrx } from './ucrx.js';
 
-export abstract class VoidUcrx {
+export abstract class VoidUcrx implements Ucrx {
 
   readonly #set: (value: unknown) => void;
 
@@ -28,7 +28,7 @@ export abstract class VoidUcrx {
     return this.any(value);
   }
 
-  str(value: boolean): 0 | 1 {
+  str(value: string): 0 | 1 {
     return this.any(value);
   }
 

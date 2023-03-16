@@ -7,10 +7,8 @@ import { Ucrx } from './ucrx.js';
 export function ucrxUnexpectedTypeError(
   type: string,
   rx: Ucrx,
-  filterKey?: (key: keyof Ucrx) => boolean,
+  expectedTypes = rx.types,
 ): UcErrorInfo {
-  const expectedTypes = ucrxExpectedTypes(rx, filterKey);
-
   return {
     code: 'unexpectedType',
     details: {
@@ -24,7 +22,11 @@ export function ucrxUnexpectedTypeError(
 }
 
 export function ucrxUnexpectedNullError(rx: Ucrx): UcErrorInfo {
-  return ucrxUnexpectedTypeError('null', rx, key => key !== 'nul');
+  return ucrxUnexpectedTypeError(
+    'null',
+    rx,
+    rx.types.filter(type => type !== 'null'),
+  );
 }
 
 export function ucrxMissingEntriesError(
@@ -53,7 +55,7 @@ export function ucrxMissingEntriesError(
 }
 
 export function ucrxUnexpectedSingleItemError(rx: Ucrx): UcErrorInfo {
-  const types = ucrxExpectedTypes(rx);
+  const { types } = rx;
 
   return {
     code: 'unexpectedType',
@@ -87,21 +89,6 @@ export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcError
   };
 }
 
-export function ucrxExpectedTypes(
-  rx: Ucrx,
-  filterKey: (key: keyof Ucrx) => boolean = ucrxExpectedTypes$acceptKey,
-): readonly string[] {
-  const types = Object.entries(rx)
-    .map(([key, value]) => filterKey(key as keyof Ucrx) && value ? UCRX_TYPE_NAMES[key] ?? key : 0)
-    .filter((name): name is string => !!name);
-
-  return types.length ? types : ['none'];
-}
-
-function ucrxExpectedTypes$acceptKey(_key: keyof Ucrx): boolean {
-  return true;
-}
-
 export function ucrxTypeNames(types: readonly string[]): string {
   if (types.length === 1) {
     return types[0];
@@ -121,15 +108,3 @@ export function ucrxTypeNames(types: readonly string[]): string {
     return `${prev}, ${type}`;
   }, '');
 }
-
-const UCRX_TYPE_NAMES: { [key: PropertyKey]: string | 0 | undefined } = {
-  bol: 'boolean',
-  big: 'bigint',
-  nls: 'nested list',
-  num: 'number',
-  str: 'string',
-  for: 0,
-  em: 0,
-  ls: 0,
-  nul: 'null',
-} satisfies { [key in keyof Ucrx]: string | 0 };

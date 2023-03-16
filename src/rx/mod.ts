@@ -1,3 +1,4 @@
+export * from './opaque.ucrx.js';
 export * from './ucrx-context.js';
 export * from './ucrx-errors.js';
 export * from './ucrx-value.js';
