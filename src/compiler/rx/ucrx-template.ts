@@ -27,7 +27,7 @@ export class UcrxTemplate<
   constructor({
     lib,
     schema,
-    base = lib.baseUcrxTemplate,
+    base = lib.voidUcrx,
     className,
     args,
     methods,
@@ -160,7 +160,7 @@ export class UcrxTemplate<
   }
 
   #declareConstructor(): UccCode.Source {
-    const base = typeof this.base === 'string' ? this.lib.baseUcrxTemplate : this.base;
+    const base = typeof this.base === 'string' ? this.lib.voidUcrx : this.base;
 
     return code => {
       if (!this.args.equals(base.args)) {

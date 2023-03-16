@@ -1,5 +1,6 @@
 import { VoidUcrx } from '../../rx/void.ucrx.js';
-import { BaseUcrxTemplate } from '../impl/base.ucrx-template.js';
+import { OpaqueUcrxTemplate } from '../impl/opaque.ucrx-template.js';
+import { VoidUcrxTemplate } from '../impl/void.ucrx-template.js';
 import { UccDeclarations } from '../ucc-declarations.js';
 import { UccImports } from '../ucc-imports.js';
 import { UccNamespace } from '../ucc-namespace.js';
@@ -11,7 +12,8 @@ export abstract class UcrxLib {
   readonly #ns: UccNamespace;
   readonly #imports: UccImports;
   readonly #declarations: UccDeclarations;
-  #baseUcrxTemplate?: BaseUcrxTemplate;
+  #voidUcrx?: VoidUcrxTemplate;
+  #opaqueUcrx?: OpaqueUcrxTemplate;
   #ucrxMethodNs?: UccNamespace;
 
   constructor(options?: UcrxLib.Options);
@@ -38,8 +40,12 @@ export abstract class UcrxLib {
     return this.#declarations;
   }
 
-  get baseUcrxTemplate(): UcrxTemplate<void> {
-    return (this.#baseUcrxTemplate ??= new BaseUcrxTemplate(this));
+  get voidUcrx(): UcrxTemplate<void> {
+    return (this.#voidUcrx ??= new VoidUcrxTemplate(this));
+  }
+
+  get opaqueUcrx(): UcrxTemplate<void> {
+    return (this.#opaqueUcrx ??= new OpaqueUcrxTemplate(this));
   }
 
   ucrxMethodKey<TArg extends string>(method: UcrxMethod<TArg>): string;
