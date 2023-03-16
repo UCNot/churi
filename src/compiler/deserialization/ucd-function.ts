@@ -3,11 +3,12 @@ import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcrxLocation } from '../rx/ucrx-location.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
-import { ucdCreateUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
+import { UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -85,9 +86,9 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
    *
    * @returns Initializer code.
    */
-  initRx(location: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx;
-  initRx({ ns, schema, setter }: Omit<UcdUcrxLocation, 'fn'>): UcdUcrx {
-    const rxInit = this.lib.typeDefFor(schema)?.initRx({ fn: this, ns, schema, setter });
+  initRx(location: Omit<UcrxLocation, 'lib'>): UccCode.Source {
+    const { schema } = location;
+    const rxInit = this.lib.typeDefFor(schema)?.deserialize({ ...location, lib: this.lib });
 
     if (rxInit == null) {
       throw new UnsupportedUcSchemaError(
@@ -109,17 +110,15 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          ucdCreateUcrx(
-            this.initRx({
-              ns: this.ns,
-              schema: this.schema,
-              setter: this.args.setter,
-            }),
-            {
-              prefix: `await ${this.args.reader}.read(`,
-              suffix: ');',
+          this.initRx({
+            schema: this.schema,
+            args: {
+              set: this.args.setter,
+              context: this.args.reader,
             },
-          ),
+            prefix: `await ${this.args.reader}.read(`,
+            suffix: ');',
+          }),
         )
         .write('}');
   }
@@ -134,17 +133,15 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return code => code
         .write(`function ${this.syncName}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
-          ucdCreateUcrx(
-            this.initRx({
-              ns: this.ns,
-              schema: this.schema,
-              setter: this.args.setter,
-            }),
-            {
-              prefix: `${this.args.reader}.read(`,
-              suffix: ');',
+          this.initRx({
+            schema: this.schema,
+            args: {
+              set: this.args.setter,
+              context: this.args.reader,
             },
-          ),
+            prefix: `${this.args.reader}.read(`,
+            suffix: ');',
+          }),
         )
         .write('}');
   }

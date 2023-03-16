@@ -1,18 +1,22 @@
 import { Ucrx } from '../../rx/ucrx.js';
+import { UcSchema } from '../../schema/uc-schema.js';
+import { UcrxLocation } from '../rx/ucrx-location.js';
+import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UccCode } from '../ucc-code.js';
 import { UcdDef } from './ucd-def.js';
-import { UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
 
 export class Primitive$UcdDefs {
 
   readonly #list: UcdDef[];
+  readonly #templates: { [key in keyof Ucrx]?: UcrxTemplate<any, any, any> } = {};
 
   constructor() {
     this.#list = [
-      { type: Boolean, initRx: this.#initBooleanRx.bind(this) },
-      { type: BigInt, initRx: this.#initBigIntRx.bind(this) },
-      { type: Number, initRx: this.#initNumberRx.bind(this) },
-      { type: String, initRx: this.#initStringRx.bind(this) },
+      { type: Boolean, deserialize: this.#initBooleanRx.bind(this) },
+      { type: BigInt, deserialize: this.#initBigIntRx.bind(this) },
+      { type: Number, deserialize: this.#initNumberRx.bind(this) },
+      { type: String, deserialize: this.#initStringRx.bind(this) },
     ];
   }
 
@@ -20,36 +24,53 @@ export class Primitive$UcdDefs {
     return this.#list;
   }
 
-  #initBooleanRx(location: UcdUcrxLocation<boolean>): UcdUcrx {
+  #initBooleanRx(location: UcrxLocation<boolean>): UccCode.Source {
     return this.#createRxFor('bol', location);
   }
 
-  #initBigIntRx(location: UcdUcrxLocation): UcdUcrx {
+  #initBigIntRx(location: UcrxLocation<bigint>): UccCode.Source {
     return this.#createRxFor('big', location);
   }
 
-  #initNumberRx(location: UcdUcrxLocation): UcdUcrx {
+  #initNumberRx(location: UcrxLocation<number>): UccCode.Source {
     return this.#createRxFor('num', location);
   }
 
-  #initStringRx(location: UcdUcrxLocation): UcdUcrx {
+  #initStringRx(location: UcrxLocation<string>): UccCode.Source {
     return this.#createRxFor('str', location);
   }
 
-  #createRxFor(key: keyof Ucrx, { schema, setter }: UcdUcrxLocation): UcdUcrx {
-    return {
-      properties: {
-        [key]:
-          (prefix: string, suffix: string): UccCode.Source => code => {
-            code.write(`${prefix}${setter}${suffix}`);
-          },
-        nul: schema.nullable
-          ? (prefix, suffix) => code => {
-              code.write(`${prefix}() => ${setter}(null)${suffix}`);
-            }
-          : undefined,
+  #createRxFor<T, TSchema extends UcSchema<T>, TArg extends string>(
+    key: 'bol' | 'big' | 'num' | 'str',
+    location: UcrxLocation<T, TSchema, TArg>,
+  ): UccCode.Source {
+    return this.#ucrxTemplateFor(key, location).newInstance(location);
+  }
+
+  #ucrxTemplateFor<T, TSchema extends UcSchema<T>, TArg extends string>(
+    key: 'bol' | 'big' | 'num' | 'str',
+    { lib, schema }: UcrxLocation<T, TSchema, TArg>,
+  ): UcrxTemplate<T, TSchema, TArg> {
+    const template = this.#templates[key];
+
+    if (template) {
+      return template;
+    }
+
+    const newTemplate = new UcrxTemplate<T, TSchema, TArg>({
+      lib,
+      schema,
+      className: `${key[0].toUpperCase()}${key.slice(1)}Ucrx`,
+      methods: {
+        [key]({ args: { value }, prefix, suffix }: UcrxMethod.Location<'value'>): UccCode.Source {
+          return `${prefix}this.set(${value})${suffix}`;
+        },
       },
-    };
+    });
+
+    this.#templates[key] = newTemplate;
+
+    return newTemplate;
   }
 
 }

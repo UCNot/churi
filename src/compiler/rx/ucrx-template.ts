@@ -146,8 +146,8 @@ export class UcrxTemplate<
     return methods as UcrxTemplate.Methods;
   }
 
-  newInstance(location: UcrxLocation<TArg>): UccCode.Source;
-  newInstance({ args, prefix, suffix }: UcrxLocation<TArg>): UccCode.Source {
+  newInstance(location: UcrxLocation<T, TSchema, TArg>): UccCode.Source;
+  newInstance({ args, prefix, suffix }: UcrxLocation<T, TSchema, TArg>): UccCode.Source {
     return `${prefix}new ${this.className}(${this.args.call(args)})${suffix}`;
   }
 

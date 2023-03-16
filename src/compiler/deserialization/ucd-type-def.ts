@@ -1,5 +1,6 @@
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
+import { UcrxLocation } from '../rx/ucrx-location.js';
+import { UccCode } from '../ucc-code.js';
 
 /**
  * Type deserialization definition.
@@ -16,11 +17,11 @@ export interface UcdTypeDef<out T = unknown> {
   readonly entityPrefix?: undefined;
 
   /**
-   * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
+   * Generates data deserialization code.
    *
    * @param location - A location inside deserializer function to insert generated code into.
    *
-   * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
+   * @returns Deserialization code, or `undefined` if the receiver can not be generated.
    */
-  initRx(location: UcdUcrxLocation<T>): UcdUcrx | undefined;
+  deserialize(location: UcrxLocation<T>): UccCode.Source | undefined;
 }
