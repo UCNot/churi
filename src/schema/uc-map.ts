@@ -1,5 +1,6 @@
 import { asis } from '@proc7ts/primitives';
-import { UcdUcrx, UcdUcrxLocation } from '../compiler/deserialization/ucd-ucrx.js';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
+import { UcrxTemplate } from '../compiler/rx/ucrx-template.js';
 import { jsPropertyKey } from '../impl/quote-property-key.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
@@ -33,20 +34,25 @@ export namespace UcMap {
     readonly extra: TExtraSpec extends UcSchema.Spec ? UcSchema.Of<TExtraSpec> : false;
 
     /**
-     * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
+     * Creates charge receiver template.
      *
      * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
      *
-     * @param location - A location inside deserializer function to insert generated code into.
+     * @param lib - Deserialization library instance.
+     * @param schema - Schema of deserialized map.
      *
-     * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
+     * @returns Deserialized charge receiver template, or `undefined` if the receiver can not be generated.
      */
-    initRx?(
-      location: UcdUcrxLocation<
-        UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
-        UcMap.Schema<TEntriesSpec, TExtraSpec>
-      >,
-    ): UcdUcrx | undefined;
+    createTemplate?(
+      this: void,
+      lib: UcdLib,
+      schema: UcMap.Schema<TEntriesSpec, TExtraSpec>,
+    ):
+      | UcrxTemplate<
+          UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+          UcMap.Schema<TEntriesSpec, TExtraSpec>
+        >
+      | undefined;
   }
 
   /**
@@ -148,20 +154,25 @@ export namespace UcMap {
       readonly id?: string | UcSchema.Class | undefined;
 
       /**
-       * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
+       * Creates charge receiver template.
        *
        * {@link @hatsy/churi/compiler!MapUcdDef Map deserializer definition} is used by default.
        *
-       * @param location - A location inside deserializer function to insert generated code into.
+       * @param lib - Deserialization library instance.
+       * @param schema - Schema of deserialized map.
        *
-       * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
+       * @returns Deserialized charge receiver template, or `undefined` if the receiver can not be generated.
        */
-      initRx?(
-        location: UcdUcrxLocation<
-          UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
-          UcMap.Schema<TEntriesSpec, TExtraSpec>
-        >,
-      ): UcdUcrx | undefined;
+      createTemplate?(
+        this: void,
+        lib: UcdLib,
+        schema: UcMap.Schema<TEntriesSpec, TExtraSpec>,
+      ):
+        | UcrxTemplate<
+            UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
+            UcMap.Schema<TEntriesSpec, TExtraSpec>
+          >
+        | undefined;
     }
 
     export type Options<TEntriesSpec extends Entries.Spec, TExtraSpec extends UcSchema.Spec> =
@@ -209,7 +220,7 @@ export function ucMap<
   TExtraSpec extends UcSchema.Spec,
 >(
   spec: TEntriesSpec,
-  { id, extra, initRx }: UcMap.Schema.Options<TEntriesSpec, TExtraSpec> = {},
+  { id, extra, createTemplate }: UcMap.Schema.Options<TEntriesSpec, TExtraSpec> = {},
 ): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec> {
   return {
     [UcSchema__symbol]: resolver => {
@@ -230,7 +241,7 @@ export function ucMap<
           TEntriesSpec,
           TExtraSpec
         >['extra'],
-        initRx: initRx as UcMap.Schema<TEntriesSpec, TExtraSpec>['initRx'],
+        createTemplate: createTemplate as UcMap.Schema<TEntriesSpec, TExtraSpec>['createTemplate'],
         toString() {
           let out = '{';
 

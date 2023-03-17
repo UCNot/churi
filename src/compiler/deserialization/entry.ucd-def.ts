@@ -2,11 +2,12 @@ import { lazyValue } from '@proc7ts/primitives';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
+import { UccArgs } from '../ucc-args.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcdDef } from './map.ucd-def.js';
-import { ucdCreateUcrx, UcdUcrx } from './ucd-ucrx.js';
 
 export class EntryUcdDef {
 
@@ -14,8 +15,6 @@ export class EntryUcdDef {
   readonly #key: string | null;
   readonly #schema: UcSchema;
   readonly #ns: UccNamespace;
-  readonly #argMap = lazyValue(() => this.ns.name('map'));
-  readonly #argKey = lazyValue(() => this.ns.name('key'));
   readonly #argValue = lazyValue(() => this.ns.name('value'));
   readonly #varEntrySetter = lazyValue(() => this.ns.name('setEntry'));
 
@@ -23,7 +22,7 @@ export class EntryUcdDef {
     this.#mapDef = mapDef;
     this.#key = key;
     this.#schema = schema;
-    this.#ns = mapDef.location.fn.lib.ns.nest();
+    this.#ns = mapDef.lib.ns.nest();
   }
 
   get mapDef(): MapUcdDef {
@@ -44,39 +43,32 @@ export class EntryUcdDef {
 
   createRx(args: EntryUcdDef.RxArgs): UccCode.Source;
 
-  createRx({ prefix, suffix, map, key }: EntryUcdDef.RxArgs): UccCode.Source {
+  createRx({ args: { map, key, context }, prefix, suffix }: EntryUcdDef.RxArgs): UccCode.Source {
     const setEntry = this.#varEntrySetter();
     const value = this.#argValue();
 
     return code => {
       code
         .write(`const ${setEntry} = ${value} => {`)
-        .indent(this.setEntry(`${map}[0]`, key, value), 'return 1;')
+        .indent(this.setEntry(`${map}[0]`, key, value))
         .write(`};`)
-        .write(ucdCreateUcrx(this.#initRx(setEntry), { prefix, suffix }));
+        .write(
+          this.getTemplate().newInstance({ args: { set: setEntry, context }, prefix, suffix }),
+        );
     };
   }
 
-  #initRx(setEntry: string): UcdUcrx {
-    const {
-      schema,
-      mapDef: {
-        location: { fn },
-      },
-    } = this;
+  getTemplate(): UcrxTemplate {
+    const { schema, mapDef } = this;
 
     try {
-      return fn.initRx({
-        ns: this.mapDef.ns,
-        schema,
-        setter: setEntry,
-      });
+      return mapDef.lib.ucrxTemplateFor(schema);
     } catch (cause) {
       const entryName = this.key != null ? `entry "${escapeJsString(this.key)}"` : 'extra entry';
 
       throw new UnsupportedUcSchemaError(
         schema,
-        `${fn.name}: Can not deserialize ${entryName} of type "${ucSchemaName(schema)}"`,
+        `${mapDef.className}: Can not deserialize ${entryName} of type "${ucSchemaName(schema)}"`,
         { cause },
       );
     }
@@ -93,21 +85,17 @@ export class EntryUcdDef {
   }
 
   #rx(): UccCode.Source {
-    const reader = this.mapDef.location.fn.args.reader;
-    const map = this.#argMap();
-    const key = this.#argKey();
+    const args = UccEntryDef$args.declare(this.mapDef.lib.ns.nest());
 
     return code => {
       code
-        .write(`rx(${reader}, ${map}, ${key}) {`)
+        .write(`rx(${args}) {`)
         .indent(code => {
           code.write(
             this.createRx({
+              args: args.args,
               prefix: 'return ',
               suffix: ';',
-              reader,
-              map,
-              key,
             }),
           );
         })
@@ -121,12 +109,16 @@ export class EntryUcdDef {
 
 }
 
+const UccEntryDef$args = new UccArgs<'context' | 'map' | 'key'>('context', 'map', 'key');
+
 export namespace EntryUcdDef {
   export interface RxArgs {
+    readonly args: {
+      readonly context: string;
+      readonly map: string;
+      readonly key: string;
+    };
     readonly prefix: string;
     readonly suffix: string;
-    readonly reader: string;
-    readonly map: string;
-    readonly key: string;
   }
 }

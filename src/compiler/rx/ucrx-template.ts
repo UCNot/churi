@@ -2,6 +2,8 @@ import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../ucc-args.js';
 import { UccCode } from '../ucc-code.js';
+import { UccNamespace } from '../ucc-namespace.js';
+import { UccPrinter } from '../ucc-printer.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxLocation } from './ucrx-location.js';
@@ -20,6 +22,9 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   #ownMethods?: UcrxTemplate.Methods;
   #definedMethods?: UcrxTemplate.Methods;
   #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
+
+  #privateNs?: UccNamespace;
+  #privates?: string[];
 
   constructor(options: UcrxTemplate.Options<T, TSchema>);
   constructor({
@@ -41,6 +46,8 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     } else {
       this.#args = args ? new UccArgs(...args) : base.args;
     }
+
+    this.#privateNs = lib.ns.nest();
   }
 
   get lib(): UcrxLib {
@@ -150,7 +157,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   #declareClass(_className: string): UccCode.Source {
     return code => {
-      code.write(this.#declareConstructor(), this.#declareTypes());
+      code.write(this.#declarePrivates(), this.#declareConstructor(), this.#declareTypes());
       for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
         code.write(
           method.declare(this as unknown as UcrxTemplate, key, declare as UcrxMethod.Decl<string>),
@@ -163,16 +170,44 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     const base = typeof this.base === 'string' ? this.lib.voidUcrx : this.base;
 
     return code => {
-      if (!this.args.equals(base.args)) {
-        const args = this.args.declare(this.lib.ns.nest());
+      const args = this.args.declare(this.lib.ns.nest());
+      const constr = this.declareConstructor(args.args);
 
+      if (constr || !this.args.equals(base.args)) {
         code
           .write(`constructor(${args}) {`)
           .indent(code => {
             code.write(`super(${base.args.call(args.args)});`);
+            if (constr) {
+              code.write(constr);
+            }
           })
           .write(`}`);
       }
+    };
+  }
+
+  protected declareConstructor(_args: UcrxArgs.ByName): UccCode.Source | undefined {
+    return;
+  }
+
+  declarePrivate(preferredName: string): string {
+    const name = (this.#privateNs ??= this.lib.ns.nest()).name(preferredName);
+
+    (this.#privates ??= []).push(name);
+
+    return `this.#${name}`;
+  }
+
+  #declarePrivates(): UccPrinter.Record {
+    return {
+      printTo: lines => {
+        if (this.#privates) {
+          for (const priv of this.#privates) {
+            lines.print(`#${priv};`);
+          }
+        }
+      },
     };
   }
 
