@@ -4,13 +4,13 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
-import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UccCode } from '../ucc-code.js';
+import { UccLib } from '../ucc-lib.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
 
-export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends UcrxLib {
+export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends UccLib {
 
   readonly #schemae: {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
@@ -172,7 +172,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
 }
 
 export namespace UcsLib {
-  export interface Options<TSchemae extends Schemae> extends UcrxLib.Options {
+  export interface Options<TSchemae extends Schemae> extends UccLib.Options {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
     readonly definitions?: UcsDef | readonly UcsDef[] | undefined;

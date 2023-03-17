@@ -8,6 +8,7 @@ import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UccCode } from '../ucc-code.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
@@ -106,7 +107,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     });
   }
 
-  deserializerFor<T, TSchema extends UcSchema<T>>(
+  deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
     externalName?: string,
   ): UcdFunction<T, TSchema> {
@@ -134,8 +135,16 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     return deserializer;
   }
 
-  typeDefFor<T>(schema: UcSchema<T>): UcdTypeDef<T> | undefined {
-    return this.#typeDefs.get(schema.type) as UcdTypeDef<T> | undefined;
+  typeDefFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcdTypeDef<T, TSchema> | undefined {
+    return this.#typeDefs.get(schema.type) as UcdTypeDef<T, TSchema> | undefined;
+  }
+
+  override ucrxTemplateFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcrxTemplate<T, TSchema> {
+    return this.deserializerFor<T, TSchema>(schema).template;
   }
 
   compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;

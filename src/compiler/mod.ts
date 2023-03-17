@@ -11,6 +11,7 @@ export * from './ucc-code.js';
 export * from './ucc-declarations.js';
 export * from './ucc-expr.js';
 export * from './ucc-imports.js';
+export * from './ucc-lib.js';
 export * from './ucc-namespace.js';
 export * from './ucc-object-init.js';
 export * from './ucc-printer.js';

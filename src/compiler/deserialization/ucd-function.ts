@@ -4,6 +4,7 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcrxLocation } from '../rx/ucrx-location.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -17,6 +18,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #schema: TSchema;
   readonly #name: string;
   #syncName?: string;
+  #template?: UcrxTemplate<T, TSchema>;
   #args?: UcdFunction.Args;
   #vars?: UcdFunction.Vars;
   readonly #createAsyncReader: Required<UcdFunction.Options<T, TSchema>>['createAsyncReader'];
@@ -76,6 +78,25 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ns;
   }
 
+  get template(): UcrxTemplate<T, TSchema> {
+    if (!this.#template) {
+      const template = this.#lib
+        .typeDefFor<T, TSchema>(this.schema)
+        ?.createTemplate(this.lib, this.schema);
+
+      if (!template) {
+        throw new UnsupportedUcSchemaError(
+          this.schema,
+          `${this.name}: Can not deserialize type "${ucSchemaName(this.schema)}"`,
+        );
+      }
+
+      this.#template = template;
+    }
+
+    return this.#template;
+  }
+
   /**
    * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver}.
    *
@@ -86,18 +107,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
    *
    * @returns Initializer code.
    */
-  initRx(location: Omit<UcrxLocation, 'lib'>): UccCode.Source {
-    const { schema } = location;
-    const rxInit = this.lib.typeDefFor(schema)?.deserialize({ ...location, lib: this.lib });
-
-    if (rxInit == null) {
-      throw new UnsupportedUcSchemaError(
-        schema,
-        `${this.name}: Can not deserialize type "${ucSchemaName(schema)}"`,
-      );
-    }
-
-    return rxInit;
+  initRx(location: UcrxLocation): UccCode.Source {
+    return this.template.newInstance(location);
   }
 
   asAsync(): UccCode.Fragment {
@@ -111,7 +122,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
           this.initRx({
-            schema: this.schema,
             args: {
               set: this.args.setter,
               context: this.args.reader,
@@ -134,7 +144,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(`function ${this.syncName}(${this.args.reader}, ${this.args.setter}) {`)
         .indent(
           this.initRx({
-            schema: this.schema,
             args: {
               set: this.args.setter,
               context: this.args.reader,

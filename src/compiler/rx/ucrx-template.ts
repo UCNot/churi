@@ -6,25 +6,22 @@ import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxLocation } from './ucrx-location.js';
 import { UcrxMethod } from './ucrx-method.js';
+import { UcrxArgs } from './ucrx.args.js';
 
-export class UcrxTemplate<
-  out T = unknown,
-  out TSchema extends UcSchema<T> = UcSchema<T>,
-  in out TArg extends string = string,
-> {
+export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #lib: UcrxLib;
   readonly #schema: TSchema;
   readonly #base: UcrxTemplate | string;
   readonly #preferredClassName: string;
   #className?: string;
-  readonly #args: UccArgs<TArg>;
-  readonly #methodDecls: UcrxTemplate.Options<T, TSchema, TArg>['methods'];
+  readonly #args: UcrxArgs;
+  readonly #methodDecls: UcrxTemplate.Options<T, TSchema>['methods'];
   #ownMethods?: UcrxTemplate.Methods;
   #definedMethods?: UcrxTemplate.Methods;
   #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
 
-  constructor(options: UcrxTemplate.Options<T, TSchema, TArg>);
+  constructor(options: UcrxTemplate.Options<T, TSchema>);
   constructor({
     lib,
     schema,
@@ -32,7 +29,7 @@ export class UcrxTemplate<
     className,
     args,
     methods,
-  }: UcrxTemplate.Options<T, TSchema, TArg>) {
+  }: UcrxTemplate.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
     this.#base = base;
@@ -40,9 +37,9 @@ export class UcrxTemplate<
     this.#methodDecls = methods;
 
     if (typeof base === 'string') {
-      this.#args = args ? new UccArgs(...args) : new UccArgs('set' as TArg);
+      this.#args = args ? new UccArgs(...args) : new UccArgs<UcrxArgs.Arg>('set');
     } else {
-      this.#args = args ? new UccArgs(...args) : (base.args as UccArgs<any>);
+      this.#args = args ? new UccArgs(...args) : base.args;
     }
   }
 
@@ -76,7 +73,7 @@ export class UcrxTemplate<
     );
   }
 
-  get args(): UccArgs<TArg> {
+  get args(): UcrxArgs {
     return this.#args;
   }
 
@@ -146,8 +143,8 @@ export class UcrxTemplate<
     return methods as UcrxTemplate.Methods;
   }
 
-  newInstance(location: UcrxLocation<T, TSchema, TArg>): UccCode.Source;
-  newInstance({ args, prefix, suffix }: UcrxLocation<T, TSchema, TArg>): UccCode.Source {
+  newInstance(location: UcrxLocation): UccCode.Source;
+  newInstance({ args, prefix, suffix }: UcrxLocation): UccCode.Source {
     return `${prefix}new ${this.className}(${this.args.call(args)})${suffix}`;
   }
 
@@ -199,12 +196,12 @@ export class UcrxTemplate<
 }
 
 export namespace UcrxTemplate {
-  export interface Options<out T, out TSchema extends UcSchema<T>, out TArg extends string> {
+  export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcrxLib;
     readonly schema: TSchema;
     readonly base?: UcrxTemplate | string | undefined;
     readonly className: string;
-    readonly args?: readonly TArg[] | undefined;
+    readonly args?: readonly UcrxArgs.Arg[] | undefined;
 
     readonly methods?: {
       readonly [key in keyof UcrxCore]?:
