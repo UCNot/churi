@@ -10,7 +10,7 @@ export class VoidUcrxTemplate extends UcrxTemplate<void> {
       lib,
       schema: VoidUcSchema,
       className: 'VoidUcrx',
-      args: [],
+      args: ['set'],
     });
   }
 
