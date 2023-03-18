@@ -1,9 +1,10 @@
+import { valueRecipe } from '@proc7ts/primitives';
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../ucc-args.js';
 import { UccCode } from '../ucc-code.js';
+import { UccMethodRef } from '../ucc-method-ref.js';
 import { UccNamespace } from '../ucc-namespace.js';
-import { UccPrinter } from '../ucc-printer.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxLocation } from './ucrx-location.js';
@@ -14,17 +15,18 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   readonly #lib: UcrxLib;
   readonly #schema: TSchema;
-  readonly #base: UcrxTemplate | string;
+  readonly #base: () => UcrxTemplate | string;
   readonly #preferredClassName: string;
   #className?: string;
-  readonly #args: UcrxArgs;
-  readonly #methodDecls: UcrxTemplate.Options<T, TSchema>['methods'];
+  readonly #args: () => UcrxArgs;
+  readonly #methodDecls: (() => UcrxTemplate.MethodDecls) | undefined;
   #ownMethods?: UcrxTemplate.Methods;
   #definedMethods?: UcrxTemplate.Methods;
   #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
 
   #privateNs?: UccNamespace;
-  #privates?: string[];
+  #privates?: UccCode;
+  #privateMethods?: UccCode;
 
   constructor(options: UcrxTemplate.Options<T, TSchema>);
   constructor({
@@ -37,14 +39,18 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   }: UcrxTemplate.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
-    this.#base = base;
+    this.#base = valueRecipe(base);
     this.#preferredClassName = className;
-    this.#methodDecls = methods;
+    this.#methodDecls = methods && valueRecipe(methods);
 
-    if (typeof base === 'string') {
-      this.#args = args ? new UccArgs(...args) : new UccArgs<UcrxArgs.Arg>('set');
+    if (args) {
+      this.#args = () => new UccArgs(...args);
     } else {
-      this.#args = args ? new UccArgs(...args) : base.args;
+      this.#args = () => {
+        const base = this.base;
+
+        return typeof base === 'string' ? new UccArgs<UcrxArgs.Arg>('set') : base.args;
+      };
     }
 
     this.#privateNs = lib.ns.nest();
@@ -59,7 +65,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   }
 
   get base(): UcrxTemplate | string {
-    return this.#base;
+    return this.#base();
   }
 
   get className(): string {
@@ -81,7 +87,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   }
 
   get args(): UcrxArgs {
-    return this.#args;
+    return this.#args();
   }
 
   get expectedTypes(): ReadonlySet<string> {
@@ -128,7 +134,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     const methods: Record<string, UcrxTemplate.Method<string>> = {};
 
     if (this.#methodDecls) {
-      for (const [key, value] of Object.entries(this.#methodDecls)) {
+      for (const [key, value] of Object.entries(this.#methodDecls())) {
         if (value) {
           if (key === 'custom') {
             for (const { method, declare } of value as UcrxTemplate.Method<string>[]) {
@@ -140,7 +146,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
           } else {
             methods[key] = {
               method: UcrxCore[key as keyof UcrxCore] as UcrxMethod<any>,
-              declare: value as UcrxMethod.Decl<string>,
+              declare: value as UcrxMethod.Body<string>,
             };
           }
         }
@@ -157,10 +163,15 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   #declareClass(_className: string): UccCode.Source {
     return code => {
-      code.write(this.#declarePrivates(), this.#declareConstructor(), this.#declareTypes());
+      code.write(
+        this.#declarePrivates(),
+        this.#declareConstructor(),
+        this.#declarePrivateMethods(),
+        this.#declareTypes(),
+      );
       for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
         code.write(
-          method.declare(this as unknown as UcrxTemplate, key, declare as UcrxMethod.Decl<string>),
+          method.declare(this as unknown as UcrxTemplate, key, declare as UcrxMethod.Body<string>),
         );
       }
     };
@@ -191,23 +202,58 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     return;
   }
 
-  declarePrivate(preferredName: string): string {
-    const name = (this.#privateNs ??= this.lib.ns.nest()).name(preferredName);
+  declarePrivate(
+    preferredName: string,
+    init?: string | ((prefix: string, suffix: string) => UccCode.Source),
+  ): string {
+    const name = this.#privateName(preferredName);
 
-    (this.#privates ??= []).push(name);
+    this.#privates ??= new UccCode();
+
+    if (!init) {
+      this.#privates.write(`#${name};`);
+    } else if (typeof init === 'string') {
+      this.#privates.write(`#${name} = ${init};`);
+    } else {
+      this.#privates.write(init(`#${name} = `, `;`));
+    }
 
     return `this.#${name}`;
   }
 
-  #declarePrivates(): UccPrinter.Record {
-    return {
-      printTo: lines => {
-        if (this.#privates) {
-          for (const priv of this.#privates) {
-            lines.print(`#${priv};`);
-          }
-        }
-      },
+  declarePrivateMethod<TArg extends string>(
+    preferredName: string,
+    args: UccArgs<TArg>,
+    body: (args: UccArgs.ByName<TArg>) => UccCode.Source,
+  ): UccMethodRef<TArg> {
+    const name = this.#privateName(preferredName);
+
+    this.#privateMethods ??= new UccCode();
+
+    const methodRef = new UccMethodRef(`#${name}`, args);
+
+    this.#privateMethods.write(methodRef.declare(this.lib.ns.nest(), body));
+
+    return methodRef;
+  }
+
+  #privateName(preferred: string): string {
+    return (this.#privateNs ??= this.lib.ns.nest()).name(preferred);
+  }
+
+  #declarePrivates(): UccCode.Source {
+    return code => {
+      if (this.#privates) {
+        code.write(this.#privates);
+      }
+    };
+  }
+
+  #declarePrivateMethods(): UccCode.Source {
+    return code => {
+      if (this.#privateMethods) {
+        code.write(this.#privateMethods);
+      }
     };
   }
 
@@ -234,18 +280,20 @@ export namespace UcrxTemplate {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcrxLib;
     readonly schema: TSchema;
-    readonly base?: UcrxTemplate | string | undefined;
+    readonly base?: UcrxTemplate | string | (() => UcrxTemplate | string) | undefined;
     readonly className: string;
     readonly args?: readonly UcrxArgs.Arg[] | undefined;
 
-    readonly methods?: {
-      readonly [key in keyof UcrxCore]?:
-        | UcrxMethod.Decl<UcrxMethod.ArgType<UcrxCore[key]>>
-        | undefined;
-    } & {
-      readonly custom?: Method[] | undefined;
-    };
+    readonly methods?: MethodDecls | (() => MethodDecls);
   }
+
+  export type MethodDecls = {
+    readonly [key in keyof UcrxCore]?:
+      | UcrxMethod.Body<UcrxMethod.ArgType<UcrxCore[key]>>
+      | undefined;
+  } & {
+    readonly custom?: Method[] | undefined;
+  };
 
   export type Methods = {
     readonly [key in keyof UcrxCore]?: Method<UcrxMethod.ArgType<UcrxCore[key]>> | undefined;
@@ -255,6 +303,6 @@ export namespace UcrxTemplate {
 
   export interface Method<in out TArg extends string = string> {
     readonly method: UcrxMethod<TArg>;
-    readonly declare: UcrxMethod.Decl<TArg>;
+    readonly declare: UcrxMethod.Body<TArg>;
   }
 }

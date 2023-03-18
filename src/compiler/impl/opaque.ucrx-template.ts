@@ -12,10 +12,8 @@ export class OpaqueUcrxTemplate extends UcrxTemplate {
       schema: VoidUcSchema,
       className: 'OpaqueUcrx',
       methods: {
-        any({ prefix, suffix }) {
-          return code => {
-            code.write(`${prefix}1${suffix}`);
-          };
+        any(_location) {
+          return `return 1;`;
         },
       },
       args: [],

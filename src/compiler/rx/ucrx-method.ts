@@ -28,15 +28,13 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#args;
   }
 
-  declare(template: UcrxTemplate, key: string, declare: UcrxMethod.Decl<TArg>): UccCode.Source {
+  declare(template: UcrxTemplate, key: string, declare: UcrxMethod.Body<TArg>): UccCode.Source {
     const args = this.args.declare(template.lib.ns.nest());
 
     return code => {
       code
         .write(`${key}(${args}) {`)
-        .indent(
-          declare({ template, method: this, key, args: args.args, prefix: 'return ', suffix: ';' }),
-        )
+        .indent(declare({ template, method: this, key, args: args.args }))
         .write(`}`);
     };
   }
@@ -50,15 +48,13 @@ export namespace UcrxMethod {
     readonly typeName?: string | undefined;
   }
 
-  export type Decl<in TArg extends string> = (location: Location<TArg>) => UccCode.Source;
+  export type Body<in TArg extends string> = (location: Location<TArg>) => UccCode.Source;
 
   export interface Location<out TArg extends string> {
     readonly template: UcrxTemplate;
     readonly method: UcrxMethod<TArg>;
     readonly key: string;
     readonly args: UccArgs.ByName<TArg>;
-    readonly prefix: string;
-    readonly suffix: string;
   }
 
   export type ArgType<TMethod extends UcrxMethod<any>> = TMethod extends UcrxMethod<infer TArg>

@@ -56,8 +56,8 @@ export class Primitive$UcdDefs {
       schema,
       className: `${key[0].toUpperCase()}${key.slice(1)}Ucrx`,
       methods: {
-        [key]({ args: { value }, prefix, suffix }: UcrxMethod.Location<'value'>): UccCode.Source {
-          return `${prefix}this.set(${value})${suffix}`;
+        [key]({ args: { value } }: UcrxMethod.Location<'value'>): UccCode.Source {
+          return `return this.set(${value});`;
         },
       },
     }));

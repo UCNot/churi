@@ -47,7 +47,7 @@ export class MapUcdDef<
     super({
       lib,
       schema,
-      className: deserializer.name + '$map',
+      className: deserializer.name + '$rx',
       args: ['set', 'context'],
       methods: {
         for: location => this.#declareFor(location),
@@ -170,7 +170,7 @@ export class MapUcdDef<
     return requiredCount;
   }
 
-  #declareFor({ args: { key }, prefix, suffix }: UcrxMethod.Location<'key'>): UccCode.Source {
+  #declareFor({ args: { key } }: UcrxMethod.Location<'key'>): UccCode.Source {
     const {
       decls: { entries, extra },
       context,
@@ -188,7 +188,7 @@ export class MapUcdDef<
         .write(`if (${entry}?.use && !${assigned}[${key}]) {`)
         .indent(`--${missingCount};`, `${assigned}[${key}] = 1;`)
         .write('}')
-        .write(`${prefix}${rx}${suffix}`);
+        .write(`return ${rx};`);
     };
   }
 
@@ -222,8 +222,8 @@ export class MapUcdDef<
     };
   }
 
-  #declareNul({ prefix, suffix }: UcrxMethod.Location<''>): UccCode.Source {
-    return `${prefix}this.set(null)${suffix}`;
+  #declareNul(_location: UcrxMethod.Location<''>): UccCode.Source {
+    return `return this.set(null);`;
   }
 
 }
