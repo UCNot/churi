@@ -25,22 +25,22 @@ export class Primitive$UcdDefs {
   }
 
   #forBoolean(lib: UcrxLib, schema: UcSchema<boolean>): UcrxTemplate<boolean> {
-    return this.#for(lib, schema, 'bol');
+    return this.#forPrimitive(lib, schema, 'bol');
   }
 
   #forBigInt(lib: UcrxLib, schema: UcSchema<bigint>): UcrxTemplate<bigint> {
-    return this.#for(lib, schema, 'big');
+    return this.#forPrimitive(lib, schema, 'big');
   }
 
   #forNumber(lib: UcrxLib, schema: UcSchema<number>): UcrxTemplate<number> {
-    return this.#for(lib, schema, 'num');
+    return this.#forPrimitive(lib, schema, 'num');
   }
 
   #forString(lib: UcrxLib, schema: UcSchema<string>): UcrxTemplate<string> {
-    return this.#for(lib, schema, 'str');
+    return this.#forPrimitive(lib, schema, 'str');
   }
 
-  #for<T, TSchema extends UcSchema<T>>(
+  #forPrimitive<T, TSchema extends UcSchema<T>>(
     lib: UcrxLib,
     schema: TSchema,
     key: 'bol' | 'big' | 'num' | 'str',
