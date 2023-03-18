@@ -8,11 +8,14 @@ export class OpaqueUcrxTemplate extends UcrxTemplate {
   constructor(lib: UcrxLib) {
     super({
       lib,
-      base: CHURI_MODULE,
       schema: VoidUcSchema,
       className: 'OpaqueUcrx',
       args: [],
     });
+  }
+
+  override get base(): string {
+    return CHURI_MODULE;
   }
 
   protected override declareMethods(): UcrxTemplate.MethodDecls {

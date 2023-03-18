@@ -47,7 +47,7 @@ export class MapUcdDef<
     super({
       lib,
       schema,
-      className: deserializer.name + '$rx',
+      className: deserializer.name + 'Ucrx',
       args: ['set', 'context'],
     });
 

@@ -63,7 +63,7 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends UcrxTemplate
   readonly #key: 'bol' | 'big' | 'num' | 'str';
 
   constructor(lib: UcrxLib, schema: TSchema, key: 'bol' | 'big' | 'num' | 'str') {
-    super({ lib, schema, className: `${key[0].toUpperCase()}${key.slice(1)}Rx` });
+    super({ lib, schema, className: `${key[0].toUpperCase()}${key.slice(1)}Ucrx` });
 
     this.#key = key;
   }

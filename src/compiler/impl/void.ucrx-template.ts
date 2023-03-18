@@ -8,11 +8,14 @@ export class VoidUcrxTemplate extends UcrxTemplate<void> {
   constructor(lib: UcrxLib) {
     super({
       lib,
-      base: CHURI_MODULE,
       schema: VoidUcSchema,
       className: 'VoidUcrx',
       args: [],
     });
+  }
+
+  override get base(): string {
+    return CHURI_MODULE;
   }
 
 }

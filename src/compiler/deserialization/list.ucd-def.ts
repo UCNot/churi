@@ -35,10 +35,13 @@ export class ListUcdDef<
     super({
       lib,
       schema,
-      base: () => this.#detectBase(),
-      className: deserializer.name + '$rx',
+      className: deserializer.name + 'Ucrx',
       args: ['set', 'context'],
     });
+  }
+
+  get base(): UcrxTemplate {
+    return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
   protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
@@ -121,10 +124,6 @@ export class ListUcdDef<
         { cause },
       );
     }
-  }
-
-  #detectBase(): UcrxTemplate {
-    return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
   #declareListMethods({

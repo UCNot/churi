@@ -1,4 +1,3 @@
-import { valueRecipe } from '@proc7ts/primitives';
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../ucc-args.js';
@@ -15,7 +14,6 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   readonly #lib: UcrxLib;
   readonly #schema: TSchema;
-  readonly #base: () => UcrxTemplate | string;
   readonly #preferredClassName: string;
   #className?: string;
   readonly #args: () => UcrxArgs;
@@ -28,16 +26,9 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   #privateMethods?: UccCode;
 
   constructor(options: UcrxTemplate.Options<T, TSchema>);
-  constructor({
-    lib,
-    schema,
-    base = lib.voidUcrx,
-    className,
-    args,
-  }: UcrxTemplate.Options<T, TSchema>) {
+  constructor({ lib, schema, className, args }: UcrxTemplate.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
-    this.#base = valueRecipe(base);
     this.#preferredClassName = className;
 
     if (args) {
@@ -62,7 +53,7 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   }
 
   get base(): UcrxTemplate | string {
-    return this.#base();
+    return this.lib.voidUcrx;
   }
 
   get className(): string {
@@ -282,7 +273,6 @@ export namespace UcrxTemplate {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcrxLib;
     readonly schema: TSchema;
-    readonly base?: UcrxTemplate | string | (() => UcrxTemplate | string) | undefined;
     readonly className: string;
     readonly args?: readonly UcrxArgs.Arg[] | undefined;
   }
