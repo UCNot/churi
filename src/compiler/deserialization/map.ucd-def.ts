@@ -49,11 +49,6 @@ export class MapUcdDef<
       schema,
       className: deserializer.name + '$rx',
       args: ['set', 'context'],
-      methods: {
-        for: location => this.#declareFor(location),
-        map: location => this.#declareMap(location),
-        nul: schema.nullable ? location => this.#declareNul(location) : undefined,
-      },
     });
 
     this.#ns = lib.ns.nest();
@@ -107,6 +102,14 @@ export class MapUcdDef<
         code.write(`${missingCount} = ${requiredCount};`, `${assigned} = {};`);
       }
       code.write(this.allocateMap(`${map} = [`, '];'));
+    };
+  }
+
+  protected override declareMethods(): UcrxTemplate.MethodDecls | undefined {
+    return {
+      for: location => this.#declareFor(location),
+      map: location => this.#declareMap(location),
+      nul: this.schema.nullable ? location => this.#declareNul(location) : undefined,
     };
   }
 

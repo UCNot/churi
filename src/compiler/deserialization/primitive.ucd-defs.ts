@@ -51,18 +51,29 @@ export class Primitive$UcdDefs {
       return template as UcrxTemplate<T, TSchema>;
     }
 
-    return (this.#templates[key] = new UcrxTemplate<T, TSchema>({
-      lib,
-      schema,
-      className: `${key[0].toUpperCase()}${key.slice(1)}Ucrx`,
-      methods: {
-        [key]({ args: { value } }: UcrxMethod.Location<'value'>): UccCode.Source {
-          return `return this.set(${value});`;
-        },
-      },
-    }));
+    return (this.#templates[key] = new PrimitiveUcrxTemplate<T, TSchema>(lib, schema, key));
   }
 
 }
 
 export const PrimitiveUcdDefs: readonly UcdDef[] = /*#__PURE__*/ new Primitive$UcdDefs().list;
+
+class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends UcrxTemplate<T, TSchema> {
+
+  readonly #key: 'bol' | 'big' | 'num' | 'str';
+
+  constructor(lib: UcrxLib, schema: TSchema, key: 'bol' | 'big' | 'num' | 'str') {
+    super({ lib, schema, className: `${key[0].toUpperCase()}${key.slice(1)}Rx` });
+
+    this.#key = key;
+  }
+
+  protected override declareMethods(): UcrxTemplate.MethodDecls {
+    return {
+      [this.#key]({ args: { value } }: UcrxMethod.Location<'value'>): UccCode.Source {
+        return `return this.set(${value});`;
+      },
+    };
+  }
+
+}

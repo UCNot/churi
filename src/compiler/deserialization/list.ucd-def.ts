@@ -38,7 +38,6 @@ export class ListUcdDef<
       base: () => this.#detectBase(),
       className: deserializer.name + '$rx',
       args: ['set', 'context'],
-      methods: () => this.#declareMethods(),
     });
   }
 
@@ -57,6 +56,14 @@ export class ListUcdDef<
         }),
       );
     };
+  }
+
+  protected override declareMethods(): UcrxTemplate.MethodDecls | undefined {
+    const allocation = this.#getAllocation();
+
+    return allocation.itemRx != null
+      ? this.#declareMatrixMethods(allocation)
+      : this.#declareListMethods(allocation);
   }
 
   get #isNullableList(): boolean | undefined {
@@ -118,14 +125,6 @@ export class ListUcdDef<
 
   #detectBase(): UcrxTemplate {
     return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
-  }
-
-  #declareMethods(): UcrxTemplate.MethodDecls {
-    const allocation = this.#getAllocation();
-
-    return allocation.itemRx != null
-      ? this.#declareMatrixMethods(allocation)
-      : this.#declareListMethods(allocation);
   }
 
   #declareListMethods({

@@ -19,7 +19,6 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   readonly #preferredClassName: string;
   #className?: string;
   readonly #args: () => UcrxArgs;
-  readonly #methodDecls: (() => UcrxTemplate.MethodDecls) | undefined;
   #ownMethods?: UcrxTemplate.Methods;
   #definedMethods?: UcrxTemplate.Methods;
   #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
@@ -35,13 +34,11 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     base = lib.voidUcrx,
     className,
     args,
-    methods,
   }: UcrxTemplate.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
     this.#base = valueRecipe(base);
     this.#preferredClassName = className;
-    this.#methodDecls = methods && valueRecipe(methods);
 
     if (args) {
       this.#args = () => new UccArgs(...args);
@@ -132,9 +129,10 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   #buildOwnMethods(): UcrxTemplate.Methods {
     const methods: Record<string, UcrxTemplate.Method<string>> = {};
+    const methodDecls = this.declareMethods();
 
-    if (this.#methodDecls) {
-      for (const [key, value] of Object.entries(this.#methodDecls())) {
+    if (methodDecls) {
+      for (const [key, value] of Object.entries(methodDecls)) {
         if (value) {
           if (key === 'custom') {
             for (const { method, declare } of value as UcrxTemplate.Method<string>[]) {
@@ -196,6 +194,10 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
           .write(`}`);
       }
     };
+  }
+
+  protected declareMethods(): UcrxTemplate.MethodDecls | undefined {
+    return;
   }
 
   protected declareConstructor(_args: UcrxArgs.ByName): UccCode.Source | undefined {
@@ -283,8 +285,6 @@ export namespace UcrxTemplate {
     readonly base?: UcrxTemplate | string | (() => UcrxTemplate | string) | undefined;
     readonly className: string;
     readonly args?: readonly UcrxArgs.Arg[] | undefined;
-
-    readonly methods?: MethodDecls | (() => MethodDecls);
   }
 
   export type MethodDecls = {

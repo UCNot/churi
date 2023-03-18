@@ -11,13 +11,16 @@ export class OpaqueUcrxTemplate extends UcrxTemplate {
       base: CHURI_MODULE,
       schema: VoidUcSchema,
       className: 'OpaqueUcrx',
-      methods: {
-        any(_location) {
-          return `return 1;`;
-        },
-      },
       args: [],
     });
+  }
+
+  protected override declareMethods(): UcrxTemplate.MethodDecls {
+    return {
+      any(_location) {
+        return `return 1;`;
+      },
+    };
   }
 
 }
