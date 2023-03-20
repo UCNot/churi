@@ -52,7 +52,9 @@ export class CustomUcrxTemplate<
     );
   }
 
-  #declareClass(_className: string): UccCode.Source {
+  #declareClass(className: string): UccCode.Source {
+    this.#className = className;
+
     return code => {
       code.write(
         this.#privates,

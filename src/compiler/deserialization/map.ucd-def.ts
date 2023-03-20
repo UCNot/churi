@@ -90,15 +90,17 @@ export class MapUcdDef<
     return this.#allocation;
   }
 
-  protected override declareConstructor(_args: UcrxArgs.ByName): UccCode.Source {
+  protected override declareConstructor({ context }: UcrxArgs.ByName): UccCode.Source {
     const {
       decls: { requiredCount },
+      context: contextVar,
       map,
       assigned,
       missingCount,
     } = this.#getAllocation();
 
     return code => {
+      code.write(`${contextVar} = ${context};`);
       if (missingCount) {
         code.write(`${missingCount} = ${requiredCount};`, `${assigned} = {};`);
       }

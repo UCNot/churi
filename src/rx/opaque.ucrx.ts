@@ -11,6 +11,10 @@ class OpaqueUcrx extends VoidUcrx {
     return ['any'];
   }
 
+  override nls(): this {
+    return this;
+  }
+
   override for(_key: PropertyKey): Ucrx {
     return this;
   }

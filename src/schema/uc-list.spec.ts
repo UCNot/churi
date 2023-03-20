@@ -259,7 +259,6 @@ describe('UcList', () => {
       try {
         await lib.compile().toDeserializers();
       } catch (e) {
-        console.error(e);
         error = e as UnsupportedUcSchemaError;
       }
 

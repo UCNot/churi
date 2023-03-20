@@ -50,9 +50,9 @@ export class ListUcdDef<
     base: BaseUcrxTemplate,
     args: UcrxArgs.ByName,
   ): UccCode.Source<UccCode> | undefined {
-    const { itemRx, addItem } = this.#getAllocation();
+    const { addItem } = this.#getAllocation();
 
-    if (itemRx) {
+    if (this.#isMatrix) {
       return;
     }
 
@@ -65,21 +65,11 @@ export class ListUcdDef<
     context,
   }: UcrxArgs.ByName): UccCode.Source<UccCode> {
     return code => {
-      const { context: contextVar, itemRx, setList, addItem } = this.#getAllocation();
+      const { context: contextVar, setList } = this.#getAllocation();
 
       code.write(`${contextVar} = ${context};`);
 
-      if (itemRx) {
-        const itemTemplate = this.#getItemTemplate();
-
-        code.write(
-          itemTemplate.newInstance({
-            args: { set: `this.${addItem.name}.bind(this)`, context },
-            prefix: `${itemRx} = `,
-            suffix: ';',
-          }),
-        );
-      } else {
+      if (!this.#isMatrix) {
         code.write(`${setList} = ${set};`);
       }
     };
@@ -88,7 +78,7 @@ export class ListUcdDef<
   protected override declareMethods(): UcrxTemplate.MethodDecls | undefined {
     const allocation = this.#getAllocation();
 
-    return allocation.itemRx != null
+    return this.#isMatrix
       ? this.#declareMatrixMethods(allocation)
       : this.#declareListMethods(allocation);
   }
@@ -118,7 +108,6 @@ export class ListUcdDef<
 
     return (this.#allocation = {
       context: this.declarePrivate('context'),
-      itemRx: this.#isMatrix ? this.declarePrivate('itemRx') : undefined,
       setList: this.#isMatrix ? 'this.set' : this.declarePrivate('setList'),
       items,
       addItem: this.declarePrivateMethod(
@@ -172,14 +161,14 @@ export class ListUcdDef<
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`${setList}(null);`, `${isNull} = 0;`)
+            .indent(`${setList}(null);`)
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
 
         code
-          .indent(`${setList}(${items});`, `${listCreated} = 0;`, `${items} = [];`)
+          .indent(`${setList}(${items});`)
           .write(`} else {`)
           .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
           .write(`}`);
@@ -205,8 +194,8 @@ export class ListUcdDef<
 
   #declareMatrixMethods({
     context,
-    itemRx,
     items,
+    addItem,
     listCreated,
     isNull,
   }: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
@@ -215,7 +204,15 @@ export class ListUcdDef<
 
     return {
       nls: _location => code => {
-        code.write(`return ${itemRx};`);
+        const itemTemplate = this.#getItemTemplate();
+
+        code.write(
+          itemTemplate.newInstance({
+            args: { set: `this.${addItem.name}.bind(this)`, context },
+            prefix: `return `,
+            suffix: ';',
+          }),
+        );
       },
       em: _location => code => {
         if (this.#isNullableItem && this.#isNullableList) {
@@ -225,7 +222,7 @@ export class ListUcdDef<
               code
                 .write(`${listCreated} = 1;`)
                 .write(`if (${isNull}) {`)
-                .indent(`${isNull} = 0;`, `${items}.push(null);`)
+                .indent(`${items}.push(null);`)
                 .write(`}`);
             })
             .write(`}`)
@@ -238,12 +235,12 @@ export class ListUcdDef<
         if (this.#isNullableList) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`this.set(null);`, `${isNull} = 0;`)
+            .indent(`this.set(null);`)
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
-        code.indent(`this.set(${items});`, `${listCreated} = 0;`, `${items} = [];`).write(`}`);
+        code.indent(`this.set(${items});`).write(`}`);
       },
       nul: this.#isNullable
         ? _location => code => {
@@ -281,7 +278,6 @@ export namespace ListUcdDef {
 
   export interface ListAllocation {
     readonly context: string;
-    readonly itemRx?: undefined;
     readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
@@ -291,7 +287,6 @@ export namespace ListUcdDef {
 
   export interface MatrixAllocation {
     readonly context: string;
-    readonly itemRx: string;
     readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
