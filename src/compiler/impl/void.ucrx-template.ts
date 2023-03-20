@@ -1,21 +1,20 @@
 import { CHURI_MODULE } from '../../impl/module-names.js';
+import { ExternalUcrxTemplate } from '../rx/external.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { VoidUcSchema } from './void.uc-schema.js';
 
-export class VoidUcrxTemplate extends UcrxTemplate<void> {
+export class VoidUcrxTemplate extends ExternalUcrxTemplate {
 
   constructor(lib: UcrxLib) {
     super({
       lib,
-      schema: VoidUcSchema,
+      importFrom: CHURI_MODULE,
       className: 'VoidUcrx',
       args: ['set'],
     });
   }
 
-  override get base(): string {
-    return CHURI_MODULE;
+  override get base(): undefined {
+    return;
   }
 
 }

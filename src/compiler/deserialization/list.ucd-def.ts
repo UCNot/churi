@@ -4,6 +4,8 @@ import { UcList } from '../../schema/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
+import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
+import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UccArgs } from '../ucc-args.js';
@@ -15,7 +17,7 @@ import { UcdLib } from './ucd-lib.js';
 export class ListUcdDef<
   TItem = unknown,
   TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
-> extends UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
+> extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
 
   static get type(): string | UcSchema.Class {
     return 'list';
@@ -40,12 +42,12 @@ export class ListUcdDef<
     });
   }
 
-  get base(): UcrxTemplate {
+  get base(): BaseUcrxTemplate {
     return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
   protected override callSuperConstructor(
-    base: UcrxTemplate<unknown, UcSchema<unknown>>,
+    base: BaseUcrxTemplate,
     args: UcrxArgs.ByName,
   ): UccCode.Source<UccCode> | undefined {
     const { itemRx, addItem } = this.#getAllocation();
@@ -129,7 +131,7 @@ export class ListUcdDef<
     });
   }
 
-  #getItemTemplate(): UcrxTemplate {
+  #getItemTemplate(): BaseUcrxTemplate {
     if (this.#itemTemplate) {
       return this.#itemTemplate;
     }
@@ -143,7 +145,9 @@ export class ListUcdDef<
     } catch (cause) {
       throw new UnsupportedUcSchemaError(
         item,
-        `${this.className}: Can not deserialize list item of type "${ucSchemaName(item)}"`,
+        `${ucSchemaName(this.schema)}: Can not deserialize list item of type "${ucSchemaName(
+          item,
+        )}"`,
         { cause },
       );
     }

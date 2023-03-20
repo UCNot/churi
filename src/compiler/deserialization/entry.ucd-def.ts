@@ -68,7 +68,9 @@ export class EntryUcdDef {
 
       throw new UnsupportedUcSchemaError(
         schema,
-        `${mapDef.className}: Can not deserialize ${entryName} of type "${ucSchemaName(schema)}"`,
+        `${ucSchemaName(mapDef.schema)}: Can not deserialize ${entryName} of type "${ucSchemaName(
+          schema,
+        )}"`,
         { cause },
       );
     }

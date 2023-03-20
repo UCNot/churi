@@ -5,6 +5,7 @@ import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
+import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
@@ -16,7 +17,7 @@ import { UcdLib } from './ucd-lib.js';
 export class MapUcdDef<
   TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
   TExtraSpec extends UcSchema.Spec | false = false,
-> extends UcrxTemplate<
+> extends CustomUcrxTemplate<
   UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
   UcMap.Schema<TEntriesSpec, TExtraSpec>
 > {

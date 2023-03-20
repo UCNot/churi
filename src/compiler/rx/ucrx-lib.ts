@@ -4,6 +4,7 @@ import { OpaqueUcrxTemplate } from '../impl/opaque.ucrx-template.js';
 import { VoidUcrxTemplate } from '../impl/void.ucrx-template.js';
 import { UccLib } from '../ucc-lib.js';
 import { UccNamespace } from '../ucc-namespace.js';
+import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxTemplate } from './ucrx-template.js';
 
@@ -13,11 +14,11 @@ export abstract class UcrxLib extends UccLib {
   #opaqueUcrx?: OpaqueUcrxTemplate;
   #ucrxMethodNs?: UccNamespace;
 
-  get voidUcrx(): UcrxTemplate<void> {
+  get voidUcrx(): BaseUcrxTemplate {
     return (this.#voidUcrx ??= new VoidUcrxTemplate(this));
   }
 
-  get opaqueUcrx(): UcrxTemplate<void> {
+  get opaqueUcrx(): BaseUcrxTemplate {
     return (this.#opaqueUcrx ??= new OpaqueUcrxTemplate(this));
   }
 

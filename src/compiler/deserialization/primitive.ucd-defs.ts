@@ -1,6 +1,7 @@
 import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
+import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -52,7 +53,7 @@ export class Primitive$UcdDefs {
 
 export const PrimitiveUcdDefs: readonly UcdDef[] = /*#__PURE__*/ new Primitive$UcdDefs().list;
 
-class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends UcrxTemplate<T, TSchema> {
+class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTemplate<T, TSchema> {
 
   readonly #key: 'bol' | 'big' | 'num' | 'str';
 
