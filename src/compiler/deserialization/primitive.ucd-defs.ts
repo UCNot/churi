@@ -1,4 +1,3 @@
-import { Ucrx } from '../../rx/ucrx.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -9,7 +8,6 @@ import { UcdDef } from './ucd-def.js';
 export class Primitive$UcdDefs {
 
   readonly #list: UcdDef[];
-  readonly #templates: { [key in keyof Ucrx]?: UcrxTemplate } = {};
 
   constructor() {
     this.#list = [
@@ -45,13 +43,7 @@ export class Primitive$UcdDefs {
     schema: TSchema,
     key: 'bol' | 'big' | 'num' | 'str',
   ): UcrxTemplate<T, TSchema> {
-    const template = this.#templates[key];
-
-    if (template) {
-      return template as UcrxTemplate<T, TSchema>;
-    }
-
-    return (this.#templates[key] = new PrimitiveUcrxTemplate<T, TSchema>(lib, schema, key));
+    return new PrimitiveUcrxTemplate<T, TSchema>(lib, schema, key);
   }
 
 }
@@ -73,6 +65,7 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends UcrxTemplate
       [this.#key]({ args: { value } }: UcrxMethod.Location<'value'>): UccCode.Source {
         return `return this.set(${value});`;
       },
+      nul: this.schema.nullable ? _location => `return this.set(null);` : undefined,
     };
   }
 
