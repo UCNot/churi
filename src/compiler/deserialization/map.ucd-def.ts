@@ -1,8 +1,10 @@
 import { lazyValue } from '@proc7ts/primitives';
+import { capitalize } from '../../impl/capitalize.js';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
@@ -42,12 +44,10 @@ export class MapUcdDef<
   #allocation?: MapUcdDef.Allocation;
 
   constructor(lib: UcdLib, schema: UcMap.Schema<TEntriesSpec, TExtraSpec>) {
-    const deserializer = lib.deserializerFor(schema);
-
     super({
       lib,
       schema,
-      className: deserializer.name + 'Ucrx',
+      className: capitalize(ucSchemaSymbol(schema)) + 'Ucrx',
       args: ['set', 'context'],
     });
 

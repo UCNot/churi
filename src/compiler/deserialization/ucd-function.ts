@@ -3,7 +3,6 @@ import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcrxLocation } from '../rx/ucrx-location.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UccCode } from '../ucc-code.js';
 import { UccNamespace } from '../ucc-namespace.js';
@@ -16,7 +15,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #ns: UccNamespace;
   readonly #schema: TSchema;
   readonly #name: string;
-  #syncName?: string;
   #template?: UcrxTemplate<T, TSchema>;
   #args?: UcdFunction.Args;
   #vars?: UcdFunction.Vars;
@@ -29,7 +27,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     lib,
     schema,
     name,
-    syncName,
     createAsyncReader: createReader = UcdFunction$createReader,
     createSyncReader = UcdFunction$createSyncReader,
   }: UcdFunction.Options<T, TSchema>) {
@@ -37,7 +34,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     this.#ns = lib.ns.nest();
     this.#schema = schema;
     this.#name = name;
-    this.#syncName = syncName;
     this.#createAsyncReader = createReader;
     this.#createSyncReader = createSyncReader;
   }
@@ -54,10 +50,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#name;
   }
 
-  get syncName(): string {
-    return (this.#syncName ??= this.ns.name(`${this.name}$sync`));
-  }
-
   get args(): UcdFunction.Args {
     return (this.#args ??= {
       reader: this.ns.name('reader'),
@@ -70,6 +62,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       input: this.ns.name('input'),
       stream: this.ns.name('stream'),
       options: this.ns.name('options'),
+      result: this.ns.name('result'),
     });
   }
 
@@ -96,86 +89,30 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#template;
   }
 
-  /**
-   * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver}.
-   *
-   * Generated code expected to contain an {@link @hatsy/churi!Ucrx deserialized value receiver} placed
-   * between the given {@link UcdUcrxLocation#prefix prefix} and {@link UcdUcrxLocation#suffix suffix}.
-   *
-   * @param location - A location inside deserializer function to insert generated code into.
-   *
-   * @returns Initializer code.
-   */
-  initRx(location: UcrxLocation): UccCode.Source {
-    return this.template.newInstance(location);
-  }
-
-  asAsync(): UccCode.Fragment {
-    return {
-      toCode: this.#toAsyncCode.bind(this),
-    };
-  }
-
-  #toAsyncCode(): UccCode.Source {
-    return code => code
-        .write(`async function ${this.name}(${this.args.reader}, ${this.args.setter}) {`)
-        .indent(
-          this.initRx({
-            args: {
-              set: this.args.setter,
-              context: this.args.reader,
-            },
-            prefix: `await ${this.args.reader}.read(`,
-            suffix: ');',
-          }),
-        )
-        .write('}');
-  }
-
-  asSync(): UccCode.Fragment {
-    return {
-      toCode: this.#toSyncCode.bind(this),
-    };
-  }
-
-  #toSyncCode(): UccCode.Source {
-    return code => code
-        .write(`function ${this.syncName}(${this.args.reader}, ${this.args.setter}) {`)
-        .indent(
-          this.initRx({
-            args: {
-              set: this.args.setter,
-              context: this.args.reader,
-            },
-            prefix: `${this.args.reader}.read(`,
-            suffix: ');',
-          }),
-        )
-        .write('}');
-  }
-
   toUcDeserializer(mode: UcDeserializer.Mode, input: string, options: string): UccCode.Source {
+    const { result } = this.vars;
+
     if (mode !== 'all') {
       return code => {
         code
-          .write('let result;')
-          .write(`const ${this.args.setter} = $ => {`)
-          .indent('result = $;', 'return 1;')
-          .write('}')
+          .write(`let ${result};`)
+          .write(`const ${this.args.setter} = $ => ${result} = $;`)
           .write(
             mode === 'async'
               ? this.#createAsyncReader(this, this.args.reader, input, options)
               : this.#createSyncReader(this, this.args.reader, input, options),
           )
-          .write(`try {`);
-
-        if (mode === 'async') {
-          code.indent(`await ${this.name}(${this.args.reader}, ${this.args.setter});`);
-        } else {
-          code.indent(`${this.syncName}(${this.args.reader}, ${this.args.setter});`);
-        }
-
-        code
+          .write(`try {`)
+          .indent(
+            this.template.newInstance({
+              args: {
+                set: this.args.setter,
+                context: this.args.reader,
+              },
+              prefix: `${mode === 'async' ? 'await ' : ''}${this.args.reader}.read(`,
+              suffix: ');',
+            }),
+          )
           .write(`} finally {`)
           .indent(`${this.args.reader}.done();`)
           .write(`}`)
@@ -187,17 +124,24 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       const syncReader = this.#syncReaderVar();
 
       code
-        .write('let result;')
-        .write(`const ${this.args.setter} = $ => {`)
-        .indent('result = $;', 'return 1;')
-        .write('}')
+        .write(`let ${result};`)
+        .write(`const ${this.args.setter} = $ => ${result} = $;`)
         .write(this.#createSyncReader(this, syncReader, input, options));
 
       code
         .write(`if (${syncReader}) {`)
         .indent(code => code
             .write(`try {`)
-            .indent(`${this.syncName}(${syncReader}, ${this.args.setter});`)
+            .indent(
+              this.template.newInstance({
+                args: {
+                  set: this.args.setter,
+                  context: syncReader,
+                },
+                prefix: `${syncReader}.read(`,
+                suffix: ');',
+              }),
+            )
             .write(`} finally {`)
             .indent(`${syncReader}.done();`)
             .write(`}`)
@@ -206,7 +150,16 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
       code
         .write(this.#createAsyncReader(this, this.args.reader, input, options))
-        .write(`return ${this.name}(${this.args.reader}, ${this.args.setter})`)
+        .write(
+          this.template.newInstance({
+            args: {
+              set: this.args.setter,
+              context: this.args.reader,
+            },
+            prefix: `return ${this.args.reader}.read(`,
+            suffix: ')',
+          }),
+        )
         .indent(`.then(() => result)`, `.finally(() => ${this.args.reader}.done())`);
     };
   }
@@ -218,7 +171,6 @@ export namespace UcdFunction {
     readonly lib: UcdLib;
     readonly schema: TSchema;
     readonly name: string;
-    readonly syncName?: string | undefined;
 
     createAsyncReader?(
       this: void,
@@ -246,6 +198,7 @@ export namespace UcdFunction {
     readonly input: string;
     readonly stream: string;
     readonly options: string;
+    readonly result: string;
   }
 
   /**

@@ -17,12 +17,12 @@ describe('UcdLib', () => {
     it('obtains serializer for unknown schema', () => {
       const fn = lib.deserializerFor({ type: String, asis });
 
-      expect(fn.name).toBe('String$deserialize');
+      expect(fn.name).toBe('String');
     });
     it('obtains serializer for unknown named schema', () => {
       const fn = lib.deserializerFor({ type: 'string', asis });
 
-      expect(fn.name).toBe('string$deserialize');
+      expect(fn.name).toBe('string');
     });
   });
 

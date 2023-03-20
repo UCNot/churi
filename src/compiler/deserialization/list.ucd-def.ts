@@ -1,7 +1,9 @@
+import { capitalize } from '../../impl/capitalize.js';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UccArgs } from '../ucc-args.js';
@@ -30,12 +32,10 @@ export class ListUcdDef<
   #allocation?: ListUcdDef.Allocation;
 
   constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemSpec>) {
-    const deserializer = lib.deserializerFor(schema);
-
     super({
       lib,
       schema,
-      className: deserializer.name + 'Ucrx',
+      className: capitalize(ucSchemaSymbol(schema)) + 'Ucrx',
       args: ['set', 'context'],
     });
   }

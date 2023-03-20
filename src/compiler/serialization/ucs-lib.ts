@@ -66,7 +66,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
       serializer = this.#createSerializer({
         lib: this as UcsLib,
         schema,
-        name: this.ns.name(`${externalName ?? ucSchemaSymbol(id)}$serialize${variant}`),
+        name: this.ns.name(`${externalName ?? ucSchemaSymbol(schema)}$serialize${variant}`),
       });
       variants.set(variant, serializer);
     }

@@ -16,7 +16,7 @@ describe('UccCode', () => {
           .indent(code => code.write())
           .write('}')
           .toString(),
-      ).toBe('{\n\n}\n');
+      ).toBe('{\n}\n');
     });
     it('appends at most one new line', () => {
       expect(

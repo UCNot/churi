@@ -127,7 +127,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       deserializer = this.#createDeserializer({
         lib: this as UcdLib,
         schema,
-        name: this.ns.name(`${externalName ?? ucSchemaSymbol(id)}$deserialize${variant}`),
+        name: this.ns.name(`${externalName ?? ucSchemaSymbol(schema)}`),
       });
       variants.set(variant, deserializer);
     }
@@ -166,8 +166,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           this.imports.asDynamic(),
           '',
           this.declarations,
-          '',
-          this.#compileDeserializers(mode),
           '',
           this.#returnDeserializers(mode),
         )
@@ -222,8 +220,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
         '',
         this.declarations,
         '',
-        this.#compileDeserializers(mode),
-        '',
         this.#exportDeserializers(mode),
       );
   }
@@ -252,25 +248,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
   #printModule(mode: UcDeserializer.Mode): string {
     return new UccCode().write(this.#toModuleCode(mode)).toString();
-  }
-
-  #compileDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    return code => {
-      for (const fn of this.#allDeserializers()) {
-        if (mode !== 'sync') {
-          code.write(fn.asAsync());
-        }
-        if (mode !== 'async') {
-          code.write(fn.asSync());
-        }
-      }
-    };
-  }
-
-  *#allDeserializers(): Iterable<UcdFunction> {
-    for (const variants of this.#deserializers.values()) {
-      yield* variants.values();
-    }
   }
 
 }

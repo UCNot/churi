@@ -1,4 +1,6 @@
+import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -55,7 +57,11 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends UcrxTemplate
   readonly #key: 'bol' | 'big' | 'num' | 'str';
 
   constructor(lib: UcrxLib, schema: TSchema, key: 'bol' | 'big' | 'num' | 'str') {
-    super({ lib, schema, className: `${key[0].toUpperCase()}${key.slice(1)}Ucrx` });
+    super({
+      lib,
+      schema,
+      className: `${capitalize(ucSchemaSymbol(schema))}Ucrx`,
+    });
 
     this.#key = key;
   }
