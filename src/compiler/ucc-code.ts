@@ -1,12 +1,14 @@
 import { UccPrinter } from './ucc-printer.js';
 
-export class UccCode {
+export class UccCode implements UccCode.Printable {
 
   readonly #parent?: UccCode;
   readonly #parts: UccCode.Printable[] = [];
+  #addPart: (part: UccCode.Printable) => void;
 
   constructor(parent?: UccCode) {
     this.#parent = parent;
+    this.#addPart = part => this.#parts.push(part);
   }
 
   write(...fragments: UccCode.Source<this>[]): this {
@@ -28,13 +30,13 @@ export class UccCode {
       if (fragment instanceof UccCode && fragment.#contains(this)) {
         throw new TypeError('Can not insert code fragment into itself');
       }
-      this.#parts.push(fragment);
+      this.#addPart(fragment);
     } else if (isUccCodeFragment(fragment)) {
       this.#addFragment(fragment.toCode());
     } else if (fragment === '') {
-      this.#parts.push(UccCode$NewLine);
+      this.#addPart(UccCode$NewLine);
     } else {
-      this.#parts.push(new UccCode$Record(fragment));
+      this.#addPart(new UccCode$Record(fragment));
     }
   }
 
@@ -52,7 +54,7 @@ export class UccCode {
   }
 
   indent(...fragments: UccCode.Source[]): this {
-    this.#parts.push(new UccCode$Indented(new UccCode(this).write(...fragments)));
+    this.#addPart(new UccCode$Indented(new UccCode(this).write(...fragments)));
 
     return this;
   }
@@ -61,13 +63,23 @@ export class UccCode {
     const records = this.#parts.map(part => part.prePrint());
 
     return {
-      printTo(lines) {
-        lines.print(...records);
+      printTo: lines => {
+        if (records.length) {
+          lines.print(...records);
+        }
+
+        const inserted = lines.insert();
+        const addPart = this.#addPart;
+
+        this.#addPart = part => {
+          addPart(part);
+          inserted.print(part.prePrint());
+        };
       },
     };
   }
 
-  toLines(lines?: string[]): string[] {
+  toLines(lines?: UccPrinter.Line[]): UccPrinter.Line[] {
     return new UccPrinter().print(this.prePrint()).toLines(lines);
   }
 
