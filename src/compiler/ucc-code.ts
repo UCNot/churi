@@ -11,7 +11,7 @@ export class UccCode implements UccCode.Printable {
     this.#addPart = part => this.#parts.push(part);
   }
 
-  write(...fragments: UccCode.Source<this>[]): this {
+  write(...fragments: UccCode.Source[]): this {
     if (fragments.length) {
       for (const fragment of fragments) {
         this.#addFragment(fragment);
@@ -23,9 +23,13 @@ export class UccCode implements UccCode.Printable {
     return this;
   }
 
-  #addFragment(fragment: UccCode.Source<this>): void {
+  #addFragment(fragment: UccCode.Source): void {
     if (typeof fragment === 'function') {
-      fragment(this);
+      const code = new UccCode(this);
+
+      fragment(code as this);
+
+      this.#addPart(code);
     } else if (isUccCodePrintable(fragment)) {
       if (fragment instanceof UccCode && fragment.#contains(this)) {
         throw new TypeError('Can not insert code fragment into itself');

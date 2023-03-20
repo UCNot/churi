@@ -200,6 +200,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TSchemae>> {
     const code = new UccCode().write(this.#toFactoryCode(mode)).toString();
 
+    console.debug(code);
+
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;
 
