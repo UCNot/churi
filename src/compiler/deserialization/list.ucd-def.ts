@@ -172,14 +172,14 @@ export class ListUcdDef<
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`${setList}(null);`)
+            .indent(`${setList}(null);`, `${isNull} = 0;`)
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
 
         code
-          .indent(`${setList}(${items});`)
+          .indent(`${setList}(${items});`, `${listCreated} = 0;`, `${items} = [];`)
           .write(`} else {`)
           .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
           .write(`}`);
@@ -238,12 +238,12 @@ export class ListUcdDef<
         if (this.#isNullableList) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`this.set(null);`)
+            .indent(`this.set(null);`, `${isNull} = 0;`)
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
-        code.indent(`this.set(${items});`).write(`}`);
+        code.indent(`this.set(${items});`, `${listCreated} = 0;`, `${items} = [];`).write(`}`);
       },
       nul: this.#isNullable
         ? _location => code => {
