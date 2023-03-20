@@ -22,8 +22,8 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   #expectedTypes?: readonly [set: ReadonlySet<string>, sameAsBase: boolean];
 
   #privateNs?: UccNamespace;
-  #privates?: UccCode;
-  #privateMethods?: UccCode;
+  readonly #privates = new UccCode();
+  readonly #privateMethods = new UccCode();
 
   constructor(options: UcrxTemplate.Options<T, TSchema>);
   constructor({ lib, schema, className, args }: UcrxTemplate.Options<T, TSchema>) {
@@ -153,9 +153,9 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
   #declareClass(_className: string): UccCode.Source {
     return code => {
       code.write(
-        this.#declarePrivates(),
+        this.#privates,
         this.#declareConstructor(),
-        this.#declarePrivateMethods(),
+        this.#privateMethods,
         this.#declareTypes(),
       );
       for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
@@ -171,13 +171,14 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
     return code => {
       const args = this.args.declare(this.lib.ns.nest());
+      const callSuperConstr = this.callSuperConstructor(base, args.args);
       const constr = this.declareConstructor(args.args);
 
-      if (constr || !this.args.equals(base.args)) {
+      if (constr || callSuperConstr || !this.args.equals(base.args)) {
         code
           .write(`constructor(${args}) {`)
           .indent(code => {
-            code.write(`super(${base.args.call(args.args)});`);
+            code.write(callSuperConstr ?? `super(${base.args.call(args.args)});`);
             if (constr) {
               code.write(constr);
             }
@@ -187,11 +188,18 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     };
   }
 
-  protected declareMethods(): UcrxTemplate.MethodDecls | undefined {
+  protected callSuperConstructor(
+    _base: UcrxTemplate,
+    _args: UcrxArgs.ByName,
+  ): UccCode.Source | undefined {
     return;
   }
 
   protected declareConstructor(_args: UcrxArgs.ByName): UccCode.Source | undefined {
+    return;
+  }
+
+  protected declareMethods(): UcrxTemplate.MethodDecls | undefined {
     return;
   }
 
@@ -200,8 +208,6 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     init?: string | ((prefix: string, suffix: string) => UccCode.Source),
   ): string {
     const name = this.#privateName(preferredName);
-
-    this.#privates ??= new UccCode();
 
     if (!init) {
       this.#privates.write(`#${name};`);
@@ -220,9 +226,6 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
     body: (args: UccArgs.ByName<TArg>) => UccCode.Source,
   ): UccMethodRef<TArg> {
     const name = this.#privateName(preferredName);
-
-    this.#privateMethods ??= new UccCode();
-
     const methodRef = new UccMethodRef(`#${name}`, args);
 
     this.#privateMethods.write(methodRef.declare(this.lib.ns.nest(), body));
@@ -232,22 +235,6 @@ export class UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> = UcS
 
   #privateName(preferred: string): string {
     return (this.#privateNs ??= this.lib.ns.nest()).name(preferred);
-  }
-
-  #declarePrivates(): UccCode.Source {
-    return code => {
-      if (this.#privates) {
-        code.write(this.#privates);
-      }
-    };
-  }
-
-  #declarePrivateMethods(): UccCode.Source {
-    return code => {
-      if (this.#privateMethods) {
-        code.write(this.#privateMethods);
-      }
-    };
   }
 
   #declareTypes(): UccCode.Source {

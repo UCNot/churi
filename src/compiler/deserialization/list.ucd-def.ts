@@ -44,20 +44,42 @@ export class ListUcdDef<
     return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
-  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
-  protected override declareConstructor({ context }: UcrxArgs.ByName): UccCode.Source<UccCode> {
-    return code => {
-      const { context: contextVar, itemRx, addItem } = this.#getAllocation();
-      const itemTemplate = this.#getItemTemplate();
+  protected override callSuperConstructor(
+    base: UcrxTemplate<unknown, UcSchema<unknown>>,
+    args: UcrxArgs.ByName,
+  ): UccCode.Source<UccCode> | undefined {
+    const { itemRx, addItem } = this.#getAllocation();
 
-      code.write(
-        `${contextVar} = ${context};`,
-        itemTemplate.newInstance({
-          args: { set: `this.${addItem.name}.bind(this)`, context },
-          prefix: `${itemRx} = `,
-          suffix: ';',
-        }),
-      );
+    if (itemRx) {
+      return;
+    }
+
+    return `super(${base.args.call({ ...args, set: `item => this.${addItem.name}(item)` })});`;
+  }
+
+  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
+  protected override declareConstructor({
+    set,
+    context,
+  }: UcrxArgs.ByName): UccCode.Source<UccCode> {
+    return code => {
+      const { context: contextVar, itemRx, setList, addItem } = this.#getAllocation();
+
+      code.write(`${contextVar} = ${context};`);
+
+      if (itemRx) {
+        const itemTemplate = this.#getItemTemplate();
+
+        code.write(
+          itemTemplate.newInstance({
+            args: { set: `this.${addItem.name}.bind(this)`, context },
+            prefix: `${itemRx} = `,
+            suffix: ';',
+          }),
+        );
+      } else {
+        code.write(`${setList} = ${set};`);
+      }
     };
   }
 
@@ -95,6 +117,7 @@ export class ListUcdDef<
     return (this.#allocation = {
       context: this.declarePrivate('context'),
       itemRx: this.#isMatrix ? this.declarePrivate('itemRx') : undefined,
+      setList: this.#isMatrix ? 'this.set' : this.declarePrivate('setList'),
       items,
       addItem: this.declarePrivateMethod(
         'addItem',
@@ -128,6 +151,7 @@ export class ListUcdDef<
 
   #declareListMethods({
     context,
+    setList,
     items,
     listCreated,
     isNull,
@@ -144,14 +168,14 @@ export class ListUcdDef<
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`this.set(null);`)
+            .indent(`${setList}(null);`)
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
 
         code
-          .indent(`this.set(${items});`)
+          .indent(`${setList}(${items});`)
           .write(`} else {`)
           .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
           .write(`}`);
@@ -254,6 +278,7 @@ export namespace ListUcdDef {
   export interface ListAllocation {
     readonly context: string;
     readonly itemRx?: undefined;
+    readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
     readonly addItem: UccMethodRef<'item'>;
@@ -263,6 +288,7 @@ export namespace ListUcdDef {
   export interface MatrixAllocation {
     readonly context: string;
     readonly itemRx: string;
+    readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
     readonly addItem: UccMethodRef<'item'>;
