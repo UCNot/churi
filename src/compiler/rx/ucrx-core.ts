@@ -26,7 +26,7 @@ export const UcrxCore: UcrxCore = {
   num: /*#__PURE__*/ new UcrxSetter({ key: 'num', typeName: 'number' }),
   str: /*#__PURE__*/ new UcrxSetter({ key: 'str', typeName: 'string' }),
   for: /*#__PURE__*/ new UcrxMethod({ key: 'for', args: ['key'] }),
-  map: /*#__PURE__*/ new UcrxMethod<''>({ key: 'for', args: [], typeName: 'map' }),
+  map: /*#__PURE__*/ new UcrxMethod<''>({ key: 'map', args: [], typeName: 'map' }),
   em: /*#__PURE__*/ new UcrxMethod<''>({ key: 'em', args: [] }),
   ls: /*#__PURE__*/ new UcrxMethod<''>({ key: 'ls', args: [] }),
   any: /*#__PURE__*/ new UcrxSetter({ key: 'any', typeName: 'any' }),

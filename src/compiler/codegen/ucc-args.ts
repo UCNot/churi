@@ -1,7 +1,11 @@
-import { arraysAreEqual } from '@proc7ts/primitives';
+import { arraysAreEqual, isArray } from '@proc7ts/primitives';
 import { UccNamespace } from './ucc-namespace.js';
 
 export class UccArgs<in out TArg extends string = ''> {
+
+  static by<TArg extends string>(spec: UccArgs.Spec<TArg>): UccArgs<TArg> {
+    return isArray(spec) ? new UccArgs(...spec) : spec;
+  }
 
   readonly #list: readonly TArg[];
   readonly #byName: UccArgs.ByName<TArg>;
@@ -75,6 +79,8 @@ export class UccArgs<in out TArg extends string = ''> {
 }
 
 export namespace UccArgs {
+  export type Spec<TArg extends string> = readonly TArg[] | UccArgs<TArg>;
+
   export type ByName<in TArg extends string> = { readonly [key in TArg]: string };
 
   export interface Binding<in TArg extends string> {

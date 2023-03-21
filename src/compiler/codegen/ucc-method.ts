@@ -7,9 +7,9 @@ export class UccMethod<in out TArg extends string = string> {
   readonly #name: string;
   readonly #args: UccArgs<TArg>;
 
-  constructor(name: string, args: UccArgs<TArg>) {
+  constructor(name: string, args: UccArgs.Spec<TArg>) {
     this.#name = name;
-    this.#args = args;
+    this.#args = UccArgs.by(args);
   }
 
   get name(): string {
@@ -28,23 +28,12 @@ export class UccMethod<in out TArg extends string = string> {
     };
   }
 
-  call(
-    target: string,
-    args: UccArgs.ByName<TArg>,
-    {
-      prefix,
-      suffix,
-    }: {
-      readonly prefix: string;
-      readonly suffix: string;
-    } = {
-      prefix: '',
-      suffix: ';',
-    },
-  ): UccCode.Source {
-    return code => {
-      code.write(`${prefix}${target}.${this.name}(${this.args.call(args)})${suffix}`);
-    };
+  call(target: string, args: UccArgs.ByName<TArg>): string {
+    return `${target}.${this.name}(${this.args.call(args)})`;
+  }
+
+  bind(target: string): string {
+    return `${target}.${this.name}.bind(${target})`;
   }
 
 }

@@ -21,7 +21,7 @@ export abstract class BaseUcrxTemplate {
     this.#lib = lib;
 
     if (args) {
-      this.#args = () => new UccArgs(...args);
+      this.#args = () => UccArgs.by(args);
     } else {
       this.#args = () => this.base?.args ?? new UccArgs<UcrxArgs.Arg>('set');
     }

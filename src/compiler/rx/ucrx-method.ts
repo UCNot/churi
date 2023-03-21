@@ -1,56 +1,48 @@
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
+import { UccMethod } from '../codegen/ucc-method.js';
 import { UcrxTemplate } from './ucrx-template.js';
 
 export class UcrxMethod<in out TArg extends string = string> {
 
-  readonly #key: string;
+  readonly #method: UccMethod<TArg>;
   readonly #typeName: string | undefined;
-  readonly #args: UccArgs<TArg>;
 
   constructor(options: UcrxMethod.Options<TArg>);
 
   constructor({ key, args = ['value' as TArg], typeName }: UcrxMethod.Options<TArg>) {
-    this.#key = key;
-    this.#args = new UccArgs(...args);
+    this.#method = new UccMethod(key, args);
     this.#typeName = typeName;
   }
 
   get key(): string {
-    return this.#key;
+    return this.#method.name;
+  }
+
+  get args(): UccArgs<TArg> {
+    return this.#method.args;
   }
 
   get typeName(): string | undefined {
     return this.#typeName;
   }
 
-  get args(): UccArgs<TArg> {
-    return this.#args;
-  }
-
-  declare(template: UcrxTemplate, key: string, declare: UcrxMethod.Body<TArg>): UccCode.Source {
-    const args = this.args.declare(template.lib.ns.nest());
-
-    return code => {
-      code
-        .write(`${key}(${args}) {`)
-        .indent(declare({ template, method: this, key, args: args.args }))
-        .write(`}`);
-    };
+  declare(template: UcrxTemplate, key: string, body: UcrxMethod.Body<TArg>): UccCode.Source {
+    return this.#method.declare(template.lib.ns.nest(), args => body({ template, method: this, key, args }));
   }
 
 }
 
 export namespace UcrxMethod {
-  export interface Options<out TArg extends string> {
+  export interface Options<in out TArg extends string> {
     readonly key: string;
-    readonly args: readonly TArg[];
+    readonly args: UccArgs.Spec<TArg>;
     readonly typeName?: string | undefined;
   }
 
-  export type Body<in TArg extends string> = (location: Location<TArg>) => UccCode.Source;
+  export type Body<in TArg extends string> = (location: Declaration<TArg>) => UccCode.Source;
 
-  export interface Location<out TArg extends string> {
+  export interface Declaration<out TArg extends string> {
     readonly template: UcrxTemplate;
     readonly method: UcrxMethod<TArg>;
     readonly key: string;

@@ -56,7 +56,10 @@ export class ListUcdDef<
       return;
     }
 
-    return `super(${base.args.call({ ...args, set: `item => this.${addItem.name}(item)` })});`;
+    return `super(${base.args.call({
+      ...args,
+      set: `item => ${addItem.call('this', { item: 'item' })}`,
+    })});`;
   }
 
   protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
@@ -208,7 +211,7 @@ export class ListUcdDef<
 
         code.write(
           itemTemplate.newInstance({
-            args: { set: `this.${addItem.name}.bind(this)`, context },
+            args: { set: addItem.bind('this'), context },
             prefix: `return `,
             suffix: ';',
           }),

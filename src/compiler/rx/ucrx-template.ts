@@ -22,7 +22,7 @@ export interface UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> =
 export namespace UcrxTemplate {
   export interface Options {
     readonly lib: UcrxLib;
-    readonly args?: readonly UcrxArgs.Arg[] | undefined;
+    readonly args?: UcrxArgs.Spec | undefined;
   }
 
   export type MethodDecls = {

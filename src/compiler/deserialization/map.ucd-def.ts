@@ -176,7 +176,7 @@ export class MapUcdDef<
     return requiredCount;
   }
 
-  #declareFor({ args: { key } }: UcrxMethod.Location<'key'>): UccCode.Source {
+  #declareFor({ args: { key } }: UcrxMethod.Declaration<'key'>): UccCode.Source {
     const {
       decls: { entries, extra },
       context,
@@ -198,7 +198,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareMap(_location: UcrxMethod.Location<''>): UccCode.Source {
+  #declareMap(_location: UcrxMethod.Declaration<''>): UccCode.Source {
     const allocation = this.#getAllocation();
     const {
       decls: { entries, requiredCount },
@@ -228,7 +228,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareNul(_location: UcrxMethod.Location<''>): UccCode.Source {
+  #declareNul(_location: UcrxMethod.Declaration<''>): UccCode.Source {
     return `return this.set(null);`;
   }
 

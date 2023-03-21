@@ -69,7 +69,7 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTe
 
   protected override declareMethods(): UcrxTemplate.MethodDecls {
     return {
-      [this.#key]({ args: { value } }: UcrxMethod.Location<'value'>): UccCode.Source {
+      [this.#key]({ args: { value } }: UcrxMethod.Declaration<'value'>): UccCode.Source {
         return `return this.set(${value});`;
       },
       nul: this.schema.nullable ? _location => `return this.set(null);` : undefined,
