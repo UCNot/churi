@@ -4,13 +4,13 @@ import { CHURI_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
-import { UccCode } from '../ucc-code.js';
-import { UccNamespace } from '../ucc-namespace.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
 

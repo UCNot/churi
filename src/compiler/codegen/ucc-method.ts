@@ -2,7 +2,7 @@ import { UccArgs } from './ucc-args.js';
 import { UccCode } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 
-export class UccMethodRef<in out TArg extends string = string> {
+export class UccMethod<in out TArg extends string = string> {
 
   readonly #name: string;
   readonly #args: UccArgs<TArg>;

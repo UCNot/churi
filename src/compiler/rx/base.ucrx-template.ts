@@ -1,5 +1,5 @@
-import { UccArgs } from '../ucc-args.js';
-import { UccCode } from '../ucc-code.js';
+import { UccArgs } from '../codegen/ucc-args.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxLocation } from './ucrx-location.js';

@@ -1,9 +1,9 @@
 import { VoidUcrx } from '../../rx/void.ucrx.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccLib } from '../codegen/ucc-lib.js';
+import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { OpaqueUcrxTemplate } from '../impl/opaque.ucrx-template.js';
 import { VoidUcrxTemplate } from '../impl/void.ucrx-template.js';
-import { UccLib } from '../ucc-lib.js';
-import { UccNamespace } from '../ucc-namespace.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxTemplate } from './ucrx-template.js';

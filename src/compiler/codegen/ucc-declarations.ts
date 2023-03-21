@@ -1,4 +1,4 @@
-import { safeJsId } from './impl/safe-js-id.js';
+import { safeJsId } from '../impl/safe-js-id.js';
 import { UccCode } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 

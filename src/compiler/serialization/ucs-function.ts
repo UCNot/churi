@@ -1,8 +1,8 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../ucc-code.js';
-import { UccNamespace } from '../ucc-namespace.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsLib } from './ucs-lib.js';
 

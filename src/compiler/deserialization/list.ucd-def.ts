@@ -3,14 +3,14 @@ import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccArgs } from '../codegen/ucc-args.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UccMethod } from '../codegen/ucc-method.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
-import { UccArgs } from '../ucc-args.js';
-import { UccCode } from '../ucc-code.js';
-import { UccMethodRef } from '../ucc-method-ref.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
 
@@ -281,7 +281,7 @@ export namespace ListUcdDef {
     readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
-    readonly addItem: UccMethodRef<'item'>;
+    readonly addItem: UccMethod<'item'>;
     readonly isNull?: string | undefined;
   }
 
@@ -290,7 +290,7 @@ export namespace ListUcdDef {
     readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
-    readonly addItem: UccMethodRef<'item'>;
+    readonly addItem: UccMethod<'item'>;
     readonly isNull?: string | undefined;
   }
 }

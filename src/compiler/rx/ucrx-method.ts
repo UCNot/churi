@@ -1,5 +1,5 @@
-import { UccArgs } from '../ucc-args.js';
-import { UccCode } from '../ucc-code.js';
+import { UccArgs } from '../codegen/ucc-args.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcrxTemplate } from './ucrx-template.js';
 
 export class UcrxMethod<in out TArg extends string = string> {

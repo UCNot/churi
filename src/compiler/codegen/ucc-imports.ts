@@ -1,4 +1,4 @@
-import { escapeJsString } from '../impl/quote-property-key.js';
+import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UccCode } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 

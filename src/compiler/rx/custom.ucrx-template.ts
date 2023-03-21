@@ -1,11 +1,11 @@
 import { capitalize } from '../../impl/capitalize.js';
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccArgs } from '../codegen/ucc-args.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UccMethod } from '../codegen/ucc-method.js';
+import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
-import { UccArgs } from '../ucc-args.js';
-import { UccCode } from '../ucc-code.js';
-import { UccMethodRef } from '../ucc-method-ref.js';
-import { UccNamespace } from '../ucc-namespace.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxTemplate } from './ucrx-template.js';
@@ -125,9 +125,9 @@ export class CustomUcrxTemplate<
     preferredName: string,
     args: UccArgs<TArg>,
     body: (args: UccArgs.ByName<TArg>) => UccCode.Source,
-  ): UccMethodRef<TArg> {
+  ): UccMethod<TArg> {
     const name = this.#privateName(preferredName);
-    const methodRef = new UccMethodRef(`#${name}`, args);
+    const methodRef = new UccMethod(`#${name}`, args);
 
     this.#privateMethods.write(methodRef.declare(this.lib.ns.nest(), body));
 

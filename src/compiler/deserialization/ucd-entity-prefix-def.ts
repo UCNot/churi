@@ -1,5 +1,5 @@
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
 
 /**

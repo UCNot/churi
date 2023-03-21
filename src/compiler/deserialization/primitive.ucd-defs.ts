@@ -1,11 +1,11 @@
 import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UccCode } from '../ucc-code.js';
 import { UcdDef } from './ucd-def.js';
 
 export class Primitive$UcdDefs {

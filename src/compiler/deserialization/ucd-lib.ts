@@ -9,7 +9,7 @@ import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
