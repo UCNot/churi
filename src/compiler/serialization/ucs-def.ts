@@ -1,5 +1,5 @@
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcsFunction } from './ucs-function.js';
 
 /**

@@ -1,5 +1,5 @@
 /**
- * URI charge error.
+ * Charge error.
  *
  * Represents an {@link UcErrorInfo error info} wrapped into `Error`.
  */
@@ -75,7 +75,7 @@ export class UcError extends Error implements UcErrorInfo {
 }
 
 /**
- * Information about URI charge error.
+ * Information about charge error.
  */
 export interface UcErrorInfo {
   /**

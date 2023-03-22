@@ -1,48 +1,86 @@
-import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../ucc-code.js';
-import { UccNamespace } from '../ucc-namespace.js';
-import { uccInitProperty } from '../ucc-object-init.js';
+import { UccArgs } from '../codegen/ucc-args.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UccMethod } from '../codegen/ucc-method.js';
+import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
+import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
+import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { ucdCreateUcrx, UcdUcrx, UcdUcrxLocation } from './ucd-ucrx.js';
+import { UcdLib } from './ucd-lib.js';
 
 export class ListUcdDef<
   TItem = unknown,
   TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
-> {
+> extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
 
   static get type(): string | UcSchema.Class {
     return 'list';
   }
 
-  static initRx<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
-    location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>,
-  ): UcdUcrx {
-    return location.schema.initRx?.(location) ?? new this(location).initRx();
+  static createTemplate<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
+    lib: UcdLib,
+    schema: UcList.Schema<TItem, TItemSpec>,
+  ): UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
+    return schema.createTemplate?.(lib, schema) ?? new this(lib, schema);
   }
 
-  readonly #location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>;
-  readonly #ns: UccNamespace;
+  #itemTemplate?: UcrxTemplate;
+  #allocation?: ListUcdDef.Allocation;
 
-  readonly #varListCreated = lazyValue(() => this.#ns.name('listCreated'));
-  readonly #varItems = lazyValue(() => this.#ns.name('items'));
-  readonly #varIsNull = lazyValue(() => this.#ns.name('isNull'));
-  readonly #varAddItem = lazyValue(() => this.#ns.name('addItem'));
-
-  constructor(location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>) {
-    this.#location = location;
-    this.#ns = location.ns.nest();
+  constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemSpec>) {
+    super({
+      lib,
+      schema,
+      args: ['set', 'context'],
+    });
   }
 
-  get schema(): UcList.Schema<TItem, TItemSpec> {
-    return this.location.schema;
+  get base(): BaseUcrxTemplate {
+    return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
-  get location(): UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>> {
-    return this.#location;
+  protected override callSuperConstructor(
+    base: BaseUcrxTemplate,
+    args: UcrxArgs.ByName,
+  ): UccCode.Source<UccCode> | undefined {
+    const { addItem } = this.#getAllocation();
+
+    if (this.#isMatrix) {
+      return;
+    }
+
+    return `super(${base.args.call({
+      ...args,
+      set: `item => ${addItem.call('this', { item: 'item' })}`,
+    })});`;
+  }
+
+  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
+  protected override declareConstructor({
+    set,
+    context,
+  }: UcrxArgs.ByName): UccCode.Source<UccCode> {
+    return code => {
+      const { context: contextVar, setList } = this.#getAllocation();
+
+      code.write(`${contextVar} = ${context};`);
+
+      if (!this.#isMatrix) {
+        code.write(`${setList} = ${set};`);
+      }
+    };
+  }
+
+  protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
+    const allocation = this.#getAllocation();
+
+    return this.#isMatrix
+      ? this.#declareMatrixMethods(allocation)
+      : this.#declareListMethods(allocation);
   }
 
   get #isNullableList(): boolean | undefined {
@@ -57,230 +95,203 @@ export class ListUcdDef<
     return this.#isNullableList || this.#isNullableItem;
   }
 
-  initRx(): UcdUcrx {
-    const itemRx = this.#itemRx();
-
-    if (itemRx.properties.ls) {
-      return this.#initMatrixRx(itemRx);
-    }
-
-    return this.#initListRx(itemRx);
+  get #isMatrix(): boolean {
+    return !!this.#getItemTemplate().definedMethods.ls;
   }
 
-  #itemRx(): UcdUcrx {
+  #getAllocation(): ListUcdDef.Allocation {
+    if (this.#allocation) {
+      return this.#allocation;
+    }
+
+    const items = this.declarePrivate('items', '[]');
+
+    return (this.#allocation = {
+      context: this.declarePrivate('context'),
+      setList: this.#isMatrix ? 'this.set' : this.declarePrivate('setList'),
+      items,
+      addItem: this.declarePrivateMethod(
+        'addItem',
+        new UccArgs('item'),
+        ({ item }) => `${items}.push(${item})`,
+      ),
+      listCreated: this.declarePrivate('listCreated', '0'),
+      isNull: this.#isNullableList ? this.declarePrivate('isNull', '0') : undefined,
+    });
+  }
+
+  #getItemTemplate(): BaseUcrxTemplate {
+    if (this.#itemTemplate) {
+      return this.#itemTemplate;
+    }
+
     const {
-      location: { fn },
       schema: { item },
     } = this;
 
     try {
-      return fn.initRx({ ns: this.#ns, schema: item, setter: this.#varAddItem() });
+      return (this.#itemTemplate = this.lib.ucrxTemplateFor(item));
     } catch (cause) {
       throw new UnsupportedUcSchemaError(
         item,
-        `${fn.name}: Can not deserialize list item of type "${ucSchemaName(item)}"`,
+        `${ucSchemaName(this.schema)}: Can not deserialize list item of type "${ucSchemaName(
+          item,
+        )}"`,
         { cause },
       );
     }
   }
 
-  #initListRx(itemRx: UcdUcrx): UcdUcrx {
-    const listCreated = this.#varListCreated();
-    const isNull = this.#varIsNull();
-    const items = this.#varItems();
-    let addNull: string | undefined;
-    const {
-      location: {
-        fn: {
-          lib,
-          args: { reader },
-        },
-        setter,
-      },
-    } = this;
+  #declareListMethods({
+    context,
+    setList,
+    items,
+    listCreated,
+    isNull,
+  }: ListUcdDef.ListAllocation): UcrxTemplate.MethodDecls {
+    const { lib } = this;
     const ucrxUnexpectedSingleItemError = lib.import(CHURI_MODULE, 'ucrxUnexpectedSingleItemError');
     const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
 
-    if (this.#isNullableList && itemRx.properties.nul) {
-      addNull = this.#ns.name('addNull');
-    }
-
     return {
-      init: code => {
-        code.write(this.#init());
-        if (itemRx.init) {
-          code.write(itemRx.init);
-        }
-        if (addNull) {
-          code.write(uccInitProperty(itemRx.properties.nul!, `const ${addNull} = `, ';', 'nul'));
-        }
+      em: _location => code => {
+        code.write(`return ${listCreated} = 1;`);
       },
-      properties: {
-        ...itemRx.properties,
-        em: (prefix, suffix) => code => {
-          code.write(`${prefix}() => ${listCreated} = 1${suffix}`);
-        },
-        ls: (prefix, suffix) => code => {
+      ls: _location => code => {
+        if (isNull) {
           code
-            .write(`${prefix.asMethod()}{`)
-            .indent(code => {
-              if (this.#isNullableList) {
-                code
-                  .write(`if (${isNull}) {`)
-                  .indent(`${setter}(null);`)
-                  .write(`} else if (${listCreated}) {`);
-              } else {
-                code.write(`if (${listCreated}) {`);
-              }
+            .write(`if (${isNull}) {`)
+            .indent(`${setList}(null);`)
+            .write(`} else if (${listCreated}) {`);
+        } else {
+          code.write(`if (${listCreated}) {`);
+        }
 
-              code
-                .indent(`${setter}(${items});`)
-                .write(`} else {`)
-                .indent(`${reader}.error(${ucrxUnexpectedSingleItemError}(this));`)
-                .write(`}`);
-            })
-            .write(`}${suffix}`);
-        },
-        nul: this.#isNullableList
-          ? (prefix, suffix) => code => {
-              code
-                .write(`${prefix.asMethod()}{`)
-                .indent(code => {
-                  code
-                    .write(`if (${listCreated}) {`)
-                    .indent(code => {
-                      code.write(`${isNull} = 0;`);
-                      if (addNull) {
-                        code.write(`return ${addNull}();`);
-                      } else {
-                        code.write(`${reader}.error(${ucrxUnexpectedNullError}(this));`);
-                      }
-                    })
-                    .write(`} else {`)
-                    .indent(`${isNull} = 1;`)
-                    .write(`}`)
-                    .write('return 1;');
-                })
-                .write(`}${suffix}`);
-            }
-          : itemRx.properties.nul,
+        code
+          .indent(`${setList}(${items});`)
+          .write(`} else {`)
+          .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
+          .write(`}`);
       },
+      nul: isNull
+        ? _location => code => {
+            code
+              .write(`if (${listCreated}) {`)
+              .indent(code => {
+                code.write(`${isNull} = 0;`);
+                if (this.#isNullableItem) {
+                  code.write(`return super.nul();`);
+                } else {
+                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
+                }
+              })
+              .write(`}`)
+              .write(`return ${isNull} = 1;`);
+          }
+        : undefined,
     };
   }
 
-  #initMatrixRx(itemRx: UcdUcrx): UcdUcrx {
-    const listCreated = this.#varListCreated();
-    const isNull = this.#varIsNull();
-    const items = this.#varItems();
-    const {
-      location: {
-        fn: {
-          lib,
-          args: { reader },
-        },
-        setter,
-      },
-    } = this;
+  #declareMatrixMethods({
+    context,
+    items,
+    addItem,
+    listCreated,
+    isNull,
+  }: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
+    const { lib } = this;
     const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
 
     return {
-      init: this.#init(),
-      properties: {
-        nls: (prefix, suffix) => code => {
-          code
-            .write(`${prefix.asMethod()}{`)
-            .indent(code => {
-              code.write(ucdCreateUcrx(itemRx, { prefix: 'return ', suffix: ';' }));
+      nls: _location => code => {
+        const itemTemplate = this.#getItemTemplate();
+
+        code.write(
+          'return '
+            + itemTemplate.newInstance({
+              set: addItem.bind('this'),
+              context,
             })
-            .write(`}${suffix}`);
-        },
-        em: (prefix, suffix) => code => {
-          if (this.#isNullableItem && this.#isNullableList) {
-            code
-              .write(`${prefix.asMethod()}{`)
-              .indent(code => {
-                code
-                  .write(`if (!${listCreated}) {`)
-                  .indent(code => {
-                    code
-                      .write(`${listCreated} = 1;`)
-                      .write(`if (${isNull}) {`)
-                      .indent(`${isNull} = 0;`, `${items}.push(null);`)
-                      .write(`}`);
-                  })
-                  .write(`}`)
-                  .write(`return 1;`);
-              })
-              .write(`}${suffix}`);
-          } else {
-            code.write(`${prefix}() => ${listCreated} = 1${suffix}`);
-          }
-        },
-        ls: (prefix, suffix) => code => {
-          code
-            .write(`${prefix.asMethod()}{`)
-            .indent(code => {
-              if (this.#isNullableList) {
-                code
-                  .write(`if (${isNull}) {`)
-                  .indent(`${setter}(null);`)
-                  .write(`} else if (${listCreated}) {`);
-              } else {
-                code.write(`if (${listCreated}) {`);
-              }
-              code.indent(`${setter}(${items});`).write(`}`);
-            })
-            .write(`}${suffix}`);
-        },
-        nul: this.#isNullable
-          ? (prefix, suffix) => code => {
-              code
-                .write(`${prefix.asMethod()}{`)
-                .indent(code => {
-                  code
-                    .write(`if (${listCreated}) {`)
-                    .indent(code => {
-                      if (this.#isNullableList && !this.#isNullableItem) {
-                        code.write(`${isNull} = 1;`);
-                      }
-                      if (this.#isNullableItem) {
-                        code.write(`${items}.push(null);`);
-                      } else {
-                        code.write(`${reader}.error(${ucrxUnexpectedNullError}(this));`);
-                      }
-                    })
-                    .write(`} else {`)
-                    .indent(code => {
-                      if (this.#isNullableList) {
-                        code.write(`${isNull} = 1;`);
-                      } else {
-                        code.write(`${reader}.error(${ucrxUnexpectedNullError}(this));`);
-                      }
-                    })
-                    .write(`}`)
-                    .write(`return 1;`);
-                })
-                .write(`}${suffix}`);
-            }
-          : undefined,
+            + ';',
+        );
       },
+      em: _location => code => {
+        if (this.#isNullableItem && this.#isNullableList) {
+          code
+            .write(`if (!${listCreated}) {`)
+            .indent(code => {
+              code
+                .write(`${listCreated} = 1;`)
+                .write(`if (${isNull}) {`)
+                .indent(`${items}.push(null);`)
+                .write(`}`);
+            })
+            .write(`}`)
+            .write(`return 1;`);
+        } else {
+          code.write(`return ${listCreated} = 1;`);
+        }
+      },
+      ls: _location => code => {
+        if (this.#isNullableList) {
+          code
+            .write(`if (${isNull}) {`)
+            .indent(`this.set(null);`)
+            .write(`} else if (${listCreated}) {`);
+        } else {
+          code.write(`if (${listCreated}) {`);
+        }
+        code.indent(`this.set(${items});`).write(`}`);
+      },
+      nul: this.#isNullable
+        ? _location => code => {
+            code
+              .write(`if (${listCreated}) {`)
+              .indent(code => {
+                if (this.#isNullableList && !this.#isNullableItem) {
+                  code.write(`${isNull} = 1;`);
+                }
+                if (this.#isNullableItem) {
+                  code.write(`${items}.push(null);`);
+                } else {
+                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
+                }
+              })
+              .write(`} else {`)
+              .indent(code => {
+                if (this.#isNullableList) {
+                  code.write(`${isNull} = 1;`);
+                } else {
+                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
+                }
+              })
+              .write(`}`)
+              .write(`return 1;`);
+          }
+        : undefined,
     };
   }
 
-  #init(): UccCode.Source {
-    const items = this.#varItems();
+}
 
-    return code => {
-      code
-        .write(`let ${this.#varListCreated()} = 0;`, `const ${items} = [];`)
-        .write(`const ${this.#varAddItem()} = value => {`)
-        .indent(`${items}.push(value);`, `return 1;`)
-        .write(`};`);
+export namespace ListUcdDef {
+  export type Allocation = MatrixAllocation | ListAllocation;
 
-      if (this.#isNullableList) {
-        code.write(`let ${this.#varIsNull()} = 0;`);
-      }
-    };
+  export interface ListAllocation {
+    readonly context: string;
+    readonly setList: string;
+    readonly items: string;
+    readonly listCreated: string;
+    readonly addItem: UccMethod<'item'>;
+    readonly isNull?: string | undefined;
   }
 
+  export interface MatrixAllocation {
+    readonly context: string;
+    readonly setList: string;
+    readonly items: string;
+    readonly listCreated: string;
+    readonly addItem: UccMethod<'item'>;
+    readonly isNull?: string | undefined;
+  }
 }

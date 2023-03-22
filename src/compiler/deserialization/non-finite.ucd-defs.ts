@@ -1,5 +1,5 @@
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
 

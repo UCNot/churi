@@ -392,7 +392,7 @@ describe('UcMap', () => {
         expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
         expect(error?.schema.type).toBe('test-type');
         expect(error?.message).toBe(
-          'readMap$deserialize: Can not deserialize entry "test" of type "test-type"',
+          '{test: test-type}: Can not deserialize entry "test" of type "test-type"',
         );
         expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
         expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
@@ -580,7 +580,7 @@ describe('UcMap', () => {
         expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
         expect(error?.schema.type).toBe('test-type');
         expect(error?.message).toBe(
-          'readMap$deserialize: Can not deserialize extra entry of type "test-type"',
+          '{test: String}: Can not deserialize extra entry of type "test-type"',
         );
         expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
         expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');

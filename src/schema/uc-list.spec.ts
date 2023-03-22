@@ -264,9 +264,7 @@ describe('UcList', () => {
 
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
-      expect(error?.message).toBe(
-        'readList$deserialize: Can not deserialize list item of type "test-type"',
-      );
+      expect(error?.message).toBe('test-type[]: Can not deserialize list item of type "test-type"');
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });

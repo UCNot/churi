@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
 import { UcsLib } from './ucs-lib.js';
 
 describe('UcsLib', () => {

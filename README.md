@@ -11,9 +11,9 @@ An URI that may contain arbitrary JavaScript values encoded with [URI charge] mi
 
 It is like JSON for GET requests, but can do even more.
 
-URI charge may be used as:
+URI charge may be used:
 
-- query parameter value,
+- as query parameter value,
 - as [Matrix URI] parameters,
 - as path fragment argument.
 
@@ -101,10 +101,10 @@ const { route, searchParams: query } = new ChURI(
 );
 
 console.debug(route.path);
-// /api(!v(3.0))/user;id=0n302875106592253/article;slug=hello-world/comments
+// /api(!v:3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
 
 console.debug(route.name, route.charge.get('api').value);
-// api 3.0
+// api !v:3.0
 
 console.debug(route.at(1).name, route.at(1).matrix.chargeOf('id').value);
 // user 302875106592253n
@@ -130,7 +130,7 @@ To build Charged URI a tagged template can be used.
 The following code reconstructs the URI from example above:
 
 ```typescript
-import { churi } from '@hatsy/churi';
+import { churi, UcEntity } from '@hatsy/churi';
 
 console.debug(churi`
   https://example.com
@@ -154,7 +154,7 @@ The `UcEntity` above used to avoid escaping and percent-encoding and should be u
 Instead, a Charged URI string can be built with `chargeURI()` function.
 
 ```typescript
-import { chargeURI, chargeURIArgs, UcDirective, UcEntity } from '@hatsy/churi';
+import { chargeURI, UcEntity } from '@hatsy/churi';
 
 console.debug(
   'https://example.com' +
@@ -174,8 +174,7 @@ console.debug(
 ```
 
 Charging can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not implemented,
-a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON
-serialization.
+a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON one.
 
 ## URI Charge Processing
 

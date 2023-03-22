@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { Ucrx } from '../rx/ucrx.js';
+import { VoidUcrx } from '../rx/void.ucrx.js';
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
 import { UcTokenizer } from '../syntax/uc-tokenizer.js';
@@ -23,13 +24,18 @@ describe('UcdEntityReader', () => {
     errors = [];
     reader = new UcdEntityReader();
     value = undefined;
-    rx = {
-      any: v => {
-        value = v;
 
-        return 1;
-      },
-    };
+    class TestUcrx extends VoidUcrx {
+
+      override any(v: unknown): 1 {
+        return this.set(v);
+      }
+
+}
+
+    rx = new TestUcrx(v => {
+      value = v;
+    });
   });
 
   describe('entity handler', () => {

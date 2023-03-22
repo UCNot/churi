@@ -1,5 +1,6 @@
 import { asis } from '@proc7ts/primitives';
-import { UcdUcrx, UcdUcrxLocation } from '../compiler/deserialization/ucd-ucrx.js';
+import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
+import { UcrxTemplate } from '../compiler/rx/ucrx-template.js';
 import { UcPrimitive } from './uc-primitive.js';
 import { ucSchemaName } from './uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from './uc-schema.js';
@@ -32,17 +33,20 @@ export namespace UcList {
     readonly item: UcSchema.Of<TItemSpec>;
 
     /**
-     * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
+     * Creates charge receiver template.
      *
      * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
      *
-     * @param location - A location inside deserializer function to insert generated code into.
+     * @param lib - Deserialization library instance.
+     * @param schema - Schema of deserialized list.
      *
-     * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
+     * @returns Deserialized charge receiver template, or `undefined` if the receiver can not be generated.
      */
-    initRx?(
-      location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>,
-    ): UcdUcrx | undefined;
+    createTemplate?(
+      this: void,
+      lib: UcdLib,
+      schema: UcList.Schema<TItem, TItemSpec>,
+    ): UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> | undefined;
   }
 
   export namespace Schema {
@@ -77,17 +81,20 @@ export namespace UcList {
       readonly id?: string | UcSchema.Class | undefined;
 
       /**
-       * Generates initialization code of {@link @hatsy/churi!Ucrx charge receiver} properties.
+       * Creates charge receiver template.
        *
        * {@link @hatsy/churi/compiler!ListUcdDef List deserializer definition} is used by default.
        *
-       * @param location - A location inside deserializer function to insert generated code into.
+       * @param lib - Deserialization library instance.
+       * @param schema - Schema of deserialized list.
        *
-       * @returns Per-property initializers, or `undefined` if the receiver can not be generated.
+       * @returns Deserialized charge receiver template, or `undefined` if the receiver can not be generated.
        */
-      initRx?(
-        location: UcdUcrxLocation<TItem[], UcList.Schema<TItem, TItemSpec>>,
-      ): UcdUcrx | undefined;
+      createTemplate?(
+        this: void,
+        lib: UcdLib,
+        schema: UcList.Schema<TItem, TItemSpec>,
+      ): UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> | undefined;
     }
   }
 }
@@ -107,7 +114,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
 
 export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
-  { id, initRx }: UcList.Schema.Options<TItem, TItemSpec> = {},
+  { id, createTemplate }: UcList.Schema.Options<TItem, TItemSpec> = {},
 ): UcList.Schema.Ref<TItem, TItemSpec> {
   return {
     [UcSchema__symbol]: resolver => {
@@ -118,7 +125,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
         id: id ?? `list_${++UcList$idSeq}`,
         asis,
         item,
-        initRx,
+        createTemplate,
         toString() {
           return `${ucSchemaName(item)}[]`;
         },

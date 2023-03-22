@@ -1,5 +1,6 @@
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccCode } from '../ucc-code.js';
+import { UccCode } from '../codegen/ucc-code.js';
+import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcdLib } from './ucd-lib.js';
 
 /**
@@ -16,6 +17,11 @@ export interface UcdEntityDef {
   readonly entity: string | readonly UcToken[];
 
   readonly entityPrefix?: undefined;
+
+  /**
+   * Custom methods required to present in {@link UcrxLib#voidUcrx void charge receiver template}.
+   */
+  readonly methods?: UcrxMethod<any> | readonly UcrxMethod<any>[] | undefined;
 
   /**
    * Generates code that registers entity handler.
