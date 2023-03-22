@@ -1,4 +1,5 @@
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdLib } from './ucd-lib.js';
 
@@ -16,6 +17,11 @@ export interface UcdTypeDef<out T = unknown, out TSchema extends UcSchema<T> = U
 
   readonly entity?: undefined;
   readonly entityPrefix?: undefined;
+
+  /**
+   * Custom methods required to present in {@link UcrxLib#voidUcrx void charge receiver template}.
+   */
+  readonly methods?: UcrxMethod<any> | readonly UcrxMethod<any>[] | undefined;
 
   /**
    * Creates charge receiver template to use to deserialize target data type.

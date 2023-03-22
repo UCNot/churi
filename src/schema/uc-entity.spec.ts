@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { BasicUcdDefs } from '../compiler/deserialization/basic.ucd-defs.js';
 import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
+import { TimestampUcrxMethod } from '../spec/read-timestamp-entity.js';
 import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
 import { UcEntity } from './uc-entity.js';
 import { UcErrorInfo } from './uc-error.js';
@@ -69,6 +70,28 @@ describe('UcEntity', () => {
       const { readString } = await lib.compile('sync').toDeserializers();
 
       expect(readString('!plain:test')).toBe('!plain:test');
+    });
+
+    it('extends base ucrx', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          readTimestamp: Number,
+        },
+        definitions: [
+          ...BasicUcdDefs,
+          {
+            entityPrefix: '!timestamp:',
+            methods: TimestampUcrxMethod,
+            addHandler({ lib, prefix, suffix }) {
+              return `${prefix}${lib.import('@hatsy/churi/spec', 'readTimestampEntity')}${suffix}`;
+            },
+          },
+        ],
+      });
+      const now = new Date();
+      const { readTimestamp } = await lib.compile('sync').toDeserializers();
+
+      expect(readTimestamp(`!timestamp:${now.toISOString()}`)).toBe(now.getTime());
     });
   });
 });

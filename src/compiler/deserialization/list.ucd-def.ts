@@ -1,4 +1,3 @@
-import { capitalize } from '../../impl/capitalize.js';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
@@ -6,7 +5,6 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -37,7 +35,6 @@ export class ListUcdDef<
     super({
       lib,
       schema,
-      className: capitalize(ucSchemaSymbol(schema)) + 'Ucrx',
       args: ['set', 'context'],
     });
   }
@@ -78,7 +75,7 @@ export class ListUcdDef<
     };
   }
 
-  protected override declareMethods(): UcrxTemplate.MethodDecls | undefined {
+  protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     const allocation = this.#getAllocation();
 
     return this.#isMatrix
@@ -210,11 +207,12 @@ export class ListUcdDef<
         const itemTemplate = this.#getItemTemplate();
 
         code.write(
-          itemTemplate.newInstance({
-            args: { set: addItem.bind('this'), context },
-            prefix: `return `,
-            suffix: ';',
-          }),
+          'return '
+            + itemTemplate.newInstance({
+              set: addItem.bind('this'),
+              context,
+            })
+            + ';',
         );
       },
       em: _location => code => {

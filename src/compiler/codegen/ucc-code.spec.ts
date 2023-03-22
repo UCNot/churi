@@ -9,6 +9,12 @@ describe('UccCode', () => {
     code = new UccCode();
   });
 
+  describe('none', () => {
+    it('produces no code', () => {
+      expect(new UccCode().write(UccCode.none).toString()).toBe('');
+    });
+  });
+
   describe('write', () => {
     it('appends new line without indentation', () => {
       expect(

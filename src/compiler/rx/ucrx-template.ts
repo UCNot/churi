@@ -1,4 +1,5 @@
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
@@ -27,7 +28,7 @@ export namespace UcrxTemplate {
 
   export type MethodDecls = {
     readonly [key in keyof UcrxCore]?:
-      | UcrxMethod.Body<UcrxMethod.ArgType<UcrxCore[key]>>
+      | UccMethod.Body<UcrxMethod.ArgType<UcrxCore[key]>>
       | undefined;
   } & {
     readonly custom?: Method[] | undefined;
@@ -41,6 +42,6 @@ export namespace UcrxTemplate {
 
   export interface Method<in out TArg extends string = string> {
     readonly method: UcrxMethod<TArg>;
-    readonly declare: UcrxMethod.Body<TArg>;
+    readonly body: UccMethod.Body<TArg>;
   }
 }

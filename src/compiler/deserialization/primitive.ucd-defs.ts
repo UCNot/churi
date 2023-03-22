@@ -1,10 +1,8 @@
-import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdDef } from './ucd-def.js';
 
@@ -58,18 +56,14 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTe
   readonly #key: 'bol' | 'big' | 'num' | 'str';
 
   constructor(lib: UcrxLib, schema: TSchema, key: 'bol' | 'big' | 'num' | 'str') {
-    super({
-      lib,
-      schema,
-      className: `${capitalize(ucSchemaSymbol(schema))}Ucrx`,
-    });
+    super({ lib, schema });
 
     this.#key = key;
   }
 
-  protected override declareMethods(): UcrxTemplate.MethodDecls {
+  protected override overrideMethods(): UcrxTemplate.MethodDecls {
     return {
-      [this.#key]({ args: { value } }: UcrxMethod.Declaration<'value'>): UccCode.Source {
+      [this.#key]({ value }: UccArgs.ByName<'value'>): UccCode.Source {
         return `return this.set(${value});`;
       },
       nul: this.schema.nullable ? _location => `return this.set(null);` : undefined,

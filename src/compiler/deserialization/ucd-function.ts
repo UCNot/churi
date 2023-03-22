@@ -104,14 +104,12 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
           )
           .write(`try {`)
           .indent(
-            this.template.newInstance({
-              args: {
+            `${mode === 'async' ? 'await ' : ''}${this.args.reader}.read(`
+              + this.template.newInstance({
                 set: this.args.setter,
                 context: this.args.reader,
-              },
-              prefix: `${mode === 'async' ? 'await ' : ''}${this.args.reader}.read(`,
-              suffix: ');',
-            }),
+              })
+              + ');',
           )
           .write(`} finally {`)
           .indent(`${this.args.reader}.done();`)
@@ -133,14 +131,12 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .indent(code => code
             .write(`try {`)
             .indent(
-              this.template.newInstance({
-                args: {
+              `${syncReader}.read(`
+                + this.template.newInstance({
                   set: this.args.setter,
                   context: syncReader,
-                },
-                prefix: `${syncReader}.read(`,
-                suffix: ');',
-              }),
+                })
+                + `);`,
             )
             .write(`} finally {`)
             .indent(`${syncReader}.done();`)
@@ -151,14 +147,12 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       code
         .write(this.#createAsyncReader(this, this.args.reader, input, options))
         .write(
-          this.template.newInstance({
-            args: {
+          `return ${this.args.reader}.read(`
+            + this.template.newInstance({
               set: this.args.setter,
               context: this.args.reader,
-            },
-            prefix: `return ${this.args.reader}.read(`,
-            suffix: ')',
-          }),
+            })
+            + `)`,
         )
         .indent(`.then(() => result)`, `.finally(() => ${this.args.reader}.done())`);
     };

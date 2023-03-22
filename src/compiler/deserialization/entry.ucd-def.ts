@@ -52,9 +52,7 @@ export class EntryUcdDef {
         .write(`const ${setEntry} = ${value} => {`)
         .indent(this.setEntry(`${map}[0]`, key, value))
         .write(`};`)
-        .write(
-          this.getTemplate().newInstance({ args: { set: setEntry, context }, prefix, suffix }),
-        );
+        .write(prefix + this.getTemplate().newInstance({ set: setEntry, context }) + suffix);
     };
   }
 

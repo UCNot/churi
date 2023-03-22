@@ -20,11 +20,11 @@ export class UccMethod<in out TArg extends string = string> {
     return this.#args;
   }
 
-  declare(ns: UccNamespace, body: (args: UccArgs.ByName<TArg>) => UccCode.Source): UccCode.Source {
+  declare(ns: UccNamespace, body: UccMethod.Body<TArg>): UccCode.Source {
     return code => {
       const binding = this.args.declare(ns);
 
-      code.write(`${this.name}(${binding}) {`).indent(body(binding.args)).write(`}`);
+      code.write(`${this.name}(${binding}) {`).indent(body(binding.args, this)).write(`}`);
     };
   }
 
@@ -36,4 +36,11 @@ export class UccMethod<in out TArg extends string = string> {
     return `${target}.${this.name}.bind(${target})`;
   }
 
+}
+
+export namespace UccMethod {
+  export type Body<in out TArg extends string = string> = (
+    args: UccArgs.ByName<TArg>,
+    method: UccMethod<TArg>,
+  ) => UccCode.Source;
 }

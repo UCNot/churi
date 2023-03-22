@@ -1,14 +1,12 @@
 import { lazyValue } from '@proc7ts/primitives';
-import { capitalize } from '../../impl/capitalize.js';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
@@ -48,7 +46,6 @@ export class MapUcdDef<
     super({
       lib,
       schema,
-      className: capitalize(ucSchemaSymbol(schema)) + 'Ucrx',
       args: ['set', 'context'],
     });
 
@@ -108,11 +105,11 @@ export class MapUcdDef<
     };
   }
 
-  protected override declareMethods(): UcrxTemplate.MethodDecls | undefined {
+  protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     return {
-      for: location => this.#declareFor(location),
-      map: location => this.#declareMap(location),
-      nul: this.schema.nullable ? location => this.#declareNul(location) : undefined,
+      for: args => this.#declareFor(args),
+      map: () => this.#declareMap(),
+      nul: this.schema.nullable ? () => this.#declareNul() : undefined,
     };
   }
 
@@ -176,7 +173,7 @@ export class MapUcdDef<
     return requiredCount;
   }
 
-  #declareFor({ args: { key } }: UcrxMethod.Declaration<'key'>): UccCode.Source {
+  #declareFor({ key }: UccArgs.ByName<'key'>): UccCode.Source {
     const {
       decls: { entries, extra },
       context,
@@ -198,7 +195,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareMap(_location: UcrxMethod.Declaration<''>): UccCode.Source {
+  #declareMap(): UccCode.Source {
     const allocation = this.#getAllocation();
     const {
       decls: { entries, requiredCount },
@@ -228,7 +225,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareNul(_location: UcrxMethod.Declaration<''>): UccCode.Source {
+  #declareNul(): UccCode.Source {
     return `return this.set(null);`;
   }
 

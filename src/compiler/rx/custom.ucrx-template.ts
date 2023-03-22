@@ -1,5 +1,4 @@
 import { capitalize } from '../../impl/capitalize.js';
-import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
@@ -7,7 +6,6 @@ import { UccMethod } from '../codegen/ucc-method.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
-import { UcrxMethod } from './ucrx-method.js';
 import { UcrxTemplate } from './ucrx-template.js';
 import { UcrxArgs } from './ucrx.args.js';
 
@@ -38,33 +36,31 @@ export class CustomUcrxTemplate<
     return this.#schema;
   }
 
-  get className(): string {
-    return (this.#className ??= this.#declare());
+  override get className(): string {
+    return (this.#className ??= this.#declareClass());
   }
 
-  #declare(): string {
+  #declareClass(): string {
     const { base } = this;
 
     return this.lib.declarations.declareClass(
       this.#preferredClassName,
-      name => this.#declareClass(name),
+      name => this.#declareBody(name),
       { baseClass: base.className },
     );
   }
 
-  #declareClass(className: string): UccCode.Source {
+  #declareBody(className: string): UccCode.Source {
     this.#className = className;
 
     return code => {
       code.write(
         this.#privates,
         this.#declareConstructor(),
+        this.declareTypes(),
+        this.declareMethods(),
         this.#privateMethods,
-        this.#declareTypes(),
       );
-      for (const [key, { method, declare }] of Object.entries(this.ownMethods)) {
-        code.write(method.declare(this as UcrxTemplate, key, declare as UcrxMethod.Body<string>));
-      }
     };
   }
 
@@ -100,22 +96,13 @@ export class CustomUcrxTemplate<
     return;
   }
 
-  protected declareMethods(): UcrxTemplate.MethodDecls | undefined {
-    return;
-  }
-
-  declarePrivate(
-    preferredName: string,
-    init?: string | ((prefix: string, suffix: string) => UccCode.Source),
-  ): string {
+  declarePrivate(preferredName: string, init?: string): string {
     const name = this.#privateName(preferredName);
 
-    if (!init) {
-      this.#privates.write(`#${name};`);
-    } else if (typeof init === 'string') {
+    if (init) {
       this.#privates.write(`#${name} = ${init};`);
     } else {
-      this.#privates.write(init(`#${name} = `, `;`));
+      this.#privates.write(`#${name};`);
     }
 
     return `this.#${name}`;
@@ -136,23 +123,6 @@ export class CustomUcrxTemplate<
 
   #privateName(preferred: string): string {
     return (this.#privateNs ??= this.lib.ns.nest()).name(preferred);
-  }
-
-  #declareTypes(): UccCode.Source {
-    return code => {
-      const types = this.overriddenTypes;
-
-      if (types.size) {
-        code
-          .write('get types() {')
-          .indent(code => {
-            const typeNames = [...types].map(type => jsStringLiteral(type)).join(', ');
-
-            code.write(`return [${typeNames}];`);
-          })
-          .write('}');
-      }
-    };
   }
 
 }

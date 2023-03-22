@@ -1,8 +1,9 @@
+import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
+import { UccMethod } from '../codegen/ucc-method.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
-import { UcrxLocation } from './ucrx-location.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxTemplate } from './ucrx-template.js';
 import { UcrxArgs } from './ucrx.args.js';
@@ -59,9 +60,10 @@ export abstract class BaseUcrxTemplate {
     const types = new Set<string>();
 
     for (const {
-      method: { typeName },
+      method: { typeName, stub },
+      body,
     } of Object.values(this.ownMethods)) {
-      if (typeName) {
+      if (typeName && body !== stub) {
         types.add(typeName);
       }
     }
@@ -88,22 +90,22 @@ export abstract class BaseUcrxTemplate {
 
   #buildOwnMethods(): UcrxTemplate.Methods {
     const methods: Record<string, UcrxTemplate.Method<string>> = {};
-    const methodDecls = this.declareMethods();
+    const methodDecls = this.overrideMethods();
 
     if (methodDecls) {
       for (const [key, value] of Object.entries(methodDecls)) {
         if (value) {
           if (key === 'custom') {
-            for (const { method, declare } of value as UcrxTemplate.Method<string>[]) {
-              methods[this.#lib.ucrxMethodKey(method)] = {
+            for (const { method, body: body } of value as UcrxTemplate.Method<string>[]) {
+              methods[this.#lib.ucrxMethod(method).name] = {
                 method,
-                declare,
+                body,
               };
             }
           } else {
             methods[key] = {
               method: UcrxCore[key as keyof UcrxCore] as UcrxMethod<any>,
-              declare: value as UcrxMethod.Body<string>,
+              body: value as UccMethod.Body,
             };
           }
         }
@@ -113,17 +115,37 @@ export abstract class BaseUcrxTemplate {
     return methods as UcrxTemplate.Methods;
   }
 
-  newInstance(location: UcrxLocation): UccCode.Source;
-  newInstance({ args, prefix, suffix }: UcrxLocation): UccCode.Source {
-    return `${prefix}new ${this.className}(${this.args.call(args)})${suffix}`;
+  newInstance(args: UcrxArgs.ByName): string {
+    return `new ${this.className}(${this.args.call(args)})`;
   }
 
-  protected declareConstructor(_args: UcrxArgs.ByName): UccCode.Source | undefined {
+  protected overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     return;
   }
 
-  protected declareMethods(): UcrxTemplate.MethodDecls | undefined {
-    return;
+  protected declareMethods(): UccCode.Source {
+    return code => {
+      for (const { method, body } of Object.values(this.ownMethods)) {
+        code.write(method.declare(this, body as UccMethod.Body<any>));
+      }
+    };
+  }
+
+  protected declareTypes(): UccCode.Source {
+    return code => {
+      const types = this.overriddenTypes;
+
+      if (types.size) {
+        code
+          .write('get types() {')
+          .indent(code => {
+            const typeNames = [...types].map(type => jsStringLiteral(type)).join(', ');
+
+            code.write(`return [${typeNames}];`);
+          })
+          .write('}');
+      }
+    };
   }
 
 }

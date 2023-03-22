@@ -9,6 +9,7 @@ import { UccCode } from '../codegen/ucc-code.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { DefaultUcdDefs } from './default.ucd-defs.js';
 import { UcdDef } from './ucd-def.js';
@@ -23,15 +24,13 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
-  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
+  readonly #typeDefs: Map<string | UcSchema.Class, UcdTypeDef>;
+  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[];
   readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
 
   constructor(options: UcdLib.Options<TSchemae>) {
-    super(options);
-
     const {
       schemae,
       resolver = new UcSchemaResolver(),
@@ -40,6 +39,25 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
+    const typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
+    const entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
+    let methods: UcrxMethod<any>[] | undefined;
+
+    for (const def of asArray(definitions)) {
+      if (def.type) {
+        typeDefs.set(def.type, def);
+      } else {
+        entityDefs.push(def as UcdEntityDef | UcdEntityPrefixDef);
+      }
+      if (def.methods) {
+        (methods ??= []).push(...asArray(def.methods));
+      }
+    }
+
+    super({ ...options, methods });
+
+    this.#typeDefs = typeDefs;
+    this.#entityDefs = entityDefs;
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
@@ -173,27 +191,9 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   }
 
   #returnDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    const prefix = mode === 'async' ? 'async' : '';
-
     return code => code
         .write('return {')
-        .indent(code => {
-          for (const [externalName, schema] of Object.entries(this.#schemae)) {
-            const fn = this.deserializerFor(schema);
-            const input = mode === 'async' ? fn.vars.stream : fn.vars.input;
-            const options = fn.vars.options;
-
-            code
-              .write(
-                `${prefix} ${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
-              )
-              .indent(
-                `const ${options} = { onError, onEntity };`,
-                fn.toUcDeserializer(mode, input, options),
-              )
-              .write('},');
-          }
-        })
+        .indent(this.#declareDeserializers(mode, mode === 'async' ? 'async ' : '', ','))
         .write('};');
   }
 
@@ -225,9 +225,21 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   }
 
   #exportDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
-    const exportFn = mode === 'async' ? 'export async function' : 'export function';
+    return this.#declareDeserializers(
+      mode,
+      mode === 'async' ? 'export async function ' : 'export function ',
+      '',
+    );
+  }
 
+  #declareDeserializers(
+    mode: UcDeserializer.Mode,
+    fnPrefix: string,
+    fnSuffix: string,
+  ): UccCode.Builder {
     return code => {
+      const { opaqueUcrx } = this;
+
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
         const fn = this.deserializerFor(schema);
         const input = mode === 'async' ? fn.vars.stream : fn.vars.input;
@@ -235,13 +247,31 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
         code
           .write(
-            `${exportFn} ${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
+            `${fnPrefix}${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
           )
-          .indent(
-            `const ${options} = { onError, onEntity };`,
-            fn.toUcDeserializer(mode, input, options),
-          )
-          .write('}');
+          .indent(code => {
+            if (opaqueUcrx) {
+              code
+                .write(`const ${options} = {`)
+                .indent(code => {
+                  code.write(
+                    'onError,',
+                    'onEntity,',
+                    `opaqueRx: `
+                      + opaqueUcrx.newInstance({
+                        set: 'undefined',
+                        context: 'undefined',
+                      })
+                      + ',',
+                  );
+                })
+                .write('};');
+            } else {
+              code.write(`const ${options} = { onError, onEntity };`);
+            }
+            code.write(fn.toUcDeserializer(mode, input, options));
+          })
+          .write(`}${fnSuffix}`);
       }
     };
   }
@@ -253,7 +283,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 }
 
 export namespace UcdLib {
-  export interface Options<TSchemae extends Schemae> extends UcrxLib.Options {
+  export interface Options<TSchemae extends Schemae> extends Omit<UcrxLib.Options, 'methods'> {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
     readonly definitions?: UcdDef | readonly UcdDef[] | undefined;

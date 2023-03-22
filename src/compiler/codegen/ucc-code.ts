@@ -2,6 +2,10 @@ import { UccPrinter } from './ucc-printer.js';
 
 export class UccCode implements UccCode.Printable {
 
+  static get none(): UccCode.Source {
+    return UccCode$none;
+  }
+
   readonly #parent?: UccCode;
   readonly #parts: UccCode.Printable[] = [];
   #addPart: (part: UccCode.Printable) => void;
@@ -120,6 +124,10 @@ function isUccCodePrintable(source: UccCode.Source): source is UccCode.Printable
 
 function isUccCodeFragment(source: UccCode.Source): source is UccCode.Fragment {
   return typeof source === 'object' && 'toCode' in source && typeof source.toCode === 'function';
+}
+
+function UccCode$none(_code: UccCode): void {
+  // No code.
 }
 
 class UccCode$Record implements UccCode.Printable {
