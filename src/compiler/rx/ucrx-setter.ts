@@ -23,5 +23,5 @@ export namespace UcrxSetter {
 const UcrxSetter$args = new UccArgs<UcrxSetter.Arg>('value');
 
 function UcrxSetter$stub({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccCode.Source {
-  return `return this.set(${value})`;
+  return `return this.set(${value});`;
 }

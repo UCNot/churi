@@ -35,15 +35,15 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#typeName;
   }
 
-  declare(template: BaseUcrxTemplate, body?: UccMethod.Body<TArg>): UccCode.Source;
-  declare({ lib }: BaseUcrxTemplate, body: UccMethod.Body<TArg> = this.stub): UccCode.Source {
+  declare(template: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source;
+  declare({ lib }: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source {
     const method = lib.ucrxMethod(this);
 
     return method.declare(lib.ns.nest(), body);
   }
 
   toString(): string {
-    return `Ucrx.${this.key}(${this.#args})`;
+    return `Ucrx.${this.key}${this.args}`;
   }
 
 }
