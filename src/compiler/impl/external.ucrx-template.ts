@@ -21,10 +21,6 @@ export class ExternalUcrxTemplate extends BaseUcrxTemplate {
     return (this.#className ??= this.#importClass());
   }
 
-  get base(): BaseUcrxTemplate | undefined {
-    return this.base;
-  }
-
   #importClass(): string {
     return this.lib.import(this.#importFrom, this.#preferredClassName);
   }

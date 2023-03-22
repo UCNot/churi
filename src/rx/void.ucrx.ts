@@ -1,6 +1,6 @@
 import { Ucrx } from './ucrx.js';
 
-export abstract class VoidUcrx implements Ucrx {
+export class VoidUcrx implements Ucrx {
 
   readonly #set: (value: unknown) => void;
 

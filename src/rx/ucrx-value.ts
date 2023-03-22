@@ -1,4 +1,3 @@
-import { OPAQUE_UCRX } from './opaque.ucrx.js';
 import { UcrxContext } from './ucrx-context.js';
 import { ucrxUnexpectedEntryError, ucrxUnexpectedTypeError } from './ucrx-errors.js';
 import { Ucrx } from './ucrx.js';
@@ -20,7 +19,7 @@ export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx {
 
   context.error(ucrxUnexpectedEntryError(key));
 
-  return OPAQUE_UCRX;
+  return context.opaqueRx;
 }
 
 export function ucrxBoolean(context: UcrxContext, rx: Ucrx, value: boolean): void {

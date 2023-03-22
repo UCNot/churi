@@ -10,17 +10,13 @@ export class UcrxMethod<in out TArg extends string = string> {
 
   constructor(options: UcrxMethod.Options<TArg>);
 
-  constructor({ key, args = ['value' as TArg], typeName }: UcrxMethod.Options<TArg>) {
+  constructor({ key, args, typeName }: UcrxMethod.Options<TArg>) {
     this.#method = new UccMethod(key, args);
     this.#typeName = typeName;
   }
 
-  get key(): string {
-    return this.#method.name;
-  }
-
-  get args(): UccArgs<TArg> {
-    return this.#method.args;
+  get method(): UccMethod<TArg> {
+    return this.#method;
   }
 
   get typeName(): string | undefined {
@@ -28,7 +24,7 @@ export class UcrxMethod<in out TArg extends string = string> {
   }
 
   declare(template: UcrxTemplate, key: string, body: UcrxMethod.Body<TArg>): UccCode.Source {
-    return this.#method.declare(template.lib.ns.nest(), args => body({ template, method: this, key, args }));
+    return this.method.declare(template.lib.ns.nest(), args => body({ template, method: this, key, args }));
   }
 
 }

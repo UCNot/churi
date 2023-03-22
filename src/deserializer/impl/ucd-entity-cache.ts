@@ -1,4 +1,3 @@
-import { OPAQUE_UCRX } from '../../rx/opaque.ucrx.js';
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
 import { ucrxEntry } from '../../rx/ucrx-value.js';
 import { Ucrx } from '../../rx/ucrx.js';
@@ -31,7 +30,7 @@ export function startUcdEntry(
     if (!cached.em()) {
       reader.error(ucrxUnexpectedTypeError('list', cached));
 
-      return (cache.rxs[key] = OPAQUE_UCRX);
+      return (cache.rxs[key] = reader.opaqueRx);
     }
 
     return cached;

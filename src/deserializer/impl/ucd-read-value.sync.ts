@@ -6,7 +6,6 @@
  *
  * !!! DO NOT MODIFY !!!
  */
-import { OPAQUE_UCRX } from '../../rx/opaque.ucrx.js';
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
 import { ucrxBoolean, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
 import { Ucrx } from '../../rx/ucrx.js';
@@ -144,7 +143,7 @@ export function ucdReadValueSync(
       itemsRx = rx;
     } else {
       reader.error(ucrxUnexpectedTypeError('list', rx));
-      itemsRx = OPAQUE_UCRX;
+      itemsRx = reader.opaqueRx;
     }
     if (reader.hasPrev()) {
       // Decode leading item, if any.
@@ -176,7 +175,7 @@ export function ucdReadValueSync(
           rx,
         ),
       );
-      itemsRx = OPAQUE_UCRX;
+      itemsRx = reader.opaqueRx;
     }
   }
 
@@ -261,7 +260,7 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: Ucrx): void {
 
   if (!itemsRx) {
     reader.error(ucrxUnexpectedTypeError('nested list', rx));
-    itemsRx = OPAQUE_UCRX;
+    itemsRx = reader.opaqueRx;
   }
 
   itemsRx.em();

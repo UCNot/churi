@@ -1,10 +1,10 @@
 import { Ucrx } from './ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
 
-class OpaqueUcrx extends VoidUcrx {
+export class OpaqueUcrx extends VoidUcrx {
 
   constructor() {
-    super((_value: unknown) => 0);
+    super(OpaqueUcrx$set);
   }
 
   override get types(): readonly string[] {
@@ -29,4 +29,6 @@ class OpaqueUcrx extends VoidUcrx {
 
 }
 
-export const OPAQUE_UCRX = new OpaqueUcrx();
+function OpaqueUcrx$set(_value: unknown): void {
+  // Ignore assigned value
+}
