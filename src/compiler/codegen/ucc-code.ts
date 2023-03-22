@@ -65,25 +65,23 @@ export class UccCode implements UccCode.Printable {
 
   prePrint(): UccPrinter.Record {
     const records = this.#parts.map(part => part.prePrint());
+    const addPart = this.#addPart;
+
+    this.#addPart = part => {
+      addPart(part);
+      records.push(part.prePrint());
+    };
 
     return {
       printTo: lines => {
         if (records.length) {
           lines.print(...records);
         }
-
-        const inserted = lines.insert();
-        const addPart = this.#addPart;
-
-        this.#addPart = part => {
-          addPart(part);
-          inserted.print(part.prePrint());
-        };
       },
     };
   }
 
-  toLines(lines?: UccPrinter.Line[]): UccPrinter.Line[] {
+  toLines(lines?: string[]): string[] {
     return new UccPrinter().print(this.prePrint()).toLines(lines);
   }
 

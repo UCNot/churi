@@ -1,5 +1,5 @@
-import { BaseUcrxTemplate } from './base.ucrx-template.js';
-import { UcrxTemplate } from './ucrx-template.js';
+import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
+import { UcrxTemplate } from '../rx/ucrx-template.js';
 
 export class ExternalUcrxTemplate extends BaseUcrxTemplate {
 

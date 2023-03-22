@@ -87,7 +87,7 @@ export class EntryUcdDef {
   }
 
   #rx(): UccCode.Source {
-    const args = UccEntryDef$args.declare(this.mapDef.lib.ns.nest());
+    const args = UcdEntryArgs.declare(this.mapDef.lib.ns.nest());
 
     return code => {
       code
@@ -111,15 +111,12 @@ export class EntryUcdDef {
 
 }
 
-const UccEntryDef$args = new UccArgs<'context' | 'map' | 'key'>('context', 'map', 'key');
+const UcdEntryArgs = /*#__PURE__*/ new UccArgs<EntryUcdDef.Arg>('context', 'map', 'key');
 
 export namespace EntryUcdDef {
+  export type Arg = 'context' | 'map' | 'key';
   export interface RxArgs {
-    readonly args: {
-      readonly context: string;
-      readonly map: string;
-      readonly key: string;
-    };
+    readonly args: UccArgs.ByName<Arg>;
     readonly prefix: string;
     readonly suffix: string;
   }

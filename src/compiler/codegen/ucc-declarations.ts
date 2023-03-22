@@ -15,7 +15,7 @@ export class UccDeclarations implements UccCode.Fragment {
   declare(
     id: string,
     initializer: string | ((prefix: string, suffix: string) => UccCode.Source),
-    options?: { readonly key?: string | undefined },
+    options?: { readonly key?: string | null | undefined },
   ): string {
     return this.#declare(
       id,
@@ -39,14 +39,21 @@ export class UccDeclarations implements UccCode.Fragment {
   declareClass(
     className: string,
     body: (name: string) => UccCode.Source,
-    { baseClass }: { readonly baseClass?: string | undefined } = {},
+    {
+      key = null,
+      baseClass,
+    }: { readonly key?: string | null | undefined; readonly baseClass?: string | undefined } = {},
   ): string {
-    return this.#declare(className, name => code => {
-      code
-        .write(`class ${name} ` + (baseClass ? `extends ${baseClass} {` : `{`))
-        .indent(body(name))
-        .write(`}`);
-    });
+    return this.#declare(
+      className,
+      name => code => {
+        code
+          .write(`class ${name} ` + (baseClass ? `extends ${baseClass} {` : `{`))
+          .indent(body(name))
+          .write(`}`);
+      },
+      { key },
+    );
   }
 
   toCode(): UccCode.Source {
@@ -56,20 +63,27 @@ export class UccDeclarations implements UccCode.Fragment {
   #declare(
     id: string,
     snippet: (name: string) => UccCode.Source,
-    { key = id }: { readonly key?: string | undefined } = {},
+    { key = id }: { readonly key?: string | null | undefined } = {},
   ): string {
-    const snippetKey = key === id ? `id:${id}` : `key:${key}`;
-    let name = this.#snippets.get(snippetKey);
+    let snippetKey: string | undefined;
 
-    if (name) {
-      return name;
+    if (key != null) {
+      snippetKey = key === id ? `id:${id}` : `key:${key}`;
+
+      const knownName = this.#snippets.get(snippetKey);
+
+      if (knownName) {
+        return knownName;
+      }
     }
 
-    name = this.#ns.name(id);
+    const name = this.#ns.name(id);
 
     this.#code.write(snippet(name));
 
-    this.#snippets.set(snippetKey, name);
+    if (snippetKey) {
+      this.#snippets.set(snippetKey, name);
+    }
 
     return name;
   }

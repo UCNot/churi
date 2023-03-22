@@ -1,6 +1,5 @@
 export * from './base.ucrx-template.js';
 export * from './custom.ucrx-template.js';
-export * from './external.ucrx-template.js';
 export * from './ucrx-core.js';
 export * from './ucrx-lib.js';
 export * from './ucrx-location.js';

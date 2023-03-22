@@ -8,11 +8,10 @@ export class UccArgs<in out TArg extends string = ''> {
   }
 
   readonly #list: readonly TArg[];
-  readonly #byName: UccArgs.ByName<TArg>;
+  #byName?: UccArgs.ByName<TArg>;
 
   constructor(...args: TArg[]) {
     this.#list = args;
-    this.#byName = Object.fromEntries<string>(args.map(arg => [arg, arg])) as UccArgs.ByName<TArg>;
   }
 
   get list(): readonly TArg[] {
@@ -20,7 +19,9 @@ export class UccArgs<in out TArg extends string = ''> {
   }
 
   get byName(): UccArgs.ByName<TArg> {
-    return this.#byName;
+    return (this.#byName ??= Object.fromEntries<string>(
+      this.list.map(arg => [arg, arg]),
+    ) as UccArgs.ByName<TArg>);
   }
 
   declare(ns: UccNamespace): UccArgs.Binding<TArg> {
@@ -43,11 +44,12 @@ export class UccArgs<in out TArg extends string = ''> {
 
   call<TCallArg extends string>(args: UccArgs.ByName<TCallArg>): UccArgs.Binding<TArg> {
     const list: string[] = [];
+    const byName: Partial<Record<TArg, string>> = {};
 
     for (const arg of this.list) {
-      const subst = args[arg as string as TCallArg];
+      const value = args[arg as string as TCallArg];
 
-      if (!subst) {
+      if (!value) {
         const actualArgs =
           '{'
           + Object.entries(args)
@@ -55,14 +57,17 @@ export class UccArgs<in out TArg extends string = ''> {
             .join(', ')
           + '}';
 
-        throw new TypeError(`Can not substitute ${actualArgs} to ${this} args. ${arg} is missing`);
+        throw new TypeError(
+          `Can not substitute ${actualArgs} to ${this} args. "${arg}" argument is missing`,
+        );
       }
 
-      list.push(subst);
+      list.push(value);
+      byName[arg] = value;
     }
 
     return {
-      args: args as UccArgs.ByName<string>,
+      args: byName as UccArgs.ByName<TArg>,
       list,
       toString: () => list.join(', '),
     };

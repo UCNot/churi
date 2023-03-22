@@ -22,14 +22,6 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
     return this;
   }
 
-  insert(): UccPrinter.Lines {
-    const inserted = new UccPrinter(this.#indent);
-
-    this.#records.push(inserted);
-
-    return inserted;
-  }
-
   printTo(lines: UccPrinter.Lines): void {
     if (!this.#indent) {
       lines.print(...this.#records);
@@ -38,7 +30,7 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
     }
   }
 
-  toLines(lines: UccPrinter.Line[] = []): UccPrinter.Line[] {
+  toLines(lines: string[] = []): string[] {
     this.printTo(new UccPrinter$Lines(this.#indent, lines));
 
     return lines;
@@ -53,9 +45,9 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
 class UccPrinter$Lines implements UccPrinter.Lines {
 
   readonly #indent: string;
-  readonly #lines: UccPrinter.Line[];
+  readonly #lines: string[];
 
-  constructor(indent: string, lines: UccPrinter.Line[]) {
+  constructor(indent: string, lines: string[]) {
     this.#indent = indent;
     this.#lines = lines;
   }
@@ -92,18 +84,6 @@ class UccPrinter$Lines implements UccPrinter.Lines {
     return this;
   }
 
-  insert(): UccPrinter.Lines {
-    const lines: string[] = [];
-
-    this.#lines.push({
-      toString(): string {
-        return lines.join('');
-      },
-    });
-
-    return new UccPrinter$Lines(this.#indent, lines);
-  }
-
 }
 
 export namespace UccPrinter {
@@ -111,11 +91,8 @@ export namespace UccPrinter {
     printTo(lines: UccPrinter.Lines): void;
   }
 
-  export type Line = { toString(): string };
-
   export interface Lines {
     print(...records: (string | UccPrinter.Record)[]): this;
     indent(print: (lines: UccPrinter.Lines) => void, indent?: string): this;
-    insert(): Lines;
   }
 }
