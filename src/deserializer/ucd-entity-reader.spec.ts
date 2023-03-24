@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { Ucrx } from '../rx/ucrx.js';
 import { VoidUcrx } from '../rx/void.ucrx.js';
 import { UcErrorInfo } from '../schema/uc-error.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
-import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { SyncUcdReader } from './sync-ucd-reader.js';
 import { UcdEntityReader } from './ucd-entity-reader.js';
 
@@ -40,7 +40,7 @@ describe('UcdEntityReader', () => {
 
   describe('entity handler', () => {
     it('handles exact match', () => {
-      const entity = UcTokenizer.split('!foo:bar');
+      const entity = UcLexer.scan('!foo:bar');
 
       reader.addEntity(entity, (_reader, rx, entity) => {
         rx.any?.(entity);
@@ -50,8 +50,8 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual(entity);
     });
     it('does not handle different entity', () => {
-      const expectedEntity = UcTokenizer.split('!foo:bar');
-      const entity = UcTokenizer.split('!foo:baz');
+      const expectedEntity = UcLexer.scan('!foo:bar');
+      const entity = UcLexer.scan('!foo:baz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx.any?.(entity);
@@ -70,8 +70,8 @@ describe('UcdEntityReader', () => {
       ]);
     });
     it('does not handle longer entity', () => {
-      const expectedEntity = UcTokenizer.split('!foo:bar');
-      const entity = UcTokenizer.split('!foo:bar:baz');
+      const expectedEntity = UcLexer.scan('!foo:bar');
+      const entity = UcLexer.scan('!foo:bar:baz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx.any?.(entity);
@@ -90,8 +90,8 @@ describe('UcdEntityReader', () => {
       ]);
     });
     it('does not handle longer text entity', () => {
-      const expectedEntity = UcTokenizer.split('!foo:bar');
-      const entity = UcTokenizer.split('!foo:barbaz');
+      const expectedEntity = UcLexer.scan('!foo:bar');
+      const entity = UcLexer.scan('!foo:barbaz');
 
       reader.addEntity(expectedEntity, (_reader, rx, entity) => {
         rx.any?.(entity);
@@ -113,7 +113,7 @@ describe('UcdEntityReader', () => {
 
   describe('prefix handler', () => {
     it('handles exact match', () => {
-      const entity = UcTokenizer.split('!foo:bar');
+      const entity = UcLexer.scan('!foo:bar');
 
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -123,7 +123,7 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix: entity, args: [] });
     });
     it('handles exact match ending with delimiter', () => {
-      const entity = UcTokenizer.split('!foo:bar:');
+      const entity = UcLexer.scan('!foo:bar:');
 
       reader.addPrefix(entity, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -133,8 +133,8 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix: entity, args: [] });
     });
     it('handles prefix tokens match', () => {
-      const prefix = UcTokenizer.split('!foo:bar');
-      const entity = UcTokenizer.split('!foo:bar:baz');
+      const prefix = UcLexer.scan('!foo:bar');
+      const entity = UcLexer.scan('!foo:bar:baz');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -144,8 +144,8 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix, args: entity.slice(prefix.length) });
     });
     it('does not handle shorter entity', () => {
-      const prefix = UcTokenizer.split('!foo:bar:');
-      const entity = UcTokenizer.split('!foo:bar');
+      const prefix = UcLexer.scan('!foo:bar:');
+      const entity = UcLexer.scan('!foo:bar');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -164,8 +164,8 @@ describe('UcdEntityReader', () => {
       ]);
     });
     it('does not handle unmatched prefix', () => {
-      const prefix = UcTokenizer.split('!foo:bar:');
-      const entity = UcTokenizer.split('!foo:bar!!');
+      const prefix = UcLexer.scan('!foo:bar:');
+      const entity = UcLexer.scan('!foo:bar!!');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -184,8 +184,8 @@ describe('UcdEntityReader', () => {
       ]);
     });
     it('does not handle unmatched text prefix', () => {
-      const prefix = UcTokenizer.split('!foo:bar:baz');
-      const entity = UcTokenizer.split('!foo:bar:bat');
+      const prefix = UcLexer.scan('!foo:bar:baz');
+      const entity = UcLexer.scan('!foo:bar:bat');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -204,8 +204,8 @@ describe('UcdEntityReader', () => {
       ]);
     });
     it('handles prefix text match', () => {
-      const prefix = UcTokenizer.split('!foo:bar');
-      const entity = UcTokenizer.split('!foo:bar-baz');
+      const prefix = UcLexer.scan('!foo:bar');
+      const entity = UcLexer.scan('!foo:bar-baz');
 
       reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -215,9 +215,9 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix, args: ['-baz'] });
     });
     it('prefers longer prefix', () => {
-      const prefix1 = UcTokenizer.split('!foo:bar');
-      const prefix2 = UcTokenizer.split('!foo:bar:');
-      const entity = UcTokenizer.split('!foo:bar:baz');
+      const prefix1 = UcLexer.scan('!foo:bar');
+      const prefix2 = UcLexer.scan('!foo:bar:');
+      const entity = UcLexer.scan('!foo:bar:baz');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -230,9 +230,9 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
     it('prefers longer prefix for suffix starting with delimiter', () => {
-      const prefix1 = UcTokenizer.split('!foo:bar');
-      const prefix2 = UcTokenizer.split('!foo:bar:');
-      const entity = UcTokenizer.split('!foo:bar::');
+      const prefix1 = UcLexer.scan('!foo:bar');
+      const prefix2 = UcLexer.scan('!foo:bar:');
+      const entity = UcLexer.scan('!foo:bar::');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });
@@ -245,9 +245,9 @@ describe('UcdEntityReader', () => {
       expect(value).toEqual({ prefix: prefix2, args: [UC_TOKEN_COLON] });
     });
     it('prefers longer text prefix', () => {
-      const prefix1 = UcTokenizer.split('!foo:bar');
-      const prefix2 = UcTokenizer.split('!foo:bar-');
-      const entity = UcTokenizer.split('!foo:bar-baz');
+      const prefix1 = UcLexer.scan('!foo:bar');
+      const prefix2 = UcLexer.scan('!foo:bar-');
+      const entity = UcLexer.scan('!foo:bar-baz');
 
       reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
         rx.any?.({ prefix, args });

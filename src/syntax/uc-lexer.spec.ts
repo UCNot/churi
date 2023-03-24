@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { UcLexer } from './uc-lexer.js';
 import {
-  UcToken,
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_ASTERISK,
@@ -24,65 +24,65 @@ import {
   UC_TOKEN_QUESTION_MARK,
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
+  UcToken,
 } from './uc-token.js';
-import { UcTokenizer } from './uc-tokenizer.js';
 
-describe('UcTokenizer', () => {
-  let tokenizer: UcTokenizer;
+describe('UcLexer', () => {
+  let tokenizer: UcLexer;
   let tokens: UcToken[];
 
   beforeEach(() => {
-    tokenizer = new UcTokenizer(token => {
+    tokenizer = new UcLexer(token => {
       tokens.push(token);
     });
     tokens = [];
   });
 
   it('handles Windows-style line separators', () => {
-    tokenizer.split('abc\r');
-    tokenizer.split('\ndef');
+    tokenizer.scan('abc\r');
+    tokenizer.scan('\ndef');
     tokenizer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_CRLF, 'def']);
   });
   it('handles CR', () => {
-    tokenizer.split('abc\rdef');
+    tokenizer.scan('abc\rdef');
     tokenizer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_CR, 'def']);
   });
   it('handles CR as first char', () => {
-    tokenizer.split('\rdef');
+    tokenizer.scan('\rdef');
     tokenizer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_CR, 'def']);
   });
   it('handles CR after CR', () => {
-    tokenizer.split('\r\rdef');
+    tokenizer.scan('\r\rdef');
     tokenizer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_CR, UC_TOKEN_CR, 'def']);
   });
   it('handles CR after LF', () => {
-    tokenizer.split('\n\rdef');
+    tokenizer.scan('\n\rdef');
     tokenizer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, UC_TOKEN_CR, 'def']);
   });
   it('handles LF', () => {
-    tokenizer.split('abc\ndef');
+    tokenizer.scan('abc\ndef');
     tokenizer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_LF, 'def']);
   });
   it('handles LF as first char', () => {
-    tokenizer.split('\ndef');
+    tokenizer.scan('\ndef');
     tokenizer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, 'def']);
   });
   it('handles LF after LF', () => {
-    tokenizer.split('\n\ndef');
+    tokenizer.scan('\n\ndef');
     tokenizer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, UC_TOKEN_LF, 'def']);
@@ -109,7 +109,7 @@ describe('UcTokenizer', () => {
     ['closing bracket', ']', UC_TOKEN_CLOSING_BRACKET],
   ])('around %s', (_name, char, token) => {
     it('reports pads', () => {
-      tokenizer.split(`abc   ${char}    def`);
+      tokenizer.scan(`abc   ${char}    def`);
       tokenizer.flush();
 
       expect(tokens).toEqual([
@@ -128,11 +128,11 @@ describe('UcTokenizer', () => {
       ]);
     });
     it('concatenates leading pads', () => {
-      tokenizer.split('abc  ');
-      tokenizer.split(' ');
-      tokenizer.split(char);
-      tokenizer.split('  ');
-      tokenizer.split('  def');
+      tokenizer.scan('abc  ');
+      tokenizer.scan(' ');
+      tokenizer.scan(char);
+      tokenizer.scan('  ');
+      tokenizer.scan('  def');
       tokenizer.flush();
 
       expect(tokens).toEqual([
@@ -145,7 +145,7 @@ describe('UcTokenizer', () => {
       ]);
     });
     it('handles mixed pads', () => {
-      tokenizer.split(`abc   ${char}   \t\tdef`);
+      tokenizer.scan(`abc   ${char}   \t\tdef`);
       tokenizer.flush();
 
       expect(tokens).toEqual([
@@ -160,7 +160,7 @@ describe('UcTokenizer', () => {
   });
 
   it('handles too long padding', () => {
-    tokenizer.split('abc' + ' '.repeat(1000));
+    tokenizer.scan('abc' + ' '.repeat(1000));
     tokenizer.flush();
 
     expect(tokens).toEqual([
@@ -172,8 +172,8 @@ describe('UcTokenizer', () => {
     ]);
   });
   it('handles paddings at the begin of input', () => {
-    tokenizer.split('  ');
-    tokenizer.split('  abc');
+    tokenizer.scan('  ');
+    tokenizer.scan('  abc');
     tokenizer.flush();
 
     expect(tokens).toEqual([
@@ -183,16 +183,16 @@ describe('UcTokenizer', () => {
     ]);
   });
   it('handles paddings at the end of input', () => {
-    tokenizer.split('');
-    tokenizer.split('abc  ');
-    tokenizer.split('  ');
+    tokenizer.scan('');
+    tokenizer.scan('abc  ');
+    tokenizer.scan('  ');
     tokenizer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_PREFIX_SPACE | (3 << 8)]);
   });
   it('concatenates string tokens', () => {
-    tokenizer.split('abc ');
-    tokenizer.split('  def');
+    tokenizer.scan('abc ');
+    tokenizer.scan('  def');
     tokenizer.flush();
 
     expect(tokens).toEqual(['abc   def']);
@@ -201,8 +201,8 @@ describe('UcTokenizer', () => {
     const input = '\u042a';
     const encoded = encodeURIComponent('\u042a');
 
-    tokenizer.split(encoded.slice(0, 1));
-    tokenizer.split(encoded.slice(1));
+    tokenizer.scan(encoded.slice(0, 1));
+    tokenizer.scan(encoded.slice(1));
     tokenizer.flush();
 
     expect(tokens).toEqual([input]);

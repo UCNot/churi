@@ -4,7 +4,7 @@ import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcTokenizer } from '../../syntax/uc-tokenizer.js';
+import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
@@ -99,7 +99,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           let entity = def.entity ?? def.entityPrefix;
 
           if (typeof entity === 'string') {
-            entity = UcTokenizer.split(entity);
+            entity = UcLexer.scan(entity);
           }
 
           const tokenArray =

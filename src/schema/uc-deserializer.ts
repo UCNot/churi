@@ -83,13 +83,13 @@ export namespace UcDeserializer {
   export type Sync<out T> = (input: string | readonly UcToken[], options?: Options) => T;
 
   /**
-   * Data deserialization options passed to {@link UcDeserializer deserializer}.
+   * Data deserialization options passed to {@link @hatsy/churi!UcDeserializer deserializer}.
    */
   export interface Options {
     /**
      * Function to call to report deserialization error.
      *
-     * By default, throw an {@link UcError} with the given `error` info.
+     * By default, throw an {@link @hatsy/churi!UcError} with the given `error` info.
      *
      * @param error - Error info.
      */

@@ -1,7 +1,7 @@
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcTokenizer } from '../syntax/uc-tokenizer.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
 import { UcdReader } from './ucd-reader.js';
 
@@ -125,7 +125,7 @@ export function createSyncUcdReader(
   options?: UcDeserializer.Options,
 ): SyncUcdReader | undefined {
   if (typeof input === 'string') {
-    return new SyncUcdReader(UcTokenizer.split(input), options);
+    return new SyncUcdReader(UcLexer.scan(input), options);
   }
   if (Array.isArray(input)) {
     return new SyncUcdReader(input, options);

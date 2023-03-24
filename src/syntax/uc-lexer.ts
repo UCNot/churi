@@ -1,5 +1,4 @@
 import {
-  UcToken,
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_ASTERISK,
@@ -21,35 +20,36 @@ import {
   UC_TOKEN_QUESTION_MARK,
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
+  UcToken,
 } from './uc-token.js';
 
 /**
- * URI charge tokenizer that splits input string(s) onto tokens.
+ * URI charge lexer that splits input string(s) onto tokens.
  *
- * The input strings {@link UcTokenizer#split splat} by tokenizer one at a time. Each token found is emitted by calling
- * the given emitter function. On completion, the input has to by {@link UcTokenizer#flush flushed} in order to process
- * partial input.
+ * The input chunks {@link UcLexer#scan scanned} by lexer one at a time. Each token found is emitted by calling
+ * the given emitter function. On completion, the input has to by {@link UcLexer#flush flushed} in order to process
+ * the remaining input.
  */
-export class UcTokenizer {
+export class UcLexer {
 
   /**
-   * Splits `input` string onto URI charge {@link UcToken tokens}.
+   * Scans the `input` string for URI charge {@link UcToken tokens}.
    *
-   * @param input - String to split.
+   * @param input - String to scan.
    *
    * @returns Array of tokens.
    */
-  static split(input: string): UcToken[] {
+  static scan(input: string): UcToken[] {
     const tokens: UcToken[] = [];
-    const tokenizer = new UcTokenizer(token => tokens.push(token));
+    const tokenizer = new UcLexer(token => tokens.push(token));
 
-    tokenizer.split(input);
+    tokenizer.scan(input);
     tokenizer.flush();
 
     return tokens;
   }
 
-  static readonly #tokens: { [token: string]: (tokenizer: UcTokenizer) => void } = {
+  static readonly #tokens: { [token: string]: (tokenizer: UcLexer) => void } = {
     '\r': tokenizer => tokenizer.#addCR(),
     '\n': tokenizer => tokenizer.#emitLF(),
     '(': tokenizer => tokenizer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
@@ -85,19 +85,19 @@ export class UcTokenizer {
   }
 
   /**
-   * Splits the `input` string onto tokens.
+   * Scans the input `chunk` for tokens.
    *
-   * @param input - Input string to tokenize.
+   * @param chunk - Chunk of input to scan.
    */
-  split(input: string): void {
-    for (const token of input.split(UC_TOKEN_PATTERN)) {
+  scan(chunk: string): void {
+    for (const token of chunk.split(UC_TOKEN_PATTERN)) {
       this.#add(token);
     }
   }
 
   #add(token: string): void {
     if (token.length === 1) {
-      const emitter = UcTokenizer.#tokens[token];
+      const emitter = UcLexer.#tokens[token];
 
       if (emitter) {
         return emitter(this);
