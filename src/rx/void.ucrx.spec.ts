@@ -9,14 +9,14 @@ describe('VoidUcrx', () => {
     });
   });
 
-  describe('any', () => {
+  describe('str', () => {
     it('has no effect', () => {
       let assigned: unknown;
       const ucrx = new VoidUcrx(value => {
         assigned = value;
       });
 
-      expect(ucrx.any('test')).toBe(0);
+      expect(ucrx.str('test')).toBe(0);
       expect(assigned).toBeUndefined();
     });
   });

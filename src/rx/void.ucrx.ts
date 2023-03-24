@@ -32,8 +32,8 @@ export class VoidUcrx implements Ucrx {
     return this.any(value);
   }
 
-  for(_key: PropertyKey): Ucrx | undefined {
-    return;
+  for(_key: PropertyKey): Ucrx | 0 | undefined {
+    return 0; // Map is unsupported.
   }
 
   map(): void {
@@ -48,12 +48,12 @@ export class VoidUcrx implements Ucrx {
     // Not a list.
   }
 
-  any(_value: unknown): 0 | 1 {
-    return 0;
-  }
-
   nul(): 0 | 1 {
     return this.any(null);
+  }
+
+  protected any(_value: unknown): 0 | 1 {
+    return 0;
   }
 
   protected set(value: unknown): 1 {

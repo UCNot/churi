@@ -42,8 +42,8 @@ describe('UcdEntityReader', () => {
     it('handles exact match', () => {
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addEntity(entity, (_reader, rx, entity) => {
-        rx.any?.(entity);
+      reader.addEntity(entity, (_reader, _rx, entity) => {
+        value = entity;
       });
       reader.read(ucdReader, rx, entity);
 
@@ -53,8 +53,8 @@ describe('UcdEntityReader', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:baz');
 
-      reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx.any?.(entity);
+      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
+        value = entity;
       });
       reader.read(ucdReader, rx, entity);
 
@@ -73,8 +73,8 @@ describe('UcdEntityReader', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx.any?.(entity);
+      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
+        value = entity;
       });
       reader.read(ucdReader, rx, entity);
 
@@ -93,8 +93,8 @@ describe('UcdEntityReader', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:barbaz');
 
-      reader.addEntity(expectedEntity, (_reader, rx, entity) => {
-        rx.any?.(entity);
+      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
+        value = entity;
       });
       reader.read(ucdReader, rx, entity);
 
@@ -115,8 +115,8 @@ describe('UcdEntityReader', () => {
     it('handles exact match', () => {
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addPrefix(entity, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(entity, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -125,8 +125,8 @@ describe('UcdEntityReader', () => {
     it('handles exact match ending with delimiter', () => {
       const entity = UcLexer.scan('!foo:bar:');
 
-      reader.addPrefix(entity, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(entity, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -136,8 +136,8 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -147,8 +147,8 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -167,8 +167,8 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar!!');
 
-      reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -187,8 +187,8 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar:baz');
       const entity = UcLexer.scan('!foo:bar:bat');
 
-      reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -207,8 +207,8 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar-baz');
 
-      reader.addPrefix(prefix, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -219,11 +219,11 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
-      reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -234,11 +234,11 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar::');
 
-      reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
-      reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 
@@ -249,11 +249,11 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar-');
       const entity = UcLexer.scan('!foo:bar-baz');
 
-      reader.addPrefix(prefix1, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
-      reader.addPrefix(prefix2, (_reader, rx, prefix, args) => {
-        rx.any?.({ prefix, args });
+      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
       });
       reader.read(ucdReader, rx, entity);
 

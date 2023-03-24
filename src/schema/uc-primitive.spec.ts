@@ -555,11 +555,14 @@ describe('String', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpectedEntry',
+          code: 'unexpectedType',
           details: {
-            key: 'foo',
+            type: 'map',
+            expected: {
+              types: ['string'],
+            },
           },
-          message: 'Unexpected entry: foo',
+          message: 'Unexpected map, while string expected',
         },
       ]);
     });
@@ -568,11 +571,14 @@ describe('String', () => {
 
       expect(errors).toEqual([
         {
-          code: 'unexpectedEntry',
+          code: 'unexpectedType',
           details: {
-            key: 'foo',
+            type: 'map',
+            expected: {
+              types: ['string'],
+            },
           },
-          message: 'Unexpected entry: foo',
+          message: 'Unexpected map, while string expected',
         },
       ]);
     });

@@ -36,7 +36,9 @@ export function startUcdEntry(
     return cached;
   }
 
-  const created = ucrxEntry(reader, rx, key);
+  // This is never called for the first entry,
+  // so it should not return `undefined`.
+  const created = ucrxEntry(reader, rx, key)!;
 
   cacheUcdEntry(cache, key, created);
 

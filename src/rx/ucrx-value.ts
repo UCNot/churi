@@ -5,16 +5,24 @@ import { Ucrx } from './ucrx.js';
 export function ucrxSuffix(context: UcrxContext, rx: Ucrx, key: string): void {
   const entryRx = ucrxEntry(context, rx, key);
 
-  ucrxString(context, entryRx, '');
+  if (entryRx) {
+    ucrxString(context, entryRx, '');
 
-  rx.map();
+    rx.map();
+  }
 }
 
-export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx {
+export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx | undefined {
   const entryRx = rx.for(key);
 
   if (entryRx) {
     return entryRx;
+  }
+
+  if (entryRx != null) {
+    context.error(ucrxUnexpectedTypeError('map', rx));
+
+    return;
   }
 
   context.error(ucrxUnexpectedEntryError(key));

@@ -12,27 +12,27 @@ import { Ucrx } from '../../rx/ucrx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
+  UC_TOKEN_KIND_BOUND,
+  UC_TOKEN_KIND_IS_WHITESPACE,
+  UC_TOKEN_KIND_NL,
   isUcBoundToken,
   isUcParenthesisToken,
   isWhitespaceUcToken,
   ucTokenKind,
-  UC_TOKEN_KIND_BOUND,
-  UC_TOKEN_KIND_IS_WHITESPACE,
-  UC_TOKEN_KIND_NL,
 } from '../../syntax/uc-token-kind.js';
 import {
-  UcToken,
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
   UC_TOKEN_OPENING_PARENTHESIS,
+  UcToken,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
-import { cacheUcdEntry, startUcdEntry, UcdEntryCache } from './ucd-entity-cache.js';
+import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entity-cache.js';
 
 export function ucdReadValueSync(
   reader: SyncUcdReader,
@@ -303,7 +303,11 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: Ucrx): void {
 function ucdReadMapSync(reader: SyncUcdReader, rx: Ucrx, firstKey: string): void {
   reader.skip(); // Skip opening parentheses.
 
-  const entryRx = ucrxEntry(reader, rx, firstKey);
+  let entryRx = ucrxEntry(reader, rx, firstKey);
+
+  if (!entryRx) {
+    rx = entryRx = reader.opaqueRx;
+  }
 
   ucdReadValueSync(reader, entryRx);
 
