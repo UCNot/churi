@@ -1,4 +1,5 @@
 import { VoidUcrx } from '../../rx/void.ucrx.js';
+import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { UccMethod } from '../codegen/ucc-method.js';
@@ -13,6 +14,7 @@ import { UcrxTemplate } from './ucrx-template.js';
 
 export abstract class UcrxLib extends UccLib {
 
+  readonly #resolver: UcSchemaResolver;
   #voidUcrx?: BaseUcrxTemplate;
   #opaqueUcrx?: BaseUcrxTemplate | null;
   readonly #methods = new Map<UcrxMethod, UccMethod>();
@@ -21,7 +23,10 @@ export abstract class UcrxLib extends UccLib {
   constructor(options: UcrxLib.Options) {
     super(options);
 
-    const { methods } = options;
+    const { methods, resolver = new UcSchemaResolver() } = options;
+
+    this.#resolver = resolver;
+
     const ns = new UccNamespace();
 
     // Register core methods.
@@ -48,6 +53,10 @@ export abstract class UcrxLib extends UccLib {
         }
       }
     }
+  }
+
+  get resolver(): UcSchemaResolver {
+    return this.#resolver;
   }
 
   get voidUcrx(): BaseUcrxTemplate {
@@ -90,6 +99,7 @@ export abstract class UcrxLib extends UccLib {
 
 export namespace UcrxLib {
   export interface Options extends UccLib.Options {
-    readonly methods?: readonly UcrxMethod[];
+    readonly resolver?: UcSchemaResolver | undefined;
+    readonly methods?: readonly UcrxMethod[] | undefined;
   }
 }

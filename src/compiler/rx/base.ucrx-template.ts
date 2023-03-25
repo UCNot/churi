@@ -88,6 +88,10 @@ export abstract class BaseUcrxTemplate {
       : this.ownMethods);
   }
 
+  get customMethods(): readonly UcrxMethod[] {
+    return this.base?.customMethods ?? [];
+  }
+
   #buildOwnMethods(): UcrxTemplate.Methods {
     const methods: Record<string, UcrxTemplate.Method<string>> = {};
     const methodDecls = this.overrideMethods();

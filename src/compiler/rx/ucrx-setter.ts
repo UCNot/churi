@@ -1,3 +1,4 @@
+import { arraysAreEqual } from '@proc7ts/primitives';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
@@ -18,6 +19,10 @@ export namespace UcrxSetter {
   export interface Options extends Omit<UcrxMethod.Options<UcrxSetter.Arg>, 'args' | 'stub'> {
     readonly stub?: UccMethod.Body<'value'>;
   }
+}
+
+export function isUcrxSetter(method: UcrxMethod<any>): method is UcrxSetter {
+  return arraysAreEqual(method.args.list, UcrxSetter$args.list);
 }
 
 const UcrxSetter$args = new UccArgs<UcrxSetter.Arg>('value');

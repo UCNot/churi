@@ -26,6 +26,10 @@ export class CustomBaseUcrxTemplate extends BaseUcrxTemplate {
     return (this.#className ??= this.#declareClass());
   }
 
+  override get customMethods(): readonly UcrxMethod[] {
+    return this.#methods;
+  }
+
   protected override overrideMethods(): UcrxTemplate.MethodDecls {
     return { custom: this.#methods.map(method => ({ method, body: method.stub })) };
   }

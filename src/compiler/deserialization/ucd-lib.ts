@@ -33,8 +33,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   constructor(options: UcdLib.Options<TSchemae>) {
     const {
       schemae,
-      resolver = new UcSchemaResolver(),
-
       definitions = DefaultUcdDefs,
       createDeserializer = options => new UcdFunction(options),
     } = options;
@@ -61,7 +59,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
-        resolver.schemaOf(schemaSpec),
+        this.resolver.schemaOf(schemaSpec),
       ]),
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;

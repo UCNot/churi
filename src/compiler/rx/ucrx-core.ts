@@ -2,7 +2,7 @@ import { UccCode } from '../codegen/ucc-code.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxSetter } from './ucrx-setter.js';
 
-export interface UcrxCore {
+export type UcrxCore = {
   readonly bol: UcrxSetter;
   readonly big: UcrxSetter;
   readonly ent: UcrxSetter;
@@ -15,7 +15,7 @@ export interface UcrxCore {
   readonly ls: UcrxMethod<''>;
   readonly any: UcrxSetter;
   readonly nul: UcrxMethod<''>;
-}
+};
 
 export const UcrxCore: UcrxCore = {
   bol: /*#__PURE__*/ new UcrxSetter({ key: 'bol', typeName: 'boolean' }),

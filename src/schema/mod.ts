@@ -10,4 +10,5 @@ export * from './uc-schema-name.js';
 export * from './uc-schema-resolver.js';
 export * from './uc-schema.js';
 export * from './uc-serializer.js';
+export * from './uc-unknown.js';
 export * from './uc-value.js';

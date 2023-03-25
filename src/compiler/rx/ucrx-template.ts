@@ -31,7 +31,7 @@ export namespace UcrxTemplate {
       | UccMethod.Body<UcrxMethod.ArgType<UcrxCore[key]>>
       | undefined;
   } & {
-    readonly custom?: Method[] | undefined;
+    readonly custom?: Method<any>[] | undefined;
   };
 
   export type Methods = {
