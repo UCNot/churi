@@ -1,23 +1,22 @@
+import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { OpaqueUcrx } from '../rx/opaque.ucrx.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
-import { ucrxUnrecognizedEntityError } from '../rx/ucrx-errors.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcdEntityHandler } from './ucd-entity-handler.js';
 
 export abstract class UcdReader implements UcrxContext {
 
   readonly #opaqueRx: Ucrx;
   readonly #onError: (error: UcErrorInfo) => void;
-  readonly #onEntity: UcdEntityHandler;
+  readonly #onEntity: EntityUcrx;
 
   constructor(options?: UcDeserializer.Options);
 
   constructor({
     onError = UcdReader$throwOnError,
-    onEntity = UcdReader$errorOnEntity,
+    onEntity = UcdReader$noEntity,
     opaqueRx = OPAQUE_UCRX,
   }: UcdReader.Options = {}) {
     this.#opaqueRx = opaqueRx;
@@ -43,8 +42,8 @@ export abstract class UcdReader implements UcrxContext {
 
   abstract read(rx: Ucrx): Promise<void> | void;
 
-  entity(rx: Ucrx, entity: readonly UcToken[]): void {
-    this.#onEntity(this, rx, entity);
+  entity(rx: Ucrx, entity: readonly UcToken[]): 0 | 1 {
+    return this.#onEntity(this, rx, entity);
   }
 
   abstract next(): Promise<UcToken | undefined> | UcToken | undefined;
@@ -75,8 +74,8 @@ function UcdReader$throwOnError(error: unknown): never {
   throw UcError.create(error);
 }
 
-function UcdReader$errorOnEntity(reader: UcdReader, _rx: Ucrx, entity: readonly UcToken[]): void {
-  reader.error(ucrxUnrecognizedEntityError(entity));
+function UcdReader$noEntity(_context: UcrxContext, _rx: Ucrx, _entity: readonly UcToken[]): 0 {
+  return 0;
 }
 
 const OPAQUE_UCRX = /*#__PURE__*/ new OpaqueUcrx();

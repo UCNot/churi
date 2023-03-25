@@ -3,6 +3,7 @@ import { BasicUcdDefs } from '../compiler/deserialization/basic.ucd-defs.js';
 import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
 import { UcdLib } from '../compiler/deserialization/ucd-lib.js';
 import { CHURI_MODULE } from '../impl/module-names.js';
+import { readTokens } from '../spec/read-chunks.js';
 import { TimestampUcrxMethod } from '../spec/timestamp.ucrx-method.js';
 import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
 import { UcEntity } from './uc-entity.js';
@@ -13,7 +14,7 @@ describe('UcEntity', () => {
   const TimestampEntityDef: UcdEntityPrefixDef = {
     entityPrefix: '!timestamp:',
     methods: TimestampUcrxMethod,
-    addHandler({ lib, prefix, suffix }) {
+    createRx({ lib, prefix, suffix }) {
       return code => {
         const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
         const readTimestamp = lib.declarations.declare(
@@ -24,7 +25,9 @@ describe('UcEntity', () => {
               .indent(code => {
                 code.write(
                   `const date = new Date(${printTokens}(args));`,
-                  lib.ucrxMethod(TimestampUcrxMethod).call('rx', { value: 'date' }),
+                  'return '
+                    + lib.ucrxMethod(TimestampUcrxMethod).call('rx', { value: 'date' })
+                    + ';',
                 );
               })
               .write(`}${suffix}`);
@@ -57,7 +60,28 @@ describe('UcEntity', () => {
       errors = [];
     });
 
-    it('does not recognize unknown entity', async () => {
+    it('(async) does not recognize unknown entity', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          readNumber: Number,
+        },
+        definitions: BasicUcdDefs,
+      });
+
+      const { readNumber } = await lib.compile('async').toDeserializers();
+
+      await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
+      expect(errors).toEqual([
+        {
+          code: 'unrecognizedEntity',
+          details: {
+            entity: [UC_TOKEN_EXCLAMATION_MARK, 'Infinity'],
+          },
+          message: 'Unrecognized entity: !Infinity',
+        },
+      ]);
+    });
+    it('(sync) does not recognize unknown entity', async () => {
       const lib = new UcdLib({
         schemae: {
           readNumber: Number,
@@ -88,7 +112,7 @@ describe('UcEntity', () => {
           ...BasicUcdDefs,
           {
             entityPrefix: '!plain',
-            addHandler({ lib, prefix, suffix }) {
+            createRx({ lib, prefix, suffix }) {
               return `${prefix}${lib.import('@hatsy/churi/spec', 'readPlainEntity')}${suffix}`;
             },
           },

@@ -23,15 +23,14 @@ export interface UcdEntityPrefixDef {
   readonly methods?: UcrxMethod<any> | readonly UcrxMethod<any>[] | undefined;
 
   /**
-   * Generates code that registers entity prefix handler.
+   * Generates code that creates {@link @hatsy/churi!EntityPrefixUcrx entity prefix receiver}.
    *
-   * Generated code expected to contain an {@link @hatsy/churi/deserializer!UcdEntityPrefixHandler entity prefix
-   * handler} instance placed between the given {@link UcdEntityDef.Location#prefix prefix} and
-   * {@link UcdEntityDef.Location#suffix suffix}.
+   * Generated code expected to place created receiver instance between the given
+   * {@link UcdEntityDef.Location#prefix prefix} and {@link UcdEntityDef.Location#suffix suffix}.
    *
    * @param location - A location inside deserializer library to insert generated code into.
    *
-   * @returns Source of code that registers entity prefix handler.
+   * @returns Source of code that create entity prefix receiver.
    */
-  addHandler(location: UcdEntityDef.Location): UccCode.Source;
+  createRx(location: UcdEntityDef.Location): UccCode.Source;
 }

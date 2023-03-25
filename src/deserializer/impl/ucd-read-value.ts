@@ -1,5 +1,5 @@
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
-import { ucrxBoolean, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
+import { ucrxBoolean, ucrxEntity, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
@@ -24,7 +24,7 @@ import {
 import { AsyncUcdReader } from '../async-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
-import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entity-cache.js';
+import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entry-cache.js';
 
 export async function ucdReadValue(
   reader: AsyncUcdReader,
@@ -40,7 +40,9 @@ export async function ucdReadValue(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    return ucrxString(reader, rx, '');
+    ucrxString(reader, rx, '');
+
+    return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
     await ucdReadEntityOrTrue(reader, rx);
@@ -186,9 +188,9 @@ async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: Ucrx): Promise<vo
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
     ucrxBoolean(reader, rx, true);
-  } else {
+  } else if (!reader.entity(rx, tokens)) {
     // Process entity.
-    reader.entity(rx, tokens);
+    ucrxEntity(reader, rx, tokens);
   }
 }
 

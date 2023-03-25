@@ -9,9 +9,9 @@ export class NonFinite$UcdDefs {
 
   constructor() {
     this.#list = [
-      { entity: '!Infinity', addHandler: this.#readEntity.bind(this, 'ucdReadInfinity') },
-      { entity: '!-Infinity', addHandler: this.#readEntity.bind(this, 'ucdReadNegativeInfinity') },
-      { entity: '!NaN', addHandler: this.#readEntity.bind(this, 'ucdReadNaN') },
+      { entity: '!Infinity', createRx: this.#createRx.bind(this, 'ucrxInfinity') },
+      { entity: '!-Infinity', createRx: this.#createRx.bind(this, 'ucrxNegativeInfinity') },
+      { entity: '!NaN', createRx: this.#createRx.bind(this, 'ucrxNaN') },
     ];
   }
 
@@ -19,7 +19,7 @@ export class NonFinite$UcdDefs {
     return this.#list;
   }
 
-  #readEntity(reader: string, { lib, prefix, suffix }: UcdEntityDef.Location): UccCode.Source {
+  #createRx(reader: string, { lib, prefix, suffix }: UcdEntityDef.Location): UccCode.Source {
     return `${prefix}${lib.import(DESERIALIZER_MODULE, reader)}${suffix}`;
   }
 

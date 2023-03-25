@@ -5,6 +5,7 @@ import { UcrxSetter } from './ucrx-setter.js';
 export interface UcrxCore {
   readonly bol: UcrxSetter;
   readonly big: UcrxSetter;
+  readonly ent: UcrxSetter;
   readonly nls: UcrxMethod<''>;
   readonly num: UcrxSetter;
   readonly str: UcrxSetter;
@@ -19,6 +20,7 @@ export interface UcrxCore {
 export const UcrxCore: UcrxCore = {
   bol: /*#__PURE__*/ new UcrxSetter({ key: 'bol', typeName: 'boolean' }),
   big: /*#__PURE__*/ new UcrxSetter({ key: 'big', typeName: 'bigint' }),
+  ent: /*#__PURE__*/ new UcrxSetter({ key: 'ent', typeName: 'entity' }),
   nls: /*#__PURE__*/ new UcrxMethod<''>({
     key: 'nls',
     args: [],

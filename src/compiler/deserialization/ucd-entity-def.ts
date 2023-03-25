@@ -24,17 +24,16 @@ export interface UcdEntityDef {
   readonly methods?: UcrxMethod<any> | readonly UcrxMethod<any>[] | undefined;
 
   /**
-   * Generates code that registers entity handler.
+   * Generates code that creates {@link @hatsy/churi!EntityUcrx entity receiver}.
    *
-   * Generated code expected to contain an {@link @hatsy/churi/deserializer!UcdEntityHandler entity handler} instance
-   * placed between the given {@link UcdEntityDef.Location#prefix prefix} and {@link UcdEntityDef.Location#suffix
-   * suffix}.
+   * Generated code expected to place created receiver instance between the given
+   * {@link UcdEntityDef.Location#prefix prefix} and {@link UcdEntityDef.Location#suffix suffix}.
    *
    * @param location - A location inside deserializer library to insert generated code into.
    *
-   * @returns Source of code that registers entity handler.
+   * @returns Source of code that create entity receiver.
    */
-  addHandler(location: UcdEntityDef.Location): UccCode.Source;
+  createRx(location: UcdEntityDef.Location): UccCode.Source;
 }
 
 export namespace UcdEntityDef {
@@ -50,7 +49,7 @@ export namespace UcdEntityDef {
     /**
      * Generated code prefix.
      *
-     * Generated entity handler expression expected to be placed right after this prefix.
+     * Generated entity receiver expression expected to be placed right after this prefix.
      *
      * This may be e.g. a method call with leading parameters.
      */
@@ -59,7 +58,7 @@ export namespace UcdEntityDef {
     /**
      * Generated code suffix.
      *
-     * Generated entity handler expression expected to be placed right before this suffix.
+     * Generated entity receiver expression expected to be placed right before this suffix.
      *
      * This may be e.g. a closing parenthesis of method call.
      */
