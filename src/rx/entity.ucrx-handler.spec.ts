@@ -1,28 +1,23 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { Ucrx } from '../rx/ucrx.js';
-import { VoidUcrx } from '../rx/void.ucrx.js';
-import { UcErrorInfo } from '../schema/uc-error.js';
+import { SyncUcdReader } from '../deserializer/sync-ucd-reader.js';
+import { UcEntity } from '../schema/uc-entity.js';
+import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
-import { SyncUcdReader } from './sync-ucd-reader.js';
-import { UcdEntityReader } from './ucd-entity-reader.js';
+import { EntityUcrxHandler } from './entity.ucrx-handler.js';
+import { Ucrx } from './ucrx.js';
+import { VoidUcrx } from './void.ucrx.js';
 
-describe('UcdEntityReader', () => {
-  let ucdReader: SyncUcdReader;
-  let reader: UcdEntityReader;
-  let errors: UcErrorInfo[];
+describe('EntityUcrxHandler', () => {
+  let reader: SyncUcdReader;
+  let handler: EntityUcrxHandler;
   let rx: Ucrx;
   let value: unknown;
 
   beforeEach(() => {
-    ucdReader = new SyncUcdReader([], {
-      onError(error) {
-        errors.push(error);
-      },
-    });
+    reader = new SyncUcdReader([]);
 
-    errors = [];
-    reader = new UcdEntityReader();
+    handler = new EntityUcrxHandler();
     value = undefined;
 
     class TestUcrx extends VoidUcrx {
@@ -38,76 +33,41 @@ describe('UcdEntityReader', () => {
     });
   });
 
-  describe('entity handler', () => {
+  describe('entity rx', () => {
     it('handles exact match', () => {
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addEntity(entity, (_reader, _rx, entity) => {
-        value = entity;
-      });
-      reader.read(ucdReader, rx, entity);
+      handler.addEntity(entity, (_reader, _rx, entity) => rx.ent(entity));
 
-      expect(value).toEqual(entity);
+      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect((value as UcEntity).raw).toEqual(printUcTokens(entity));
     });
     it('does not handle different entity', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:baz');
 
-      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
-        value = entity;
-      });
-      reader.read(ucdReader, rx, entity);
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
 
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:baz',
-        },
-      ]);
     });
     it('does not handle longer entity', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
-        value = entity;
-      });
-      reader.read(ucdReader, rx, entity);
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
 
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:bar:baz',
-        },
-      ]);
     });
     it('does not handle longer text entity', () => {
       const expectedEntity = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:barbaz');
 
-      reader.addEntity(expectedEntity, (_reader, _rx, entity) => {
-        value = entity;
-      });
-      reader.read(ucdReader, rx, entity);
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
 
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:barbaz',
-        },
-      ]);
     });
   });
 
@@ -115,20 +75,24 @@ describe('UcdEntityReader', () => {
     it('handles exact match', () => {
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addPrefix(entity, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(entity, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
+
+        return 1;
       });
-      reader.read(ucdReader, rx, entity);
+      handler.rx(reader, rx, entity);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
     it('handles exact match ending with delimiter', () => {
       const entity = UcLexer.scan('!foo:bar:');
 
-      reader.addPrefix(entity, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(entity, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
+
+        return 1;
       });
-      reader.read(ucdReader, rx, entity);
+      handler.rx(reader, rx, entity);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -136,10 +100,12 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
+
+        return 1;
       });
-      reader.read(ucdReader, rx, entity);
+      handler.rx(reader, rx, entity);
 
       expect(value).toEqual({ prefix, args: entity.slice(prefix.length) });
     });
@@ -147,71 +113,52 @@ describe('UcdEntityReader', () => {
       const prefix = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar');
 
-      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:bar',
-        },
-      ]);
     });
     it('does not handle unmatched prefix', () => {
       const prefix = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar!!');
 
-      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:bar!!',
-        },
-      ]);
     });
     it('does not handle unmatched text prefix', () => {
       const prefix = UcLexer.scan('!foo:bar:baz');
       const entity = UcLexer.scan('!foo:bar:bat');
 
-      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(0);
       expect(value).toBeUndefined();
-      expect(errors).toEqual([
-        {
-          code: 'unrecognizedEntity',
-          details: {
-            entity,
-          },
-          message: 'Unrecognized entity: !foo:bar:bat',
-        },
-      ]);
     });
     it('handles prefix text match', () => {
       const prefix = UcLexer.scan('!foo:bar');
       const entity = UcLexer.scan('!foo:bar-baz');
 
-      reader.addPrefix(prefix, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(1);
       expect(value).toEqual({ prefix, args: ['-baz'] });
     });
     it('prefers longer prefix', () => {
@@ -219,14 +166,18 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar:baz');
 
-      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
-        value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+      handler.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
+
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
     it('prefers longer prefix for suffix starting with delimiter', () => {
@@ -234,14 +185,18 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar:');
       const entity = UcLexer.scan('!foo:bar::');
 
-      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
-        value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+      handler.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
+
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: [UC_TOKEN_COLON] });
     });
     it('prefers longer text prefix', () => {
@@ -249,14 +204,18 @@ describe('UcdEntityReader', () => {
       const prefix2 = UcLexer.scan('!foo:bar-');
       const entity = UcLexer.scan('!foo:bar-baz');
 
-      reader.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
+      handler.addPrefix(prefix1, (_reader, _rx, prefix, args) => {
         value = { prefix, args };
-      });
-      reader.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
-        value = { prefix, args };
-      });
-      reader.read(ucdReader, rx, entity);
 
+        return 1;
+      });
+      handler.addPrefix(prefix2, (_reader, _rx, prefix, args) => {
+        value = { prefix, args };
+
+        return 1;
+      });
+
+      expect(handler.rx(reader, rx, entity)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
   });

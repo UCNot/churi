@@ -1,3 +1,6 @@
+import { UcEntity } from '../schema/uc-entity.js';
+import { printUcTokens } from '../syntax/print-uc-token.js';
+import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
 
 export class VoidUcrx implements Ucrx {
@@ -18,6 +21,10 @@ export class VoidUcrx implements Ucrx {
 
   big(value: bigint): 0 | 1 {
     return this.any(value);
+  }
+
+  ent(value: readonly UcToken[]): 0 | 1 {
+    return this.any(new UcEntity(printUcTokens(value)));
   }
 
   nls(): Ucrx | undefined {

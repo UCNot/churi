@@ -1,3 +1,5 @@
+export * from './entity.ucrx-handler.js';
+export * from './entity.ucrx.js';
 export * from './opaque.ucrx.js';
 export * from './ucrx-context.js';
 export * from './ucrx-errors.js';

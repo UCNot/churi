@@ -1,15 +1,24 @@
+import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
-import { ucrxUnexpectedEntryError, ucrxUnexpectedTypeError } from './ucrx-errors.js';
+import {
+  ucrxUnexpectedEntryError,
+  ucrxUnexpectedTypeError,
+  ucrxUnrecognizedEntityError,
+} from './ucrx-errors.js';
 import { Ucrx } from './ucrx.js';
 
-export function ucrxSuffix(context: UcrxContext, rx: Ucrx, key: string): void {
+export function ucrxSuffix(context: UcrxContext, rx: Ucrx, key: string): 0 | 1 {
   const entryRx = ucrxEntry(context, rx, key);
 
   if (entryRx) {
     ucrxString(context, entryRx, '');
 
     rx.map();
+
+    return 1;
   }
+
+  return 0;
 }
 
 export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx | undefined {
@@ -30,32 +39,63 @@ export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx | u
   return context.opaqueRx;
 }
 
-export function ucrxBoolean(context: UcrxContext, rx: Ucrx, value: boolean): void {
-  if (!rx.bol(value)) {
-    context.error(ucrxUnexpectedTypeError('boolean', rx));
+export function ucrxBoolean(context: UcrxContext, rx: Ucrx, value: boolean): 0 | 1 {
+  if (rx.bol(value)) {
+    return 1;
   }
+
+  context.error(ucrxUnexpectedTypeError('boolean', rx));
+
+  return 0;
 }
 
-export function ucrxBigInt(context: UcrxContext, rx: Ucrx, value: bigint): void {
-  if (!rx.big(value)) {
-    context.error(ucrxUnexpectedTypeError('bigint', rx));
+export function ucrxBigInt(context: UcrxContext, rx: Ucrx, value: bigint): 0 | 1 {
+  if (rx.big(value)) {
+    return 1;
   }
+
+  context.error(ucrxUnexpectedTypeError('bigint', rx));
+
+  return 0;
 }
 
-export function ucrxNumber(context: UcrxContext, rx: Ucrx, value: number): void {
-  if (!rx.num(value)) {
-    context.error(ucrxUnexpectedTypeError('number', rx));
+export function ucrxEntity(context: UcrxContext, rx: Ucrx, value: readonly UcToken[]): 0 | 1 {
+  /* istanbul ignore next */
+  if (rx.ent(value)) {
+    return 1;
   }
+
+  context.error(ucrxUnrecognizedEntityError(value));
+
+  return 0;
 }
 
-export function ucrxString(context: UcrxContext, rx: Ucrx, value: string): void {
-  if (!rx.str(value)) {
-    context.error(ucrxUnexpectedTypeError('string', rx));
+export function ucrxNumber(context: UcrxContext, rx: Ucrx, value: number): 0 | 1 {
+  if (rx.num(value)) {
+    return 1;
   }
+
+  context.error(ucrxUnexpectedTypeError('number', rx));
+
+  return 0;
 }
 
-export function ucrxNull(context: UcrxContext, rx: Ucrx): void {
-  if (!rx.nul()) {
-    context.error(ucrxUnexpectedTypeError('null', rx));
+export function ucrxString(context: UcrxContext, rx: Ucrx, value: string): 0 | 1 {
+  if (rx.str(value)) {
+    return 1;
   }
+
+  context.error(ucrxUnexpectedTypeError('string', rx));
+
+  return 0;
+}
+
+export function ucrxNull(context: UcrxContext, rx: Ucrx): 0 | 1 {
+  if (rx.nul()) {
+    return 1;
+  }
+
+  context.error(ucrxUnexpectedTypeError('null', rx));
+
+  return 0;
 }

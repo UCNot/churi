@@ -1,3 +1,5 @@
+import { UcToken } from '../syntax/uc-token.js';
+
 /**
  * Charge receiver interface.
  *
@@ -13,12 +15,13 @@ export interface Ucrx {
 
   bol(value: boolean): 0 | 1;
   big(value: bigint): 0 | 1;
+  ent(value: readonly UcToken[]): 0 | 1;
   nls(): Ucrx | undefined;
   num(value: number): 0 | 1;
   str(value: string): 0 | 1;
 
   /**
-   * Creates receiver for map entry charge.
+   * Starts map entry charge.
    *
    * @param key - Target entry key.
    *
@@ -29,11 +32,13 @@ export interface Ucrx {
 
   /**
    * Finishes map charge.
+   *
+   * Called after {@link for} call(s) only.
    */
   map(): void;
 
   /**
-   * Starts or continues list charge.
+   * Starts or continues a list charge.
    *
    * May be called before or after the first item charged.
    *
@@ -45,6 +50,8 @@ export interface Ucrx {
 
   /**
    * Finishes list charge.
+   *
+   * Called after {@link em} call(s) only.
    */
   ls(): void;
 

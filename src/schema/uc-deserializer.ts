@@ -1,4 +1,4 @@
-import { UcdEntityHandler } from '../deserializer/ucd-entity-handler.js';
+import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
 
@@ -102,6 +102,6 @@ export namespace UcDeserializer {
      * {@link @hatsy/churi/compiler!UcdEntityPrefixDef entity prefix} definitions available to
      * {@link @hatsy/churi/compiler!UcdLib.Options#definitions compiler}.
      */
-    readonly onEntity?: UcdEntityHandler | undefined;
+    readonly onEntity?: EntityUcrx | undefined;
   }
 }

@@ -1,5 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
-import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
@@ -92,9 +92,9 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
         return code.write(`${prefix}undefined${suffix}`);
       }
 
-      const UcdEntityReader = this.import(DESERIALIZER_MODULE, 'UcdEntityReader');
+      const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
-      return code.write(`${prefix}new ${UcdEntityReader}()`).indent(code => {
+      return code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
         this.#entityDefs.forEach((def, index, { length }) => {
           let entity = def.entity ?? def.entityPrefix;
 
@@ -110,7 +110,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
             + ']';
 
           code.write(
-            def.addHandler({
+            def.createRx({
               lib: this,
               prefix: `${def.entity ? '.addEntity' : '.addPrefix'}(${tokenArray}, `,
               suffix: ')',
@@ -118,7 +118,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           );
 
           if (index + 2 > length) {
-            code.write(`.toHandler()${suffix}`);
+            code.write(`.toRx()${suffix}`);
           }
         });
       });

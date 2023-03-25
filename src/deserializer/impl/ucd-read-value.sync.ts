@@ -7,7 +7,7 @@
  * !!! DO NOT MODIFY !!!
  */
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
-import { ucrxBoolean, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
+import { ucrxBoolean, ucrxEntity, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
@@ -32,7 +32,7 @@ import {
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
-import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entity-cache.js';
+import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entry-cache.js';
 
 export function ucdReadValueSync(
   reader: SyncUcdReader,
@@ -48,7 +48,9 @@ export function ucdReadValueSync(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    return ucrxString(reader, rx, '');
+    ucrxString(reader, rx, '');
+
+    return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
     ucdReadEntityOrTrueSync(reader, rx);
@@ -194,9 +196,9 @@ function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: Ucrx): void {
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
     ucrxBoolean(reader, rx, true);
-  } else {
+  } else if (!reader.entity(rx, tokens)) {
     // Process entity.
-    reader.entity(rx, tokens);
+    ucrxEntity(reader, rx, tokens);
   }
 }
 
