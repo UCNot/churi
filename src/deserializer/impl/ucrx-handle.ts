@@ -52,7 +52,7 @@ export class UcrxHandle {
 
   ls(): void {
     if (this.#isList) {
-      this.rx.ls();
+      this.#rx.ls();
     }
   }
 
