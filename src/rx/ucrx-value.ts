@@ -2,6 +2,7 @@ import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 import {
   ucrxUnexpectedEntryError,
+  ucrxUnexpectedNullError,
   ucrxUnexpectedTypeError,
   ucrxUnrecognizedEntityError,
 } from './ucrx-errors.js';
@@ -95,7 +96,7 @@ export function ucrxNull(context: UcrxContext, rx: Ucrx): 0 | 1 {
     return 1;
   }
 
-  context.error(ucrxUnexpectedTypeError('null', rx));
+  context.error(ucrxUnexpectedNullError(rx));
 
   return 0;
 }
