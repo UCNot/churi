@@ -99,3 +99,13 @@ export function ucrxNull(context: UcrxContext, rx: Ucrx): 0 | 1 {
 
   return 0;
 }
+
+export function ucrxItem(context: UcrxContext, rx: Ucrx): 0 | 1 {
+  if (rx.em()) {
+    return 1;
+  }
+
+  context.error(ucrxUnexpectedTypeError('list', rx));
+
+  return 0;
+}

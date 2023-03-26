@@ -38,11 +38,10 @@ export interface Ucrx {
   map(): void;
 
   /**
-   * Starts or continues a list charge.
+   * Starts a list charge.
    *
-   * May be called before or after the first item charged.
-   *
-   * May be called multiple times per list.
+   * Always called _before_ the first item charge. In case of map item, always called _before_ {@link map},
+   * but not necessarily before {@link for}.
    *
    * @returns `1` if a list permitted, or `0` otherwise.
    */

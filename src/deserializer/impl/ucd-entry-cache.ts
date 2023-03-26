@@ -1,14 +1,13 @@
-import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
+import { UcrxContext } from '../../rx/ucrx-context.js';
 import { ucrxEntry } from '../../rx/ucrx-value.js';
-import { Ucrx } from '../../rx/ucrx.js';
-import { UcdReader } from '../ucd-reader.js';
+import { UcrxHandle } from './ucrx-handle.js';
 
 export interface UcdEntryCache {
-  readonly rxs: Record<string, Ucrx>;
-  end: Ucrx[] | null;
+  readonly rxs: Record<string, UcrxHandle>;
+  end: UcrxHandle[] | null;
 }
 
-export function cacheUcdEntry(cache: UcdEntryCache, key: string, entryRx: Ucrx): void {
+export function cacheUcdEntry(cache: UcdEntryCache, key: string, entryRx: UcrxHandle): void {
   cache.rxs[key] = entryRx;
 
   if (cache.end) {
@@ -19,18 +18,16 @@ export function cacheUcdEntry(cache: UcdEntryCache, key: string, entryRx: Ucrx):
 }
 
 export function startUcdEntry(
-  reader: UcdReader,
-  rx: Ucrx,
+  context: UcrxContext,
+  rx: UcrxHandle,
   key: string,
   cache: UcdEntryCache,
-): Ucrx {
+): UcrxHandle {
   const cached = cache.rxs[key];
 
   if (cached) {
-    if (!cached.em()) {
-      reader.error(ucrxUnexpectedTypeError('list', cached));
-
-      return (cache.rxs[key] = reader.opaqueRx);
+    if (!cached.em(context)) {
+      return cached.makeOpaque(context);
     }
 
     return cached;
@@ -38,7 +35,7 @@ export function startUcdEntry(
 
   // This is never called for the first entry,
   // so it should not return `undefined`.
-  const created = ucrxEntry(reader, rx, key)!;
+  const created = new UcrxHandle(ucrxEntry(context, rx.rx, key)!);
 
   cacheUcdEntry(cache, key, created);
 
