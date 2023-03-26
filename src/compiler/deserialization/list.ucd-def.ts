@@ -25,7 +25,7 @@ export class ListUcdDef<
     lib: UcdLib,
     schema: UcList.Schema<TItem, TItemSpec>,
   ): UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
-    return schema.createTemplate?.(lib, schema) ?? new this(lib, schema);
+    return new this(lib, schema);
   }
 
   #itemTemplate?: UcrxTemplate;

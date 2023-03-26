@@ -34,7 +34,7 @@ export class MapUcdDef<
     UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
     UcMap.Schema<TEntriesSpec, TExtraSpec>
   > {
-    return schema.createTemplate?.(lib, schema) ?? new this(lib, schema);
+    return new this(lib, schema);
   }
 
   readonly #ns: UccNamespace;

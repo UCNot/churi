@@ -168,12 +168,7 @@ export function ucdReadValueSync(
 
     // Consume the rest of items.
     if (!rx.quietEm()) {
-      reader.error(
-        ucrxUnexpectedTypeError(
-          reader.current() === UC_TOKEN_OPENING_PARENTHESIS ? 'nested list' : 'list',
-          rx.rx,
-        ),
-      );
+      reader.error(ucrxUnexpectedTypeError('nested list', rx.rx));
     }
   }
 
