@@ -16,10 +16,8 @@ export class UcrxHandle {
     return this.#rx;
   }
 
-  makeOpaque(context: UcrxContext): this {
+  makeOpaque(context: UcrxContext): void {
     this.#rx = context.opaqueRx;
-
-    return this;
   }
 
   nls(context: UcrxContext): UcrxHandle {

@@ -27,7 +27,7 @@ export function startUcdEntry(
 
   if (cached) {
     if (!cached.em(context)) {
-      return cached.makeOpaque(context);
+      cached.makeOpaque(context);
     }
 
     return cached;

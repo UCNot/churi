@@ -33,4 +33,35 @@ describe('UcUnknown', () => {
   it('recognizes null', () => {
     expect(readValue('--')).toBeNull();
   });
+  it('recognizes map', () => {
+    expect(readValue('foo(bar)baz')).toEqual({ foo: 'bar', baz: '' });
+  });
+  it('recognizes nested map', () => {
+    expect(readValue('foo(bar(baz)')).toEqual({ foo: { bar: 'baz' } });
+  });
+  it('recognizes list', () => {
+    expect(readValue('1,2,3')).toEqual([1, 2, 3]);
+    expect(readValue(',1,2,3')).toEqual([1, 2, 3]);
+    expect(readValue('1,2,3,')).toEqual([1, 2, 3]);
+    expect(readValue(',')).toEqual([]);
+  });
+  it('recognizes null item', () => {
+    expect(readValue('--,')).toEqual([null]);
+    expect(readValue(',--')).toEqual([null]);
+    expect(readValue('1,--,3,')).toEqual([1, null, 3]);
+  });
+  it('recognizes map item', () => {
+    expect(readValue(',foo(bar)')).toEqual([{ foo: 'bar' }]);
+    expect(readValue('foo(bar),')).toEqual([{ foo: 'bar' }]);
+  });
+  it('recognizes multiple map items', () => {
+    expect(readValue(',foo(bar),2,bar(baz)')).toEqual([{ foo: 'bar' }, 2, { bar: 'baz' }]);
+    expect(readValue('foo(bar),2,bar(baz)')).toEqual([{ foo: 'bar' }, 2, { bar: 'baz' }]);
+  });
+  it('recognizes list entry', () => {
+    expect(readValue('foo(bar, baz)')).toEqual({ foo: ['bar', 'baz'] });
+  });
+  it('recognizes repeating entries', () => {
+    expect(readValue('foo(bar)foo(baz)foo(test)')).toEqual({ foo: ['bar', 'baz', 'test'] });
+  });
 });

@@ -7,6 +7,8 @@ import { UccCode } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
+import { UcrxCore } from '../rx/ucrx-core.js';
+import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -39,8 +41,12 @@ export class ListUcdDef<
     });
   }
 
-  get base(): BaseUcrxTemplate {
+  override get base(): BaseUcrxTemplate {
     return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
+  }
+
+  override get permitsSingle(): boolean {
+    return false;
   }
 
   protected override callSuperConstructor(
@@ -78,7 +84,7 @@ export class ListUcdDef<
   protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     const allocation = this.#getAllocation();
 
-    return this.#isMatrix
+    return allocation.isMatrix
       ? this.#declareMatrixMethods(allocation)
       : this.#declareListMethods(allocation);
   }
@@ -104,19 +110,49 @@ export class ListUcdDef<
       return this.#allocation;
     }
 
+    const isMatrix = this.#isMatrix;
+    const context = this.declarePrivate('context');
     const items = this.declarePrivate('items', '[]');
+    const addItem = this.declarePrivateMethod(
+      'addItem',
+      new UccArgs('item'),
+      ({ item }) => `${items}.push(${item})`,
+    );
+    const listCreated = this.declarePrivate('listCreated', '0');
+    const isNull = this.#isNullableList ? this.declarePrivate('isNull', '0') : undefined;
+
+    if (isMatrix) {
+      const itemTemplate = this.#getItemTemplate();
+      const itemRx = this.declarePrivate('_itemRx');
+
+      return (this.#allocation = {
+        isMatrix,
+        context,
+        setList: 'this.set',
+        items,
+        addItem,
+        itemRx: itemTemplate.permitsSingle
+          ? this.declarePrivateMethod<''>(
+              'itemRx',
+              [],
+              () => `return ${itemRx} ??= `
+                + itemTemplate.newInstance({ set: addItem.bind('this'), context })
+                + ';',
+            )
+          : undefined,
+        listCreated,
+        isNull,
+      });
+    }
 
     return (this.#allocation = {
-      context: this.declarePrivate('context'),
-      setList: this.#isMatrix ? 'this.set' : this.declarePrivate('setList'),
+      isMatrix,
+      context,
+      setList: this.declarePrivate('setList'),
       items,
-      addItem: this.declarePrivateMethod(
-        'addItem',
-        new UccArgs('item'),
-        ({ item }) => `${items}.push(${item})`,
-      ),
-      listCreated: this.declarePrivate('listCreated', '0'),
-      isNull: this.#isNullableList ? this.declarePrivate('isNull', '0') : undefined,
+      addItem,
+      listCreated,
+      isNull,
     });
   }
 
@@ -154,10 +190,10 @@ export class ListUcdDef<
     const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
 
     return {
-      em: _location => code => {
+      em: () => code => {
         code.write(`return ${listCreated} = 1;`);
       },
-      ls: _location => code => {
+      ls: () => code => {
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
@@ -174,7 +210,7 @@ export class ListUcdDef<
           .write(`}`);
       },
       nul: isNull
-        ? _location => code => {
+        ? () => code => {
             code
               .write(`if (${listCreated}) {`)
               .indent(code => {
@@ -192,18 +228,30 @@ export class ListUcdDef<
     };
   }
 
-  #declareMatrixMethods({
-    context,
-    items,
-    addItem,
-    listCreated,
-    isNull,
-  }: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
-    const { lib } = this;
-    const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
+  #declareMatrixMethods(allocation: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
+    const { context, items, addItem, itemRx, listCreated, isNull } = allocation;
+    const itemTemplate = this.#getItemTemplate();
+
+    const coreMethods: {
+      [key: string]: UcrxMethod.Body<any> | undefined;
+    } = {};
+    const custom: UcrxTemplate.Method<any>[] = [];
+
+    if (itemRx) {
+      for (const [key, method] of Object.entries(itemTemplate.definedMethods)) {
+        if (method) {
+          if (key in UcrxCore) {
+            coreMethods[key] = this.#delegate(allocation);
+          } else {
+            custom.push({ method: method.method, body: this.#delegate(allocation) });
+          }
+        }
+      }
+    }
 
     return {
-      nls: _location => code => {
+      ...coreMethods,
+      nls: () => code => {
         const itemTemplate = this.#getItemTemplate();
 
         code.write(
@@ -215,25 +263,11 @@ export class ListUcdDef<
             + ';',
         );
       },
-      em: _location => code => {
-        if (this.#isNullableItem && this.#isNullableList) {
-          code
-            .write(`if (!${listCreated}) {`)
-            .indent(code => {
-              code
-                .write(`${listCreated} = 1;`)
-                .write(`if (${isNull}) {`)
-                .indent(`${items}.push(null);`)
-                .write(`}`);
-            })
-            .write(`}`)
-            .write(`return 1;`);
-        } else {
-          code.write(`return ${listCreated} = 1;`);
-        }
+      em: () => code => {
+        code.write(`return ${listCreated} = 1;`);
       },
-      ls: _location => code => {
-        if (this.#isNullableList) {
+      ls: () => code => {
+        if (isNull) {
           code
             .write(`if (${isNull}) {`)
             .indent(`this.set(null);`)
@@ -244,31 +278,40 @@ export class ListUcdDef<
         code.indent(`this.set(${items});`).write(`}`);
       },
       nul: this.#isNullable
-        ? _location => code => {
+        ? () => code => {
             code
               .write(`if (${listCreated}) {`)
               .indent(code => {
-                if (this.#isNullableList && !this.#isNullableItem) {
-                  code.write(`${isNull} = 1;`);
-                }
                 if (this.#isNullableItem) {
-                  code.write(`${items}.push(null);`);
+                  code.write(addItem.call('this', { item: 'null' }) + ';', `return 1;`);
                 } else {
-                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
-                }
-              })
-              .write(`} else {`)
-              .indent(code => {
-                if (this.#isNullableList) {
-                  code.write(`${isNull} = 1;`);
-                } else {
-                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
+                  code.write(`return 0;`);
                 }
               })
               .write(`}`)
-              .write(`return 1;`);
+              .indent(code => {
+                if (isNull) {
+                  code.write(`return ${isNull} = 1;`);
+                } else {
+                  code.write(`return 0;`);
+                }
+              });
           }
         : undefined,
+      custom,
+    };
+  }
+
+  #delegate<TArg extends string>({
+    itemRx,
+    listCreated,
+  }: ListUcdDef.MatrixAllocation): UcrxMethod.Body<TArg> {
+    return (args, method) => code => {
+      code
+        .write(`if (${listCreated}) {`)
+        .indent(`return ` + method.call(itemRx!.call('this', { '': '' }), args) + ';')
+        .write('}')
+        .write('return 0;');
     };
   }
 
@@ -278,6 +321,7 @@ export namespace ListUcdDef {
   export type Allocation = MatrixAllocation | ListAllocation;
 
   export interface ListAllocation {
+    readonly isMatrix: false;
     readonly context: string;
     readonly setList: string;
     readonly items: string;
@@ -287,11 +331,13 @@ export namespace ListUcdDef {
   }
 
   export interface MatrixAllocation {
+    readonly isMatrix: true;
     readonly context: string;
     readonly setList: string;
     readonly items: string;
     readonly listCreated: string;
     readonly addItem: UccMethod<'item'>;
+    readonly itemRx: UccMethod<''> | undefined;
     readonly isNull?: string | undefined;
   }
 }

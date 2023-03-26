@@ -46,6 +46,10 @@ export abstract class BaseUcrxTemplate {
     return this.#getExpectedTypes()[0];
   }
 
+  get permitsSingle(): boolean {
+    return true;
+  }
+
   get overriddenTypes(): ReadonlySet<string> {
     const [types, sameAsBase] = this.#getExpectedTypes();
 

@@ -173,13 +173,7 @@ class UcdEntityPrefix {
   }
 
   add(prefix: string, prefixRx: EntityPrefixUcrx): void {
-    const prefixRxs = this.#prefixRxs[prefix];
-
-    if (prefixRxs) {
-      prefixRxs.unshift(prefixRx);
-    } else {
-      this.#prefixRxs[prefix] = [prefixRx];
-    }
+    (this.#prefixRxs[prefix] ??= []).unshift(prefixRx);
   }
 
   rx(
