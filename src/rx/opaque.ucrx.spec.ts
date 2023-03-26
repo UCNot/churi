@@ -56,7 +56,7 @@ describe('OpaqueUcrx', () => {
     it('always succeeds', () => {
       const ucrx = new OpaqueUcrx();
 
-      expect(ucrx.em()).toBe(1);
+      expect(ucrx.and()).toBe(1);
     });
   });
 });

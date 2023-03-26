@@ -89,12 +89,12 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
           .map(([key, setter]) => [key, this.#declareMethod(setter)]),
       ),
       nls: this.#declareNls.bind(this),
+      nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : undefined,
       for: this.#declareFor.bind(this),
       map: this.#declareMap.bind(this),
-      em: this.#declareEm.bind(this),
-      ls: this.#declareLs.bind(this),
+      and: this.#declareEm.bind(this),
+      end: this.#declareLs.bind(this),
       any: this.#declareAny.bind(this),
-      nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : undefined,
       custom: this.lib.voidUcrx.customMethods.map(method => ({
         method,
         body: this.#declareMethod(method),
@@ -142,7 +142,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
                 + listTemplate.newInstance({ set: `super.set.bind(this)`, context })
                 + ';',
             )
-            .write(`${listRx}.em();`)
+            .write(`${listRx}.and();`)
             .write(`${addItem}?.();`, `${addItem} = null;`);
         })
         .write(`}`)
@@ -153,7 +153,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   #declareLs(): UccCode.Source {
     const { listRx } = this.#getAllocation();
 
-    return `${listRx}?.ls();`;
+    return `${listRx}?.end();`;
   }
 
   #declareAny({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccCode.Source {

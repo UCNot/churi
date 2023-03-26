@@ -17,6 +17,7 @@ export interface Ucrx {
   big(value: bigint): 0 | 1;
   ent(value: readonly UcToken[]): 0 | 1;
   nls(): Ucrx | undefined;
+  nul(): 0 | 1;
   num(value: number): 0 | 1;
   str(value: string): 0 | 1;
 
@@ -25,34 +26,29 @@ export interface Ucrx {
    *
    * @param key - Target entry key.
    *
-   * @returns Either entry receiver, `0` if a map is not permitted, or `undefined` if target map does not contain entry
-   * with the given `key`.
+   * @returns Either entry receiver, `0` for unexpected map, or `undefined` for unexpected entry.
    */
   for(key: PropertyKey): Ucrx | 0 | undefined;
 
   /**
    * Finishes map charge.
    *
-   * Called after {@link for} call(s) only.
+   * Called after all map entries {@link for charged}, unless the map is empty.
    */
   map(): void;
 
   /**
-   * Starts a list charge.
+   * Starts charging a list.
    *
    * Always called _before_ the first item charge. In case of map item, always called _before_ {@link map},
    * but not necessarily before {@link for}.
    *
-   * @returns `1` if a list permitted, or `0` otherwise.
+   * @returns `1` if list charge permitted, or `0` otherwise if a list is unexpected.
    */
-  em(): 0 | 1;
+  and(): 0 | 1;
 
   /**
-   * Finishes list charge.
-   *
-   * Called after {@link em} call(s) only.
+   * Finishes a list or single value charge.
    */
-  ls(): void;
-
-  nul(): 0 | 1;
+  end(): void;
 }

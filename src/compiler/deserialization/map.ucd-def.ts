@@ -107,9 +107,9 @@ export class MapUcdDef<
 
   protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     return {
+      nul: this.schema.nullable ? () => this.#declareNul() : undefined,
       for: args => this.#declareFor(args),
       map: () => this.#declareMap(),
-      nul: this.schema.nullable ? () => this.#declareNul() : undefined,
     };
   }
 

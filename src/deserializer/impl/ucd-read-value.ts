@@ -135,7 +135,7 @@ export async function ucdReadValue(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (!rx.em(reader)) {
+    if (!rx.and(reader)) {
       rx.makeOpaque(reader);
     }
     if (reader.hasPrev()) {
@@ -159,7 +159,7 @@ export async function ucdReadValue(
     }
 
     // Consume the rest of items.
-    if (!rx.quietEm()) {
+    if (!rx.andQuiet()) {
       reader.error(ucrxUnexpectedTypeError('nested list', rx.rx));
     }
   }
@@ -233,7 +233,7 @@ async function ucdReadTokens(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -278,7 +278,7 @@ async function ucdReadItems(reader: AsyncUcdReader, rx: UcrxHandle): Promise<voi
     }
   }
 
-  rx.rx.ls();
+  rx.rx.end();
 }
 
 async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: string): Promise<void> {
@@ -315,7 +315,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
   if (!bound) {
     // End of input.
     // Ensure list charge completed, if any.
-    rx.ls();
+    rx.end();
   }
 }
 
@@ -363,7 +363,7 @@ async function ucdReadEntries(
     }
   }
 
-  cache.end?.forEach(rx => rx.rx.ls());
+  cache.end?.forEach(rx => rx.rx.end());
 }
 
 async function ucdSkipWhitespace(reader: AsyncUcdReader): Promise<void> {
@@ -379,7 +379,7 @@ async function ucdFindAnyBound(
   return await reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       return true;
@@ -401,7 +401,7 @@ async function ucdFindStrictBound(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;

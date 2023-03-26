@@ -21,7 +21,7 @@ export class UcrxHandle {
   }
 
   nls(context: UcrxContext): UcrxHandle {
-    const isList = this.quietEm();
+    const isList = this.andQuiet();
     let itemsRx: Ucrx | undefined;
 
     if (isList > 0) {
@@ -35,12 +35,12 @@ export class UcrxHandle {
 
     const itemHandle = new UcrxHandle(itemsRx ?? context.opaqueRx);
 
-    itemHandle.quietEm();
+    itemHandle.andQuiet();
 
     return itemHandle;
   }
 
-  em(context: UcrxContext): 0 | 1 {
+  and(context: UcrxContext): 0 | 1 {
     if (this.#isList < 0) {
       return (this.#isList = ucrxItem(context, this.#rx));
     }
@@ -48,18 +48,18 @@ export class UcrxHandle {
     return this.#isList as 0 | 1;
   }
 
-  ls(): void {
-    if (this.#isList) {
-      this.#rx.ls();
-    }
-  }
-
-  quietEm(): -1 | 0 | 1 {
+  andQuiet(): -1 | 0 | 1 {
     if (this.#isList < 0) {
-      return (this.#isList = this.#rx.em());
+      return (this.#isList = this.#rx.and());
     }
 
     return this.#isList ? 1 : -1;
+  }
+
+  end(): void {
+    if (this.#isList) {
+      this.#rx.end();
+    }
   }
 
 }

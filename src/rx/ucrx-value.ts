@@ -102,7 +102,7 @@ export function ucrxNull(context: UcrxContext, rx: Ucrx): 0 | 1 {
 }
 
 export function ucrxItem(context: UcrxContext, rx: Ucrx): 0 | 1 {
-  if (rx.em()) {
+  if (rx.and()) {
     return 1;
   }
 

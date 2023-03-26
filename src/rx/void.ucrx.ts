@@ -47,11 +47,11 @@ export class VoidUcrx implements Ucrx {
     // Not a map.
   }
 
-  em(): 0 | 1 {
+  and(): 0 | 1 {
     return 0;
   }
 
-  ls(): void {
+  end(): void {
     // Not a list.
   }
 

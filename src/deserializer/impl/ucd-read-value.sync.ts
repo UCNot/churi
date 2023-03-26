@@ -143,7 +143,7 @@ export function ucdReadValueSync(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (!rx.em(reader)) {
+    if (!rx.and(reader)) {
       rx.makeOpaque(reader);
     }
     if (reader.hasPrev()) {
@@ -167,7 +167,7 @@ export function ucdReadValueSync(
     }
 
     // Consume the rest of items.
-    if (!rx.quietEm()) {
+    if (!rx.andQuiet()) {
       reader.error(ucrxUnexpectedTypeError('nested list', rx.rx));
     }
   }
@@ -241,7 +241,7 @@ function ucdReadTokensSync(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -286,7 +286,7 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: UcrxHandle): void {
     }
   }
 
-  rx.rx.ls();
+  rx.rx.end();
 }
 
 function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string): void {
@@ -323,7 +323,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string)
   if (!bound) {
     // End of input.
     // Ensure list charge completed, if any.
-    rx.ls();
+    rx.end();
   }
 }
 
@@ -371,7 +371,7 @@ function ucdReadEntriesSync(
     }
   }
 
-  cache.end?.forEach(rx => rx.rx.ls());
+  cache.end?.forEach(rx => rx.rx.end());
 }
 
 function ucdSkipWhitespaceSync(reader: SyncUcdReader): void {
@@ -387,7 +387,7 @@ function ucdFindAnyBoundSync(
   return reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       return true;
@@ -409,7 +409,7 @@ function ucdFindStrictBoundSync(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.em(reader);
+        rx.and(reader);
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;

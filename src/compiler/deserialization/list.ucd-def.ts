@@ -102,7 +102,7 @@ export class ListUcdDef<
   }
 
   get #isMatrix(): boolean {
-    return !!this.#getItemTemplate().definedMethods.ls;
+    return !!this.#getItemTemplate().definedMethods.end;
   }
 
   #getAllocation(): ListUcdDef.Allocation {
@@ -190,24 +190,8 @@ export class ListUcdDef<
     const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
 
     return {
-      em: () => code => {
+      and: () => code => {
         code.write(`return ${listCreated} = 1;`);
-      },
-      ls: () => code => {
-        if (isNull) {
-          code
-            .write(`if (${isNull}) {`)
-            .indent(`${setList}(null);`)
-            .write(`} else if (${listCreated}) {`);
-        } else {
-          code.write(`if (${listCreated}) {`);
-        }
-
-        code
-          .indent(`${setList}(${items});`)
-          .write(`} else {`)
-          .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
-          .write(`}`);
       },
       nul: isNull
         ? () => code => {
@@ -225,6 +209,22 @@ export class ListUcdDef<
               .write(`return ${isNull} = 1;`);
           }
         : undefined,
+      end: () => code => {
+        if (isNull) {
+          code
+            .write(`if (${isNull}) {`)
+            .indent(`${setList}(null);`)
+            .write(`} else if (${listCreated}) {`);
+        } else {
+          code.write(`if (${listCreated}) {`);
+        }
+
+        code
+          .indent(`${setList}(${items});`)
+          .write(`} else {`)
+          .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
+          .write(`}`);
+      },
     };
   }
 
@@ -263,10 +263,10 @@ export class ListUcdDef<
             + ';',
         );
       },
-      em: () => code => {
+      and: () => code => {
         code.write(`return ${listCreated} = 1;`);
       },
-      ls: () => code => {
+      end: () => code => {
         if (isNull) {
           code
             .write(`if (${isNull}) {`)

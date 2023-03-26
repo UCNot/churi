@@ -8,14 +8,14 @@ export type UcrxCore = {
   readonly big: UcrxSetter;
   readonly ent: UcrxSetter;
   readonly nls: UcrxMethod<''>;
+  readonly nul: UcrxMethod<''>;
   readonly num: UcrxSetter;
   readonly str: UcrxSetter;
   readonly for: UcrxMethod<'key'>;
   readonly map: UcrxMethod<''>;
-  readonly em: UcrxMethod<''>;
-  readonly ls: UcrxMethod<''>;
+  readonly and: UcrxMethod<''>;
+  readonly end: UcrxMethod<''>;
   readonly any: UcrxSetter;
-  readonly nul: UcrxMethod<''>;
 };
 
 export const UcrxCore: UcrxCore = {
@@ -36,6 +36,12 @@ export const UcrxCore: UcrxCore = {
     stub: () => UccCode.none,
     typeName: 'nested list',
   }),
+  nul: /*#__PURE__*/ new UcrxMethod<''>({
+    key: 'nul',
+    args: [],
+    typeName: 'null',
+    stub: () => `return this.any(null);`,
+  }),
   num: /*#__PURE__*/ new UcrxSetter({ key: 'num', typeName: 'number' }),
   str: /*#__PURE__*/ new UcrxSetter({ key: 'str', typeName: 'string' }),
   for: /*#__PURE__*/ new UcrxMethod({
@@ -49,21 +55,15 @@ export const UcrxCore: UcrxCore = {
     stub: () => UccCode.none,
     typeName: 'map',
   }),
-  em: /*#__PURE__*/ new UcrxMethod<''>({
-    key: 'em',
+  and: /*#__PURE__*/ new UcrxMethod<''>({
+    key: 'and',
     args: [],
     stub: () => `return 0;`,
   }),
-  ls: /*#__PURE__*/ new UcrxMethod<''>({
-    key: 'ls',
+  end: /*#__PURE__*/ new UcrxMethod<''>({
+    key: 'end',
     args: [],
     stub: () => UccCode.none,
   }),
   any: /*#__PURE__*/ new UcrxSetter({ key: 'any', typeName: 'any' }),
-  nul: /*#__PURE__*/ new UcrxMethod<''>({
-    key: 'nul',
-    args: [],
-    typeName: 'null',
-    stub: () => `return this.any(null);`,
-  }),
 };

@@ -47,7 +47,7 @@ describe('UcrxCore', () => {
     it('has stub returning 0', () => {
       expect(
         new UccCode()
-          .write(UcrxCore.em.stub({ '': '' }, UcrxCore.em.toMethod(lib), template))
+          .write(UcrxCore.and.stub({ '': '' }, UcrxCore.and.toMethod(lib), template))
           .toString(),
       ).toBe('return 0;\n');
     });
@@ -57,7 +57,7 @@ describe('UcrxCore', () => {
     it('has empty stub', () => {
       expect(
         new UccCode()
-          .write(UcrxCore.ls.stub({ '': '' }, UcrxCore.ls.toMethod(lib), template))
+          .write(UcrxCore.end.stub({ '': '' }, UcrxCore.end.toMethod(lib), template))
           .toString(),
       ).toBe('');
     });

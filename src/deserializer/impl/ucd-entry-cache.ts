@@ -10,11 +10,7 @@ export interface UcdEntryCache {
 export function cacheUcdEntry(cache: UcdEntryCache, key: string, entryRx: UcrxHandle): void {
   cache.rxs[key] = entryRx;
 
-  if (cache.end) {
-    cache.end.push(entryRx);
-  } else {
-    cache.end = [entryRx];
-  }
+  (cache.end ??= []).push(entryRx);
 }
 
 export function startUcdEntry(
@@ -26,16 +22,18 @@ export function startUcdEntry(
   const cached = cache.rxs[key];
 
   if (cached) {
-    if (!cached.em(context)) {
+    if (!cached.and(context)) {
       cached.makeOpaque(context);
     }
 
     return cached;
   }
 
-  // This is never called for the first entry,
-  // so it should not return `undefined`.
-  const created = new UcrxHandle(ucrxEntry(context, rx.rx, key)!);
+  const created = new UcrxHandle(
+    // This is never called for the first entry,
+    // so it should not return `undefined`.
+    ucrxEntry(context, rx.rx, key)!,
+  );
 
   cacheUcdEntry(cache, key, created);
 
