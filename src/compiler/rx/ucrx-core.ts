@@ -1,3 +1,4 @@
+import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxSetter } from './ucrx-setter.js';
@@ -20,7 +21,15 @@ export type UcrxCore = {
 export const UcrxCore: UcrxCore = {
   bol: /*#__PURE__*/ new UcrxSetter({ key: 'bol', typeName: 'boolean' }),
   big: /*#__PURE__*/ new UcrxSetter({ key: 'big', typeName: 'bigint' }),
-  ent: /*#__PURE__*/ new UcrxSetter({ key: 'ent', typeName: 'entity' }),
+  ent: /*#__PURE__*/ new UcrxSetter({
+    key: 'ent',
+    stub({ value }, _method, { lib }) {
+      const UcEntity = lib.import(CHURI_MODULE, 'UcEntity');
+
+      return `return this.any(new ${UcEntity}(${value}));`;
+    },
+    typeName: 'entity',
+  }),
   nls: /*#__PURE__*/ new UcrxMethod<''>({
     key: 'nls',
     args: [],
@@ -55,6 +64,6 @@ export const UcrxCore: UcrxCore = {
     key: 'nul',
     args: [],
     typeName: 'null',
-    stub: () => `return this.set(null);`,
+    stub: () => `return this.any(null);`,
   }),
 };

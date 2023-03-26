@@ -1,7 +1,6 @@
 import { arraysAreEqual } from '@proc7ts/primitives';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
-import { UccMethod } from '../codegen/ucc-method.js';
 import { UcrxMethod } from './ucrx-method.js';
 
 export class UcrxSetter extends UcrxMethod<UcrxSetter.Arg> {
@@ -17,7 +16,7 @@ export class UcrxSetter extends UcrxMethod<UcrxSetter.Arg> {
 export namespace UcrxSetter {
   export type Arg = 'value';
   export interface Options extends Omit<UcrxMethod.Options<UcrxSetter.Arg>, 'args' | 'stub'> {
-    readonly stub?: UccMethod.Body<'value'>;
+    readonly stub?: UcrxMethod.Body<'value'>;
   }
 }
 

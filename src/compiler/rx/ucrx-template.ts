@@ -42,6 +42,6 @@ export namespace UcrxTemplate {
 
   export interface Method<in out TArg extends string = string> {
     readonly method: UcrxMethod<TArg>;
-    readonly body: UccMethod.Body<TArg>;
+    readonly body: UcrxMethod.Body<TArg>;
   }
 }

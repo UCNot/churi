@@ -31,7 +31,9 @@ export class CustomBaseUcrxTemplate extends BaseUcrxTemplate {
   }
 
   protected override overrideMethods(): UcrxTemplate.MethodDecls {
-    return { custom: this.#methods.map(method => ({ method, body: method.stub })) };
+    return {
+      custom: this.#methods.map(method => ({ method, body: method.stub })),
+    };
   }
 
   #declareClass(): string {

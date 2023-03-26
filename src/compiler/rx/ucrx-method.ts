@@ -8,7 +8,7 @@ export class UcrxMethod<in out TArg extends string = string> {
 
   readonly #key: string;
   readonly #args: UccArgs<TArg>;
-  readonly #stub: UccMethod.Body<TArg>;
+  readonly #stub: UcrxMethod.Body<TArg>;
   readonly #typeName: string | undefined;
 
   constructor(options: UcrxMethod.Options<TArg>);
@@ -28,7 +28,7 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#args;
   }
 
-  get stub(): UccMethod.Body<TArg> {
+  get stub(): UcrxMethod.Body<TArg> {
     return this.#stub;
   }
 
@@ -36,9 +36,8 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#typeName;
   }
 
-  declare(template: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source;
-  declare({ lib }: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source {
-    return this.toMethod(lib).declare(lib.ns.nest(), body);
+  declare(template: BaseUcrxTemplate, body: UcrxMethod.Body<TArg>): UccCode.Source {
+    return this.toMethod(template.lib).declare(template.lib.ns.nest(), (args, method) => body(args, method, template));
   }
 
   toMethod(lib: UcrxLib): UccMethod<TArg> {
@@ -55,9 +54,15 @@ export namespace UcrxMethod {
   export interface Options<in out TArg extends string> {
     readonly key: string;
     readonly args: UccArgs.Spec<TArg>;
-    readonly stub: UccMethod.Body<TArg>;
+    readonly stub: UcrxMethod.Body<TArg>;
     readonly typeName?: string | undefined;
   }
+
+  export type Body<TArg extends string> = (
+    args: UccArgs.ByName<TArg>,
+    method: UccMethod<TArg>,
+    template: BaseUcrxTemplate,
+  ) => UccCode.Source;
 
   export type ArgType<TMethod extends UcrxMethod<any>> = TMethod extends UcrxMethod<infer TArg>
     ? TArg
