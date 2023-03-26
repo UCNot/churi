@@ -65,14 +65,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
 
-    for (const def of asArray(definitions)) {
-      if (def.type) {
-        this.#typeDefs.set(def.type, def);
-      } else {
-        this.#entityDefs.push(def as UcdEntityDef | UcdEntityPrefixDef);
-      }
-    }
-
     this.#createDeserializer = createDeserializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
@@ -197,6 +189,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
   async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TSchemae>> {
     const code = new UccCode().write(this.#toFactoryCode(mode)).toString();
+
+    console.debug(code);
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;
