@@ -110,7 +110,7 @@ export class CustomUcrxTemplate<
 
   declarePrivateMethod<TArg extends string>(
     preferredName: string,
-    args: UccArgs<TArg>,
+    args: UccArgs.Spec<TArg>,
     body: (args: UccArgs.ByName<TArg>) => UccCode.Source,
   ): UccMethod<TArg> {
     const name = this.#privateName(preferredName);
