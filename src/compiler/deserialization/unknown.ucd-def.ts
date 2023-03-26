@@ -59,7 +59,9 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   protected override overrideMethods(): UcrxTemplate.MethodDecls {
     return {
       ...Object.values<UcrxMethod<any>>(UcrxCore)
-        .filter(method => method.key !== 'set' && method.key !== 'any' && isUcrxSetter(method))
+        .filter(
+          method => method.preferredKey !== 'set' && method.preferredKey !== 'any' && isUcrxSetter(method),
+        )
         .map(setter => this.#declareMethod(setter)),
       for: this.#declareFor.bind(this),
       map: this.#declareMap.bind(this),
@@ -126,14 +128,17 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
       const { addItem, listRx } = this.#getAllocation();
 
       return code => {
-        const call = `${method.key}(${method.args.call(args)})`;
+        const uccMethod = method.toMethod(this.lib);
 
         code
           .write(`if (${listRx}) {`)
-          .indent(`return ${listRx}.${call};`)
+          .indent(`return ${uccMethod.call(listRx, args)};`)
           .write(`}`)
           .write(code => {
-            code.write(`${addItem} = () => ${listRx}.${call};`, `return super.${call};`);
+            code.write(
+              `${addItem} = () => ${uccMethod.call(listRx, args)};`,
+              `return ${uccMethod.call('super', args)};`,
+            );
           });
       };
     };

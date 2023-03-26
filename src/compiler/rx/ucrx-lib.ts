@@ -46,7 +46,7 @@ export abstract class UcrxLib extends UccLib {
     if (methods?.length) {
       for (const method of methods) {
         if (!this.#methods.has(method)) {
-          const name = ns.name(method.key);
+          const name = ns.name(method.preferredKey);
 
           this.#customMethods.push(method);
           this.#methods.set(method, new UccMethod(name, method.args));

@@ -2,6 +2,7 @@ import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
+import { UcrxLib } from './ucrx-lib.js';
 
 export class UcrxMethod<in out TArg extends string = string> {
 
@@ -19,7 +20,7 @@ export class UcrxMethod<in out TArg extends string = string> {
     this.#typeName = typeName;
   }
 
-  get key(): string {
+  get preferredKey(): string {
     return this.#key;
   }
 
@@ -37,13 +38,15 @@ export class UcrxMethod<in out TArg extends string = string> {
 
   declare(template: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source;
   declare({ lib }: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source {
-    const method = lib.ucrxMethod(this);
+    return this.toMethod(lib).declare(lib.ns.nest(), body);
+  }
 
-    return method.declare(lib.ns.nest(), body);
+  toMethod(lib: UcrxLib): UccMethod<TArg> {
+    return lib.ucrxMethod(this);
   }
 
   toString(): string {
-    return `Ucrx.${this.key}${this.args}`;
+    return `Ucrx.${this.preferredKey}${this.args}`;
   }
 
 }

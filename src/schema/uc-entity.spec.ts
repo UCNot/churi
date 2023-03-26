@@ -25,9 +25,7 @@ describe('UcEntity', () => {
               .indent(code => {
                 code.write(
                   `const date = new Date(${printTokens}(args));`,
-                  'return '
-                    + lib.ucrxMethod(TimestampUcrxMethod).call('rx', { value: 'date' })
-                    + ';',
+                  'return ' + TimestampUcrxMethod.toMethod(lib).call('rx', { value: 'date' }) + ';',
                 );
               })
               .write(`}${suffix}`);

@@ -101,7 +101,7 @@ export abstract class BaseUcrxTemplate {
         if (value) {
           if (key === 'custom') {
             for (const { method, body: body } of value as UcrxTemplate.Method<string>[]) {
-              methods[this.#lib.ucrxMethod(method).name] = {
+              methods[method.toMethod(this.#lib).name] = {
                 method,
                 body,
               };
