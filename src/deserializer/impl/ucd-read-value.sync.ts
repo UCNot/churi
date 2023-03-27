@@ -31,7 +31,6 @@ import {
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
-import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entry-cache.js';
 import { UcrxHandle } from './ucrx-handle.js';
 
 export function ucdReadValueSync(
@@ -302,7 +301,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string)
     entryRx = new UcrxHandle(reader.opaqueRx);
   }
 
-  ucdReadValueSync(reader, entryRx);
+  ucdReadValueSync(reader, entryRx, rx => rx.end());
 
   const bound = reader.current();
 
@@ -310,12 +309,8 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string)
     // Skip closing parenthesis.
     reader.skip();
 
-    const cache: UcdEntryCache = { rxs: {}, end: null };
-
-    cacheUcdEntry(cache, firstKey, entryRx);
-
     // Read the rest of entries.
-    ucdReadEntriesSync(reader, rx, cache);
+    ucdReadEntriesSync(reader, rx);
   }
 
   rx.rx.map();
@@ -327,11 +322,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string)
   }
 }
 
-function ucdReadEntriesSync(
-  reader: SyncUcdReader,
-  rx: UcrxHandle,
-  cache: UcdEntryCache,
-): void {
+function ucdReadEntriesSync(reader: SyncUcdReader, rx: UcrxHandle): void {
   for (;;) {
     ucdSkipWhitespaceSync(reader);
 
@@ -351,9 +342,12 @@ function ucdReadEntriesSync(
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = startUcdEntry(reader, rx, key, cache);
+      const entryRx = new UcrxHandle(
+        // For subsequent entries should never return `undefined`.
+        ucrxEntry(reader, rx.rx, key)!,
+      );
 
-      ucdReadValueSync(reader, entryRx);
+      ucdReadValueSync(reader, entryRx, rx => rx.end());
 
       if (!reader.current()) {
         // End of input.
@@ -363,15 +357,16 @@ function ucdReadEntriesSync(
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = startUcdEntry(reader, rx, key, cache);
+      const entryRx = new UcrxHandle(
+        // For subsequent entries should never return `undefined`.
+        ucrxEntry(reader, rx.rx, key)!,
+      );
 
       ucrxString(reader, entryRx.rx, '');
 
       break;
     }
   }
-
-  cache.end?.forEach(rx => rx.rx.end());
 }
 
 function ucdSkipWhitespaceSync(reader: SyncUcdReader): void {

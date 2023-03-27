@@ -44,17 +44,25 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     return {
       context: this.declarePrivate('context'),
       listRx,
-      addItem: this.declarePrivate('addItem'),
       mapRx,
       setMap: this.declarePrivateMethod('setMap', ['map'], ({ map }) => code => {
         code
           .write(`if (${listRx}) {`)
           .indent(code => {
-            code.write(`${listRx}.any(${map});`);
+            code
+              .write(`if (${mapRx} === ${listRx}) {`)
+              // Existing list receiver used as map receiver.
+              .indent(`${listRx}.map();`)
+              .write(`} else {`)
+              // List charge started _after_ the map charge start.
+              // Add created map to list.
+              .indent(`${listRx}.any(${map});`)
+              .write(`}`);
           })
           .write('} else {')
           .indent(code => {
-            code.write(`super.set(${map});`);
+            // Store constructed map as single value.
+            code.write(`this.set(${map});`);
           })
           .write('}');
       }),
@@ -92,8 +100,8 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
       nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : undefined,
       for: this.#declareFor.bind(this),
       map: this.#declareMap.bind(this),
-      and: this.#declareEm.bind(this),
-      end: this.#declareLs.bind(this),
+      and: this.#declareAnd.bind(this),
+      end: this.#declareEnd.bind(this),
       any: this.#declareAny.bind(this),
       custom: this.lib.voidUcrx.customMethods.map(method => ({
         method,
@@ -129,28 +137,27 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  #declareEm(): UccCode.Source {
-    const { context, listRx, addItem, listTemplate } = this.#getAllocation();
-
+  #declareAnd(): UccCode.Source {
     return code => {
+      const { context, listRx, listTemplate } = this.#getAllocation();
+
       code
         .write(`if (!${listRx}) {`)
         .indent(code => {
           code
             .write(
               `${listRx} = `
-                + listTemplate.newInstance({ set: `super.set.bind(this)`, context })
+                + listTemplate.newInstance({ set: `this.set.bind(this)`, context })
                 + ';',
             )
-            .write(`${listRx}.and();`)
-            .write(`${addItem}?.();`, `${addItem} = null;`);
+            .write(`${listRx}.and();`);
         })
         .write(`}`)
         .write('return 1;');
     };
   }
 
-  #declareLs(): UccCode.Source {
+  #declareEnd(): UccCode.Source {
     const { listRx } = this.#getAllocation();
 
     return `${listRx}?.end();`;
@@ -162,7 +169,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 
   #declareMethod<TArg extends string>(method: UcrxMethod<TArg>): UccMethod.Body<TArg> {
     return args => {
-      const { listRx, addItem } = this.#getAllocation();
+      const { listRx } = this.#getAllocation();
 
       return code => {
         const uccMethod = method.toMethod(this.lib);
@@ -171,7 +178,6 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
           .write(`if (${listRx}) {`)
           .indent(`return ${uccMethod.call(listRx, args)};`)
           .write(`}`)
-          .write(`${addItem} = () => ${uccMethod.call(listRx, args)};`)
           .write(`return ${uccMethod.call('super', args)};`);
       };
     };
@@ -182,7 +188,6 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 interface UnknownUcdDef$Allocation {
   readonly context: string;
   readonly listRx: string;
-  readonly addItem: string;
   readonly mapRx: string;
   readonly setMap: UccMethod<'map'>;
   readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;

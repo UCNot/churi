@@ -7,7 +7,7 @@ import { TextOutStream } from '../spec/text-out-stream.js';
 import { UcDeserializer } from './uc-deserializer.js';
 import { UcError, UcErrorInfo } from './uc-error.js';
 import { UcList, ucList } from './uc-list.js';
-import { ucMap, UcMap } from './uc-map.js';
+import { UcMap, ucMap } from './uc-map.js';
 import { UcNullable, ucNullable } from './uc-nullable.js';
 import { UcOptional, ucOptional } from './uc-optional.js';
 import { ucSchemaName } from './uc-schema-name.js';
@@ -307,24 +307,12 @@ describe('UcMap', () => {
           foo: 'bar',
         });
       });
-      it('rejects repeating entry', async () => {
+      it('overrides repeating entry value', async () => {
         const errors: unknown[] = [];
 
         await expect(
           readMap(readTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
-        ).resolves.toEqual({ foo: 'bar' });
-        expect(errors).toEqual([
-          {
-            code: 'unexpectedType',
-            details: {
-              type: 'list',
-              expected: {
-                types: ['string'],
-              },
-            },
-            message: 'Unexpected list, while string expected',
-          },
-        ]);
+        ).resolves.toEqual({ foo: '' });
       });
       it('rejects null', async () => {
         await expect(
@@ -645,11 +633,54 @@ describe('UcMap', () => {
       it('deserializes comma-separated items', () => {
         expect(readMap('foo(,bar,baz)bar(1, 2)')).toEqual({ foo: ['bar', 'baz'], bar: [1, 2] });
       });
-      it('deserializes same-named entity', () => {
-        expect(readMap('foo(bar)bar(1) foo(baz)bar(2)')).toEqual({
-          foo: ['bar', 'baz'],
-          bar: [1, 2],
-        });
+      it('rejects single value', () => {
+        const errors: unknown[] = [];
+
+        expect(
+          readMap('foo(bar)bar(1) foo(baz)bar(2)', { onError: error => errors.push(error) }),
+        ).toEqual({});
+        expect(errors).toEqual([
+          {
+            code: 'unexpectedType',
+            details: {
+              expected: {
+                types: ['list'],
+              },
+              types: ['string'],
+            },
+            message: 'Unexpected single string, while list expected',
+          },
+          {
+            code: 'unexpectedType',
+            details: {
+              expected: {
+                types: ['list'],
+              },
+              types: ['number'],
+            },
+            message: 'Unexpected single number, while list expected',
+          },
+          {
+            code: 'unexpectedType',
+            details: {
+              expected: {
+                types: ['list'],
+              },
+              types: ['string'],
+            },
+            message: 'Unexpected single string, while list expected',
+          },
+          {
+            code: 'unexpectedType',
+            details: {
+              expected: {
+                types: ['list'],
+              },
+              types: ['number'],
+            },
+            message: 'Unexpected single number, while list expected',
+          },
+        ]);
       });
     });
 

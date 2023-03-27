@@ -23,7 +23,6 @@ import {
 import { AsyncUcdReader } from '../async-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
 import { ucdDecodeValue } from './ucd-decode-value.js';
-import { UcdEntryCache, cacheUcdEntry, startUcdEntry } from './ucd-entry-cache.js';
 import { UcrxHandle } from './ucrx-handle.js';
 
 export async function ucdReadValue(
@@ -294,7 +293,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
     entryRx = new UcrxHandle(reader.opaqueRx);
   }
 
-  await ucdReadValue(reader, entryRx);
+  await ucdReadValue(reader, entryRx, rx => rx.end());
 
   const bound = reader.current();
 
@@ -302,12 +301,8 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
     // Skip closing parenthesis.
     reader.skip();
 
-    const cache: UcdEntryCache = { rxs: {}, end: null };
-
-    cacheUcdEntry(cache, firstKey, entryRx);
-
     // Read the rest of entries.
-    await ucdReadEntries(reader, rx, cache);
+    await ucdReadEntries(reader, rx);
   }
 
   rx.rx.map();
@@ -319,11 +314,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
   }
 }
 
-async function ucdReadEntries(
-  reader: AsyncUcdReader,
-  rx: UcrxHandle,
-  cache: UcdEntryCache,
-): Promise<void> {
+async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
   for (;;) {
     await ucdSkipWhitespace(reader);
 
@@ -343,9 +334,12 @@ async function ucdReadEntries(
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = startUcdEntry(reader, rx, key, cache);
+      const entryRx = new UcrxHandle(
+        // For subsequent entries should never return `undefined`.
+        ucrxEntry(reader, rx.rx, key)!,
+      );
 
-      await ucdReadValue(reader, entryRx);
+      await ucdReadValue(reader, entryRx, rx => rx.end());
 
       if (!reader.current()) {
         // End of input.
@@ -355,15 +349,16 @@ async function ucdReadEntries(
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = startUcdEntry(reader, rx, key, cache);
+      const entryRx = new UcrxHandle(
+        // For subsequent entries should never return `undefined`.
+        ucrxEntry(reader, rx.rx, key)!,
+      );
 
       ucrxString(reader, entryRx.rx, '');
 
       break;
     }
   }
-
-  cache.end?.forEach(rx => rx.rx.end());
 }
 
 async function ucdSkipWhitespace(reader: AsyncUcdReader): Promise<void> {

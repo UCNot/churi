@@ -62,6 +62,6 @@ describe('UcUnknown', () => {
     expect(readValue('foo(bar, baz)')).toEqual({ foo: ['bar', 'baz'] });
   });
   it('recognizes repeating entries', () => {
-    expect(readValue('foo(bar)foo(baz)foo(test)')).toEqual({ foo: ['bar', 'baz', 'test'] });
+    expect(readValue('foo(bar)foo(baz)foo(test)')).toEqual({ foo: 'test' });
   });
 });
