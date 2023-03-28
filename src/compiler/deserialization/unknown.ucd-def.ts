@@ -81,7 +81,10 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 
   protected override declareTypes(): UccCode.Source {
     return code => {
-      code.write('get types() {').indent(`return ['any'];`).write('}');
+      code
+        .write('get types() {')
+        .indent(this.schema.nullable ? `return ['any'];` : `return ['non-null']`)
+        .write('}');
     };
   }
 
@@ -97,7 +100,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
           .map(([key, setter]) => [key, this.#declareMethod(setter)]),
       ),
       nls: this.#declareNls.bind(this),
-      nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : undefined,
+      nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : () => `return 0;`,
       for: this.#declareFor.bind(this),
       map: this.#declareMap.bind(this),
       and: this.#declareAnd.bind(this),
