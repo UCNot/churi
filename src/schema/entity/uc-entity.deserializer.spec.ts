@@ -69,7 +69,7 @@ describe('UcEntity deserializer', () => {
     });
     const { readString } = await lib.compile('sync').toDeserializers();
 
-    expect(readString('!plain:test')).toBe('!plain:test');
+    expect(readString("!plain'test")).toBe("!plain'test");
   });
 
   it('extends base ucrx', async () => {

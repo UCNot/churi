@@ -1,3 +1,4 @@
+import { trimUcTokensTail } from '../syntax/trim-uc-tokens-tail.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { EntityPrefixUcrx, EntityUcrx } from './entity.ucrx.js';
 import { UcrxContext } from './ucrx-context.js';
@@ -8,7 +9,9 @@ export class EntityUcrxHandler {
   readonly #root = new UcdTokenTree();
 
   rx(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[]): 0 | 1 {
-    return this.#root.rx(context, rx, entity, 0);
+    const trimmed = trimUcTokensTail(entity);
+
+    return this.#root.rx(context, rx, entity, trimmed, 0);
   }
 
   addEntity(entity: readonly UcToken[], rx: EntityUcrx): this {
@@ -39,22 +42,35 @@ class UcdTokenTree {
   readonly #byPrefixLen = new Map<number, UcdEntityPrefix>();
   #prefixes: UcdEntityPrefix[] | null = []; // Sorted by length.
 
-  rx(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[], from: number): 0 | 1 {
+  rx(
+    context: UcrxContext,
+    rx: Ucrx,
+    entity: readonly UcToken[],
+    trimmed: readonly UcToken[] | undefined,
+    from: number,
+  ): 0 | 1 {
     if (from >= entity.length) {
       return this.#onEntity(context, rx, entity) || this.#onPrefix(context, rx, entity, []);
+    }
+    if (trimmed && from >= trimmed.length) {
+      if (this.#onEntity(context, rx, trimmed)) {
+        return 1;
+      }
+
+      trimmed = undefined;
     }
 
     const token = entity[from];
 
     if (typeof token === 'number') {
       return (
-        this.#byNumber[token]?.rx(context, rx, entity, from + 1)
+        this.#byNumber[token]?.rx(context, rx, entity, trimmed, from + 1)
         || this.#onPrefix(context, rx, entity.slice(0, from), entity.slice(from))
       );
     }
 
     return (
-      this.#byString[token]?.rx(context, rx, entity, from + 1)
+      this.#byString[token]?.rx(context, rx, entity, trimmed, from + 1)
       || this.#onStringPrefix(context, rx, entity, from, token)
     );
   }
