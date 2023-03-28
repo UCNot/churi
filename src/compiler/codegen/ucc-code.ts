@@ -96,15 +96,10 @@ export class UccCode implements UccCode.Printable {
 }
 
 export namespace UccCode {
-  export type Source<TCode extends UccCode = UccCode> =
-    | string
-    | UccPrinter.Record
-    | Printable
-    | Fragment<TCode>
-    | Builder<TCode>;
+  export type Source = string | UccPrinter.Record | Printable | Fragment | Builder;
 
-  export interface Fragment<out TCode extends UccCode = UccCode> {
-    toCode(): Source<TCode>;
+  export interface Fragment {
+    toCode(): Source;
   }
 
   export interface Printable {

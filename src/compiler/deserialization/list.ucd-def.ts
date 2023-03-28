@@ -52,7 +52,7 @@ export class ListUcdDef<
   protected override callSuperConstructor(
     base: BaseUcrxTemplate,
     args: UcrxArgs.ByName,
-  ): UccCode.Source<UccCode> | undefined {
+  ): UccCode.Source | undefined {
     const { addItem } = this.#getAllocation();
 
     if (this.#isMatrix) {
@@ -65,11 +65,8 @@ export class ListUcdDef<
     })});`;
   }
 
-  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source<UccCode>;
-  protected override declareConstructor({
-    set,
-    context,
-  }: UcrxArgs.ByName): UccCode.Source<UccCode> {
+  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source;
+  protected override declareConstructor({ set, context }: UcrxArgs.ByName): UccCode.Source {
     return code => {
       const { context: contextVar, setList } = this.#getAllocation();
 
