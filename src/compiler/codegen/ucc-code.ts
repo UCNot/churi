@@ -39,7 +39,7 @@ export class UccCode implements UccPrintable {
         throw new TypeError('Can not insert code fragment into itself');
       }
       this.#addPart(fragment);
-    } else if (isUccCodeFragment(fragment)) {
+    } else if (isUccFragment(fragment)) {
       this.#addFragment(fragment.toCode());
     } else if (fragment === '') {
       this.#addPart(UccCode$NewLine);
@@ -99,9 +99,7 @@ export interface UccPrintable {
   prePrint(): string | UccPrinter.Record;
 }
 
-export type UccBuilder<in TCode extends UccCode = UccCode> = {
-  buildCode(code: TCode): unknown;
-}['buildCode'];
+export type UccBuilder = (this: void, code: UccCode) => void;
 
 export interface UccFragment {
   toCode(): UccSource;
@@ -115,7 +113,7 @@ function isUccPrintable(source: UccSource): source is UccPrintable {
   );
 }
 
-function isUccCodeFragment(source: UccSource): source is UccFragment {
+function isUccFragment(source: UccSource): source is UccFragment {
   return typeof source === 'object' && 'toCode' in source && typeof source.toCode === 'function';
 }
 
