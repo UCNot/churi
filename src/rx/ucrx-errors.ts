@@ -17,7 +17,7 @@ export function ucrxUnexpectedTypeError(
         types: expectedTypes,
       },
     },
-    message: `Unexpected ${type}, while ${ucrxTypeNames(expectedTypes)} expected`,
+    message: `Unexpected ${type} instead of ${ucrxTypeNames(expectedTypes)}`,
   };
 }
 
@@ -65,7 +65,7 @@ export function ucrxUnexpectedSingleItemError(rx: Ucrx): UcErrorInfo {
         types: ['list'],
       },
     },
-    message: `Unexpected single ${ucrxTypeNames(types)}, while list expected`,
+    message: `Unexpected single ${ucrxTypeNames(types)} instead of list`,
   };
 }
 

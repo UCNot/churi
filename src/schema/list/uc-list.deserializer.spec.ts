@@ -65,7 +65,7 @@ describe('UcList deserializer', () => {
             types: ['list'],
           },
         },
-        message: 'Unexpected single number, while list expected',
+        message: 'Unexpected single number instead of list',
       },
     ]);
   });
@@ -190,7 +190,7 @@ describe('UcList deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected nested list, while map expected',
+          message: 'Unexpected nested list instead of map',
         },
       ]);
     });
@@ -208,7 +208,7 @@ describe('UcList deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected nested list, while map expected',
+          message: 'Unexpected nested list instead of map',
         },
       ]);
     });
@@ -245,7 +245,7 @@ describe('UcList deserializer', () => {
             types: ['list'],
           },
         },
-        message: 'Unexpected single number or null, while list expected',
+        message: 'Unexpected single number or null instead of list',
       });
     });
   });
@@ -275,7 +275,7 @@ describe('UcList deserializer', () => {
             types: ['number'],
           },
         },
-        message: 'Unexpected null, while number expected',
+        message: 'Unexpected null instead of number',
       };
 
       await expect(
@@ -355,7 +355,7 @@ describe('UcList deserializer', () => {
               types: ['nested list'],
             },
           },
-          message: 'Unexpected string, while nested list expected',
+          message: 'Unexpected string instead of nested list',
         },
       ]);
     });
@@ -417,7 +417,7 @@ describe('UcList deserializer', () => {
             types: ['nested list'],
           },
         },
-        message: 'Unexpected null, while nested list expected',
+        message: 'Unexpected null instead of nested list',
       });
     });
   });
@@ -448,7 +448,7 @@ describe('UcList deserializer', () => {
             types: ['nested list'],
           },
         },
-        message: 'Unexpected null, while nested list expected',
+        message: 'Unexpected null instead of nested list',
       };
 
       await expect(

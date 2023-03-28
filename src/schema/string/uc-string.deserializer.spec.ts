@@ -76,7 +76,7 @@ describe('UcString deserializer', () => {
             types: ['string'],
           },
         },
-        message: 'Unexpected map, while string expected',
+        message: 'Unexpected map instead of string',
       },
     ]);
   });
@@ -92,7 +92,7 @@ describe('UcString deserializer', () => {
             types: ['string'],
           },
         },
-        message: 'Unexpected empty map, while string expected',
+        message: 'Unexpected empty map instead of string',
       },
     ]);
   });
@@ -108,7 +108,7 @@ describe('UcString deserializer', () => {
             types: ['string'],
           },
         },
-        message: 'Unexpected map, while string expected',
+        message: 'Unexpected map instead of string',
       },
     ]);
   });

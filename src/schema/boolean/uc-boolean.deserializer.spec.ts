@@ -46,7 +46,7 @@ describe('UcBoolean deserializer', () => {
             types: ['boolean'],
           },
         },
-        message: 'Unexpected null, while boolean expected',
+        message: 'Unexpected null instead of boolean',
       },
     ]);
   });
@@ -62,7 +62,7 @@ describe('UcBoolean deserializer', () => {
             types: ['boolean'],
           },
         },
-        message: 'Unexpected nested list, while boolean expected',
+        message: 'Unexpected nested list instead of boolean',
       },
     ]);
   });
@@ -78,7 +78,7 @@ describe('UcBoolean deserializer', () => {
             types: ['boolean'],
           },
         },
-        message: 'Unexpected list, while boolean expected',
+        message: 'Unexpected list instead of boolean',
       },
     ]);
   });
@@ -119,7 +119,7 @@ describe('UcBoolean deserializer', () => {
               types: ['boolean', 'null'],
             },
           },
-          message: 'Unexpected number, while boolean or null expected',
+          message: 'Unexpected number instead of boolean or null',
         },
       ]);
     });

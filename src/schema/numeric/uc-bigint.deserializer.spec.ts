@@ -60,7 +60,7 @@ describe('UcBigInt deserializer', () => {
       {
         code: 'unexpectedType',
         details: { type: 'number', expected: { types: ['bigint'] } },
-        message: 'Unexpected number, while bigint expected',
+        message: 'Unexpected number instead of bigint',
       },
     ]);
   });

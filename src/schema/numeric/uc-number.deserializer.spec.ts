@@ -85,7 +85,7 @@ describe('UcNumber deserializer', () => {
       {
         code: 'unexpectedType',
         details: { type: 'bigint', expected: { types: ['number'] } },
-        message: 'Unexpected bigint, while number expected',
+        message: 'Unexpected bigint instead of number',
       },
     ]);
   });
@@ -96,7 +96,7 @@ describe('UcNumber deserializer', () => {
       {
         code: 'unexpectedType',
         details: { type: 'boolean', expected: { types: ['number'] } },
-        message: 'Unexpected boolean, while number expected',
+        message: 'Unexpected boolean instead of number',
       },
     ]);
   });
@@ -107,7 +107,7 @@ describe('UcNumber deserializer', () => {
       {
         code: 'unexpectedType',
         details: { type: 'string', expected: { types: ['number'] } },
-        message: 'Unexpected string, while number expected',
+        message: 'Unexpected string instead of number',
       },
     ]);
   });

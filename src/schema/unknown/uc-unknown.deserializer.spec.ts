@@ -108,7 +108,7 @@ describe('UcUnknown deserializer', () => {
             type: 'null',
             expected: { types: ['non-null'] },
           },
-          message: 'Unexpected null, while non-null expected',
+          message: 'Unexpected null instead of non-null',
         },
       ]);
     });

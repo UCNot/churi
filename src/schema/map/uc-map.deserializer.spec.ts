@@ -75,7 +75,7 @@ describe('UcMap deserializer', () => {
             types: ['map'],
           },
         },
-        message: 'Unexpected null, while map expected',
+        message: 'Unexpected null instead of map',
       });
     });
     it('rejects second item', async () => {
@@ -90,7 +90,7 @@ describe('UcMap deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected list, while map expected',
+          message: 'Unexpected list instead of map',
         },
       ]);
     });
@@ -106,7 +106,7 @@ describe('UcMap deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected list, while map expected',
+          message: 'Unexpected list instead of map',
         },
       ]);
     });
@@ -240,7 +240,7 @@ describe('UcMap deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected nested list, while map expected',
+          message: 'Unexpected nested list instead of map',
         },
       ]);
     });
@@ -259,7 +259,7 @@ describe('UcMap deserializer', () => {
               types: ['map'],
             },
           },
-          message: 'Unexpected list, while map expected',
+          message: 'Unexpected list instead of map',
         },
       ]);
     });
@@ -401,7 +401,7 @@ describe('UcMap deserializer', () => {
             },
             types: ['string'],
           },
-          message: 'Unexpected single string, while list expected',
+          message: 'Unexpected single string instead of list',
         },
         {
           code: 'unexpectedType',
@@ -411,7 +411,7 @@ describe('UcMap deserializer', () => {
             },
             types: ['number'],
           },
-          message: 'Unexpected single number, while list expected',
+          message: 'Unexpected single number instead of list',
         },
         {
           code: 'unexpectedType',
@@ -421,7 +421,7 @@ describe('UcMap deserializer', () => {
             },
             types: ['string'],
           },
-          message: 'Unexpected single string, while list expected',
+          message: 'Unexpected single string instead of list',
         },
         {
           code: 'unexpectedType',
@@ -431,7 +431,7 @@ describe('UcMap deserializer', () => {
             },
             types: ['number'],
           },
-          message: 'Unexpected single number, while list expected',
+          message: 'Unexpected single number instead of list',
         },
       ]);
     });
