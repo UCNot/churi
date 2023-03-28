@@ -13,6 +13,16 @@ describe('UcrxCore', () => {
     template = lib.voidUcrx;
   });
 
+  describe('ent', () => {
+    it('constructs UcEntity instance', () => {
+      expect(
+        new UccCode()
+          .write(UcrxCore.ent.stub({ value: 'value' }, UcrxCore.ent.toMethod(lib), template))
+          .toString(),
+      ).toBe('return this.any(new UcEntity(value));\n');
+    });
+  });
+
   describe('nls', () => {
     it('has empty stub', () => {
       expect(
@@ -20,6 +30,16 @@ describe('UcrxCore', () => {
           .write(UcrxCore.nls.stub({ '': '' }, UcrxCore.nls.toMethod(lib), template))
           .toString(),
       ).toBe('');
+    });
+  });
+
+  describe('nul', () => {
+    it('has stub assigning null', () => {
+      expect(
+        new UccCode()
+          .write(UcrxCore.nul.stub({ '': '' }, UcrxCore.nul.toMethod(lib), template))
+          .toString(),
+      ).toBe('return this.any(null);\n');
     });
   });
 
@@ -43,7 +63,7 @@ describe('UcrxCore', () => {
     });
   });
 
-  describe('em', () => {
+  describe('and', () => {
     it('has stub returning 0', () => {
       expect(
         new UccCode()
@@ -53,23 +73,13 @@ describe('UcrxCore', () => {
     });
   });
 
-  describe('ls', () => {
+  describe('end', () => {
     it('has empty stub', () => {
       expect(
         new UccCode()
           .write(UcrxCore.end.stub({ '': '' }, UcrxCore.end.toMethod(lib), template))
           .toString(),
       ).toBe('');
-    });
-  });
-
-  describe('nul', () => {
-    it('has stub assigning null', () => {
-      expect(
-        new UccCode()
-          .write(UcrxCore.nul.stub({ '': '' }, UcrxCore.nul.toMethod(lib), template))
-          .toString(),
-      ).toBe('return this.any(null);\n');
     });
   });
 });
