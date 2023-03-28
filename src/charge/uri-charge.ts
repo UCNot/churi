@@ -1,4 +1,4 @@
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
 import { URIChargeable } from './uri-chargeable.js';
 

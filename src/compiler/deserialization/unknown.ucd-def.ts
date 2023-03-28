@@ -1,5 +1,5 @@
-import { UcList, ucList } from '../../schema/uc-list.js';
-import { UcMap, ucMap } from '../../schema/uc-map.js';
+import { UcList, ucList } from '../../schema/list/uc-list.js';
+import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';

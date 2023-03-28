@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
 import { parseURICharge } from './parse-uri-charge.js';
 import { URICharge } from './uri-charge.js';

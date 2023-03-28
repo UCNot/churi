@@ -1,8 +1,8 @@
 import { asis } from '@proc7ts/primitives';
-import { UcPrimitive } from './uc-primitive.js';
-import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchema, UcSchema__symbol } from './uc-schema.js';
-import { UcValue } from './uc-value.js';
+import { UcPrimitive } from '../uc-primitive.js';
+import { ucSchemaName } from '../uc-schema-name.js';
+import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
+import { UcValue } from '../uc-value.js';
 
 /**
  * URI charge list represented as JavaScript array.

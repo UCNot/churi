@@ -1,6 +1,8 @@
 import { asis } from '@proc7ts/primitives';
-import { UcNullable } from './uc-nullable.js';
-import { UcSchema } from './uc-schema.js';
+import { UcNullable } from '../uc-nullable.js';
+import { UcSchema } from '../uc-schema.js';
+
+export type UcUnknown = unknown;
 
 export namespace UcUnknown {
   export interface Schema extends UcSchema<unknown> {

@@ -1,5 +1,5 @@
 import { CHURI_MODULE } from '../../impl/module-names.js';
-import { UcList } from '../../schema/uc-list.js';
+import { UcList } from '../../schema/list/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';

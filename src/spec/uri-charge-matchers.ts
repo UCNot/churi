@@ -2,7 +2,7 @@
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
 import { URICharge, URIChargeItem } from '../charge/uri-charge.js';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 
 expect.extend({
   toBeURIChargeList,

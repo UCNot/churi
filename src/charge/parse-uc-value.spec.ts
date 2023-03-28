@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser, parseUcValue } from './parse-uc-value.js';
 import { UcValueBuilder } from './uc-value-builder.js';

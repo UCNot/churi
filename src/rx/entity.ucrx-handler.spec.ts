@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { SyncUcdReader } from '../deserializer/sync-ucd-reader.js';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';

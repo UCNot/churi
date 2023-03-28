@@ -1,7 +1,7 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
-import { UcMap } from '../../schema/uc-map.js';
+import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode } from '../codegen/ucc-code.js';
