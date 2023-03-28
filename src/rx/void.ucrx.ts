@@ -1,4 +1,4 @@
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
@@ -47,11 +47,11 @@ export class VoidUcrx implements Ucrx {
     // Not a map.
   }
 
-  em(): 0 | 1 {
+  and(): 0 | 1 {
     return 0;
   }
 
-  ls(): void {
+  end(): void {
     // Not a list.
   }
 

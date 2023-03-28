@@ -2,6 +2,7 @@ import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
+import { UcrxHandle } from './impl/ucrx-handle.js';
 import { UcdReader } from './ucd-reader.js';
 
 export class AsyncUcdReader extends UcdReader {
@@ -34,7 +35,7 @@ export class AsyncUcdReader extends UcdReader {
   }
 
   override async read(rx: Ucrx): Promise<void> {
-    await ucdReadValue(this, rx, () => rx.ls?.());
+    await ucdReadValue(this, new UcrxHandle(rx), rx => rx.end());
   }
 
   override async next(): Promise<UcToken | undefined> {

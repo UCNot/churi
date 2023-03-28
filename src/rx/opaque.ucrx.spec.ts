@@ -44,11 +44,19 @@ describe('OpaqueUcrx', () => {
     });
   });
 
+  describe('nls', () => {
+    it('returns itself', () => {
+      const ucrx = new OpaqueUcrx();
+
+      expect(ucrx.nls()).toBe(ucrx);
+    });
+  });
+
   describe('em', () => {
     it('always succeeds', () => {
       const ucrx = new OpaqueUcrx();
 
-      expect(ucrx.em()).toBe(1);
+      expect(ucrx.and()).toBe(1);
     });
   });
 });

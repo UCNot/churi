@@ -1,5 +1,5 @@
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcdLib } from './ucd-lib.js';
 
@@ -33,7 +33,7 @@ export interface UcdEntityDef {
    *
    * @returns Source of code that create entity receiver.
    */
-  createRx(location: UcdEntityDef.Location): UccCode.Source;
+  createRx(location: UcdEntityDef.Location): UccSource;
 }
 
 export namespace UcdEntityDef {

@@ -1,6 +1,6 @@
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
@@ -46,6 +46,10 @@ export abstract class BaseUcrxTemplate {
     return this.#getExpectedTypes()[0];
   }
 
+  get permitsSingle(): boolean {
+    return true;
+  }
+
   get overriddenTypes(): ReadonlySet<string> {
     const [types, sameAsBase] = this.#getExpectedTypes();
 
@@ -88,6 +92,10 @@ export abstract class BaseUcrxTemplate {
       : this.ownMethods);
   }
 
+  get customMethods(): readonly UcrxMethod[] {
+    return this.base?.customMethods ?? [];
+  }
+
   #buildOwnMethods(): UcrxTemplate.Methods {
     const methods: Record<string, UcrxTemplate.Method<string>> = {};
     const methodDecls = this.overrideMethods();
@@ -97,7 +105,7 @@ export abstract class BaseUcrxTemplate {
         if (value) {
           if (key === 'custom') {
             for (const { method, body: body } of value as UcrxTemplate.Method<string>[]) {
-              methods[this.#lib.ucrxMethod(method).name] = {
+              methods[method.toMethod(this.#lib).name] = {
                 method,
                 body,
               };
@@ -123,7 +131,7 @@ export abstract class BaseUcrxTemplate {
     return;
   }
 
-  protected declareMethods(): UccCode.Source {
+  protected declareMethods(): UccSource {
     return code => {
       for (const { method, body } of Object.values(this.ownMethods)) {
         code.write(method.declare(this, body as UccMethod.Body<any>));
@@ -131,7 +139,7 @@ export abstract class BaseUcrxTemplate {
     };
   }
 
-  protected declareTypes(): UccCode.Source {
+  protected declareTypes(): UccSource {
     return code => {
       const types = this.overriddenTypes;
 

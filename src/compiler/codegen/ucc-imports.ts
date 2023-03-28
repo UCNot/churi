@@ -1,5 +1,5 @@
 import { escapeJsString } from '../../impl/quote-property-key.js';
-import { UccCode } from './ucc-code.js';
+import { UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 
 export class UccImports {
@@ -32,7 +32,7 @@ export class UccImports {
     return alias;
   }
 
-  asStatic(): UccCode.Source {
+  asStatic(): UccSource {
     return {
       printTo: lines => {
         for (const [from, moduleImports] of this.#imports) {
@@ -59,7 +59,7 @@ export class UccImports {
     return name === alias ? name : `${name} as ${alias}`;
   }
 
-  asDynamic(): UccCode.Source {
+  asDynamic(): UccSource {
     return {
       printTo: lines => {
         for (const [from, moduleImports] of this.#imports) {

@@ -1,8 +1,8 @@
 import { safeJsId } from '../impl/safe-js-id.js';
-import { UccCode } from './ucc-code.js';
+import { UccCode, UccFragment, UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 
-export class UccDeclarations implements UccCode.Fragment {
+export class UccDeclarations implements UccFragment {
 
   readonly #ns: UccNamespace;
   readonly #snippets = new Map<string, string>();
@@ -14,7 +14,7 @@ export class UccDeclarations implements UccCode.Fragment {
 
   declare(
     id: string,
-    initializer: string | ((prefix: string, suffix: string) => UccCode.Source),
+    initializer: string | ((prefix: string, suffix: string) => UccSource),
     options?: { readonly key?: string | null | undefined },
   ): string {
     return this.#declare(
@@ -38,7 +38,7 @@ export class UccDeclarations implements UccCode.Fragment {
 
   declareClass(
     className: string,
-    body: (name: string) => UccCode.Source,
+    body: (name: string) => UccSource,
     {
       key = null,
       baseClass,
@@ -56,13 +56,13 @@ export class UccDeclarations implements UccCode.Fragment {
     );
   }
 
-  toCode(): UccCode.Source {
+  toCode(): UccSource {
     return code => code.write(this.#code);
   }
 
   #declare(
     id: string,
-    snippet: (name: string) => UccCode.Source,
+    snippet: (name: string) => UccSource,
     { key = id }: { readonly key?: string | null | undefined } = {},
   ): string {
     let snippetKey: string | undefined;

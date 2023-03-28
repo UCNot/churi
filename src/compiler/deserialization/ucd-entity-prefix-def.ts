@@ -1,5 +1,5 @@
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
 
@@ -32,5 +32,5 @@ export interface UcdEntityPrefixDef {
    *
    * @returns Source of code that create entity prefix receiver.
    */
-  createRx(location: UcdEntityDef.Location): UccCode.Source;
+  createRx(location: UcdEntityDef.Location): UccSource;
 }

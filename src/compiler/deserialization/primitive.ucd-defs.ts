@@ -1,6 +1,6 @@
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -63,7 +63,7 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTe
 
   protected override overrideMethods(): UcrxTemplate.MethodDecls {
     return {
-      [this.#key]({ value }: UccArgs.ByName<'value'>): UccCode.Source {
+      [this.#key]({ value }: UccArgs.ByName<'value'>): UccSource {
         return `return this.set(${value});`;
       },
       nul: this.schema.nullable ? _location => `return this.set(null);` : undefined,

@@ -1,5 +1,5 @@
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UcdDef } from './ucd-def.js';
 import { UcdEntityDef } from './ucd-entity-def.js';
 
@@ -19,7 +19,7 @@ export class NonFinite$UcdDefs {
     return this.#list;
   }
 
-  #createRx(reader: string, { lib, prefix, suffix }: UcdEntityDef.Location): UccCode.Source {
+  #createRx(reader: string, { lib, prefix, suffix }: UcdEntityDef.Location): UccSource {
     return `${prefix}${lib.import(DESERIALIZER_MODULE, reader)}${suffix}`;
   }
 

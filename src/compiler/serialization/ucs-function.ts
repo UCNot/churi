@@ -1,13 +1,13 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsLib } from './ucs-lib.js';
 
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
-  implements UccCode.Fragment {
+  implements UccFragment {
 
   readonly #lib: UcsLib;
   readonly #ns: UccNamespace;
@@ -54,7 +54,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ns;
   }
 
-  serialize(schema: UcSchema, value: string, asItem = '0'): UccCode.Source {
+  serialize(schema: UcSchema, value: string, asItem = '0'): UccSource {
     const serializer = this.lib.definitionFor(schema)?.serialize(this, schema, value, asItem);
 
     if (serializer == null) {
@@ -67,7 +67,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return serializer;
   }
 
-  toCode(): UccCode.Source {
+  toCode(): UccSource {
     return code => code
         .write(
           `async function ${this.name}(${this.args.writer}, ${this.args.value}, ${this.args.asItem}) {`,
@@ -76,7 +76,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write('}');
   }
 
-  toUcSerializer(stream: string, value: string): UccCode.Source {
+  toUcSerializer(stream: string, value: string): UccSource {
     return code => code
         .write(this.#createWriter(this, this.args.writer, stream))
         .write(`try {`)
@@ -100,12 +100,7 @@ export namespace UcsFunction {
     readonly schema: TSchema;
     readonly name: string;
 
-    createWriter?(
-      this: void,
-      serializer: UcsFunction,
-      writer: string,
-      stream: string,
-    ): UccCode.Source;
+    createWriter?(this: void, serializer: UcsFunction, writer: string, stream: string): UccSource;
   }
 
   export interface Args {

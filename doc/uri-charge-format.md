@@ -185,15 +185,8 @@ An entry value is encoded in URI charge format. Thus it can be anything:
 - multi-dimensional list: `foo((item1.1,item1.2)(item2.1,item2.2))
 - empty string: `foo()`
 
-Map entry may have multiple values. This effectively makes it at list. So, the following charges are equal:
-
-```
-entry(1)entry(2)entry(3)
-entry(1,2)entry(3)
-entry(1)entry(2,3)
-entry(1,2,3)
-entry(,)entry(1,2,3)
-```
+Map entry may be specified multiple times. However, it is up to parser (or data schema) how to interpret this.
+E.g. multiple values may be treated as list items. By default, the last entry value overrides preceding ones.
 
 The following rules apply to entry keys:
 
@@ -229,7 +222,7 @@ For example, the following entities supported by standard "Non-Finite Numbers" e
 - `!-Infinity` is treated as `-Infinity` (negative infinity) numeric value.
 - `!NaN` is treated as `NaN` (not-a-number) value.
 
-Entities may recognized by their names, or may have arbitrary syntax. E.g. they may have parameters:
+Entities either recognized by their names, or may have arbitrary syntax. E.g. they may have parameters:
 
 ```
 !error(invalid-email,too-short,invalid-syntax)
@@ -242,7 +235,7 @@ Parameterized entity is called _directive_. Typically, it has one of three forms
 
 1. Directive with value:
 
-   `!base64:SGVsbG8sIFdvcmxkIQ`
+   `!base64'SGVsbG8sIFdvcmxkIQ`
 
 2. Directive with attributes:
 

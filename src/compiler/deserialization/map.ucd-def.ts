@@ -1,16 +1,16 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
-import { UcMap } from '../../schema/uc-map.js';
+import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
+import { UccSource } from '../codegen/ucc-code.js';
 
 export class MapUcdDef<
   TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
@@ -34,7 +34,7 @@ export class MapUcdDef<
     UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
     UcMap.Schema<TEntriesSpec, TExtraSpec>
   > {
-    return schema.createTemplate?.(lib, schema) ?? new this(lib, schema);
+    return new this(lib, schema);
   }
 
   readonly #ns: UccNamespace;
@@ -87,7 +87,7 @@ export class MapUcdDef<
     return this.#allocation;
   }
 
-  protected override declareConstructor({ context }: UcrxArgs.ByName): UccCode.Source {
+  protected override declareConstructor({ context }: UcrxArgs.ByName): UccSource {
     const {
       decls: { requiredCount },
       context: contextVar,
@@ -107,9 +107,9 @@ export class MapUcdDef<
 
   protected override overrideMethods(): UcrxTemplate.MethodDecls | undefined {
     return {
+      nul: this.schema.nullable ? () => this.#declareNul() : undefined,
       for: args => this.#declareFor(args),
       map: () => this.#declareMap(),
-      nul: this.schema.nullable ? () => this.#declareNul() : undefined,
     };
   }
 
@@ -148,15 +148,15 @@ export class MapUcdDef<
     return new EntryUcdDef(this as MapUcdDef, key, schema);
   }
 
-  allocateMap(prefix: string, suffix: string): UccCode.Source {
+  allocateMap(prefix: string, suffix: string): UccSource {
     return `${prefix}{}${suffix}`;
   }
 
-  storeMap(setter: string, { map }: MapUcdDef.Allocation): UccCode.Source {
+  storeMap(setter: string, { map }: MapUcdDef.Allocation): UccSource {
     return `${setter}(${map}[0]);`;
   }
 
-  reclaimMap({ map }: MapUcdDef.Allocation): UccCode.Source {
+  reclaimMap({ map }: MapUcdDef.Allocation): UccSource {
     // Allocate map instance for the next list item.
     return this.allocateMap(`${map}[0] = `, `;`);
   }
@@ -173,7 +173,7 @@ export class MapUcdDef<
     return requiredCount;
   }
 
-  #declareFor({ key }: UccArgs.ByName<'key'>): UccCode.Source {
+  #declareFor({ key }: UccArgs.ByName<'key'>): UccSource {
     const {
       decls: { entries, extra },
       context,
@@ -195,7 +195,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareMap(): UccCode.Source {
+  #declareMap(): UccSource {
     const allocation = this.#getAllocation();
     const {
       decls: { entries, requiredCount },
@@ -225,7 +225,7 @@ export class MapUcdDef<
     };
   }
 
-  #declareNul(): UccCode.Source {
+  #declareNul(): UccSource {
     return `return this.set(null);`;
   }
 

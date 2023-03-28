@@ -1,6 +1,6 @@
-import { UcEntity } from './uc-entity.js';
-import { UcList } from './uc-list.js';
-import { UcMap } from './uc-map.js';
+import { UcEntity } from './entity/uc-entity.js';
+import { UcList } from './list/uc-list.js';
+import { UcMap } from './map/uc-map.js';
 import { UcPrimitive } from './uc-primitive.js';
 
 /**

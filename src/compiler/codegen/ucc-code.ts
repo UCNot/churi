@@ -1,21 +1,21 @@
 import { UccPrinter } from './ucc-printer.js';
 
-export class UccCode implements UccCode.Printable {
+export class UccCode implements UccPrintable {
 
-  static get none(): UccCode.Source {
+  static get none(): UccSource {
     return UccCode$none;
   }
 
   readonly #parent?: UccCode;
-  readonly #parts: UccCode.Printable[] = [];
-  #addPart: (part: UccCode.Printable) => void;
+  readonly #parts: UccPrintable[] = [];
+  #addPart: (part: UccPrintable) => void;
 
   constructor(parent?: UccCode) {
     this.#parent = parent;
     this.#addPart = part => this.#parts.push(part);
   }
 
-  write(...fragments: UccCode.Source[]): this {
+  write(...fragments: UccSource[]): this {
     if (fragments.length) {
       for (const fragment of fragments) {
         this.#addFragment(fragment);
@@ -27,19 +27,19 @@ export class UccCode implements UccCode.Printable {
     return this;
   }
 
-  #addFragment(fragment: UccCode.Source): void {
+  #addFragment(fragment: UccSource): void {
     if (typeof fragment === 'function') {
       const code = new UccCode(this);
 
       fragment(code as this);
 
       this.#addPart(code);
-    } else if (isUccCodePrintable(fragment)) {
+    } else if (isUccPrintable(fragment)) {
       if (fragment instanceof UccCode && fragment.#contains(this)) {
         throw new TypeError('Can not insert code fragment into itself');
       }
       this.#addPart(fragment);
-    } else if (isUccCodeFragment(fragment)) {
+    } else if (isUccFragment(fragment)) {
       this.#addFragment(fragment.toCode());
     } else if (fragment === '') {
       this.#addPart(UccCode$NewLine);
@@ -61,7 +61,7 @@ export class UccCode implements UccCode.Printable {
     }
   }
 
-  indent(...fragments: UccCode.Source[]): this {
+  indent(...fragments: UccSource[]): this {
     this.#addPart(new UccCode$Indented(new UccCode(this).write(...fragments)));
 
     return this;
@@ -95,34 +95,25 @@ export class UccCode implements UccCode.Printable {
 
 }
 
-export namespace UccCode {
-  export type Source<TCode extends UccCode = UccCode> =
-    | string
-    | UccPrinter.Record
-    | Printable
-    | Fragment<TCode>
-    | Builder<TCode>;
-
-  export interface Fragment<out TCode extends UccCode = UccCode> {
-    toCode(): Source<TCode>;
-  }
-
-  export interface Printable {
-    prePrint(): string | UccPrinter.Record;
-  }
-
-  export type Builder<in TCode extends UccCode = UccCode> = {
-    buildCode(code: TCode): unknown;
-  }['buildCode'];
+export interface UccPrintable {
+  prePrint(): string | UccPrinter.Record;
 }
 
-function isUccCodePrintable(source: UccCode.Source): source is UccCode.Printable {
+export type UccBuilder = (this: void, code: UccCode) => void;
+
+export interface UccFragment {
+  toCode(): UccSource;
+}
+
+export type UccSource = string | UccPrinter.Record | UccPrintable | UccFragment | UccBuilder;
+
+function isUccPrintable(source: UccSource): source is UccPrintable {
   return (
     typeof source === 'object' && 'prePrint' in source && typeof source.prePrint === 'function'
   );
 }
 
-function isUccCodeFragment(source: UccCode.Source): source is UccCode.Fragment {
+function isUccFragment(source: UccSource): source is UccFragment {
   return typeof source === 'object' && 'toCode' in source && typeof source.toCode === 'function';
 }
 
@@ -130,7 +121,7 @@ function UccCode$none(_code: UccCode): void {
   // No code.
 }
 
-class UccCode$Record implements UccCode.Printable {
+class UccCode$Record implements UccPrintable {
 
   readonly #record: UccPrinter.Record | string;
 
@@ -144,7 +135,7 @@ class UccCode$Record implements UccCode.Printable {
 
 }
 
-class UccCode$NewLine$ implements UccCode.Printable {
+class UccCode$NewLine$ implements UccPrintable {
 
   prePrint(): this {
     return this;
@@ -158,7 +149,7 @@ class UccCode$NewLine$ implements UccCode.Printable {
 
 const UccCode$NewLine = /*#__PURE__*/ new UccCode$NewLine$();
 
-class UccCode$Indented implements UccCode.Printable {
+class UccCode$Indented implements UccPrintable {
 
   readonly #code: UccCode;
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { createUcValueParser } from '../charge/parse-uc-value.js';
 import { URIChargeParser } from '../charge/uri-charge-parser.js';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcValue } from '../schema/uc-value.js';
 import { DirectiveUncharger, unchargeDirective } from './uncharge-directive.js';
 

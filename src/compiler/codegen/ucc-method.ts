@@ -1,5 +1,5 @@
 import { UccArgs } from './ucc-args.js';
-import { UccCode } from './ucc-code.js';
+import { UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
 
 export class UccMethod<in out TArg extends string = string> {
@@ -20,7 +20,7 @@ export class UccMethod<in out TArg extends string = string> {
     return this.#args;
   }
 
-  declare(ns: UccNamespace, body: UccMethod.Body<TArg>): UccCode.Source {
+  declare(ns: UccNamespace, body: UccMethod.Body<TArg>): UccSource {
     return code => {
       const binding = this.args.declare(ns);
 
@@ -42,5 +42,5 @@ export namespace UccMethod {
   export type Body<in out TArg extends string = string> = (
     args: UccArgs.ByName<TArg>,
     method: UccMethod<TArg>,
-  ) => UccCode.Source;
+  ) => UccSource;
 }

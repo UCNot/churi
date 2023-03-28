@@ -3,6 +3,7 @@ import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
+import { UcrxHandle } from './impl/ucrx-handle.js';
 import { UcdReader } from './ucd-reader.js';
 
 export class SyncUcdReader extends UcdReader {
@@ -34,7 +35,7 @@ export class SyncUcdReader extends UcdReader {
   }
 
   override read(rx: Ucrx): void {
-    ucdReadValueSync(this, rx, () => rx.ls?.());
+    ucdReadValueSync(this, new UcrxHandle(rx), rx => rx.end());
   }
 
   override next(): UcToken | undefined {

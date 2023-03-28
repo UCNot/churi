@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { UcEntity } from '../schema/uc-entity.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcValue } from '../schema/uc-value.js';
 import { createUcValueParser } from './parse-uc-value.js';
 import { URIChargeParser } from './uri-charge-parser.js';

@@ -1,13 +1,14 @@
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
+import { UcrxLib } from './ucrx-lib.js';
 
 export class UcrxMethod<in out TArg extends string = string> {
 
   readonly #key: string;
   readonly #args: UccArgs<TArg>;
-  readonly #stub: UccMethod.Body<TArg>;
+  readonly #stub: UcrxMethod.Body<TArg>;
   readonly #typeName: string | undefined;
 
   constructor(options: UcrxMethod.Options<TArg>);
@@ -19,7 +20,7 @@ export class UcrxMethod<in out TArg extends string = string> {
     this.#typeName = typeName;
   }
 
-  get key(): string {
+  get preferredKey(): string {
     return this.#key;
   }
 
@@ -27,7 +28,7 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#args;
   }
 
-  get stub(): UccMethod.Body<TArg> {
+  get stub(): UcrxMethod.Body<TArg> {
     return this.#stub;
   }
 
@@ -35,15 +36,16 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#typeName;
   }
 
-  declare(template: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source;
-  declare({ lib }: BaseUcrxTemplate, body: UccMethod.Body<TArg>): UccCode.Source {
-    const method = lib.ucrxMethod(this);
+  declare(template: BaseUcrxTemplate, body: UcrxMethod.Body<TArg>): UccSource {
+    return this.toMethod(template.lib).declare(template.lib.ns.nest(), (args, method) => body(args, method, template));
+  }
 
-    return method.declare(lib.ns.nest(), body);
+  toMethod(lib: UcrxLib): UccMethod<TArg> {
+    return lib.ucrxMethod(this);
   }
 
   toString(): string {
-    return `Ucrx.${this.key}${this.args}`;
+    return `Ucrx.${this.preferredKey}${this.args}`;
   }
 
 }
@@ -52,9 +54,15 @@ export namespace UcrxMethod {
   export interface Options<in out TArg extends string> {
     readonly key: string;
     readonly args: UccArgs.Spec<TArg>;
-    readonly stub: UccMethod.Body<TArg>;
+    readonly stub: UcrxMethod.Body<TArg>;
     readonly typeName?: string | undefined;
   }
+
+  export type Body<TArg extends string> = (
+    args: UccArgs.ByName<TArg>,
+    method: UccMethod<TArg>,
+    template: BaseUcrxTemplate,
+  ) => UccSource;
 
   export type ArgType<TMethod extends UcrxMethod<any>> = TMethod extends UcrxMethod<infer TArg>
     ? TArg
