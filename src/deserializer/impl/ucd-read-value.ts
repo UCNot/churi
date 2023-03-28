@@ -349,12 +349,9 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = new UcrxHandle(
-        // For subsequent entries should never return `undefined`.
-        ucrxEntry(reader, rx.rx, key)!,
-      );
+      const entryRx = ucrxEntry(reader, rx.rx, key)!; // Should not return `undefined`.
 
-      ucrxString(reader, entryRx.rx, '');
+      ucrxString(reader, entryRx, '');
 
       break;
     }
