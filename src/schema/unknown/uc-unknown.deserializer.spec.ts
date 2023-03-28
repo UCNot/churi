@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { UcDeserializer } from '../uc-deserializer.js';
-import { UcSchema } from '../uc-schema.js';
-import { ucUnknown } from './uc-unknown.js';
+import { UcUnknown, ucUnknown } from './uc-unknown.js';
 
 describe('UcUnknown deserializer', () => {
-  let lib: UcdLib<{ readValue: UcSchema<unknown> }>;
-  let readValue: UcDeserializer<unknown>;
+  let lib: UcdLib<{ readValue: UcUnknown.Schema }>;
+  let readValue: UcDeserializer<UcUnknown>;
 
   beforeEach(async () => {
     lib = new UcdLib({ schemae: { readValue: ucUnknown() } });
