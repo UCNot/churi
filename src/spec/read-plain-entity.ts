@@ -1,3 +1,4 @@
+import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { ucrxString } from '../rx/ucrx-value.js';
 import { Ucrx } from '../rx/ucrx.js';
@@ -12,3 +13,10 @@ export function readPlainEntity(
 ): 0 | 1 {
   return ucrxString(context, rx, printUcTokens([...prefix, ...args]));
 }
+
+export const PlainEntityUcdDef: UcdEntityPrefixDef = {
+  entityPrefix: '!plain',
+  createRx({ lib, prefix, suffix }) {
+    return `${prefix}${lib.import('@hatsy/churi/spec', 'readPlainEntity')}${suffix}`;
+  },
+};

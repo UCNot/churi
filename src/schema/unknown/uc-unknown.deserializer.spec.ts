@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { PlainEntityUcdDef } from '../../spec/read-plain-entity.js';
+import { TimestampEntityDef } from '../../spec/timestamp.ucrx-method.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcNonNullable, UcNullable, ucNullable } from '../uc-nullable.js';
@@ -98,6 +101,32 @@ describe('UcUnknown deserializer', () => {
           message: 'Unexpected null, while non-null expected',
         },
       ]);
+    });
+  });
+
+  describe('with custom entity', () => {
+    let lib: UcdLib<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
+    let readValue: UcDeserializer<unknown>;
+
+    beforeEach(async () => {
+      lib = new UcdLib({
+        schemae: { readValue: ucUnknown() },
+        definitions: [...BasicUcdDefs, PlainEntityUcdDef, TimestampEntityDef],
+      });
+      ({ readValue } = await lib.compile().toDeserializers());
+    });
+
+    it('recognizes custom entity', () => {
+      expect(readValue("!plain'test")).toBe("!plain'test");
+    });
+    it('recognizes custom type', () => {
+      const now = new Date();
+
+      expect(readValue(`!timestamp'${now.toISOString()}`)).toEqual(now.getTime());
+    });
+    it('recognizes custom entity item', () => {
+      expect(readValue(",!plain'test")).toEqual(["!plain'test"]);
+      expect(readValue("!plain'test1, !plain'test2")).toEqual(["!plain'test1", "!plain'test2"]);
     });
   });
 });
