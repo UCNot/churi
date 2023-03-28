@@ -3,7 +3,7 @@ import { escapeJsString } from '../../impl/quote-property-key.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -41,9 +41,9 @@ export class EntryUcdDef {
     return this.#ns;
   }
 
-  createRx(args: EntryUcdDef.RxArgs): UccCode.Source;
+  createRx(args: EntryUcdDef.RxArgs): UccSource;
 
-  createRx({ args: { map, key, context }, prefix, suffix }: EntryUcdDef.RxArgs): UccCode.Source {
+  createRx({ args: { map, key, context }, prefix, suffix }: EntryUcdDef.RxArgs): UccSource {
     const setEntry = this.#varEntrySetter();
     const value = this.#argValue();
 
@@ -74,17 +74,17 @@ export class EntryUcdDef {
     }
   }
 
-  setEntry(map: string, key: string, value: string): UccCode.Source {
+  setEntry(map: string, key: string, value: string): UccSource {
     return `${map}[${key}] = ${value};`;
   }
 
-  declare(prefix: string, suffix: string): UccCode.Source {
+  declare(prefix: string, suffix: string): UccSource {
     return code => {
       code.write(`${prefix}{`).indent(this.#rx(), this.#use()).write(`}${suffix}`);
     };
   }
 
-  #rx(): UccCode.Source {
+  #rx(): UccSource {
     const args = UcdEntryArgs.declare(this.mapDef.lib.ns.nest());
 
     return code => {
@@ -103,7 +103,7 @@ export class EntryUcdDef {
     };
   }
 
-  #use(): UccCode.Source {
+  #use(): UccSource {
     return `use: ` + (this.key == null || this.schema.optional ? '0' : '1') + `,`;
   }
 

@@ -1,5 +1,5 @@
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxLib } from './ucrx-lib.js';
@@ -36,7 +36,7 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#typeName;
   }
 
-  declare(template: BaseUcrxTemplate, body: UcrxMethod.Body<TArg>): UccCode.Source {
+  declare(template: BaseUcrxTemplate, body: UcrxMethod.Body<TArg>): UccSource {
     return this.toMethod(template.lib).declare(template.lib.ns.nest(), (args, method) => body(args, method, template));
   }
 
@@ -62,7 +62,7 @@ export namespace UcrxMethod {
     args: UccArgs.ByName<TArg>,
     method: UccMethod<TArg>,
     template: BaseUcrxTemplate,
-  ) => UccCode.Source;
+  ) => UccSource;
 
   export type ArgType<TMethod extends UcrxMethod<any>> = TMethod extends UcrxMethod<infer TArg>
     ? TArg

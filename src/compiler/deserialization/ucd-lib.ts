@@ -5,7 +5,7 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -167,7 +167,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     };
   }
 
-  #toFactoryCode(mode: UcDeserializer.Mode): UccCode.Builder {
+  #toFactoryCode(mode: UcDeserializer.Mode): UccSource {
     return code => code
         .write('return (async () => {')
         .indent(
@@ -180,7 +180,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
         .write('})();');
   }
 
-  #returnDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
+  #returnDeserializers(mode: UcDeserializer.Mode): UccSource {
     return code => code
         .write('return {')
         .indent(this.#declareDeserializers(mode, mode === 'async' ? 'async ' : '', ','))
@@ -204,7 +204,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     };
   }
 
-  #toModuleCode(mode: UcDeserializer.Mode): UccCode.Builder {
+  #toModuleCode(mode: UcDeserializer.Mode): UccSource {
     return code => code.write(
         this.imports.asStatic(),
         '',
@@ -214,7 +214,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       );
   }
 
-  #exportDeserializers(mode: UcDeserializer.Mode): UccCode.Builder {
+  #exportDeserializers(mode: UcDeserializer.Mode): UccSource {
     return this.#declareDeserializers(
       mode,
       mode === 'async' ? 'export async function ' : 'export function ',
@@ -222,11 +222,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     );
   }
 
-  #declareDeserializers(
-    mode: UcDeserializer.Mode,
-    fnPrefix: string,
-    fnSuffix: string,
-  ): UccCode.Builder {
+  #declareDeserializers(mode: UcDeserializer.Mode, fnPrefix: string, fnSuffix: string): UccSource {
     return code => {
       const { opaqueUcrx } = this;
 
@@ -300,22 +296,22 @@ export namespace UcdLib {
     readonly [reader in keyof TSchemae]: UcDeserializer.Sync<UcSchema.DataType<TSchemae[reader]>>;
   };
 
-  export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface Compiled<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcdLib<TSchemae>;
     toDeserializers(): Promise<Exports<TSchemae>>;
   }
 
-  export interface AsyncCompiled<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface AsyncCompiled<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcdLib<TSchemae>;
     toDeserializers(): Promise<AsyncExports<TSchemae>>;
   }
 
-  export interface SyncCompiled<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface SyncCompiled<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcdLib<TSchemae>;
     toDeserializers(): Promise<SyncExports<TSchemae>>;
   }
 
-  export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcdLib<TSchemae>;
     print(): string;
   }

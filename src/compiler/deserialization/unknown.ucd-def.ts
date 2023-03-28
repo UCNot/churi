@@ -2,7 +2,7 @@ import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -71,7 +71,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  protected override declareConstructor({ context }: UcrxArgs.ByName): UccCode.Source {
+  protected override declareConstructor({ context }: UcrxArgs.ByName): UccSource {
     return code => {
       const { context: varContext } = this.#getAllocation();
 
@@ -79,7 +79,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  protected override declareTypes(): UccCode.Source {
+  protected override declareTypes(): UccSource {
     return code => {
       code
         .write('get types() {')
@@ -113,13 +113,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  #declareNls(): UccCode.Source {
+  #declareNls(): UccSource {
     const { listRx } = this.#getAllocation();
 
     return `return ${listRx}.nls()`;
   }
 
-  #declareFor({ key }: UccArgs.ByName<'key'>): UccCode.Source {
+  #declareFor({ key }: UccArgs.ByName<'key'>): UccSource {
     const { context, listRx, mapRx, setMap, mapTemplate } = this.#getAllocation();
 
     return code => {
@@ -132,7 +132,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  #declareMap(): UccCode.Source {
+  #declareMap(): UccSource {
     const { mapRx } = this.#getAllocation();
 
     return code => {
@@ -140,7 +140,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  #declareAnd(): UccCode.Source {
+  #declareAnd(): UccSource {
     return code => {
       const { context, listRx, listTemplate } = this.#getAllocation();
 
@@ -160,13 +160,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     };
   }
 
-  #declareEnd(): UccCode.Source {
+  #declareEnd(): UccSource {
     const { listRx } = this.#getAllocation();
 
     return `${listRx}?.end();`;
   }
 
-  #declareAny({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccCode.Source {
+  #declareAny({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
     return `return this.set(${value})`;
   }
 

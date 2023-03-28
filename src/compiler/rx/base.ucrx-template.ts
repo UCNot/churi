@@ -1,6 +1,6 @@
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
@@ -131,7 +131,7 @@ export abstract class BaseUcrxTemplate {
     return;
   }
 
-  protected declareMethods(): UccCode.Source {
+  protected declareMethods(): UccSource {
     return code => {
       for (const { method, body } of Object.values(this.ownMethods)) {
         code.write(method.declare(this, body as UccMethod.Body<any>));
@@ -139,7 +139,7 @@ export abstract class BaseUcrxTemplate {
     };
   }
 
-  protected declareTypes(): UccCode.Source {
+  protected declareTypes(): UccSource {
     return code => {
       const types = this.overriddenTypes;
 

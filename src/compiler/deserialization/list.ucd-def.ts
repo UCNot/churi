@@ -3,7 +3,7 @@ import { UcList } from '../../schema/list/uc-list.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
@@ -52,7 +52,7 @@ export class ListUcdDef<
   protected override callSuperConstructor(
     base: BaseUcrxTemplate,
     args: UcrxArgs.ByName,
-  ): UccCode.Source | undefined {
+  ): UccSource | undefined {
     const { addItem } = this.#getAllocation();
 
     if (this.#isMatrix) {
@@ -65,8 +65,8 @@ export class ListUcdDef<
     })});`;
   }
 
-  protected override declareConstructor(args: UcrxArgs.ByName): UccCode.Source;
-  protected override declareConstructor({ set, context }: UcrxArgs.ByName): UccCode.Source {
+  protected override declareConstructor(args: UcrxArgs.ByName): UccSource;
+  protected override declareConstructor({ set, context }: UcrxArgs.ByName): UccSource {
     return code => {
       const { context: contextVar, setList } = this.#getAllocation();
 

@@ -1,7 +1,7 @@
 import { arraysAreEqual } from '@proc7ts/primitives';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
 import { UcrxMethod } from './ucrx-method.js';
+import { UccSource } from '../codegen/ucc-code.js';
 
 export class UcrxSetter extends UcrxMethod<UcrxSetter.Arg> {
 
@@ -26,6 +26,6 @@ export function isUcrxSetter(method: UcrxMethod<any>): method is UcrxSetter {
 
 const UcrxSetter$args = new UccArgs<UcrxSetter.Arg>('value');
 
-function UcrxSetter$stub({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccCode.Source {
+function UcrxSetter$stub({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
   return `return this.set(${value});`;
 }

@@ -8,7 +8,7 @@ import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccBuilder, UccCode, UccSource } from '../codegen/ucc-code.js';
 import { uccPropertyAccessExpr } from '../codegen/ucc-expr.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsDef } from './ucs-def.js';
@@ -33,7 +33,7 @@ class Default$UcsDefs {
     return this.#list;
   }
 
-  #writeBigInt(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
+  #writeBigInt(fn: UcsFunction, schema: UcSchema, value: string): UccSource {
     const { lib, args } = fn;
     const writeBigInt = lib.import(SERIALIZER_MODULE, 'writeUcBigInt');
 
@@ -45,7 +45,7 @@ class Default$UcsDefs {
     );
   }
 
-  #writeBoolean(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
+  #writeBoolean(fn: UcsFunction, schema: UcSchema, value: string): UccSource {
     const { lib, args } = fn;
     const ucsTrue = lib.import(SERIALIZER_MODULE, 'UCS_TRUE');
     const ucsFalse = lib.import(SERIALIZER_MODULE, 'UCS_FALSE');
@@ -58,7 +58,7 @@ class Default$UcsDefs {
     });
   }
 
-  #writeNumber(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
+  #writeNumber(fn: UcsFunction, schema: UcSchema, value: string): UccSource {
     const { lib, args } = fn;
     const writeNumber = lib.import(SERIALIZER_MODULE, 'writeUcNumber');
 
@@ -75,7 +75,7 @@ class Default$UcsDefs {
     schema: UcList.Schema<TItem, TItemSpec>,
     value: string,
     asItem: string,
-  ): UccCode.Source {
+  ): UccSource {
     const { lib, ns, args } = fn;
     const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
@@ -123,7 +123,7 @@ class Default$UcsDefs {
     fn: UcsFunction,
     schema: UcMap.Schema<TEntriesSpec>,
     value: string,
-  ): UccCode.Source {
+  ): UccSource {
     const { lib, ns, args } = fn;
     const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
     const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
@@ -132,9 +132,9 @@ class Default$UcsDefs {
     const nullEntryValue = lib.import(SERIALIZER_MODULE, 'UCS_NULL_ENTRY_VALUE');
     const entryValue = ns.name(`${value}$entryValue`);
 
-    let startMap: UccCode.Builder = noop;
-    let endMap: UccCode.Builder = noop;
-    const writeDefaultEntryPrefix = (key: string): UccCode.Source => {
+    let startMap: UccBuilder = noop;
+    let endMap: UccBuilder = noop;
+    const writeDefaultEntryPrefix = (key: string): UccSource => {
       const entryPrefix = key
         ? lib.declarations.declareConst(
             key,
@@ -211,7 +211,7 @@ class Default$UcsDefs {
     return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);
   }
 
-  #writeString(fn: UcsFunction, schema: UcSchema, value: string): UccCode.Source {
+  #writeString(fn: UcsFunction, schema: UcSchema, value: string): UccSource {
     const { lib, args } = fn;
     const writeString = lib.import(SERIALIZER_MODULE, 'writeUcString');
 
@@ -227,13 +227,13 @@ class Default$UcsDefs {
     fn: UcsFunction,
     schema: UcSchema,
     value: string,
-    onValue: UccCode.Source,
+    onValue: UccSource,
     {
       onNull,
     }: {
-      readonly onNull?: UccCode.Source;
+      readonly onNull?: UccSource;
     } = {},
-  ): UccCode.Builder {
+  ): UccBuilder {
     const { lib, args } = fn;
     const ucsNull = lib.import(SERIALIZER_MODULE, 'UCS_NULL');
 

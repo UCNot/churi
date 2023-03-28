@@ -1,4 +1,4 @@
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -42,7 +42,7 @@ export class CustomBaseUcrxTemplate extends BaseUcrxTemplate {
     });
   }
 
-  #declareBody(_className: string): UccCode.Source {
+  #declareBody(_className: string): UccSource {
     return this.declareMethods();
   }
 

@@ -1,7 +1,7 @@
 import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccCode, UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
@@ -50,7 +50,7 @@ export class CustomUcrxTemplate<
     );
   }
 
-  #declareBody(className: string): UccCode.Source {
+  #declareBody(className: string): UccSource {
     this.#className = className;
 
     return code => {
@@ -64,7 +64,7 @@ export class CustomUcrxTemplate<
     };
   }
 
-  #declareConstructor(): UccCode.Source {
+  #declareConstructor(): UccSource {
     return code => {
       const { base } = this;
       const args = this.args.declare(this.lib.ns.nest());
@@ -88,11 +88,11 @@ export class CustomUcrxTemplate<
   protected callSuperConstructor(
     _base: BaseUcrxTemplate,
     _args: UcrxArgs.ByName,
-  ): UccCode.Source | undefined {
+  ): UccSource | undefined {
     return;
   }
 
-  protected declareConstructor(_args: UcrxArgs.ByName): UccCode.Source | undefined {
+  protected declareConstructor(_args: UcrxArgs.ByName): UccSource | undefined {
     return;
   }
 
@@ -111,7 +111,7 @@ export class CustomUcrxTemplate<
   declarePrivateMethod<TArg extends string>(
     preferredName: string,
     args: UccArgs.Spec<TArg>,
-    body: (args: UccArgs.ByName<TArg>) => UccCode.Source,
+    body: (args: UccArgs.ByName<TArg>) => UccSource,
   ): UccMethod<TArg> {
     const name = this.#privateName(preferredName);
     const methodRef = new UccMethod(`#${name}`, args);

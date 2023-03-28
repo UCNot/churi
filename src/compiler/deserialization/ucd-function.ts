@@ -3,11 +3,11 @@ import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
+import { UccSource } from '../codegen/ucc-code.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -89,7 +89,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#template;
   }
 
-  toUcDeserializer(mode: UcDeserializer.Mode, input: string, options: string): UccCode.Source {
+  toUcDeserializer(mode: UcDeserializer.Mode, input: string, options: string): UccSource {
     const { result } = this.vars;
 
     if (mode !== 'all') {
@@ -172,7 +172,7 @@ export namespace UcdFunction {
       reader: string,
       stream: string,
       options: string,
-    ): UccCode.Source;
+    ): UccSource;
 
     createSyncReader?(
       this: void,
@@ -180,7 +180,7 @@ export namespace UcdFunction {
       reader: string,
       input: string,
       options: string,
-    ): UccCode.Source;
+    ): UccSource;
   }
 
   export interface Args {

@@ -1,5 +1,5 @@
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCode } from '../codegen/ucc-code.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UcsFunction } from './ucs-function.js';
 
 /**
@@ -28,5 +28,5 @@ export interface UcsDef<out T = unknown> {
     schema: UcSchema<T>,
     value: string,
     asItem: string,
-  ): UccCode.Source | undefined;
+  ): UccSource | undefined;
 }

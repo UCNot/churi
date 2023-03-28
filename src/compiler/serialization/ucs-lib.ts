@@ -2,10 +2,10 @@ import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
+import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
+import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
-import { UccCode } from '../codegen/ucc-code.js';
-import { UccLib } from '../codegen/ucc-lib.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
@@ -86,7 +86,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  #toFactoryCode(): UccCode.Builder {
+  #toFactoryCode(): UccBuilder {
     return code => code
         .write('return (async () => {')
         .indent(
@@ -101,7 +101,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
         .write('})();');
   }
 
-  #returnSerializers(): UccCode.Builder {
+  #returnSerializers(): UccBuilder {
     return code => code
         .write('return {')
         .indent(code => {
@@ -132,7 +132,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  #toModuleCode(): UccCode.Builder {
+  #toModuleCode(): UccBuilder {
     return code => code.write(
         this.imports.asStatic(),
         '',
@@ -144,7 +144,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
       );
   }
 
-  #exportSerializers(): UccCode.Builder {
+  #exportSerializers(): UccBuilder {
     return code => {
       for (const [externalName, schema] of Object.entries(this.#schemae)) {
         code
@@ -159,7 +159,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return new UccCode().write(this.#toModuleCode()).toString();
   }
 
-  #compileSerializers(): UccCode.Builder {
+  #compileSerializers(): UccBuilder {
     return code => code.write(...this.#allSerializers());
   }
 
@@ -191,12 +191,12 @@ export namespace UcsLib {
     readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.DataType<TSchemae[writer]>>;
   };
 
-  export interface Compiled<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface Compiled<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcsLib<TSchemae>;
     toSerializers(): Promise<Exports<TSchemae>>;
   }
 
-  export interface Module<TSchemae extends Schemae> extends UccCode.Fragment {
+  export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcsLib<TSchemae>;
     print(): string;
   }
