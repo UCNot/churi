@@ -22,6 +22,16 @@ export function ucrxSuffix(context: UcrxContext, rx: Ucrx, key: string): 0 | 1 {
   return 0;
 }
 
+export function ucrxEmptyMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
+  if (rx.map()) {
+    return 1;
+  }
+
+  context.error(ucrxUnexpectedTypeError('empty map', rx));
+
+  return 0;
+}
+
 export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx | undefined {
   const entryRx = rx.for(key);
 

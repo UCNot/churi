@@ -50,8 +50,14 @@ describe('UcUnknown deserializer', () => {
     it('recognizes map', () => {
       expect(readValue('foo(bar)baz')).toEqual({ foo: 'bar', baz: '' });
     });
+    it('recognizes empty map', () => {
+      expect(readValue('$')).toEqual({});
+    });
     it('recognizes nested map', () => {
       expect(readValue('foo(bar(baz)')).toEqual({ foo: { bar: 'baz' } });
+    });
+    it('recognizes nested empty map', () => {
+      expect(readValue('foo($)')).toEqual({ foo: {} });
     });
     it('recognizes list', () => {
       expect(readValue('1,2,3')).toEqual([1, 2, 3]);
@@ -67,6 +73,10 @@ describe('UcUnknown deserializer', () => {
     it('recognizes map item', () => {
       expect(readValue(',foo(bar)')).toEqual([{ foo: 'bar' }]);
       expect(readValue('foo(bar),')).toEqual([{ foo: 'bar' }]);
+    });
+    it('recognizes empty map item', () => {
+      expect(readValue(',$')).toEqual([{}]);
+      expect(readValue('$,')).toEqual([{}]);
     });
     it('recognizes multiple map items', () => {
       expect(readValue(',foo(bar),2,bar(baz)')).toEqual([{ foo: 'bar' }, 2, { bar: 'baz' }]);

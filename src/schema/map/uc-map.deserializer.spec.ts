@@ -359,6 +359,10 @@ describe('UcMap deserializer', () => {
         length: 0,
       });
     });
+    it('deserializes empty map', () => {
+      expect(readMap('$')).toEqual({});
+      expect(readMap(' $ ')).toEqual({});
+    });
   });
 
   describe('list entry', () => {

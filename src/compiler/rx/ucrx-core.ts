@@ -52,7 +52,7 @@ export const UcrxCore: UcrxCore = {
   map: /*#__PURE__*/ new UcrxMethod<''>({
     key: 'map',
     args: [],
-    stub: () => UccCode.none,
+    stub: () => `return 0;`,
     typeName: 'map',
   }),
   and: /*#__PURE__*/ new UcrxMethod<''>({

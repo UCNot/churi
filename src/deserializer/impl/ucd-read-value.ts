@@ -1,5 +1,12 @@
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
-import { ucrxBoolean, ucrxEntity, ucrxEntry, ucrxString, ucrxSuffix } from '../../rx/ucrx-value.js';
+import {
+  ucrxBoolean,
+  ucrxEmptyMap,
+  ucrxEntity,
+  ucrxEntry,
+  ucrxString,
+  ucrxSuffix,
+} from '../../rx/ucrx-value.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
@@ -69,6 +76,10 @@ export async function ucdReadValue(
 
     if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
       await ucdReadMap(reader, rx, key);
+    } else if (!key) {
+      // End of input and no key.
+      // Empty map.
+      ucrxEmptyMap(reader, rx.rx);
     } else {
       // End of input.
       // Map containing single key with empty value.

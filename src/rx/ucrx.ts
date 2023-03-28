@@ -34,8 +34,13 @@ export interface Ucrx {
    * Finishes map charge.
    *
    * Called after all map entries {@link for charged}, unless the map is empty.
+   *
+   * The returned value makes sense for empty maps only. Otherwise, a preceding call to {@link for} has to return 0,
+   * which prevents the map charge.
+   *
+   * @returns `1` if map charge permitted, or `0` otherwise.
    */
-  map(): void;
+  map(): 0 | 1;
 
   /**
    * Starts charging a list.

@@ -54,12 +54,12 @@ describe('UcrxCore', () => {
   });
 
   describe('map', () => {
-    it('has empty stub', () => {
+    it('has stub returning 0', () => {
       expect(
         new UccCode()
           .write(UcrxCore.map.stub({ '': '' }, UcrxCore.map.toMethod(lib), template))
           .toString(),
-      ).toBe('');
+      ).toBe('return 0;\n');
     });
   });
 

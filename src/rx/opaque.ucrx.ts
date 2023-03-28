@@ -19,6 +19,10 @@ export class OpaqueUcrx extends VoidUcrx {
     return this;
   }
 
+  override map(): 1 {
+    return 1;
+  }
+
   override and(): 1 {
     return 1;
   }

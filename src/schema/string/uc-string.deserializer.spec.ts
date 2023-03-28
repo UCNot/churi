@@ -65,7 +65,7 @@ describe('UcString deserializer', () => {
     await expect(readValue(readTokens("'abc(def("))).resolves.toBe('abc(def(');
   });
   it('rejects map', async () => {
-    await expect(readValue(readTokens('foo(bar)'), { onError })).resolves.toBeUndefined();
+    await expect(readValue(readTokens('$foo(bar)'), { onError })).resolves.toBeUndefined();
 
     expect(errors).toEqual([
       {
@@ -77,6 +77,22 @@ describe('UcString deserializer', () => {
           },
         },
         message: 'Unexpected map, while string expected',
+      },
+    ]);
+  });
+  it('rejects empty map', async () => {
+    await expect(readValue(readTokens('$'), { onError })).resolves.toBeUndefined();
+
+    expect(errors).toEqual([
+      {
+        code: 'unexpectedType',
+        details: {
+          type: 'empty map',
+          expected: {
+            types: ['string'],
+          },
+        },
+        message: 'Unexpected empty map, while string expected',
       },
     ]);
   });

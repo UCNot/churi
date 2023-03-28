@@ -133,10 +133,19 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   #declareMap(): UccSource {
-    const { mapRx } = this.#getAllocation();
+    const { context, listRx, mapRx, mapTemplate } = this.#getAllocation();
 
     return code => {
-      code.write(`${mapRx}.map();`, `${mapRx} = undefined;`);
+      code
+        .write(`if (${mapRx}) {`)
+        .indent(`const res = ${mapRx}?.map();`, `${mapRx} = undefined;`, `return res;`)
+        .write(`}`)
+        .write(`if (${listRx}) {`)
+        .indent(`return ${listRx}.map();`)
+        .write(`}`)
+        .write(
+          `return ` + mapTemplate.newInstance({ set: `this.set.bind(this)`, context }) + '.map();',
+        );
     };
   }
 

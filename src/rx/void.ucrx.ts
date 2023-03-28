@@ -43,8 +43,8 @@ export class VoidUcrx implements Ucrx {
     return 0; // Map is unsupported.
   }
 
-  map(): void {
-    // Not a map.
+  map(): 0 | 1 {
+    return 0;
   }
 
   and(): 0 | 1 {

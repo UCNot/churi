@@ -4,13 +4,13 @@ import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
-import { UccSource } from '../codegen/ucc-code.js';
 
 export class MapUcdDef<
   TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
@@ -206,7 +206,7 @@ export class MapUcdDef<
 
     if (!assigned) {
       return code => {
-        code.write(this.storeMap(`this.set`, allocation), this.reclaimMap(allocation));
+        code.write(this.storeMap(`this.set`, allocation), this.reclaimMap(allocation), `return 1;`);
       };
     }
 
@@ -221,7 +221,8 @@ export class MapUcdDef<
         .write(`}`)
         .write(`${missingCount} = ${requiredCount};`)
         .write(this.reclaimMap(allocation))
-        .write(`${assigned} = {};`);
+        .write(`${assigned} = {};`)
+        .write(`return 1;`);
     };
   }
 
