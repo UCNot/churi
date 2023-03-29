@@ -1,4 +1,3 @@
-import { asis } from '@proc7ts/primitives';
 import { UcNullable } from '../uc-nullable.js';
 import { UcSchema } from '../uc-schema.js';
 
@@ -13,7 +12,6 @@ export namespace UcUnknown {
 const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
   type: 'unknown',
   nullable: true,
-  asis,
 };
 
 export function ucUnknown(): UcNullable<UcUnknown, UcUnknown.Schema> {

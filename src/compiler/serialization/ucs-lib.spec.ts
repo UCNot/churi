@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { asis } from '@proc7ts/primitives';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcsLib } from './ucs-lib.js';
@@ -15,12 +14,12 @@ describe('UcsLib', () => {
     });
 
     it('obtains serializer for unknown schema', () => {
-      const fn = lib.serializerFor({ type: String, asis });
+      const fn = lib.serializerFor({ type: String });
 
       expect(fn.name).toBe('String$serialize');
     });
     it('obtains serializer for unknown named schema', () => {
-      const fn = lib.serializerFor({ type: 'string', asis });
+      const fn = lib.serializerFor({ type: 'string' });
 
       expect(fn.name).toBe('string$serialize');
     });

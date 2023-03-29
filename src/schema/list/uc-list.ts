@@ -1,4 +1,3 @@
-import { asis } from '@proc7ts/primitives';
 import { UcPrimitive } from '../uc-primitive.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
@@ -89,7 +88,6 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       return {
         type: 'list',
         id: id ?? `list_${++UcList$idSeq}`,
-        asis,
         item,
         toString() {
           return `${ucSchemaName(item)}[]`;

@@ -1,5 +1,4 @@
-import { asis } from '@proc7ts/primitives';
-import { UcSchema, ucSchemaRef, UcSchema__symbol } from './uc-schema.js';
+import { UcSchema, UcSchema__symbol, ucSchemaRef } from './uc-schema.js';
 
 /**
  * URI charge {@link UcSchema schema} definition that permits `undefined` or missing values.
@@ -220,7 +219,6 @@ export function ucOptional<T, TSchema extends UcSchema<T>, TOptional extends boo
       nullable: false,
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       type: spec as UcSchema.Class<T>,
-      asis,
     } as UcOptional<T, TSchema, TOptional>;
   }
 

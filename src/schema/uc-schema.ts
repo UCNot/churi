@@ -54,9 +54,9 @@ export interface UcSchema<out T = unknown> {
   /**
    * Returns the passed-in value.
    *
-   * This is a marker method that needs to present in order the type inference to work properly.
+   * A marker method needed for correct type inference.
    */
-  asis(value: T): T;
+  asis?(value: T): T;
 
   /**
    * Custom schema name.

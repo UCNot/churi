@@ -1,4 +1,3 @@
-import { asis } from '@proc7ts/primitives';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcPrimitive } from '../uc-primitive.js';
 import { ucSchemaName } from '../uc-schema-name.js';
@@ -182,7 +181,6 @@ export function ucMap<
       return {
         type: 'map',
         id: id ?? `map_${++UcMap$idSeq}`,
-        asis,
         entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
         extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
           TEntriesSpec,

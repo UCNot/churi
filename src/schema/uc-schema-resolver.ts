@@ -1,4 +1,4 @@
-import { asis, lazyValue } from '@proc7ts/primitives';
+import { lazyValue } from '@proc7ts/primitives';
 import { UcSchema, UcSchema__symbol } from './uc-schema.js';
 
 /**
@@ -69,7 +69,6 @@ export class UcSchemaResolver {
       optional: false,
       nullable: false,
       type,
-      asis,
     };
   }
 

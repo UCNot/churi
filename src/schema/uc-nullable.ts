@@ -1,5 +1,4 @@
-import { asis } from '@proc7ts/primitives';
-import { UcSchema, ucSchemaRef, UcSchema__symbol } from './uc-schema.js';
+import { UcSchema, UcSchema__symbol, ucSchemaRef } from './uc-schema.js';
 
 /**
  * URI charge {@link UcSchema schema} definition that permits `null` values.
@@ -223,7 +222,6 @@ export function ucNullable<T, TSchema extends UcSchema<T>, TNullable extends boo
       nullable,
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
       type: spec as UcSchema.Class<T>,
-      asis,
     } as UcNullable<T, TSchema, TNullable>;
   }
 

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { asis } from '@proc7ts/primitives';
 import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
@@ -124,7 +123,7 @@ describe('UcList serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const lib = new UcsLib({
       schemae: {
-        writeList: ucList<number>({ type: 'test-type', asis }),
+        writeList: ucList<number>({ type: 'test-type' }),
       },
     });
 

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { asis } from '@proc7ts/primitives';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
@@ -114,7 +113,7 @@ describe('UcMap deserializer', () => {
       const lib = new UcdLib({
         schemae: {
           readMap: ucMap({
-            test: { type: 'test-type', asis },
+            test: { type: 'test-type' },
           }),
         },
       });
@@ -302,7 +301,7 @@ describe('UcMap deserializer', () => {
               test: String,
             },
             {
-              extra: { type: 'test-type', asis },
+              extra: { type: 'test-type' },
             },
           ),
         },
