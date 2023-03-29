@@ -71,9 +71,14 @@
     "typedoc": "^0.23.28",
     "typescript": "~5.0.2"
   },
+  "imports": {
+    "#churi/default-entities": "./dist/churi.default-entities.js"
+  },
   "scripts": {
     "all": "run-z build,lint,test",
-    "build": "run-z +z build:gen-sync --then build-z",
+    "build": "run-z +z build:exports",
+    "build:core": "run-z +z build:gen-sync --then build-z",
+    "build:exports": "run-z +z build:core --then node ./build/emit-exports.js",
     "build:gen-sync": "run-z +z --then node ./build/gen-sync.js",
     "ci:all": "run-z all +test/--ci/--runInBand",
     "clean": "run-z +z --then clean-z",
@@ -81,7 +86,7 @@
     "doc:publish": "run-z doc --then gh-pages --dist target/typedoc --dotfiles",
     "format": "run-z +z --then prettier-eslint --write --include-dot-files \"src/**/*.*\" \"*.{js,cjs,json,md}\"",
     "lint": "run-z +z --then eslint .",
-    "test": "run-z +z env:NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" --then test-z",
-    "z": "run-z +cmd:build-z,+cmd:typedoc,+cmd:eslint,+cmd:test-z"
+    "test": "run-z +z build env:NODE_OPTIONS=\"--experimental-vm-modules --no-warnings\" --then test-z",
+    "z": "run-z +cmd:build-z,+cmd:typedoc,+cmd:eslint"
   }
 }

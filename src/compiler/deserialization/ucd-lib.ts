@@ -25,7 +25,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   };
 
   readonly #typeDefs: Map<string | UcSchema.Class, UcdTypeDef>;
-  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[];
+  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] | undefined;
   readonly #createDeserializer: Exclude<UcdLib.Options<TSchemae>['createDeserializer'], undefined>;
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
@@ -33,19 +33,23 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   constructor(options: UcdLib.Options<TSchemae>) {
     const {
       schemae,
-      definitions = DefaultUcdDefs,
+      definitions,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
     const typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
-    const entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
+    // Ignore default entity definitions.
+    // Precompiled entity handler will be used.
+    const entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] | undefined = definitions
+      ? []
+      : undefined;
     let methods: UcrxMethod<any>[] | undefined;
 
-    for (const def of asArray(definitions)) {
+    for (const def of asArray(definitions ?? DefaultUcdDefs)) {
       if (def.type) {
         typeDefs.set(def.type, def);
       } else {
-        entityDefs.push(def as UcdEntityDef | UcdEntityPrefixDef);
+        entityDefs?.push(def as UcdEntityDef | UcdEntityPrefixDef);
       }
       if (def.methods) {
         (methods ??= []).push(...asArray(def.methods));
@@ -77,15 +81,37 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   }
 
   #createEntityHandler(): string {
+    const entityDefs = this.#entityDefs;
+
+    if (!entityDefs) {
+      // Use precompiled entity handler.
+      return this.import('#churi/default-entities', 'onEntity$byDefault');
+    }
+
+    if (!entityDefs.length) {
+      // No entities supported.
+      return 'undefined';
+    }
+
+    // Generate custom entity handler.
     return this.declarations.declare('onEntity$byDefault', (prefix, suffix) => code => {
-      if (!this.#entityDefs.length) {
-        return code.write(`${prefix}undefined${suffix}`);
-      }
+      code.write(this.createEntityHandler({ entityDefs, prefix, suffix }));
+    });
+  }
 
-      const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
+  createEntityHandler({
+    entityDefs,
+    prefix,
+    suffix,
+  }: {
+    readonly entityDefs: readonly (UcdEntityDef | UcdEntityPrefixDef)[];
+    readonly prefix: string;
+    readonly suffix: string;
+  }): UccSource {
+    const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
-      return code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entityDefs.forEach((def, index, { length }) => {
+    return code => code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
+        entityDefs.forEach((def, index, { length }) => {
           let entity = def.entity ?? def.entityPrefix;
 
           if (typeof entity === 'string') {
@@ -112,7 +138,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           }
         });
       });
-    });
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(

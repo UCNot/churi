@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import './spec/uri-charge-matchers.js';
 import { UcSearchParams } from './uc-search-params.js';
+import '../spec/uri-charge-matchers.js';
 
 describe('UcSearchParams', () => {
   it('parsed from string', () => {

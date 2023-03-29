@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import './spec/uri-charge-matchers.js';
+import '../spec/uri-charge-matchers.js';
 import { UcRoute } from './uc-route.js';
 
 describe('UcRoute', () => {

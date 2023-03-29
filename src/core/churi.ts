@@ -1,4 +1,4 @@
-import { URICharge } from './charge/uri-charge.js';
+import { URICharge } from '../charge/uri-charge.js';
 import { UcRoute } from './uc-route.js';
 import { UcSearchParams } from './uc-search-params.js';
 

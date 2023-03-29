@@ -1,5 +1,6 @@
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccSource } from '../codegen/ucc-code.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcdLib } from './ucd-lib.js';
 

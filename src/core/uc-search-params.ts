@@ -1,10 +1,10 @@
 import { isIterable } from '@proc7ts/primitives';
-import { createURIChargeParser } from './charge/parse-uri-charge.js';
-import { URIChargeParser } from './charge/uri-charge-parser.js';
-import { URICharge } from './charge/uri-charge.js';
-import { decodeSearchParam, encodeSearchParam } from './impl/search-param-codec.js';
-import { UcSearchParams$splitter } from './impl/uc-search-params.splitter.js';
-import { UcPrimitive } from './schema/uc-primitive.js';
+import { createURIChargeParser } from '../charge/parse-uri-charge.js';
+import { URIChargeParser } from '../charge/uri-charge-parser.js';
+import { URICharge } from '../charge/uri-charge.js';
+import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
+import { UcSearchParams$splitter } from '../impl/uc-search-params.splitter.js';
+import { UcPrimitive } from '../schema/uc-primitive.js';
 
 /**
  * Charged search parameters representing a {@link ChURI#search query string} of the URI.

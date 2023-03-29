@@ -5,5 +5,5 @@
     "outDir": "target/js",
     "exactOptionalPropertyTypes": true
   },
-  "include": ["src/**/*.ts", "src/compiler/deserialization/basic.ucd-defs ts"]
+  "include": ["src/**/*.ts"]
 }
