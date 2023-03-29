@@ -126,7 +126,7 @@ export function ucdReadValueSync(
       ucdDecodeValue(
         reader,
         rx.rx,
-        printUcTokens(trimUcTokensTail(ucdReadTokensSync(reader, rx, true))),
+        printUcTokens(trimUcTokensTail(ucdReadTokensSync(reader, rx))),
       );
 
       if (single) {

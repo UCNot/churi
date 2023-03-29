@@ -1,6 +1,7 @@
 {
   "extends": "@run-z/project-config/tsconfig.lib.json",
   "compilerOptions": {
+    "rootDir": "./src",
     "lib": ["DOM", "ES2022"],
     "outDir": "target/js",
     "exactOptionalPropertyTypes": true

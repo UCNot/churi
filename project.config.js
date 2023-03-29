@@ -5,7 +5,7 @@ export default new ProjectConfig({
     package: project => new ProjectPackage(project).extendPackageJson({
         exports: {
           '.': {
-            types: './dist/churi.d.ts',
+            types: './dist/churi.core.d.ts',
             default: './dist/churi.core.js',
           },
         },

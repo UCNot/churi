@@ -72,7 +72,15 @@
     "typescript": "~5.0.2"
   },
   "imports": {
-    "#churi/default-entities": "./dist/churi.default-entities.js"
+    "#churi/core": {
+      "types": "./dist/churi.core.d.ts",
+      "default": "./dist/churi.core.js"
+    },
+    "#churi/default-entities": "./dist/churi.default-entities.js",
+    "#churi/uc-value-deserializer": {
+      "types": "./dist/churi.uc-value-deserializer.d.ts",
+      "default": "./dist/churi.uc-value-deserializer.js"
+    }
   },
   "scripts": {
     "all": "run-z build,lint,test",
