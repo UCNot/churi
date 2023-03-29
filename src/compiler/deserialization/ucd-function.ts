@@ -3,11 +3,11 @@ import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
-import { UccSource } from '../codegen/ucc-code.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -18,8 +18,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   #template?: UcrxTemplate<T, TSchema>;
   #args?: UcdFunction.Args;
   #vars?: UcdFunction.Vars;
-  readonly #createAsyncReader: Required<UcdFunction.Options<T, TSchema>>['createAsyncReader'];
-  readonly #createSyncReader: Required<UcdFunction.Options<T, TSchema>>['createSyncReader'];
+  readonly #createAsyncReader: Exclude<UcdFunction.Options<T, TSchema>['createAsyncReader'], undefined>;
+  readonly #createSyncReader: Exclude<UcdFunction.Options<T, TSchema>['createSyncReader'], undefined>;
   readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
 
   constructor(options: UcdFunction.Options<T, TSchema>);

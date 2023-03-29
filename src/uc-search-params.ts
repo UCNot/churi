@@ -110,7 +110,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   #provide(
-    search: Iterable<readonly [string, (string | null)?]>,
+    search: Iterable<readonly [string, (string | null | undefined)?]>,
   ): Map<string, ChSearchParam<TValue, TCharge>> {
     const entries = new Map<string, ChSearchParam$Provided<TValue, TCharge>>();
 

@@ -63,12 +63,16 @@ export abstract class BaseUcrxTemplate {
   #buildExpectedTypes(): readonly [set: ReadonlySet<string>, sameAsBase: boolean] {
     const types = new Set<string>();
 
-    for (const {
-      method: { typeName, stub },
-      body,
-    } of Object.values(this.ownMethods)) {
-      if (typeName && body !== stub) {
-        types.add(typeName);
+    for (const method of Object.values(this.ownMethods)) {
+      if (method) {
+        const {
+          method: { typeName, stub },
+          body,
+        } = method;
+
+        if (typeName && body !== stub) {
+          types.add(typeName);
+        }
       }
     }
 
@@ -133,8 +137,10 @@ export abstract class BaseUcrxTemplate {
 
   protected declareMethods(): UccSource {
     return code => {
-      for (const { method, body } of Object.values(this.ownMethods)) {
-        code.write(method.declare(this, body as UccMethod.Body<any>));
+      for (const method of Object.values(this.ownMethods)) {
+        if (method) {
+          code.write(method.method.declare(this, method.body as UccMethod.Body<any>));
+        }
       }
     };
   }

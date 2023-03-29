@@ -17,7 +17,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   };
 
   readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
-  readonly #createSerializer: Required<UcsLib.Options<TSchemae>>['createSerializer'];
+  readonly #createSerializer: Exclude<UcsLib.Options<TSchemae>['createSerializer'], undefined>;
   readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>) {

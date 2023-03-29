@@ -26,7 +26,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
   readonly #typeDefs: Map<string | UcSchema.Class, UcdTypeDef>;
   readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[];
-  readonly #createDeserializer: Required<UcdLib.Options<TSchemae>>['createDeserializer'];
+  readonly #createDeserializer: Exclude<UcdLib.Options<TSchemae>['createDeserializer'], undefined>;
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
 

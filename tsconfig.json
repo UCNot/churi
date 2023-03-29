@@ -2,7 +2,8 @@
   "extends": "@run-z/project-config/tsconfig.lib.json",
   "compilerOptions": {
     "lib": ["DOM", "ES2022"],
-    "outDir": "target/js"
+    "outDir": "target/js",
+    "exactOptionalPropertyTypes": true
   },
   "include": ["src/**/*.ts", "src/compiler/deserialization/basic.ucd-defs ts"]
 }

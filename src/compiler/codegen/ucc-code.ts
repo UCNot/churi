@@ -6,7 +6,7 @@ export class UccCode implements UccPrintable {
     return UccCode$none;
   }
 
-  readonly #parent?: UccCode;
+  readonly #parent: UccCode | undefined;
   readonly #parts: UccPrintable[] = [];
   #addPart: (part: UccPrintable) => void;
 

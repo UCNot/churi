@@ -71,8 +71,8 @@ class UcsMemoryBlock {
   readonly #space: ArrayBuffer;
   #reserved = 0;
   #free = 0;
-  #whenAvailable?: Promise<void>;
-  #moreAvailable?: () => void;
+  #whenAvailable: Promise<void> | undefined;
+  #moreAvailable: (() => void) | undefined;
 
   constructor(size: number) {
     this.#space = new ArrayBuffer(size);

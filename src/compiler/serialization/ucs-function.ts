@@ -14,7 +14,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #schema: TSchema;
   readonly #name: string;
   #args?: UcsFunction.Args;
-  readonly #createWriter: Required<UcsFunction.Options<T, TSchema>>['createWriter'];
+  readonly #createWriter: Exclude<UcsFunction.Options<T, TSchema>['createWriter'], undefined>;
 
   constructor(options: UcsFunction.Options<T, TSchema>);
   constructor({
