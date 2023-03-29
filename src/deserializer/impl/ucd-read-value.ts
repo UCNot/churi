@@ -118,7 +118,7 @@ export async function ucdReadValue(
       ucdDecodeValue(
         reader,
         rx.rx,
-        printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx, true))),
+        printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx))),
       );
 
       if (single) {
@@ -219,11 +219,10 @@ async function ucdReadTokens(
       appendUcTokens(tokens, reader.consume());
 
       if (balanceParentheses && openedParentheses) {
-        tokens.fill(
-          UC_TOKEN_CLOSING_PARENTHESIS,
-          tokens.length,
-          tokens.length + openedParentheses - 1,
-        );
+        const len = tokens.length;
+
+        tokens.length += openedParentheses;
+        tokens.fill(UC_TOKEN_CLOSING_PARENTHESIS, len);
       }
 
       return tokens;

@@ -227,11 +227,10 @@ function ucdReadTokensSync(
       appendUcTokens(tokens, reader.consume());
 
       if (balanceParentheses && openedParentheses) {
-        tokens.fill(
-          UC_TOKEN_CLOSING_PARENTHESIS,
-          tokens.length,
-          tokens.length + openedParentheses - 1,
-        );
+        const len = tokens.length;
+
+        tokens.length += openedParentheses;
+        tokens.fill(UC_TOKEN_CLOSING_PARENTHESIS, len);
       }
 
       return tokens;
