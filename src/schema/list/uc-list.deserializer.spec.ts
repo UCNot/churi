@@ -125,6 +125,11 @@ describe('UcList deserializer', () => {
     it('deserializes quoted strings', async () => {
       await expect(readList(readTokens("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
     });
+    it('deserializes empty list item', async () => {
+      await expect(readList(readTokens(',,'))).resolves.toEqual(['']);
+      await expect(readList(readTokens(', ,'))).resolves.toEqual(['']);
+      await expect(readList(readTokens(' , ,  '))).resolves.toEqual(['']);
+    });
   });
 
   describe('of maps', () => {

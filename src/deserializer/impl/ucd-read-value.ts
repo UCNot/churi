@@ -36,7 +36,7 @@ export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean,
+  single?: boolean, // Never set for the first item of the list.
 ): Promise<void> {
   await ucdSkipWhitespace(reader);
 
@@ -150,12 +150,16 @@ export async function ucdReadValue(
     }
     if (reader.hasPrev()) {
       // Decode leading item, if any.
-      // Ignore empty leading item otherwise.
       ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
-    }
 
-    if (single) {
-      // Do not parse the rest of items.
+      if (single) {
+        // Do not parse the rest of items.
+        return;
+      }
+    } else if (single) {
+      // Decode empty item, unless it is a first one.
+      ucrxString(reader, rx.rx, '');
+
       return;
     }
   } else {
