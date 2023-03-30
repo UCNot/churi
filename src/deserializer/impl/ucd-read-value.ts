@@ -1,4 +1,3 @@
-import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
 import {
   ucrxBoolean,
   ucrxEmptyMap,
@@ -171,11 +170,6 @@ export async function ucdReadValue(
       // No next item.
       return;
     }
-
-    // Consume the rest of items.
-    if (!rx.andQuiet()) {
-      reader.error(ucrxUnexpectedTypeError('nested list', rx.rx));
-    }
   }
 
   if (reader.current() === UC_TOKEN_COMMA) {
@@ -343,6 +337,12 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
 
     if (!keyTokens.length) {
       // No key.
+      if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
+        // Nested list ends the map and starts enclosing list charge.
+        // But enclosing list charge should start _before_ the map charge completed.
+        rx.andNls(reader);
+      }
+
       break;
     }
 
