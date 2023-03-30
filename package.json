@@ -77,11 +77,12 @@
       "default": "./dist/churi.core.js"
     },
     "#churi/default-entities": "./dist/churi.default-entities.js",
-    "#churi/uc-value-deserializer": {
-      "types": "./dist/churi.uc-value-deserializer.d.ts",
-      "default": "./dist/churi.uc-value-deserializer.js"
+    "#churi/uc-value/deserializer": {
+      "types": "./dist/churi.uc-value.deserializer.d.ts",
+      "default": "./dist/churi.uc-value.deserializer.js"
     },
-    "#churi/uri-charge": "./dist/churi.uri-charge.js"
+    "#churi/uri-charge": "./dist/churi.uri-charge.js",
+    "#churi/uri-charge/compiler": "./dist/churi.uri-charge.compiler.js"
   },
   "scripts": {
     "all": "run-z build,lint,test",

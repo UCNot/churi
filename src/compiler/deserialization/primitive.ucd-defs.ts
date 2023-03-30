@@ -66,7 +66,7 @@ class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTe
       [this.#key]({ value }: UccArgs.ByName<'value'>): UccSource {
         return `return this.set(${value});`;
       },
-      nul: this.schema.nullable ? _location => `return this.set(null);` : undefined,
+      nul: this.schema.nullable ? () => `return this.set(null);` : undefined,
     };
   }
 

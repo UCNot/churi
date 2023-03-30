@@ -13,6 +13,10 @@ export default new ProjectConfig({
           source: './src/deserializer/impl/uri-charge.some.ts',
           default: './dist/churi.uri-charge.js',
         },
+        './churi.uri-charge.compiler': {
+          source: './src/compiler/impl/uri-charge.compiler.ts',
+          default: './dist/churi.uri-charge.compiler.js',
+        },
       },
     },
   },

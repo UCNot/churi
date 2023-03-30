@@ -1,4 +1,4 @@
-import { parseUcValue } from '#churi/uc-value-deserializer';
+import { parseUcValue } from '#churi/uc-value/deserializer';
 import { describe, expect, it } from '@jest/globals';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 

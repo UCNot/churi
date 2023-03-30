@@ -1,9 +1,9 @@
+import { ucUnknown } from '#churi/core';
+import { URIChargeUcdLib } from '#churi/uri-charge/compiler';
 import { DefaultUcdDefs, UccCode, UcdLib } from '@hatsy/churi/compiler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-// eslint-disable-next-line no-restricted-imports
-import { ucUnknown } from '../dist/churi.core.js';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const distDir = path.resolve(path.dirname(scriptPath), '..', 'dist');
@@ -22,6 +22,8 @@ await Promise.all([
   emitDefaultEntities(),
   emitUcValueDeserializer(),
   emitUcValueDeserializerTypes(),
+  emitURIChargeDeserializer(),
+  emitURIChargeDeserializerTypes(),
   emitMainModule(),
   emitMainModuleTypes(),
 ]);
@@ -46,7 +48,7 @@ async function emitDefaultEntities() {
 
 async function emitUcValueDeserializer() {
   await fs.writeFile(
-    path.join(distDir, 'churi.uc-value-deserializer.js'),
+    path.join(distDir, 'churi.uc-value.deserializer.js'),
     lib.compileModule('sync').print(),
     'utf-8',
   );
@@ -54,7 +56,7 @@ async function emitUcValueDeserializer() {
 
 async function emitUcValueDeserializerTypes() {
   await fs.writeFile(
-    path.join(distDir, 'churi.uc-value-deserializer.d.ts'),
+    path.join(distDir, 'churi.uc-value.deserializer.d.ts'),
     [
       `/// <reference path="churi.core.d.ts" />\n`,
       `import type { UcDeserializer } from '@hatsy/churi';\n`,
@@ -65,10 +67,35 @@ async function emitUcValueDeserializerTypes() {
   );
 }
 
+async function emitURIChargeDeserializer() {
+  await fs.writeFile(
+    path.join(distDir, 'churi.uri-charge.deserializer.js'),
+    new URIChargeUcdLib().compileModule('sync').print(),
+    'utf-8',
+  );
+}
+
+async function emitURIChargeDeserializerTypes() {
+  await fs.writeFile(
+    path.join(distDir, 'churi.uri-charge.deserializer.d.ts'),
+    [
+      `/// <reference path="churi.core.d.ts" />\n`,
+      `import type { UcDeserializer, URICharge } from '@hatsy/churi';\n`,
+      '\n',
+      `export const parseURICharge: UcDeserializer<URICharge>;\n`,
+    ],
+    'utf-8',
+  );
+}
+
 async function emitMainModule() {
   await fs.writeFile(
     path.join(distDir, 'churi.js'),
-    [`export * from './churi.core.js';\n`, `export * from './churi.uc-value-deserializer.js';\n`],
+    [
+      `export * from './churi.core.js';\n`,
+      `export * from './churi.uc-value.deserializer.js';\n`,
+      `export * from './churi.uri-charge.deserializer.js';\n`,
+    ],
     'utf-8',
   );
 }
@@ -78,9 +105,11 @@ async function emitMainModuleTypes() {
     path.join(distDir, 'churi.d.ts'),
     [
       `/// <reference path="churi.core.d.ts" />\n`,
-      `/// <reference path="churi.uc-value-deserializer.d.ts" />\n`,
+      `/// <reference path="churi.uc-value.deserializer.d.ts" />\n`,
+      `/// <reference path="churi.uri-charge.deserializer.d.ts" />\n`,
       `\n`,
-      `export * from './churi.uc-value-deserializer.js';\n`,
+      `export * from './churi.uc-value.deserializer.js';\n`,
+      `export * from './churi.uri-charge.deserializer.js';\n`,
     ],
     'utf-8',
   );

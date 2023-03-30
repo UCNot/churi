@@ -286,7 +286,7 @@ export class ListUcdDef<
                 }
               })
               .write(`}`)
-              .indent(code => {
+              .write(code => {
                 if (isNull) {
                   code.write(`return ${isNull} = 1;`);
                 } else {

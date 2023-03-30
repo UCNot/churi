@@ -1,5 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
-import { CHURI_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
@@ -85,7 +85,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
     if (!entityDefs) {
       // Use precompiled entity handler.
-      return this.import('#churi/default-entities', 'onEntity$byDefault');
+      return this.import(DEFAULT_ENTITIES_MODULE, 'onEntity$byDefault');
     }
 
     if (!entityDefs.length) {
