@@ -1,14 +1,19 @@
-import { ProjectConfig, ProjectPackage } from '@run-z/project-config';
+import { ProjectConfig } from '@run-z/project-config';
 
 export default new ProjectConfig({
   tools: {
-    package: project => new ProjectPackage(project).extendPackageJson({
-        exports: {
-          '.': {
-            types: './dist/churi.core.d.ts',
-            default: './dist/churi.core.js',
-          },
+    package: {
+      exports: {
+        '.': {
+          source: './src/mod.ts',
+          types: './dist/churi.core.d.ts',
+          default: './dist/churi.core.js',
         },
-      }),
+        './churi.uri-charge': {
+          source: './src/deserializer/impl/uri-charge.some.ts',
+          default: './dist/churi.uri-charge.js',
+        },
+      },
+    },
   },
 });

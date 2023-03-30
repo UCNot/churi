@@ -1,6 +1,10 @@
+import {
+  URICharge$List,
+  URICharge$Map,
+  URICharge$Single,
+} from '../deserializer/impl/uri-charge.some.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
-import { URICharge$List, URICharge$Map, URICharge$Single } from './impl/uri-charge.some.js';
 import { OpaqueURIChargeRx } from './opaque.uri-charge-rx.js';
 import { URIChargeRx } from './uri-charge-rx.js';
 import { URICharge, URIChargeItem } from './uri-charge.js';

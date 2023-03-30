@@ -50,7 +50,7 @@
     "@proc7ts/supply": "^2.0.0",
     "@run-z/eslint-config": "^3.3.1",
     "@run-z/prettier-config": "^2.0.0",
-    "@run-z/project-config": "^0.15.2",
+    "@run-z/project-config": "^0.15.3",
     "@swc/core": "^1.3.42",
     "@swc/jest": "^0.2.24",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
@@ -80,7 +80,8 @@
     "#churi/uc-value-deserializer": {
       "types": "./dist/churi.uc-value-deserializer.d.ts",
       "default": "./dist/churi.uc-value-deserializer.js"
-    }
+    },
+    "#churi/uri-charge": "./dist/churi.uri-charge.js"
   },
   "scripts": {
     "all": "run-z build,lint,test",
