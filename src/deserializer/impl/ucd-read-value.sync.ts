@@ -44,7 +44,7 @@ export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean, // Never set for the first item of the list.
+  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
 ): void {
   ucdSkipWhitespaceSync(reader);
 
@@ -270,6 +270,12 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcrxHandle): void {
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
   ucdSkipWhitespaceSync(reader);
+
+  if (reader.current() === UC_TOKEN_COMMA) {
+    // Skip leading comma.
+    reader.skip();
+    ucdSkipWhitespaceSync(reader);
+  }
 
   ucdReadItemsSync(reader, itemsRx);
 

@@ -36,7 +36,7 @@ export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean, // Never set for the first item of the list.
+  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
 ): Promise<void> {
   await ucdSkipWhitespace(reader);
 
@@ -262,6 +262,12 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promis
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
   await ucdSkipWhitespace(reader);
+
+  if (reader.current() === UC_TOKEN_COMMA) {
+    // Skip leading comma.
+    reader.skip();
+    await ucdSkipWhitespace(reader);
+  }
 
   await ucdReadItems(reader, itemsRx);
 

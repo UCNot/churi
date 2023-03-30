@@ -387,6 +387,19 @@ describe('UcList deserializer', () => {
 
       await expect(readCube(readTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
     });
+    it('recognized empty item of nested list', async () => {
+      const lib = new UcdLib({
+        schemae: {
+          readMatrix: ucList<string[]>(ucList<string>(String)),
+        },
+      });
+
+      const { readMatrix } = await lib.compile().toDeserializers();
+
+      await expect(readMatrix(readTokens('(,,)'))).resolves.toEqual([['']]);
+      await expect(readMatrix(readTokens('(, ,)'))).resolves.toEqual([['']]);
+      await expect(readMatrix(readTokens('( , ,  )'))).resolves.toEqual([['']]);
+    });
   });
 
   describe('nested or null', () => {
