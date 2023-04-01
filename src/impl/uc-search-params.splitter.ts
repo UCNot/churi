@@ -1,4 +1,4 @@
-import { UcSearchParams } from '../core/uc-search-params.js';
+import { UcSearchParams } from '../uri/uc-search-params.js';
 
 class UcSearchParams$Splitter implements UcSearchParams.Splitter {
 
