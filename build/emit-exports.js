@@ -61,7 +61,7 @@ async function emitUcValueDeserializerTypes() {
       `/// <reference path="churi.core.d.ts" />\n`,
       `import type { UcDeserializer } from '@hatsy/churi';\n`,
       '\n',
-      `export const parseUcValue: UcDeserializer<unknown>;\n`,
+      `export const parseUcValue: UcDeserializer.Sync<unknown>;\n`,
     ],
     'utf-8',
   );
@@ -82,7 +82,7 @@ async function emitURIChargeDeserializerTypes() {
       `/// <reference path="churi.core.d.ts" />\n`,
       `import type { UcDeserializer, URICharge } from '@hatsy/churi';\n`,
       '\n',
-      `export const parseURICharge: UcDeserializer<URICharge>;\n`,
+      `export const parseURICharge: UcDeserializer.Sync<URICharge>;\n`,
     ],
     'utf-8',
   );
