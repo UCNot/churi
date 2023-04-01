@@ -186,19 +186,38 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 
       code
         .write(`if (${listRx}) {`)
-        .indent(this.addValue(allocation, method, listRx, args))
+        .indent(this.addItem(allocation, method, args))
         .write(`}`)
-        .write(this.addValue(allocation, method, 'super', args));
+        .write(this.setValue(allocation, method, args));
     };
   }
 
-  protected addValue<TArg extends string>(
-    _allocation: UnknownUcdDef.Allocation,
+  protected addItem<TArg extends string>(
+    allocation: UnknownUcdDef.Allocation,
     method: UcrxMethod<TArg>,
-    target: string,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource;
+
+  protected addItem<TArg extends string>(
+    { listRx }: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource {
-    return `return ${method.toMethod(this.lib).call(target, args)};`;
+    return `return ${method.toMethod(this.lib).call(listRx, args)};`;
+  }
+
+  protected setValue<TArg extends string>(
+    allocation: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource;
+
+  protected setValue<TArg extends string>(
+    _allocation: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource {
+    return `return ${method.toMethod(this.lib).call('super', args)};`;
   }
 
 }

@@ -175,13 +175,8 @@ export class ListUcdDef<
     }
   }
 
-  #declareListMethods({
-    context,
-    setList,
-    items,
-    listCreated,
-    isNull,
-  }: ListUcdDef.ListAllocation): UcrxTemplate.MethodDecls {
+  #declareListMethods(allocation: ListUcdDef.ListAllocation): UcrxTemplate.MethodDecls {
+    const { context, listCreated, isNull } = allocation;
     const { lib } = this;
     const ucrxUnexpectedSingleItemError = lib.import(CHURI_MODULE, 'ucrxUnexpectedSingleItemError');
     const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
@@ -210,14 +205,14 @@ export class ListUcdDef<
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`${setList}(null);`)
+            .indent(this.storeNull(allocation))
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
 
         code
-          .indent(`${setList}(${items});`)
+          .indent(this.storeItems(allocation))
           .write(`} else {`)
           .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
           .write(`}`);
@@ -226,7 +221,7 @@ export class ListUcdDef<
   }
 
   #declareMatrixMethods(allocation: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
-    const { context, items, addItem, itemRx, listCreated, isNull } = allocation;
+    const { context, addItem, itemRx, listCreated, isNull } = allocation;
     const itemTemplate = this.#getItemTemplate();
 
     const coreMethods: {
@@ -267,12 +262,12 @@ export class ListUcdDef<
         if (isNull) {
           code
             .write(`if (${isNull}) {`)
-            .indent(`this.set(null);`)
+            .indent(this.storeNull(allocation))
             .write(`} else if (${listCreated}) {`);
         } else {
           code.write(`if (${listCreated}) {`);
         }
-        code.indent(`this.set(${items});`).write(`}`);
+        code.indent(this.storeItems(allocation)).write(`}`);
       },
       nul: this.#isNullable
         ? () => code => {
@@ -280,7 +275,7 @@ export class ListUcdDef<
               .write(`if (${listCreated}) {`)
               .indent(code => {
                 if (this.#isNullableItem) {
-                  code.write(addItem.call('this', { item: 'null' }) + ';', `return 1;`);
+                  code.write(this.addNull(allocation), `return 1;`);
                 } else {
                   code.write(`return 0;`);
                 }
@@ -299,6 +294,21 @@ export class ListUcdDef<
     };
   }
 
+  addNull(allocation: ListUcdDef.Allocation): UccSource;
+  addNull({ addItem }: ListUcdDef.Allocation): UccSource {
+    return addItem.call('this', { item: 'null' }) + ';';
+  }
+
+  storeItems(allocation: ListUcdDef.Allocation): UccSource;
+  storeItems({ setList, items }: ListUcdDef.Allocation): UccSource {
+    return `${setList}(${items});`;
+  }
+
+  storeNull(allocation: ListUcdDef.Allocation): UccSource;
+  storeNull({ setList }: ListUcdDef.Allocation): UccSource {
+    return `${setList}(null);`;
+  }
+
   #delegate<TArg extends string>({
     itemRx,
     listCreated,
@@ -306,7 +316,7 @@ export class ListUcdDef<
     return (args, method) => code => {
       code
         .write(`if (${listCreated}) {`)
-        .indent(`return ` + method.call(itemRx!.call('this', { '': '' }), args) + ';')
+        .indent(`return ` + method.call(itemRx!.call('this'), args) + ';')
         .write('}')
         .write('return 0;');
     };

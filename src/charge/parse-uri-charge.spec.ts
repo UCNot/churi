@@ -1,42 +1,21 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
+import { URIChargeUcdLib } from '../compiler/impl/uri-charge.compiler.js';
+import { UcDeserializer } from '../schema/uc-deserializer.js';
 import '../spec/uri-charge-matchers.js';
-import { createURIChargeParser, parseURICharge } from './parse-uri-charge.js';
-import { URIChargeBuilder } from './uri-charge-builder.js';
-import { URIChargeParser } from './uri-charge-parser.js';
 import { URICharge } from './uri-charge.js';
 
-describe('createURIChargeParser', () => {
-  it('returns default instance without options', () => {
-    expect(createURIChargeParser()).toBe(createURIChargeParser());
-  });
-  it('returns new instance with options', () => {
-    expect(createURIChargeParser({})).not.toBe(createURIChargeParser());
-  });
-
-  describe('rxValue', () => {
-    it('builds none without values', () => {
-      const charge = new URIChargeBuilder().rxValue(rx => rx.end());
-
-      expect(charge).toBe(URICharge.none);
-    });
-    it('overrides last received charge', () => {
-      const charge = new URIChargeBuilder().rxValue(rx => {
-        rx.addValue(1, 'number');
-        rx.addValue(2, 'number');
-
-        return rx.end();
-      });
-
-      expect(charge).toBeURIChargeSingle('number');
-      expect(charge).toHaveURIChargeValue(2);
-    });
-  });
-});
-
 describe('parseURICharge', () => {
+  let parse: UcDeserializer.Sync<URICharge>;
+
+  beforeEach(async () => {
+    const lib = new URIChargeUcdLib();
+
+    ({ parseURICharge: parse } = await lib.compile('sync').toDeserializers());
+  });
+
   describe('string value', () => {
     it('recognized as top-level value', () => {
-      const charge = parse('Hello!%20World!').charge;
+      const charge = parse('Hello!%20World!');
 
       expect(charge).toBeURIChargeSingle('string');
       expect(charge).toHaveURIChargeValue('Hello! World!');
@@ -51,7 +30,7 @@ describe('parseURICharge', () => {
       expect([...charge.keys()]).toEqual([]);
     });
     it('recognized as map entry value', () => {
-      const map = parse('foo(bar)').charge;
+      const map = parse('foo(bar)');
 
       expect(map).toBeURIChargeMap();
       expect(map).toHaveURIChargeEntries({ foo: 'bar' });
@@ -68,7 +47,7 @@ describe('parseURICharge', () => {
       expect(charge.at(1)).toBeURIChargeNone();
     });
     it('recognized as list item value', () => {
-      const list = parse(',bar').charge;
+      const list = parse(',bar');
 
       expect(list).toBeURIChargeList(1, 'string');
       expect(list).toHaveURIChargeItems('bar');
@@ -87,13 +66,13 @@ describe('parseURICharge', () => {
 
   describe('bigint value', () => {
     it('recognized as map entry value', () => {
-      const charge = parse('foo(0n13)').charge.get('foo');
+      const charge = parse('foo(0n13)').get('foo');
 
       expect(charge).toBeURIChargeSingle('bigint');
       expect(charge).toHaveURIChargeValue(13n);
     });
     it('recognized as list item value', () => {
-      const charge = parse(',0n13').charge;
+      const charge = parse(',0n13');
 
       expect(charge).toBeURIChargeList(1, 'bigint');
       expect(charge).toHaveURIChargeItems(13n);
@@ -102,7 +81,7 @@ describe('parseURICharge', () => {
 
   describe('empty map', () => {
     it('recognized as top-level value', () => {
-      const charge = parse('$').charge;
+      const charge = parse('$');
 
       expect(charge).toBeURIChargeMap();
       expect(charge).toHaveURIChargeValue(undefined);
@@ -118,7 +97,7 @@ describe('parseURICharge', () => {
       expect(charge.at(1)).toBeURIChargeNone();
     });
     it('recognized as map entry value', () => {
-      const charge = parse('foo($)').charge.get('foo');
+      const charge = parse('foo($)').get('foo');
 
       expect(charge).toBeURIChargeMap();
       expect(charge).toHaveURIChargeEntries({});
@@ -126,7 +105,7 @@ describe('parseURICharge', () => {
       expect([...charge.keys()]).toHaveLength(0);
     });
     it('recognized as list item value', () => {
-      const list = parse(',$').charge;
+      const list = parse(',$');
 
       expect(list).toBeURIChargeList(1);
 
@@ -141,20 +120,20 @@ describe('parseURICharge', () => {
 
   describe('empty list', () => {
     it('recognized as top-level value', () => {
-      const charge = parse(',').charge;
+      const charge = parse(',');
 
       expect(charge).toBeURIChargeList(0);
       expect(charge.at(0)).toBeURIChargeNone();
       expect(charge.at(0.5)).toBeURIChargeNone();
     });
     it('recognized as map entry value', () => {
-      const charge = parse('foo(,)').charge.get('foo');
+      const charge = parse('foo(,)').get('foo');
 
       expect(charge).toBeURIChargeList(0);
       expect(charge.at(0)).toBeURIChargeNone();
     });
     it('recognized as list item value', () => {
-      const list = parse('(,)').charge;
+      const list = parse('(,)');
 
       expect(list).toBeURIChargeList(1, undefined);
 
@@ -167,19 +146,19 @@ describe('parseURICharge', () => {
 
   describe('null value', () => {
     it('recognized as top-level value', () => {
-      const charge = parse('--').charge;
+      const charge = parse('--');
 
       expect(charge).toBeURIChargeSingle('null');
       expect(charge).toHaveURIChargeValue(null);
     });
     it('recognized as map entry value', () => {
-      const charge = parse('foo(--)').charge.get('foo');
+      const charge = parse('foo(--)').get('foo');
 
       expect(charge).toBeURIChargeSingle('null');
       expect(charge).toHaveURIChargeValue(null);
     });
     it('recognized as list item value', () => {
-      const list = parse(',--').charge;
+      const list = parse(',--');
 
       expect(list).toBeURIChargeList(1, 'null');
       expect(list).toHaveURIChargeItems(null);
@@ -188,28 +167,28 @@ describe('parseURICharge', () => {
 
   describe('opaque entity', () => {
     it('recognized at top level', () => {
-      const charge = parse('!bar%20baz').charge;
+      const charge = parse('!bar%20baz');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ raw: '!bar baz' });
     });
     it('recognized as map entry value', () => {
-      const charge = parse('foo(!bar%20baz)').charge.get('foo');
+      const charge = parse('foo(!bar%20baz)').get('foo');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ raw: '!bar baz' });
     });
     it('recognized as list item value', () => {
-      const list = parse(',!bar%20baz').charge;
+      const list = parse(',!bar%20baz');
 
       expect(list).toBeURIChargeList(1, 'entity');
-      expect(list).toHaveURIChargeItems({ raw: '!bar%20baz' });
+      expect(list).toHaveURIChargeItems({ raw: '!bar baz' });
     });
   });
 
   describe('list value', () => {
     it('recognized as top-level value with one item', () => {
-      const charge = parse('(123)').charge.at(0);
+      const charge = parse('(123)').at(0);
 
       expect(charge).toBeURIChargeList(1, 'number');
       expect(charge).toHaveURIChargeItems(123);
@@ -221,7 +200,7 @@ describe('parseURICharge', () => {
       expect(charge.get('some')).toBeURIChargeNone();
     });
     it('recognized as nested lists top-level list', () => {
-      const charge = parse('(123)(456)').charge;
+      const charge = parse('(123)(456)');
 
       expect(charge).toBeURIChargeList(2);
       expect(charge).toHaveURIChargeItems([123], [456]);
@@ -236,7 +215,7 @@ describe('parseURICharge', () => {
       expect([...charge.keys()]).toHaveLength(0);
     });
     it('recognized as map entry value', () => {
-      const charge = parse("foo(1,bar,')").charge.get('foo');
+      const charge = parse("foo(1,bar,')").get('foo');
 
       expect(charge).toBeURIChargeList(3, 'number');
       expect(charge).toHaveURIChargeItems(1, 'bar', '');
@@ -250,31 +229,31 @@ describe('parseURICharge', () => {
       expect(charge.at(3)).toBeURIChargeNone();
     });
     it('recognized as map entry value with leading empty string', () => {
-      const charge = parse("foo(',1)").charge.get('foo');
+      const charge = parse("foo(',1)").get('foo');
 
       expect(charge).toBeURIChargeList(2, 'string');
       expect(charge).toHaveURIChargeItems('', 1);
     });
     it('recognized as multiple nested lists', () => {
-      const charge = parse('foo((1)(bar)($))').charge.get('foo');
+      const charge = parse('foo((1)(bar)($))').get('foo');
 
       expect(charge).toBeURIChargeList(3);
       expect(charge).toHaveURIChargeItems([1], ['bar'], [{}]);
     });
     it('recognized as single nested list', () => {
-      const charge = parse('foo((1))').charge.get('foo');
+      const charge = parse('foo((1))').get('foo');
 
       expect(charge).toBeURIChargeList(1);
       expect(charge).toHaveURIChargeItems([1]);
     });
     it('recognized as single empty nested list', () => {
-      const charge = parse('foo(())').charge.get('foo');
+      const charge = parse('foo(())').get('foo');
 
       expect(charge).toBeURIChargeList(1);
       expect(charge).toHaveURIChargeItems([]);
     });
     it('recognized when nested', () => {
-      const charge = parse('foo(((1)(bar)(!))((2)(baz)(-)))').charge.get('foo');
+      const charge = parse('foo(((1)(bar)(!))((2)(baz)(-)))').get('foo');
 
       expect(charge).toBeURIChargeList(2);
       expect(charge.at(0)).toBeURIChargeList(3);
@@ -286,7 +265,7 @@ describe('parseURICharge', () => {
 
   describe('map value', () => {
     it('recognized when nested', () => {
-      const map = parse('foo(bar(baz))').charge;
+      const map = parse('foo(bar(baz))');
 
       expect(map).toBeURIChargeMap();
       expect(map).toHaveURIChargeEntries({ foo: { bar: 'baz' } });
@@ -300,32 +279,30 @@ describe('parseURICharge', () => {
       expect(charge.get('wrong')).toBeURIChargeNone();
     });
     it('recognized when deeply nested', () => {
-      expect(parse('foo(bar(baz(13)))').charge).toHaveURIChargeEntries({
+      expect(parse('foo(bar(baz(13)))')).toHaveURIChargeEntries({
         foo: { bar: { baz: 13 } },
       });
     });
   });
 
   it('merges maps', () => {
-    expect(
-      parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))').charge,
-    ).toHaveURIChargeItems({
+    expect(parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))')).toHaveURIChargeItems({
       foo: { bar: { baz: 2, test: '' } },
     });
   });
   it('overrides list', () => {
-    expect(parse('foo(bar,baz)foo(bar1,baz1)foo(bar2,baz2)').charge).toHaveURIChargeItems({
+    expect(parse('foo(bar,baz)foo(bar1,baz1)foo(bar2,baz2)')).toHaveURIChargeItems({
       foo: ['bar2', 'baz2'],
     });
   });
   it('replaces value with map', () => {
-    expect(parse('foo(bar(test))foo(bar(baz(1)test))').charge).toHaveURIChargeItems({
+    expect(parse('foo(bar(test))foo(bar(baz(1)test))')).toHaveURIChargeItems({
       foo: { bar: { baz: 1, test: '' } },
     });
   });
   it('concatenates maps', () => {
     expect(
-      parse('foo(bar(test,test2),bar(baz(1)test(!)),bar(baz(2)test(-)))').charge,
+      parse('foo(bar(test,test2),bar(baz(1)test(!)),bar(baz(2)test(-)))'),
     ).toHaveURIChargeItems({
       foo: [
         { bar: ['test', 'test2'] },
@@ -335,12 +312,8 @@ describe('parseURICharge', () => {
     });
   });
   it('concatenates map and value', () => {
-    expect(parse('foo(bar(baz(1),test))').charge).toHaveURIChargeItems({
+    expect(parse('foo(bar(baz(1),test))')).toHaveURIChargeItems({
       foo: { bar: [{ baz: 1 }, 'test'] },
     });
   });
-
-  function parse(input: string): URIChargeParser.Result<URICharge> {
-    return parseURICharge(input);
-  }
 });

@@ -19,7 +19,7 @@ describe('UcrxCore', () => {
         new UccCode()
           .write(UcrxCore.ent.stub({ value: 'value' }, UcrxCore.ent.toMethod(lib), template))
           .toString(),
-      ).toBe('return this.any(new UcEntity(value));\n');
+      ).toBe('return this.any(new UcEntity(printUcTokens(value)));\n');
     });
   });
 

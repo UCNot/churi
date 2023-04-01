@@ -6,6 +6,6 @@ export default await configureJest({
     '^@hatsy/churi/deserializer$': '<rootDir>/src/deserializer/mod.ts',
     '^@hatsy/churi/serializer$': '<rootDir>/src/serializer/mod.ts',
     '^@hatsy/churi/spec$': '<rootDir>/src/spec/mod.ts',
-    '^#churi/uri-charge$': '<rootDir>/src/deserializer/impl/uri-charge.some/ts',
+    '^#churi/uri-charge$': '<rootDir>/src/deserializer/impl/uri-charge.some.ts',
   },
 });

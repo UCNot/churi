@@ -152,10 +152,12 @@ export class MapUcdDef<
     return `${prefix}{}${suffix}`;
   }
 
+  storeMap(setter: string, allocation: MapUcdDef.Allocation): UccSource;
   storeMap(setter: string, { map }: MapUcdDef.Allocation): UccSource {
     return `${setter}(${map}[0]);`;
   }
 
+  reclaimMap(allocation: MapUcdDef.Allocation): UccSource;
   reclaimMap({ map }: MapUcdDef.Allocation): UccSource {
     // Allocate map instance for the next list item.
     return this.allocateMap(`${map}[0] = `, `;`);

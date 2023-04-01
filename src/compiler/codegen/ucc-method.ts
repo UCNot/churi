@@ -28,7 +28,12 @@ export class UccMethod<in out TArg extends string = string> {
     };
   }
 
-  call(target: string, args: UccArgs.ByName<TArg>): string {
+  call(
+    target: string,
+    ...args: '' extends TArg ? [UccArgs.ByName<TArg>?] : [UccArgs.ByName<TArg>]
+  ): string;
+
+  call(target: string, args: UccArgs.ByName<TArg> = {} as UccArgs.ByName<TArg>): string {
     return `${target}.${this.name}(${this.args.call(args)})`;
   }
 
