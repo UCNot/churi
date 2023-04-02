@@ -30,9 +30,6 @@ export class URICharge$Single<out TValue>
   readonly #type: string;
 
   constructor(value: URIChargeItem<TValue>, type: string) {
-    if (value instanceof URICharge) {
-      throw new Error('!!!');
-    }
     super();
     this.#value = value;
     this.#type = type;
