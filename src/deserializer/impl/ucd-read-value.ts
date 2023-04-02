@@ -1,4 +1,3 @@
-import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
 import {
   ucrxBoolean,
   ucrxEmptyMap,
@@ -36,7 +35,7 @@ export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean,
+  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
 ): Promise<void> {
   await ucdSkipWhitespace(reader);
 
@@ -118,7 +117,7 @@ export async function ucdReadValue(
       ucdDecodeValue(
         reader,
         rx.rx,
-        printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx, true))),
+        printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx))),
       );
 
       if (single) {
@@ -150,12 +149,16 @@ export async function ucdReadValue(
     }
     if (reader.hasPrev()) {
       // Decode leading item, if any.
-      // Ignore empty leading item otherwise.
       ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
-    }
 
-    if (single) {
-      // Do not parse the rest of items.
+      if (single) {
+        // Do not parse the rest of items.
+        return;
+      }
+    } else if (single) {
+      // Decode empty item, unless it is a first one.
+      ucrxString(reader, rx.rx, '');
+
       return;
     }
   } else {
@@ -166,11 +169,6 @@ export async function ucdReadValue(
     if (single || !reader.current() || reader.current() === UC_TOKEN_CLOSING_PARENTHESIS) {
       // No next item.
       return;
-    }
-
-    // Consume the rest of items.
-    if (!rx.andQuiet()) {
-      reader.error(ucrxUnexpectedTypeError('nested list', rx.rx));
     }
   }
 
@@ -219,11 +217,10 @@ async function ucdReadTokens(
       appendUcTokens(tokens, reader.consume());
 
       if (balanceParentheses && openedParentheses) {
-        tokens.fill(
-          UC_TOKEN_CLOSING_PARENTHESIS,
-          tokens.length,
-          tokens.length + openedParentheses - 1,
-        );
+        const len = tokens.length;
+
+        tokens.length += openedParentheses;
+        tokens.fill(UC_TOKEN_CLOSING_PARENTHESIS, len);
       }
 
       return tokens;
@@ -259,6 +256,12 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promis
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
   await ucdSkipWhitespace(reader);
+
+  if (reader.current() === UC_TOKEN_COMMA) {
+    // Skip leading comma.
+    reader.skip();
+    await ucdSkipWhitespace(reader);
+  }
 
   await ucdReadItems(reader, itemsRx);
 
@@ -334,6 +337,12 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
 
     if (!keyTokens.length) {
       // No key.
+      if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
+        // Nested list ends the map and starts enclosing list charge.
+        // But enclosing list charge should start _before_ the map charge completed.
+        rx.andNls(reader);
+      }
+
       break;
     }
 

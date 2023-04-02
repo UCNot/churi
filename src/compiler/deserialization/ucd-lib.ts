@@ -1,13 +1,12 @@
 import { asArray } from '@proc7ts/primitives';
-import { CHURI_MODULE } from '../../impl/module-names.js';
+import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
-import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
+import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -25,7 +24,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   };
 
   readonly #typeDefs: Map<string | UcSchema.Class, UcdTypeDef>;
-  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[];
+  readonly #entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] | undefined;
   readonly #createDeserializer: Exclude<UcdLib.Options<TSchemae>['createDeserializer'], undefined>;
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
@@ -33,19 +32,23 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   constructor(options: UcdLib.Options<TSchemae>) {
     const {
       schemae,
-      definitions = DefaultUcdDefs,
+      definitions,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
     const typeDefs = new Map<string | UcSchema.Class, UcdTypeDef>();
-    const entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] = [];
+    // Ignore default entity definitions.
+    // Precompiled entity handler will be used.
+    const entityDefs: (UcdEntityDef | UcdEntityPrefixDef)[] | undefined = definitions
+      ? []
+      : undefined;
     let methods: UcrxMethod<any>[] | undefined;
 
-    for (const def of asArray(definitions)) {
+    for (const def of asArray(definitions ?? DefaultUcdDefs)) {
       if (def.type) {
         typeDefs.set(def.type, def);
       } else {
-        entityDefs.push(def as UcdEntityDef | UcdEntityPrefixDef);
+        entityDefs?.push(def as UcdEntityDef | UcdEntityPrefixDef);
       }
       if (def.methods) {
         (methods ??= []).push(...asArray(def.methods));
@@ -67,8 +70,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
     this.#createDeserializer = createDeserializer;
 
-    for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.deserializerFor(schema, externalName);
+    for (const schema of Object.values(this.#schemae)) {
+      this.deserializerFor(schema);
     }
   }
 
@@ -77,15 +80,37 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   }
 
   #createEntityHandler(): string {
+    const entityDefs = this.#entityDefs;
+
+    if (!entityDefs) {
+      // Use precompiled entity handler.
+      return this.import(DEFAULT_ENTITIES_MODULE, 'onEntity$byDefault');
+    }
+
+    if (!entityDefs.length) {
+      // No entities supported.
+      return 'undefined';
+    }
+
+    // Generate custom entity handler.
     return this.declarations.declare('onEntity$byDefault', (prefix, suffix) => code => {
-      if (!this.#entityDefs.length) {
-        return code.write(`${prefix}undefined${suffix}`);
-      }
+      code.write(this.createEntityHandler({ entityDefs, prefix, suffix }));
+    });
+  }
 
-      const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
+  createEntityHandler({
+    entityDefs,
+    prefix,
+    suffix,
+  }: {
+    readonly entityDefs: readonly (UcdEntityDef | UcdEntityPrefixDef)[];
+    readonly prefix: string;
+    readonly suffix: string;
+  }): UccSource {
+    const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
-      return code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entityDefs.forEach((def, index, { length }) => {
+    return code => code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
+        entityDefs.forEach((def, index, { length }) => {
           let entity = def.entity ?? def.entityPrefix;
 
           if (typeof entity === 'string') {
@@ -112,15 +137,13 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           }
         });
       });
-    });
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-    externalName?: string,
   ): UcdFunction<T, TSchema> {
     const { id = schema.type } = schema;
-    const variant = UcSchema$variantOf(schema);
+    const variant = ucUcSchemaVariant(schema);
 
     let variants = this.#deserializers.get(id);
 
@@ -135,7 +158,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       deserializer = this.#createDeserializer({
         lib: this as UcdLib,
         schema,
-        name: this.ns.name(`${externalName ?? ucSchemaSymbol(schema)}`),
       });
       variants.set(variant, deserializer);
     }

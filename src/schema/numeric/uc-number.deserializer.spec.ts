@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
+import { NonFiniteUcdDefs } from '../../compiler/deserialization/non-finite.ucd-defs.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -23,6 +25,7 @@ describe('UcNumber deserializer', () => {
       schemae: {
         readValue: Number,
       },
+      definitions: [...BasicUcdDefs, ...NonFiniteUcdDefs],
     });
     ({ readValue } = await lib.compile().toDeserializers());
   });

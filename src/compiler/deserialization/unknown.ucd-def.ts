@@ -19,20 +19,32 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   static createTemplate(lib: UcrxLib, schema: UcSchema): UcrxTemplate {
-    return new UnknownUcdDef(lib, schema);
+    return new this(lib, schema);
   }
 
-  #allocation?: UnknownUcdDef$Allocation;
+  #allocation?: UnknownUcdDef.Allocation;
 
   constructor(lib: UcrxLib, schema: UcSchema) {
-    super({ lib, schema, args: ['set', 'context'] });
+    super({
+      lib,
+      schema,
+      args: ['set', 'context'],
+    });
   }
 
-  #getAllocation(): UnknownUcdDef$Allocation {
+  protected override preferredClassName(): string {
+    return this.schema.nullable ? 'AnyUcrx' : 'NonNullUcrx';
+  }
+
+  protected override discoverTypes(): Set<string> {
+    return this.schema.nullable ? anyTypes : nonNullTypes;
+  }
+
+  #getAllocation(): UnknownUcdDef.Allocation {
     return (this.#allocation ??= this.#allocate());
   }
 
-  #allocate(): UnknownUcdDef$Allocation {
+  #allocate(): UnknownUcdDef.Allocation {
     const { lib } = this;
     const { resolver } = lib;
     const listSpec = ucList(this.schema);
@@ -76,15 +88,6 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
       const { context: varContext } = this.#getAllocation();
 
       code.write(`${varContext} = ${context};`);
-    };
-  }
-
-  protected override declareTypes(): UccSource {
-    return code => {
-      code
-        .write('get types() {')
-        .indent(this.schema.nullable ? `return ['any'];` : `return ['non-null']`)
-        .write('}');
     };
   }
 
@@ -180,31 +183,61 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   #declareMethod<TArg extends string>(method: UcrxMethod<TArg>): UccMethod.Body<TArg> {
-    return args => {
-      const { listRx } = this.#getAllocation();
+    return args => code => {
+      const allocation = this.#getAllocation();
+      const { listRx } = allocation;
 
-      return code => {
-        const uccMethod = method.toMethod(this.lib);
-
-        code
-          .write(`if (${listRx}) {`)
-          .indent(`return ${uccMethod.call(listRx, args)};`)
-          .write(`}`)
-          .write(`return ${uccMethod.call('super', args)};`);
-      };
+      code
+        .write(`if (${listRx}) {`)
+        .indent(this.addItem(allocation, method, args))
+        .write(`}`)
+        .write(this.setValue(allocation, method, args));
     };
+  }
+
+  protected addItem<TArg extends string>(
+    allocation: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource;
+
+  protected addItem<TArg extends string>(
+    { listRx }: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource {
+    return `return ${method.toMethod(this.lib).call(listRx, args)};`;
+  }
+
+  protected setValue<TArg extends string>(
+    allocation: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource;
+
+  protected setValue<TArg extends string>(
+    _allocation: UnknownUcdDef.Allocation,
+    method: UcrxMethod<TArg>,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource {
+    return `return ${method.toMethod(this.lib).call('super', args)};`;
   }
 
 }
 
-interface UnknownUcdDef$Allocation {
-  readonly context: string;
-  readonly listRx: string;
-  readonly mapRx: string;
-  readonly setMap: UccMethod<'map'>;
-  readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;
-  readonly mapTemplate: UcrxTemplate<
-    Record<string, unknown>,
-    UcMap.Schema<Record<string, never>, UcSchema>
-  >;
+export namespace UnknownUcdDef {
+  export interface Allocation {
+    readonly context: string;
+    readonly listRx: string;
+    readonly mapRx: string;
+    readonly setMap: UccMethod<'map'>;
+    readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;
+    readonly mapTemplate: UcrxTemplate<
+      Record<string, unknown>,
+      UcMap.Schema<Record<string, never>, UcSchema>
+    >;
+  }
 }
+
+const anyTypes = new Set(['any']);
+const nonNullTypes = new Set(['non-null']);

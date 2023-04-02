@@ -48,6 +48,16 @@ export class UcrxHandle {
     return this.#isList as 0 | 1;
   }
 
+  andNls(context: UcrxContext): -1 | 0 | 1 {
+    const isList = this.andQuiet();
+
+    if (!isList) {
+      context.error(ucrxUnexpectedTypeError('nested list', this.#rx));
+    }
+
+    return isList;
+  }
+
   andQuiet(): -1 | 0 | 1 {
     if (this.#isList < 0) {
       return (this.#isList = this.#rx.and());

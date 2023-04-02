@@ -1,10 +1,9 @@
-import { capitalize } from '../../impl/capitalize.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode, UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxTemplate } from './ucrx-template.js';
 import { UcrxArgs } from './ucrx.args.js';
@@ -14,7 +13,6 @@ export class CustomUcrxTemplate<
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > extends UcrxTemplate<T, TSchema> {
 
-  readonly #preferredClassName: string;
   readonly #schema: TSchema;
 
   #className?: string;
@@ -26,9 +24,8 @@ export class CustomUcrxTemplate<
   constructor(options: CustomUcrxTemplate.Options<T, TSchema>) {
     super(options);
 
-    const { schema, className = capitalize(ucSchemaSymbol(schema)) + 'Ucrx' } = options;
+    const { schema } = options;
 
-    this.#preferredClassName = className;
     this.#schema = schema;
   }
 
@@ -44,10 +41,14 @@ export class CustomUcrxTemplate<
     const { base } = this;
 
     return this.lib.declarations.declareClass(
-      this.#preferredClassName,
+      this.preferredClassName(),
       name => this.#declareBody(name),
       { baseClass: base.className },
     );
+  }
+
+  protected preferredClassName(): string {
+    return ucSchemaTypeSymbol(this.schema);
   }
 
   #declareBody(className: string): UccSource {
@@ -134,7 +135,6 @@ export interface CustomUcrxTemplate<out T = unknown, out TSchema extends UcSchem
 
 export namespace CustomUcrxTemplate {
   export interface Options<out T, out TSchema extends UcSchema<T>> extends UcrxTemplate.Options {
-    readonly className?: string | undefined;
     readonly schema: TSchema;
   }
 }

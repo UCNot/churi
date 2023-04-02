@@ -14,26 +14,31 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   readonly #lib: UcdLib;
   readonly #ns: UccNamespace;
   readonly #schema: TSchema;
-  readonly #name: string;
   #template?: UcrxTemplate<T, TSchema>;
   #args?: UcdFunction.Args;
   #vars?: UcdFunction.Vars;
-  readonly #createAsyncReader: Exclude<UcdFunction.Options<T, TSchema>['createAsyncReader'], undefined>;
-  readonly #createSyncReader: Exclude<UcdFunction.Options<T, TSchema>['createSyncReader'], undefined>;
+  readonly #createAsyncReader: Exclude<
+    UcdFunction.Options<T, TSchema>['createAsyncReader'],
+    undefined
+  >;
+
+  readonly #createSyncReader: Exclude<
+    UcdFunction.Options<T, TSchema>['createSyncReader'],
+    undefined
+  >;
+
   readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
 
   constructor(options: UcdFunction.Options<T, TSchema>);
   constructor({
     lib,
     schema,
-    name,
     createAsyncReader: createReader = UcdFunction$createReader,
     createSyncReader = UcdFunction$createSyncReader,
   }: UcdFunction.Options<T, TSchema>) {
     this.#lib = lib;
     this.#ns = lib.ns.nest();
     this.#schema = schema;
-    this.#name = name;
     this.#createAsyncReader = createReader;
     this.#createSyncReader = createSyncReader;
   }
@@ -44,10 +49,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   get schema(): TSchema {
     return this.#schema;
-  }
-
-  get name(): string {
-    return this.#name;
   }
 
   get args(): UcdFunction.Args {
@@ -79,7 +80,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       if (!template) {
         throw new UnsupportedUcSchemaError(
           this.schema,
-          `${this.name}: Can not deserialize type "${ucSchemaName(this.schema)}"`,
+          `${ucSchemaName(this.schema)}: Can not deserialize type "${ucSchemaName(this.schema)}"`,
         );
       }
 
@@ -164,7 +165,6 @@ export namespace UcdFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcdLib;
     readonly schema: TSchema;
-    readonly name: string;
 
     createAsyncReader?(
       this: void,

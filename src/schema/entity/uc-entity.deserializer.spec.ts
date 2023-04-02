@@ -71,7 +71,19 @@ describe('UcEntity deserializer', () => {
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
+  it('closes hanging parentheses', async () => {
+    const lib = new UcdLib({
+      schemae: {
+        readString: String,
+      },
+      definitions: [...BasicUcdDefs, PlainEntityUcdDef],
+    });
+    const { readString } = await lib.compile('async').toDeserializers();
 
+    await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
+      '!plain(bar(item1,item2)baz())',
+    );
+  });
   it('extends base ucrx', async () => {
     const lib = new UcdLib({
       schemae: {
@@ -84,7 +96,6 @@ describe('UcEntity deserializer', () => {
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
-
   it('fails without required ucrx method', async () => {
     const lib = new UcdLib({
       schemae: {

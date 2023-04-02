@@ -1,9 +1,13 @@
 {
   "extends": "@run-z/project-config/tsconfig.lib.json",
   "compilerOptions": {
+    "rootDir": "./src",
     "lib": ["DOM", "ES2022"],
     "outDir": "target/js",
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "paths": {
+      "#churi/uri-charge/deserializer": ["./src/compiler/impl/uri-charge.deserializer.stub.ts"]
+    }
   },
-  "include": ["src/**/*.ts", "src/compiler/deserialization/basic.ucd-defs ts"]
+  "include": ["src/**/*.ts"]
 }

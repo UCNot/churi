@@ -5,7 +5,7 @@ import { UcSerializer } from '../../schema/uc-serializer.js';
 import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
-import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
+import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { DefaultUcsDefs } from './default.ucs-defs.js';
 import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
@@ -51,7 +51,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     externalName?: string,
   ): UcsFunction<T, TSchema> {
     const { id = schema.type } = schema;
-    const variant = UcSchema$variantOf(schema);
+    const variant = ucUcSchemaVariant(schema);
 
     let variants = this.#serializers.get(id);
 

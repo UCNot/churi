@@ -25,8 +25,9 @@ export const UcrxCore: UcrxCore = {
     key: 'ent',
     stub({ value }, _method, { lib }) {
       const UcEntity = lib.import(CHURI_MODULE, 'UcEntity');
+      const printUcTokens = lib.import(CHURI_MODULE, 'printUcTokens');
 
-      return `return this.any(new ${UcEntity}(${value}));`;
+      return `return this.any(new ${UcEntity}(${printUcTokens}(${value})));`;
     },
     typeName: 'entity',
   }),

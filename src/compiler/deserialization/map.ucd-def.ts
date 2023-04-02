@@ -1,14 +1,17 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
-import { jsPropertyKey } from '../../impl/quote-property-key.js';
+import { escapeJsString, jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
+import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
+import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
+import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { EntryUcdDef } from './entry.ucd-def.js';
 import { UcdLib } from './ucd-lib.js';
 
@@ -87,6 +90,25 @@ export class MapUcdDef<
     return this.#allocation;
   }
 
+  protected override preferredClassName(): string {
+    const { schema } = this;
+    const { entries, extra } = schema;
+    const entryClassNames = new Set<string>();
+
+    const addEntry = (entryKey: string | null, entrySchema: UcSchema): void => {
+      const { className } = this.entryTemplate(entryKey, entrySchema);
+
+      entryClassNames.add(className.endsWith('Ucrx') ? className.slice(0, -4) : className);
+    };
+
+    Object.entries<UcSchema>(entries).forEach(([key, schema]) => addEntry(key, schema));
+    if (extra) {
+      addEntry(null, extra);
+    }
+
+    return `Map${ucUcSchemaVariant(schema)}Of` + [...entryClassNames].join('Or') + 'Ucrx';
+  }
+
   protected override declareConstructor({ context }: UcrxArgs.ByName): UccSource {
     const {
       decls: { requiredCount },
@@ -144,6 +166,22 @@ export class MapUcdDef<
     return lib.declarations.declare(`${this.className}$extra`, (prefix, suffix) => entry.declare(prefix, suffix));
   }
 
+  entryTemplate(key: string | null, schema: UcSchema): UcrxTemplate {
+    try {
+      return this.lib.ucrxTemplateFor(schema);
+    } catch (cause) {
+      const entryName = key != null ? `entry "${escapeJsString(key)}"` : 'extra entry';
+
+      throw new UnsupportedUcSchemaError(
+        schema,
+        `${ucSchemaName(this.schema)}: Can not deserialize ${entryName} of type "${ucSchemaName(
+          schema,
+        )}"`,
+        { cause },
+      );
+    }
+  }
+
   createEntry(key: string | null, schema: UcSchema): EntryUcdDef {
     return new EntryUcdDef(this as MapUcdDef, key, schema);
   }
@@ -152,10 +190,12 @@ export class MapUcdDef<
     return `${prefix}{}${suffix}`;
   }
 
+  storeMap(setter: string, allocation: MapUcdDef.Allocation): UccSource;
   storeMap(setter: string, { map }: MapUcdDef.Allocation): UccSource {
     return `${setter}(${map}[0]);`;
   }
 
+  reclaimMap(allocation: MapUcdDef.Allocation): UccSource;
   reclaimMap({ map }: MapUcdDef.Allocation): UccSource {
     // Allocate map instance for the next list item.
     return this.allocateMap(`${map}[0] = `, `;`);
