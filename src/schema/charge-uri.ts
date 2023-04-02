@@ -1,6 +1,6 @@
 import { escapeUcKey, escapeUcValue } from '../impl/uc-string-escapes.js';
-import { UcMap } from '../schema/map/uc-map.js';
-import { ANY_CHARGE_PLACEMENT } from './impl/uri-chargeable.placement.js';
+import { ANY_CHARGE_PLACEMENT } from '../impl/uri-chargeable.placement.js';
+import { UcMap } from './map/uc-map.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 /**
@@ -45,17 +45,6 @@ const URI_CHARGE_ENCODERS: {
  */
 export function chargeURIKey(key: string): string {
   return key ? escapeUcKey(encodeURIComponent(key)) : '$';
-}
-
-/**
- * Decodes key of URI charge map entry.
- *
- * @param encoded - Percent-encoded and possibly escaped key.
- *
- * @returns Decoded key.
- */
-export function unchargeURIKey(encoded: string): string {
-  return decodeURIComponent(encoded.startsWith('$') ? encoded.slice(1) : encoded);
 }
 
 /**

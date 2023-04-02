@@ -1,8 +1,8 @@
+import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { describe, expect, it } from '@jest/globals';
-import { UcEntity } from '../schema/entity/uc-entity.js';
-import { chargeURI, chargeURIKey, unchargeURIKey } from './charge-uri.js';
-import { parseURICharge } from './parse-uri-charge.js';
-import { URICharge } from './uri-charge.js';
+import { chargeURI, chargeURIKey } from './charge-uri.js';
+import { UcEntity } from './entity/uc-entity.js';
+import { URICharge } from './uri-charge/uri-charge.js';
 import { URIChargeable } from './uri-chargeable.js';
 
 describe('chargeURI', () => {
@@ -308,13 +308,13 @@ describe('chargeURI', () => {
 
   describe('URICharge', () => {
     it('encoded when simple', () => {
-      expect(String(parseURICharge('%74est').charge)).toBe('test');
+      expect(String(parseURICharge('%74est'))).toBe('test');
     });
     it('encoded when map', () => {
-      expect(String(parseURICharge('%74est(foo)').charge)).toBe('test(foo)');
+      expect(String(parseURICharge('%74est(foo)'))).toBe('test(foo)');
     });
     it('encoded when list', () => {
-      expect(String(parseURICharge('(foo)(%74est').charge)).toBe('(foo)(test)');
+      expect(String(parseURICharge('(foo)(%74est'))).toBe('(foo)(test)');
     });
     it('is not encoded when none', () => {
       expect(String(URICharge.none)).toBe('!None');
@@ -341,11 +341,5 @@ describe('chargeURIKey', () => {
     expect(chargeURIKey('7foo')).toBe('7foo');
     expect(chargeURIKey('8foo')).toBe('8foo');
     expect(chargeURIKey('9foo')).toBe('9foo');
-  });
-});
-
-describe('unchargeURIKey', () => {
-  it('un-escapes prefix', () => {
-    expect(unchargeURIKey('$foo%20bar')).toBe('foo bar');
   });
 });

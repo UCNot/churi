@@ -1,6 +1,6 @@
-import { chargeURI, chargeURIArray, chargeURIMap } from '../../charge/charge-uri.js';
-import { URICharge, URIChargeItem } from '../../charge/uri-charge.js';
-import { URIChargeable } from '../../charge/uri-chargeable.js';
+import { chargeURI, chargeURIArray, chargeURIMap } from '../../schema/charge-uri.js';
+import { URICharge, URIChargeItem } from '../../schema/uri-charge/uri-charge.js';
+import { URIChargeable } from '../../schema/uri-chargeable.js';
 
 abstract class URICharge$Some<out TValue>
   extends URICharge<TValue>

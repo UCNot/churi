@@ -1,10 +1,10 @@
 import { isIterable } from '@proc7ts/primitives';
-import { URICharge } from '../charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
 import {
   UcMatrixParams$splitter,
   UcSearchParams$splitter,
 } from '../impl/uc-search-params.splitter.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import { UcParamsCharge } from './uc-params-charge.js';
 import type { UcRawParams } from './uc-raw-params.js';
 

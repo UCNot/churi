@@ -1,4 +1,4 @@
-import { URIChargeable } from '../../charge/uri-chargeable.js';
+import { URIChargeable } from '../uri-chargeable.js';
 
 /**
  * Opaque URI charge entity.

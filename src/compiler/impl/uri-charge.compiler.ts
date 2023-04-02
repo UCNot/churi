@@ -1,8 +1,8 @@
-import { URICharge } from '../../charge/uri-charge.js';
 import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
+import { URICharge } from '../../schema/uri-charge/uri-charge.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { EntryUcdDef } from '../deserialization/entry.ucd-def.js';

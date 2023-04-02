@@ -1,6 +1,6 @@
 import { parseUcValue } from '#churi/uc-value/deserializer';
 import { describe, expect, it } from '@jest/globals';
-import { UcEntity } from '../schema/entity/uc-entity.js';
+import { UcEntity } from '../entity/uc-entity.js';
 
 describe('parseUcValue', () => {
   describe('string value', () => {

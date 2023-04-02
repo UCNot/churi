@@ -1,6 +1,6 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { lazyValue } from '@proc7ts/primitives';
-import { URICharge } from '../charge/uri-charge.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import { UcMatrixParams } from './uc-search-params.js';
 
 /**

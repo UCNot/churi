@@ -1,6 +1,6 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
-import { URICharge } from '../charge/uri-charge.js';
 import { URICharge$List } from '../deserializer/impl/uri-charge.some.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import type { UcSearchParams } from './uc-search-params.js';
 
 /**

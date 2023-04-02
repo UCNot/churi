@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { URIChargeUcdLib } from '../compiler/impl/uri-charge.compiler.js';
-import { UcDeserializer } from '../schema/uc-deserializer.js';
-import '../spec/uri-charge-matchers.js';
+import { URIChargeUcdLib } from '../../compiler/impl/uri-charge.compiler.js';
+import '../../spec/uri-charge-matchers.js';
+import { UcDeserializer } from '../uc-deserializer.js';
 import { URICharge } from './uri-charge.js';
 
 describe('parseURICharge', () => {
