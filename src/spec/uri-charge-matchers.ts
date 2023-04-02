@@ -2,7 +2,7 @@
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
 import { UcEntity } from '../schema/entity/uc-entity.js';
-import { URICharge, URIChargeItem } from '../schema/uri-charge/uri-charge.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 
 expect.extend({
   toBeURIChargeList,
@@ -126,7 +126,7 @@ function toBeURIChargeSingle<TContext extends MatcherContext = MatcherContext>(
 function toHaveURIChargeEntries<TContext extends MatcherContext = MatcherContext>(
   this: TContext,
   received: URICharge,
-  expectedEntries: Record<string, URIChargeValue>,
+  expectedEntries: Record<string, unknown>,
 ): ExpectationResult {
   const receivedEntries = Object.fromEntries(
     [...received.entries()].map(([key, value]) => [key, extractURIChargeItem(value)]),
@@ -144,7 +144,7 @@ function toHaveURIChargeEntries<TContext extends MatcherContext = MatcherContext
 function toHaveURIChargeItems<TContext extends MatcherContext = MatcherContext>(
   this: TContext,
   received: URICharge,
-  ...expectedValues: URIChargeValue[]
+  ...expectedValues: unknown[]
 ): ExpectationResult {
   const receivedValues = [...received.list()].map(extractURIChargeItem);
   const pass = this.equals(receivedValues, expectedValues);
@@ -160,7 +160,7 @@ function toHaveURIChargeItems<TContext extends MatcherContext = MatcherContext>(
 function toHaveURIChargeValue<TContext extends MatcherContext = MatcherContext>(
   this: TContext,
   received: URICharge,
-  expectedValue: URIChargeValue,
+  expectedValue: unknown,
 ): ExpectationResult {
   const receivedValue = extractURIChargeValue(received);
   const pass = this.equals(receivedValue, expectedValue);
@@ -173,14 +173,7 @@ function toHaveURIChargeValue<TContext extends MatcherContext = MatcherContext>(
   };
 }
 
-type URIChargeValue =
-  | undefined
-  | URIChargeItem
-  | { [key: string]: URIChargeValue }
-  | URIChargeValue[]
-  | undefined;
-
-function extractURIChargeItem(charge: URICharge): URIChargeValue {
+function extractURIChargeItem(charge: URICharge): unknown {
   if (charge.isList()) {
     return [...charge.list()].map(extractURIChargeItem);
   }
@@ -193,7 +186,7 @@ function extractURIChargeItem(charge: URICharge): URIChargeValue {
   return extractURIChargeValue(charge);
 }
 
-function extractURIChargeValue(charge: URICharge): URIChargeValue {
+function extractURIChargeValue(charge: URICharge): unknown {
   const { value } = charge;
 
   if (value instanceof UcEntity) {
@@ -209,9 +202,9 @@ declare module 'expect' {
     toBeURIChargeMap(): void;
     toBeURIChargeNone(): void;
     toBeURIChargeSingle(type: string): void;
-    toHaveURIChargeEntries(expectedEntries: Record<string, URIChargeValue>): void;
-    toHaveURIChargeValue(expectedValue: URIChargeValue): void;
-    toHaveURIChargeItems(...expectedValues: URIChargeValue[]): void;
+    toHaveURIChargeEntries(expectedEntries: Record<string, unknown>): void;
+    toHaveURIChargeValue(expectedValue: unknown): void;
+    toHaveURIChargeItems(...expectedValues: unknown[]): void;
   }
 
   interface Matchers<R> {
@@ -219,9 +212,9 @@ declare module 'expect' {
     toBeURIChargeMap(): R;
     toBeURIChargeNone(): R;
     toBeURIChargeSingle(type: string): R;
-    toHaveURIChargeEntries(expectedEntries: Record<string, URIChargeValue>): R;
-    toHaveURIChargeValue(expectedValue: URIChargeValue): R;
-    toHaveURIChargeItems(...expectedValues: URIChargeValue[]): R;
+    toHaveURIChargeEntries(expectedEntries: Record<string, unknown>): R;
+    toHaveURIChargeValue(expectedValue: unknown): R;
+    toHaveURIChargeItems(...expectedValues: unknown[]): R;
   }
 }
 

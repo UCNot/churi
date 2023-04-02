@@ -1,10 +1,9 @@
 import { chargeURI, chargeURIArray, chargeURIMap } from '../../schema/charge-uri.js';
-import { URICharge, URIChargeItem } from '../../schema/uri-charge/uri-charge.js';
+import { UcUnknown } from '../../schema/unknown/uc-unknown.js';
+import { URICharge } from '../../schema/uri-charge/uri-charge.js';
 import { URIChargeable } from '../../schema/uri-chargeable.js';
 
-abstract class URICharge$Some<out TValue>
-  extends URICharge<TValue>
-  implements URICharge.Some<TValue> {
+abstract class URICharge$Some extends URICharge implements URICharge.Some {
 
   override isNone(): false {
     return false;
@@ -22,20 +21,18 @@ abstract class URICharge$Some<out TValue>
 
 }
 
-export class URICharge$Single<out TValue>
-  extends URICharge$Some<TValue>
-  implements URICharge.Single<TValue> {
+export class URICharge$Single extends URICharge$Some implements URICharge.Single {
 
-  readonly #value: URIChargeItem<TValue>;
+  readonly #value: UcUnknown | null;
   readonly #type: string;
 
-  constructor(value: URIChargeItem<TValue>, type: string) {
+  constructor(value: UcUnknown | null, type: string) {
     super();
     this.#value = value;
     this.#type = type;
   }
 
-  override get value(): URIChargeItem<TValue> {
+  override get value(): UcUnknown | null {
     return this.#value;
   }
 
@@ -91,13 +88,11 @@ export class URICharge$Single<out TValue>
 
 }
 
-export class URICharge$Map<out TValue>
-  extends URICharge$Some<TValue>
-  implements URICharge.Map<TValue> {
+export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
-  readonly #map: Map<string, URICharge.Some<TValue>>;
+  readonly #map: Map<string, URICharge.Some>;
 
-  constructor(map: Map<string, URICharge.Some<TValue>>) {
+  constructor(map: Map<string, URICharge.Some>) {
     super();
     this.#map = map;
   }
@@ -140,11 +135,11 @@ export class URICharge$Map<out TValue>
     yield this;
   }
 
-  override get(key: string): URICharge.Some<TValue> | URICharge.None {
+  override get(key: string): URICharge.Some | URICharge.None {
     return this.#map.get(key) ?? URICharge.none;
   }
 
-  override entries(): IterableIterator<[string, URICharge.Some<TValue>]> {
+  override entries(): IterableIterator<[string, URICharge.Some]> {
     return this.#map.entries();
   }
 
@@ -158,18 +153,16 @@ export class URICharge$Map<out TValue>
 
 }
 
-export class URICharge$List<out TValue>
-  extends URICharge$Some<TValue>
-  implements URICharge.List<TValue> {
+export class URICharge$List extends URICharge$Some implements URICharge.List {
 
-  readonly #list: URICharge.Some<TValue>[];
+  readonly #list: URICharge.Some[];
 
-  constructor(list: URICharge.Some<TValue>[]) {
+  constructor(list: URICharge.Some[]) {
     super();
     this.#list = list;
   }
 
-  override get value(): URIChargeItem<TValue> | undefined {
+  override get value(): UcUnknown | null | undefined {
     return this.at(0).value;
   }
 
@@ -200,7 +193,7 @@ export class URICharge$List<out TValue>
     return false;
   }
 
-  override at(index: number): URICharge.Some<TValue> | URICharge.None {
+  override at(index: number): URICharge.Some | URICharge.None {
     const listIndex = index < 0 ? this.#list.length + index : index;
 
     return (
@@ -208,7 +201,7 @@ export class URICharge$List<out TValue>
     );
   }
 
-  override *list(): IterableIterator<URICharge.Some<TValue>> {
+  override *list(): IterableIterator<URICharge.Some> {
     yield* this.#list;
   }
 

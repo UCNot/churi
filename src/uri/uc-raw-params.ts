@@ -1,5 +1,5 @@
 /**
- * Search parameters representing a {@link UcSearchParams#search query string} of the URI, containing raw
+ * Search parameters representing a {@link UcSearchParams#raw query string} of the URI, containing raw
  * (i.e. _not_ URI-decoded) values.
  *
  * Unlike values, parameter keys _are_ URI-decoded.

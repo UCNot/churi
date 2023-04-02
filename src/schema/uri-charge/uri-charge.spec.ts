@@ -1,5 +1,5 @@
-import { URICharge } from '@hatsy/churi';
 import { describe, expect, it } from '@jest/globals';
+import { URICharge } from './uri-charge.js';
 
 describe('URICharge', () => {
   describe('none', () => {

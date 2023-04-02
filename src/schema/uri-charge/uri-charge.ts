@@ -1,5 +1,4 @@
-import { UcEntity } from '../entity/uc-entity.js';
-import { UcPrimitive } from '../uc-primitive.js';
+import { UcUnknown } from '../unknown/uc-unknown.js';
 import { URIChargeable } from '../uri-chargeable.js';
 
 /**
@@ -8,10 +7,8 @@ import { URIChargeable } from '../uri-chargeable.js';
  * Instances of this class may represent any charge type, including {@link URICharge.Map maps}
  * and {@link URICharge.List lists}. When part of the charge is not available, corresponding property or method returns
  * {@link URICharge.none}, which means the absence of charge.
- *
- * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  */
-export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeable {
+export abstract class URICharge implements URIChargeable {
 
   /**
    * URI charge instance representing the absent charge.
@@ -26,7 +23,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    * `undefined` when the charge has no own value, e.g. when it is a {@link URICharge.Map map}, an empty
    * {@link URICharge.List list}, or {@link URICharge.None none}.
    */
-  abstract get value(): URIChargeItem<TValue> | undefined;
+  abstract get value(): UcUnknown | null | undefined;
 
   /**
    * Type of this charge {@link value}.
@@ -56,21 +53,21 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns `true` for any charge instance, except {@link URICharge.none} instance.
    */
-  abstract isSome(): this is URICharge.Some<TValue>;
+  abstract isSome(): this is URICharge.Some;
 
   /**
    * Checks whether this charge has own {@link value} or at leas one {@link at list item}.
    *
    * @returns `true` for {@link URICharge.Single single-valued charge} and non-empty {@link URICharge.List list}.
    */
-  abstract hasValues(): this is URICharge.WithValues<TValue>;
+  abstract hasValues(): this is URICharge.WithValues;
 
   /**
    * Checks whether this charge is a {@link URICharge.Single single-valued} one.
    *
    * @returns `true` for single-valued charges only; `false` for everything else, including lists with single item.
    */
-  abstract isSingle(): this is URICharge.Single<TValue>;
+  abstract isSingle(): this is URICharge.Single;
 
   /**
    * Checks whether this charge is a {@link URICharge.List list}.
@@ -84,7 +81,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns `true` for any map, including empty one; `false` for everything else.
    */
-  abstract isMap(): this is URICharge.Map<TValue>;
+  abstract isMap(): this is URICharge.Map;
 
   /**
    * Obtains an item charge at the given `index`.
@@ -100,7 +97,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns Target item charge, or {@link URICharge.none none} if there is no such item.
    */
-  abstract at(index: number): URICharge.Some<TValue> | URICharge.None;
+  abstract at(index: number): URICharge.Some | URICharge.None;
 
   /**
    * Iterates over charge item charges.
@@ -111,7 +108,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns Iterable iterator over present item charges.
    */
-  abstract list(): IterableIterator<URICharge.Some<TValue>>;
+  abstract list(): IterableIterator<URICharge.Some>;
 
   /**
    * Obtains a {@link URICharge.Map map} entry with the given `key`.
@@ -122,7 +119,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns Either entry charge, or {@link URICharge.none none} if there is no such entry.
    */
-  abstract get(key: string): URICharge.Some<TValue> | URICharge.None;
+  abstract get(key: string): URICharge.Some | URICharge.None;
 
   /**
    * Iterates over {@link URICharge.Map map} entries.
@@ -131,7 +128,7 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
    *
    * @returns Iterable iterator of entry key/charge pairs.
    */
-  abstract entries(): IterableIterator<[string, URICharge.Some<TValue>]>;
+  abstract entries(): IterableIterator<[string, URICharge.Some]>;
 
   /**
    * Iterates over {@link URICharge.Map map} entry keys.
@@ -153,21 +150,12 @@ export abstract class URICharge<out TValue = UcPrimitive> implements URIChargeab
 
 }
 
-/**
- * A list item value or own value of the charge.
- *
- * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
- */
-export type URIChargeItem<TValue = UcPrimitive> = TValue | UcPrimitive | UcEntity;
-
 export namespace URICharge {
   /**
    * URI charge without own value or items. E.g. a {@link URICharge.Map map}, an empty
    * {@link URICharge.List list}, or {@link URICharge.None none}.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface WithoutValues<out TValue = UcPrimitive> extends URICharge<TValue> {
+  export interface WithoutValues extends URICharge {
     get value(): undefined;
     get type(): undefined;
 
@@ -176,15 +164,13 @@ export namespace URICharge {
     isList(): false;
 
     at(index: 0 | -1): this;
-    at(index: number): URICharge.Some<TValue> | None;
+    at(index: number): URICharge.Some | None;
   }
 
   /**
    * URI charge without map entries.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface WithoutEntries<out TValue = UcPrimitive> extends URICharge<TValue> {
+  export interface WithoutEntries extends URICharge {
     isMap(): false;
 
     get(key: string): None;
@@ -197,10 +183,7 @@ export namespace URICharge {
    *
    * The only instance of this type is {@link URICharge.none}.
    */
-  export interface None
-    extends URICharge<undefined>,
-      WithoutValues<undefined>,
-      WithoutEntries<undefined> {
+  export interface None extends URICharge, WithoutValues, WithoutEntries {
     get value(): undefined;
     get type(): undefined;
     get length(): 0;
@@ -227,10 +210,8 @@ export namespace URICharge {
 
   /**
    * URI charge that represents {@link URICharge#isSome something}, in contrast to {@link URICharge.None none}.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface Some<out TValue = UcPrimitive> extends URICharge<TValue>, URIChargeable {
+  export interface Some extends URICharge, URIChargeable {
     isNone(): false;
     isSome(): true;
 
@@ -239,11 +220,9 @@ export namespace URICharge {
 
   /**
    * URI charge with own value or list items.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface WithValues<out TValue = UcPrimitive> extends Some<TValue> {
-    get value(): URIChargeItem<TValue>;
+  export interface WithValues extends Some {
+    get value(): UcUnknown | null;
     get type(): string;
 
     hasValues(): true;
@@ -252,10 +231,8 @@ export namespace URICharge {
 
   /**
    * Single-valued charge.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface Single<out TValue = UcPrimitive> extends WithValues<TValue> {
+  export interface Single extends WithValues {
     isList(): false;
 
     at(index: 0 | -1): this;
@@ -271,10 +248,8 @@ export namespace URICharge {
 
   /**
    * URI charge list.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface List<out TValue = UcPrimitive> extends Some<TValue>, WithoutEntries<TValue> {
+  export interface List extends Some, WithoutEntries {
     isNone(): false;
     isSome(): true;
     isList(): true;
@@ -289,10 +264,8 @@ export namespace URICharge {
 
   /**
    * URI charge map.
-   *
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
    */
-  export interface Map<out TValue = UcPrimitive> extends Some<TValue>, WithoutValues<TValue> {
+  export interface Map extends Some, WithoutValues {
     get value(): undefined;
     get type(): undefined;
     get length(): 0;
@@ -314,7 +287,7 @@ export namespace URICharge {
   }
 }
 
-class URICharge$None extends URICharge<undefined> implements URICharge.None {
+class URICharge$None extends URICharge implements URICharge.None {
 
   get value(): undefined {
     return;
