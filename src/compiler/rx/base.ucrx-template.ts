@@ -61,6 +61,22 @@ export abstract class BaseUcrxTemplate {
   }
 
   #buildExpectedTypes(): readonly [set: ReadonlySet<string>, sameAsBase: boolean] {
+    const types = this.discoverTypes();
+    const { base } = this;
+    const typesCount = types.size;
+    let sameAsBase: boolean;
+
+    if (base) {
+      base.expectedTypes.forEach(type => types.add(type));
+      sameAsBase = types.size === typesCount && base.expectedTypes.size === typesCount;
+    } else {
+      sameAsBase = !typesCount;
+    }
+
+    return [types, sameAsBase];
+  }
+
+  protected discoverTypes(): Set<string> {
     const types = new Set<string>();
 
     for (const method of Object.values(this.ownMethods)) {
@@ -76,14 +92,7 @@ export abstract class BaseUcrxTemplate {
       }
     }
 
-    const { base } = this;
-    const sameAsBase = !types.size;
-
-    if (base) {
-      base.expectedTypes.forEach(type => types.add(type));
-    }
-
-    return [types, sameAsBase];
+    return types;
   }
 
   get ownMethods(): UcrxTemplate.Methods {

@@ -28,6 +28,10 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     super({ lib, schema, args: ['set', 'context'] });
   }
 
+  protected override discoverTypes(): Set<string> {
+    return this.schema.nullable ? anyTypes : nonNullTypes;
+  }
+
   #getAllocation(): UnknownUcdDef.Allocation {
     return (this.#allocation ??= this.#allocate());
   }
@@ -76,15 +80,6 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
       const { context: varContext } = this.#getAllocation();
 
       code.write(`${varContext} = ${context};`);
-    };
-  }
-
-  protected override declareTypes(): UccSource {
-    return code => {
-      code
-        .write('get types() {')
-        .indent(this.schema.nullable ? `return ['any'];` : `return ['non-null']`)
-        .write('}');
     };
   }
 
@@ -235,3 +230,6 @@ export namespace UnknownUcdDef {
     >;
   }
 }
+
+const anyTypes = new Set(['any']);
+const nonNullTypes = new Set(['non-null']);

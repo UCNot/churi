@@ -49,6 +49,14 @@ export class ListUcdDef<
     return false;
   }
 
+  protected override discoverTypes(): Set<string> {
+    if (!this.#isMatrix || this.#getItemTemplate().permitsSingle) {
+      return new Set(this.#getItemTemplate().expectedTypes);
+    }
+
+    return super.discoverTypes();
+  }
+
   protected override callSuperConstructor(
     base: BaseUcrxTemplate,
     args: UcrxArgs.ByName,
@@ -99,7 +107,7 @@ export class ListUcdDef<
   }
 
   get #isMatrix(): boolean {
-    return !!this.#getItemTemplate().definedMethods.end;
+    return !!this.#getItemTemplate().definedMethods.and;
   }
 
   #getAllocation(): ListUcdDef.Allocation {
