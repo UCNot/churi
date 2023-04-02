@@ -12,19 +12,6 @@ describe('UcdLib', () => {
     });
   });
 
-  describe('deserializerFor', () => {
-    it('obtains serializer for unknown schema', () => {
-      const fn = lib.deserializerFor({ type: String });
-
-      expect(fn.name).toBe('String');
-    });
-    it('obtains serializer for unknown named schema', () => {
-      const fn = lib.deserializerFor({ type: 'string' });
-
-      expect(fn.name).toBe('string');
-    });
-  });
-
   describe('compile', () => {
     it('creates async factory', () => {
       const compiled = lib.compile('async');

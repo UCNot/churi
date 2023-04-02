@@ -5,6 +5,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
+import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -47,6 +48,10 @@ export class ListUcdDef<
 
   override get permitsSingle(): boolean {
     return false;
+  }
+
+  protected override preferredClassName(): string {
+    return 'List' + ucUcSchemaVariant(this.schema) + 'Of' + this.#getItemTemplate().className;
   }
 
   protected override discoverTypes(): Set<string> {

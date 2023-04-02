@@ -6,8 +6,7 @@ import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
-import { UcSchema$Variant, UcSchema$variantOf } from '../impl/uc-schema.variant.js';
+import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -71,8 +70,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
     this.#createDeserializer = createDeserializer;
 
-    for (const [externalName, schema] of Object.entries(this.#schemae)) {
-      this.deserializerFor(schema, externalName);
+    for (const schema of Object.values(this.#schemae)) {
+      this.deserializerFor(schema);
     }
   }
 
@@ -142,10 +141,9 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-    externalName?: string,
   ): UcdFunction<T, TSchema> {
     const { id = schema.type } = schema;
-    const variant = UcSchema$variantOf(schema);
+    const variant = ucUcSchemaVariant(schema);
 
     let variants = this.#deserializers.get(id);
 
@@ -160,7 +158,6 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
       deserializer = this.#createDeserializer({
         lib: this as UcdLib,
         schema,
-        name: this.ns.name(`${externalName ?? ucSchemaSymbol(schema)}`),
       });
       variants.set(variant, deserializer);
     }

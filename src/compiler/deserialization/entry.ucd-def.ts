@@ -1,12 +1,9 @@
 import { lazyValue } from '@proc7ts/primitives';
-import { escapeJsString } from '../../impl/quote-property-key.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcdDef } from './map.ucd-def.js';
 
 export class EntryUcdDef {
@@ -57,21 +54,7 @@ export class EntryUcdDef {
   }
 
   getTemplate(): UcrxTemplate {
-    const { schema, mapDef } = this;
-
-    try {
-      return mapDef.lib.ucrxTemplateFor(schema);
-    } catch (cause) {
-      const entryName = this.key != null ? `entry "${escapeJsString(this.key)}"` : 'extra entry';
-
-      throw new UnsupportedUcSchemaError(
-        schema,
-        `${ucSchemaName(mapDef.schema)}: Can not deserialize ${entryName} of type "${ucSchemaName(
-          schema,
-        )}"`,
-        { cause },
-      );
-    }
+    return this.mapDef.entryTemplate(this.key, this.schema);
   }
 
   setEntry(map: string, key: string, value: string): UccSource {

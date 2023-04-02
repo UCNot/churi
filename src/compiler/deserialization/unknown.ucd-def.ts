@@ -25,7 +25,15 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   #allocation?: UnknownUcdDef.Allocation;
 
   constructor(lib: UcrxLib, schema: UcSchema) {
-    super({ lib, schema, args: ['set', 'context'] });
+    super({
+      lib,
+      schema,
+      args: ['set', 'context'],
+    });
+  }
+
+  protected override preferredClassName(): string {
+    return this.schema.nullable ? 'AnyUcrx' : 'NonNullUcrx';
   }
 
   protected override discoverTypes(): Set<string> {
