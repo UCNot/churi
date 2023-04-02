@@ -329,7 +329,9 @@ describe('UcMap deserializer', () => {
     let lib: UcdLib<{
       readMap: UcMap.Schema<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
     }>;
-    let readMap: UcDeserializer<{ length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }>;
+    let readMap: UcDeserializer<
+      { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
+    >;
 
     beforeEach(async () => {
       lib = new UcdLib({

@@ -20,12 +20,12 @@ URI charge may be used:
 **Example:**
 
 ```
-https://example.com/api(!v:3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date:1970-01-01)till(!now)&range=from(10)to(20)
+https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
 , where:
 
-- `/api(!v:3.0)` is a path fragment charged with `!v:3.0` entity.
+- `/api(!v3.0)` is a path fragment charged with `!v3.0` entity.
 
   Entities are URI charge format extensions treated by custom handlers.
 
@@ -35,9 +35,9 @@ https://example.com/api(!v:3.0)/user;id=0n302875106592253/article;slug=hello-wor
 
 - `/article;slug=hello-world` is a path fragment with simple string matrix parameter.
 
-- `?date=since(!date:1970-01-01)till(!now)` is a query parameter charged with map value.
+- `?date=since(!date'1970-01-01)till(!now)` is a query parameter charged with map value.
 
-  Notice the `!date:1970-01-01` and `!now` entities.
+  Notice the `!date'1970-01-01` and `!now` entities.
 
   The `date` parameter charge corresponds to JavaScript object literal like:
 
@@ -92,30 +92,30 @@ import { ChURI } from '@hatsy/churi';
 
 const { route, searchParams: query } = new ChURI(
   'https://example.com' +
-    '/api(!v:3.0)' +
+    '/api(!v3.0)' +
     '/user;id=0n302875106592253' +
     '/article;slug=hello-world' +
     '/comments' +
-    '?date=since(!date:1970-01-01)till(!now)' +
+    `?date=since(!date'1970-01-01)till(!now)` +
     '&range=from(10)to(20)',
 );
 
 console.debug(route.path);
-// /api(!v:3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
+// /api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
 
 console.debug(route.name, route.charge.get('api').value);
-// api !v:3.0
+// api !v3.0
 
-console.debug(route.at(1).name, route.at(1).matrix.chargeOf('id').value);
+console.debug(route.at(1).name, route.at(1).matrix.charge.get('id').value);
 // user 302875106592253n
 
-console.debug(route.at(2).name, route.at(2).matrix.chargeOf('slug').value);
+console.debug(route.at(2).name, route.at(2).matrix.charge.get('slug').value);
 // article hello-world
 
-console.debug(query.chargeOf('date').get('since').value);
+console.debug(query.charge.get('date').get('since').value);
 // 1970-01-01T00:00:00.000Z
 
-console.debug(query.chargeOf('range').get('from').value, query.chargeOf('range').get('to').value);
+console.debug(query.charge.get('range').get('from').value, query.charge.get('range').get('to').value);
 // 10 20
 ```
 
@@ -134,12 +134,12 @@ import { churi, UcEntity } from '@hatsy/churi';
 
 console.debug(churi`
   https://example.com
-    /api(${new UcEntity('!v:3.0')})
+    /api(${new UcEntity('!v3.0')})
     /user;id=${302875106592253n}
     /article;slug=${'hello-world'}
     /comments
       ?date=${{
-        since: new UcEntity('!date:1970-01-01'),
+        since: new UcEntity("!date'1970-01-01"),
         till: new UcEntity('!now'),
       }}
       &range=${{
@@ -157,19 +157,19 @@ Instead, a Charged URI string can be built with `chargeURI()` function.
 import { chargeURI, UcEntity } from '@hatsy/churi';
 
 console.debug(
-  'https://example.com' +
-    `/api(${chargeURI(new UcEntity('!v:3.0'))})` +
-    `/user;id=${chargeURI(302875106592253n)}` +
-    `/article;slug=${chargeURI('hello-world')}` +
-    '/comments' +
-    `?date=${chargeURI({
-      since: new UcEntity('!date:1970-01-01'),
+  `https://example.com`
+    + `/api(${chargeURI(new UcEntity('!v3.0'))})`
+    + `/user;id=${chargeURI(302875106592253n)}`
+    + `/article;slug=${chargeURI('hello-world')}`
+    + `/comments`
+    + `?date=${chargeURI({
+      since: new UcEntity("!date'1970-01-01"),
       till: new UcEntity('!now'),
-    })}` +
-    `&range=${chargeURI({
+    })}`
+    + `&range=${chargeURI({
       from: 10,
       to: 20,
-    })}`,
+    })},
 );
 ```
 
@@ -181,14 +181,6 @@ a `toJSON()` method will be used. Otherwise, predefined serialization algorithm 
 URI charge can be parsed from string and represented:
 
 - as `URICharge` instance by `parseURICharge()` function, or
-- as native `JavaScript` value (`UcValue`) by `parseUcValue()` one.
-
-There are more tools dealing with URI charge parsing and processing:
-
-- `URIChargeParser` - generic URI charge parser,
-- `URIChargeExt` - an extension mechanism for custom directives and entities,
-- `URIChargeRx` - URI charge receiver API implementing a Visitor pattern for charge processing,
-- `URIChargeBuilder` - `URIChargeRx` implementation used to build `URICharge` instances,
-- `UcValueBuilder` - `URIChargeRx` implementation used to build `UcValue` instances.
+- as native `JavaScript` value by `parseUcValue()` one.
 
 > See [API documentation] for more info.
