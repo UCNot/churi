@@ -1,9 +1,7 @@
+import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { lazyValue } from '@proc7ts/primitives';
-import { createURIChargeParser } from '../charge/parse-uri-charge.js';
-import { URIChargeParser } from '../charge/uri-charge-parser.js';
 import { URICharge } from '../charge/uri-charge.js';
-import { UcPrimitive } from '../schema/uc-primitive.js';
-import { UcMatrixParams } from './uc-matrix-params.js';
+import { UcMatrixParams } from './uc-search-params.js';
 
 /**
  * A route representing parsed URI {@link ChURI#pathname path}.
@@ -12,19 +10,13 @@ import { UcMatrixParams } from './uc-matrix-params.js';
  * fragments. Other fragments of the path may be accessed by their {@link UcRoute#get relative indices}.
  *
  * @typeParam TMatrix - Matrix parameters representation type. {@link UcMatrixParams} by default.
- * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
-export class UcRoute<
-  out TMatrix = UcMatrixParams,
-  out TValue = UcPrimitive,
-  out TCharge = URICharge<TValue>,
-> {
+export class UcRoute<out TMatrix = UcMatrixParams, out TCharge = URICharge> {
 
-  readonly #options: UcRoute.CustomMatrixOptions<TMatrix> &
-    UcRoute.CustomParserOption<TValue, TCharge>;
+  readonly #options: UcRoute.CustomMatrixOptions<TMatrix> & UcRoute.CustomParserOption<TCharge>;
 
-  #data: UcRoute$Data<TMatrix, TValue, TCharge>;
+  #data: UcRoute$Data<TMatrix, TCharge>;
   #index = 0;
   #fragment?: string;
   #path?: string;
@@ -41,12 +33,10 @@ export class UcRoute<
   constructor(
     path: string,
     ...options: UcMatrixParams extends TMatrix
-      ? UcPrimitive extends TValue
-        ? URICharge<TValue> extends TCharge
-          ? [UcRoute.Options<TMatrix, TValue, TCharge>?]
-          : [UcRoute.Options<TMatrix, TValue, TCharge>]
-        : [UcRoute.Options<TMatrix, TValue, TCharge>]
-      : [UcRoute.Options<TMatrix, TValue, TCharge>]
+      ? URICharge extends TCharge
+        ? [UcRoute.Options<TMatrix, TCharge>?]
+        : [UcRoute.Options<TMatrix, TCharge>]
+      : [UcRoute.Options<TMatrix, TCharge>]
   );
 
   constructor(
@@ -54,8 +44,8 @@ export class UcRoute<
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       Matrix = UcMatrixParams as new (matrix: string) => TMatrix,
-      parser = /*#__PURE__*/ createURIChargeParser() as URIChargeParser<TValue, TCharge>,
-    }: Partial<UcRoute.Options<TMatrix, TValue, TCharge>> = {},
+      parser = parseURICharge as (input: string) => TCharge,
+    }: Partial<UcRoute.CustomMatrixOptions<TMatrix> & UcRoute.CustomParserOption<TCharge>> = {},
   ) {
     this.#options = {
       Matrix,
@@ -113,7 +103,7 @@ export class UcRoute<
   #parseCharge(): TCharge {
     const { charge } = this.#getParts();
 
-    return this.chargeParser.parse(charge).charge;
+    return this.chargeParser(charge);
   }
 
   /**
@@ -188,7 +178,7 @@ export class UcRoute<
   /**
    * Parser used to parse path fragment's {@link charge} and {@link matrix matrix parameters} charge.
    */
-  get chargeParser(): URIChargeParser<TValue, TCharge> {
+  get chargeParser(): (input: string) => TCharge {
     return this.#data.chargeParser;
   }
 
@@ -199,7 +189,7 @@ export class UcRoute<
    *
    * @returns Either the fragment under the given `index`, or `undefined` if there is no such fragment.
    */
-  get(index: number): UcRoute<TMatrix, TValue, TCharge> | undefined {
+  get(index: number): UcRoute<TMatrix, TCharge> | undefined {
     const { fragments } = this.#data;
 
     index += this.#index;
@@ -249,8 +239,11 @@ export class UcRoute<
    *
    * @returns New path fragment.
    */
-  protected createFragment(_index: number): UcRoute<TMatrix, TValue, TCharge> {
-    return new (this.constructor as typeof UcRoute<TMatrix, TValue, TCharge>)('', this.#options);
+  protected createFragment(_index: number): UcRoute<TMatrix, TCharge> {
+    return new (this.constructor as typeof UcRoute<TMatrix, TCharge>)(
+      '',
+      this.#options as UcRoute.Options<TMatrix, TCharge>,
+    );
   }
 
 }
@@ -260,14 +253,10 @@ export namespace UcRoute {
    * Options for charged URI route construction.
    *
    * @typeParam TMatrix - Matrix parameters representation type. {@link UcMatrixParams} by default.
-   * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
-   * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+   * @typeParam TCharge - Route charge representation type. {@link URICharge} by default.
    */
-  export type Options<
-    TMatrix = UcMatrixParams,
-    TValue = UcPrimitive,
-    TCharge = URICharge<TValue>,
-  > = MatrixOptions<TMatrix> & ParserOptions<TValue, TCharge>;
+  export type Options<TMatrix = UcMatrixParams, TCharge = URICharge> = MatrixOptions<TMatrix> &
+    ParserOptions<TCharge>;
 
   export type MatrixOptions<TMatrix = UcMatrixParams> = UcMatrixParams extends TMatrix
     ? Partial<CustomMatrixOptions<TMatrix>>
@@ -280,20 +269,21 @@ export namespace UcRoute {
     readonly Matrix: new (matrix: string) => TMatrix;
   }
 
-  export type ParserOptions<
-    TValue = UcPrimitive,
-    TCharge = URICharge<TValue>,
-  > = UcPrimitive extends TValue
-    ? URICharge<TValue> extends TCharge
-      ? Partial<CustomParserOption<TValue, TCharge>>
-      : CustomParserOption<TValue, TCharge>
-    : CustomParserOption<TValue, TCharge>;
+  export type ParserOptions<TCharge = URICharge> = URICharge extends TCharge
+    ? DefaultParserOption
+    : CustomParserOption<TCharge>;
 
-  export interface CustomParserOption<TValue, TCharge> {
+  export interface DefaultParserOption {
     /**
-     * Parser to use to parse fragment's {@link UcRoute.charge} charges.
+     * Parser to use to parse fragment's {@link UcRoute#charge charge}.
      */
-    readonly parser: URIChargeParser<TValue, TCharge>;
+    readonly parser?: ((input: string) => URICharge) | undefined;
+  }
+  export interface CustomParserOption<TCharge> {
+    /**
+     * Parser to use to parse fragment's {@link UcRoute#charge charge}.
+     */
+    readonly parser: (input: string) => TCharge;
   }
 }
 
@@ -305,17 +295,17 @@ interface UcRoute$Parts {
   readonly matrix: string | undefined;
 }
 
-class UcRoute$Data<out TMatrix, out TValue, out TCharge> {
+class UcRoute$Data<out TMatrix, out TCharge> {
 
   readonly #path: string;
-  readonly #chargeParser: URIChargeParser<TValue, TCharge>;
+  readonly #chargeParser: (input: string) => TCharge;
   #fragments: readonly string[] | undefined;
-  readonly #parts: (UcRoute<TMatrix, TValue, TCharge> | undefined)[];
+  readonly #parts: (UcRoute<TMatrix, TCharge> | undefined)[];
 
   constructor(
     path: string,
-    chargeParser: URIChargeParser<TValue, TCharge>,
-    firstPart: UcRoute<TMatrix, TValue, TCharge>,
+    chargeParser: (input: string) => TCharge,
+    firstPart: UcRoute<TMatrix, TCharge>,
   ) {
     this.#path = path;
     this.#chargeParser = chargeParser;
@@ -326,7 +316,7 @@ class UcRoute$Data<out TMatrix, out TValue, out TCharge> {
     return this.#path;
   }
 
-  get chargeParser(): URIChargeParser<TValue, TCharge> {
+  get chargeParser(): (input: string) => TCharge {
     return this.#chargeParser;
   }
 
@@ -395,11 +385,11 @@ class UcRoute$Data<out TMatrix, out TValue, out TCharge> {
     return fragments;
   }
 
-  findPart(index: number): UcRoute<TMatrix, TValue, TCharge> | undefined {
+  findPart(index: number): UcRoute<TMatrix, TCharge> | undefined {
     return this.#parts[index];
   }
 
-  setPart(index: number, route: UcRoute<TMatrix, TValue, TCharge>): void {
+  setPart(index: number, route: UcRoute<TMatrix, TCharge>): void {
     this.#parts[index] = route;
   }
 

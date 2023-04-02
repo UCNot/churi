@@ -295,29 +295,23 @@ describe('UcSearchParams', () => {
   });
 
   describe('charge', () => {
-    it('obtains parameter charges', () => {
+    it('contains parameter charges', () => {
       const params = new UcSearchParams('?foo=bar(test)&foo=1&baz=21,22&test');
 
-      expect(params.chargeOf('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
-      expect(params.chargeOf('baz')).toHaveURIChargeItems(21, 22);
-      expect(params.chargeOf('test')).toHaveURIChargeItems('');
-
-      expect(params.charge).toHaveURIChargeItems({
-        foo: [{ bar: 'test' }, 1],
-        baz: [21, 22],
-        test: '',
-      });
+      expect(params.charge.get('foo')).toHaveURIChargeItems({ bar: 'test' }, 1);
+      expect(params.charge.get('baz')).toHaveURIChargeItems(21, 22);
+      expect(params.charge.get('test')).toHaveURIChargeItems('');
     });
     it('is cached', () => {
       const params = new UcSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
       expect(params.charge).toBe(params.charge);
-      expect(params.chargeOf('foo')).toBe(params.chargeOf('foo'));
+      expect(params.charge.get('foo')).toBe(params.charge.get('foo'));
     });
     it('is none for missing parameter', () => {
       const params = new UcSearchParams('?foo=bar(test)&foo=1&baz=(21)(22)&test');
 
-      expect(params.chargeOf('missing')).toBe(params.chargeParser.chargeRx.none);
+      expect(params.charge.get('missing')).toBeURIChargeNone();
     });
     it('contains strings when constructed from iterable', () => {
       const params = new UcSearchParams([
@@ -327,15 +321,9 @@ describe('UcSearchParams', () => {
         ['test'],
       ] satisfies [string, string?][]);
 
-      expect(params.chargeOf('foo')).toHaveURIChargeItems('bar(test)', '1');
-      expect(params.chargeOf('baz')).toHaveURIChargeItems('(21)(22)');
-      expect(params.chargeOf('test')).toHaveURIChargeItems('');
-
-      expect(params.charge).toHaveURIChargeItems({
-        foo: ['bar(test)', '1'],
-        baz: '(21)(22)',
-        test: '',
-      });
+      expect(params.charge.get('foo')).toHaveURIChargeItems('bar(test)', 1);
+      expect(params.charge.get('baz')).toHaveURIChargeItems('(21)(22)');
+      expect(params.charge.get('test')).toHaveURIChargeItems('');
     });
   });
 

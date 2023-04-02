@@ -1,11 +1,12 @@
 import { isIterable } from '@proc7ts/primitives';
-import { createURIChargeParser } from '../charge/parse-uri-charge.js';
-import { URIChargeParser } from '../charge/uri-charge-parser.js';
 import { URICharge } from '../charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
-import { UcSearchParams$splitter } from '../impl/uc-search-params.splitter.js';
-import { UcPrimitive } from '../schema/uc-primitive.js';
-import { UcRawParams } from './uc-raw-params.js';
+import {
+  UcMatrixParams$splitter,
+  UcSearchParams$splitter,
+} from '../impl/uc-search-params.splitter.js';
+import { UcParamsCharge } from './uc-params-charge.js';
+import type { UcRawParams } from './uc-raw-params.js';
 
 /**
  * Charged search parameters representing a {@link ChURI#search query string} of the URI.
@@ -19,15 +20,13 @@ import { UcRawParams } from './uc-raw-params.js';
  *
  * [URLSearchParams class]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
  *
- * @typeParam TValue - Base value type contained in URI charge. {@link UcPrimitive} by default.
- * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+ * @typeParam TCharge - Parameters charge representation type. {@link UcParamsCharge} by default.
  */
-export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
-  implements Iterable<[string, string]> {
+export class UcSearchParams<out TCharge = UcParamsCharge> implements Iterable<[string, string]> {
 
-  readonly #chargeParser: URIChargeParser<TValue, TCharge>;
+  readonly #Charge: UcSearchParams.CustomOptions<TCharge>['Charge'];
   readonly #list: ChSearchParamValue[] = [];
-  readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
+  readonly #map: Map<string, ChSearchParam>;
 
   #raw?: UcRawParams;
   #charge?: TCharge;
@@ -37,18 +36,16 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
    *
    * @param search - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
    * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
-   * @param chargeParser - Parser to use to parse parameter {@link chargeOf charges}.
+   * @param options - Initialization options.
    */
   constructor(
     search:
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    ...chargeParser: UcPrimitive extends TValue
-      ? URICharge<TValue> extends TCharge
-        ? [URIChargeParser<TValue, TCharge>?]
-        : [URIChargeParser<TValue, TCharge>]
-      : [URIChargeParser<TValue, TCharge>]
+    ...options: UcParamsCharge extends TCharge
+      ? [UcSearchParams.DefaultOptions?]
+      : [UcSearchParams.CustomOptions<TCharge>]
   );
 
   constructor(
@@ -56,12 +53,12 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    chargeParser: URIChargeParser<
-      TValue,
-      TCharge
-    > = /*#__PURE__*/ createURIChargeParser() as URIChargeParser<TValue, TCharge>,
+    {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      Charge = UcParamsCharge as UcSearchParams.CustomOptions<TCharge>['Charge'],
+    }: Partial<UcSearchParams.CustomOptions<TCharge>> = {},
   ) {
-    this.#chargeParser = chargeParser;
+    this.#Charge = Charge;
     this.#map =
       typeof search === 'string'
         ? this.#parse(search)
@@ -78,22 +75,25 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   }
 
   /**
-   * Parser used to parse parameter {@link chargeOf charges}.
+   * Raw parameter values.
    */
-  get chargeParser(): URIChargeParser<TValue, TCharge> {
-    return this.#chargeParser;
-  }
-
   get raw(): UcRawParams {
     return (this.#raw ??= new UcSearchParams$Raw(this, this.#list, this.#map));
   }
 
-  #parse(search: string): Map<string, ChSearchParam<TValue, TCharge>> {
+  /**
+   * Parameters charge.
+   */
+  get charge(): TCharge {
+    return (this.#charge ??= new this.#Charge(this as UcSearchParams));
+  }
+
+  #parse(search: string): Map<string, ChSearchParam> {
     if (search.startsWith('?')) {
       search = search.slice(1);
     }
 
-    const entries = new Map<string, ChSearchParam$Parsed<TValue, TCharge>>();
+    const entries = new Map<string, ChSearchParam$Parsed>();
 
     if (!search) {
       return entries;
@@ -106,7 +106,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       if (prev) {
         this.#list.push(prev.add(rawValue));
       } else {
-        const param = new ChSearchParam$Parsed<TValue, TCharge>(key, rawKey, rawValue);
+        const param = new ChSearchParam$Parsed(key, rawKey, rawValue);
 
         entries.set(key, param);
         this.#list.push(new ChSearchParamValue(param, 0));
@@ -118,8 +118,8 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
 
   #provide(
     search: Iterable<readonly [string, (string | null | undefined)?]>,
-  ): Map<string, ChSearchParam<TValue, TCharge>> {
-    const entries = new Map<string, ChSearchParam$Provided<TValue, TCharge>>();
+  ): Map<string, ChSearchParam> {
+    const entries = new Map<string, ChSearchParam$Provided>();
 
     for (const [key, val] of search) {
       const value = val ? String(val) : '';
@@ -128,7 +128,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
       if (prev) {
         this.#list.push(prev.add(value));
       } else {
-        const param = new ChSearchParam$Provided<TValue, TCharge>(key, value);
+        const param = new ChSearchParam$Provided(key, value);
 
         entries.set(key, param);
         this.#list.push(new ChSearchParamValue(param, 0));
@@ -136,32 +136,6 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
     }
 
     return entries;
-  }
-
-  /**
-   * Combined charge representing all parameters.
-   *
-   * This is a {@link URICharge#isMap charge map} with parameter names as keys and their {@link chargeOf charges} as
-   * values.
-   */
-  get charge(): TCharge {
-    return this.#charge !== undefined ? this.#charge : (this.#charge = this.#parseCharge());
-  }
-
-  #parseCharge(): TCharge {
-    const { chargeParser } = this;
-
-    return chargeParser.chargeRx.rxMap(rx => {
-      for (const entry of this.#map.values()) {
-        rx.rxEntry(entry.key, rx => {
-          rx.add(entry.getCharge(chargeParser));
-
-          return rx.end();
-        });
-      }
-
-      return rx.endMap();
-    });
   }
 
   /**
@@ -205,21 +179,6 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
     const entry = this.#map.get(name);
 
     return entry ? entry.values.slice() : [];
-  }
-
-  /**
-   * Parses and obtains the named parameter charge.
-   *
-   * If parameter has {@link getAll multiple values}, the returned value will be a {@link URICharge#isList charge list}.
-   *
-   * @param name - Target parameter name.
-   *
-   * @returns Parameter value parsed as URI charge, or {@link URIChargeRx#none none} if parameter absent.
-   */
-  chargeOf(name: string): TCharge {
-    const entry = this.#map.get(name);
-
-    return entry ? entry.getCharge(this.chargeParser) : this.chargeParser.chargeRx.none;
   }
 
   /**
@@ -270,9 +229,7 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
    *
    * @see [URLSearchParams.forEach()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/forEach).
    */
-  forEach(
-    callback: (value: string, key: string, parent: UcSearchParams<TValue, TCharge>) => void,
-  ): void {
+  forEach(callback: (value: string, key: string, parent: UcSearchParams<TCharge>) => void): void {
     this.#list.forEach(({ key, value }) => callback(value, key, this));
   }
 
@@ -299,6 +256,14 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
 }
 
 export namespace UcSearchParams {
+  export interface DefaultOptions {
+    readonly Charge?: (new (params: UcSearchParams) => UcParamsCharge) | undefined;
+  }
+
+  export interface CustomOptions<out TCharge> {
+    readonly Charge: new (params: UcSearchParams) => TCharge;
+  }
+
   /**
    * {@link UcSearchParams search parameters} splitter.
    */
@@ -323,17 +288,16 @@ export namespace UcSearchParams {
   }
 }
 
-class UcSearchParams$Raw<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
-  implements UcRawParams {
+class UcSearchParams$Raw implements UcRawParams {
 
-  readonly #params: UcSearchParams<TValue, TCharge>;
+  readonly #params: UcSearchParams<unknown>;
   readonly #list: ChSearchParamValue[] = [];
-  readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
+  readonly #map: Map<string, ChSearchParam>;
 
   constructor(
-    params: UcSearchParams<TValue, TCharge>,
+    params: UcSearchParams<unknown>,
     list: ChSearchParamValue[],
-    map: Map<string, ChSearchParam<TValue, TCharge>>,
+    map: Map<string, ChSearchParam>,
   ) {
     this.#params = params;
     this.#list = list;
@@ -356,27 +320,12 @@ class UcSearchParams$Raw<out TValue = UcPrimitive, out TCharge = URICharge<TValu
     return entry ? entry.rawValues.slice() : [];
   }
 
-  /**
-   * Iterates over all keys contained in this object. The keys are string objects.
-   *
-   * @returns An iterable iterator of parameter names in order of their appearance. Note that the same parameter name
-   * may be reported multiple times.
-   *
-   * @see [URLSearchParams.keys()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/keys).
-   */
   *keys(): IterableIterator<string> {
     for (const { key } of this.#list) {
       yield key;
     }
   }
 
-  /**
-   * Iterates over all key/value pairs contained in this object. The key and value of each pair are string objects.
-   *
-   * @returns An iterable iterator of parameter name/value pairs in order of their appearance.
-   *
-   * @see [URLSearchParams.entries()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/entries).
-   */
   *entries(): IterableIterator<[string, string]> {
     for (const { key, rawValue } of this.#list) {
       yield [key, rawValue];
@@ -405,10 +354,10 @@ class UcSearchParams$Raw<out TValue = UcPrimitive, out TCharge = URICharge<TValu
 
 class ChSearchParamValue {
 
-  readonly #param: ChSearchParam<unknown, unknown>;
+  readonly #param: ChSearchParam;
   readonly #index: number;
 
-  constructor(param: ChSearchParam<unknown, unknown>, index: number) {
+  constructor(param: ChSearchParam, index: number) {
     this.#param = param;
     this.#index = index;
   }
@@ -431,24 +380,14 @@ class ChSearchParamValue {
 
 }
 
-abstract class ChSearchParam<out TValue, out TCharge> {
-
-  #charge?: TCharge;
-
-  abstract readonly key: string;
-  abstract readonly rawKey: string;
-  abstract readonly values: string[];
-  abstract readonly rawValues: string[];
-
-  getCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
-    return this.#charge !== undefined ? this.#charge : (this.#charge = this.parseCharge(parser));
-  }
-
-  protected abstract parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge;
-
+interface ChSearchParam {
+  get key(): string;
+  get rawKey(): string;
+  get values(): string[];
+  get rawValues(): string[];
 }
 
-class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue, TCharge> {
+class ChSearchParam$Parsed implements ChSearchParam {
 
   readonly #key: string;
   readonly #rawKey: string;
@@ -457,7 +396,6 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
   #values?: string[];
 
   constructor(key: string, rawKey: string, rawValue: string) {
-    super();
     this.#key = key;
     this.#rawKey = rawKey;
     this.#rawValues = [rawValue];
@@ -487,29 +425,9 @@ class ChSearchParam$Parsed<out TValue, out TCharge> extends ChSearchParam<TValue
     return new ChSearchParamValue(this, index);
   }
 
-  protected override parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
-    const rawValues = this.#rawValues;
-
-    return rawValues.length === 1
-      ? parser.parse(rawValues[0]).charge
-      : this.#parseList(parser, rawValues);
-  }
-
-  #parseList(parser: URIChargeParser<TValue, TCharge>, rawValues: string[]): TCharge {
-    const { chargeRx } = parser;
-
-    return chargeRx.rxList(listRx => {
-      for (const rawValue of rawValues) {
-        listRx.add(chargeRx.rxValue(itemRx => parser.parse(rawValue, itemRx).charge));
-      }
-
-      return listRx.end();
-    });
-  }
-
 }
 
-class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TValue, TCharge> {
+class ChSearchParam$Provided implements ChSearchParam {
 
   readonly #key: string;
   readonly #values: string[];
@@ -518,7 +436,6 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
   #rawValues?: string[];
 
   constructor(key: string, value: string) {
-    super();
     this.#key = key;
     this.#values = [value];
   }
@@ -547,24 +464,24 @@ class ChSearchParam$Provided<out TValue, out TCharge> extends ChSearchParam<TVal
     return new ChSearchParamValue(this, index);
   }
 
-  protected override parseCharge(parser: URIChargeParser<TValue, TCharge>): TCharge {
-    const values = this.#values;
+}
 
-    return values.length === 1
-      ? parser.chargeRx.createValue(values[0], 'string')
-      : this.#parseList(parser, values);
-  }
+/**
+ * Charged matrix URI parameters representation.
+ *
+ * In contrast to {@link UcSearchParams search parameters}, uses `";" (U+003B)` as separator.
+ *
+ * @typeParam TCharge - Parameters charge representation type. {@link UcParamsCharge} by default.
+ */
+export class UcMatrixParams<out TCharge = UcParamsCharge> extends UcSearchParams<TCharge> {
 
-  #parseList(parser: URIChargeParser<TValue, TCharge>, values: string[]): TCharge {
-    const { chargeRx } = parser;
-
-    return chargeRx.rxList(listRx => {
-      for (const value of values) {
-        listRx.addValue(value, 'string');
-      }
-
-      return listRx.end();
-    });
+  /**
+   * Matrix parameters splitter.
+   *
+   * Splits parameters separated by `";" (U+003B)` symbol.
+   */
+  override get splitter(): UcSearchParams.Splitter {
+    return UcMatrixParams$splitter;
   }
 
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcMatrixParams } from './uc-matrix-params.js';
+import { UcMatrixParams } from './uc-search-params.js';
 
 describe('UcMatrixParams', () => {
   it('decodes semicolon-separated params', () => {

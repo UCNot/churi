@@ -84,7 +84,6 @@
     "#churi/uri-charge": "./dist/churi.uri-charge.js",
     "#churi/uri-charge/compiler": "./dist/churi.uri-charge.compiler.js",
     "#churi/uri-charge/deserializer": {
-      "types": "./dist/churi.uri-charge.deserializer.d.ts",
       "default": "./dist/churi.uri-charge.deserializer.js"
     }
   },

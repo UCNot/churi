@@ -19,16 +19,16 @@ import { UcSearchParams } from './uc-search-params.js';
  * [URL class]:https://developer.mozilla.org/en-US/docs/Web/API/URL
  *
  * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
- * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
+ * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
  */
-export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
+export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
 
   readonly #url: URL;
   #scheme?: string;
   readonly #Route: new (path: string) => TRoute;
-  readonly #SearchParams: new (search: string) => TSearchParams;
+  readonly #Search: new (search: string) => TSearch;
   #route?: TRoute;
-  #searchParams?: TSearchParams;
+  #searchParams?: TSearch;
 
   /**
    * Constructs charged URI.
@@ -39,10 +39,10 @@ export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
   constructor(
     uri: string,
     ...options: UcRoute extends TRoute
-      ? UcSearchParams extends TSearchParams
+      ? UcSearchParams extends TSearch
         ? [ChURI.Options?]
-        : [ChURI.Options<TRoute, TSearchParams>]
-      : [ChURI.Options<TRoute, TSearchParams>]
+        : [ChURI.Options<TRoute, TSearch>]
+      : [ChURI.Options<TRoute, TSearch>]
   );
 
   constructor(
@@ -51,14 +51,14 @@ export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
       // eslint-disable-next-line @typescript-eslint/naming-convention
       Route = UcRoute as new (path: string) => TRoute,
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      SearchParams = UcSearchParams as new (search: string) => TSearchParams,
-    }: Partial<ChURI.Options<TRoute, TSearchParams>> = {},
+      Search = UcSearchParams as new (search: string) => TSearch,
+    }: Partial<ChURI.CustomRouteOptions<TRoute> & ChURI.CustomSearchOptions<TSearch>> = {},
   ) {
     const url = new URL(uri);
 
     this.#url = url;
     this.#Route = Route;
-    this.#SearchParams = SearchParams;
+    this.#Search = Search;
   }
 
   /**
@@ -167,8 +167,8 @@ export class ChURI<out TRoute = UcRoute, out TSearchParams = UcSearchParams> {
    *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): TSearchParams {
-    return (this.#searchParams ??= new this.#SearchParams(this.search));
+  get searchParams(): TSearch {
+    return (this.#searchParams ??= new this.#Search(this.search));
   }
 
   /**
@@ -226,10 +226,10 @@ export namespace ChURI {
    * Charged URI construction options.
    *
    * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
-   * @typeParam TSearchParams - Search parameters representation type. {@link UcSearchParams} by default.
+   * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
    */
-  export type Options<TRoute = UcRoute, TSearchParams = UcSearchParams> = RouteOptions<TRoute> &
-    SearchParamsOptions<TSearchParams>;
+  export type Options<TRoute = UcRoute, TSearch = UcSearchParams> = RouteOptions<TRoute> &
+    SearchOptions<TSearch>;
 
   /**
    * Charged URI construction options specifying its route representation class.
@@ -237,10 +237,17 @@ export namespace ChURI {
    * @typeParam TRoute - Custom route representation type.
    */
   export type RouteOptions<TRoute> = UcRoute extends TRoute
-    ? Partial<CustomRouteOptions<TRoute>>
+    ? DefaultRouteOptions
     : CustomRouteOptions<TRoute>;
 
-  export interface CustomRouteOptions<TRoute> {
+  export interface DefaultRouteOptions {
+    /**
+     * Constructor of route representation.
+     */
+    readonly Route?: (new (path: string) => UcRoute) | undefined;
+  }
+
+  export interface CustomRouteOptions<out TRoute> {
     /**
      * Constructor of route representation.
      */
@@ -252,14 +259,20 @@ export namespace ChURI {
    *
    * @typeParam TRoute - Custom route representation type.
    */
-  export type SearchParamsOptions<TSearchParams> = UcSearchParams extends UcSearchParams
-    ? Partial<CustomSearchParamsOptions<TSearchParams>>
-    : CustomSearchParamsOptions<TSearchParams>;
+  export type SearchOptions<TSearchParams> = UcSearchParams extends UcSearchParams
+    ? DefaultSearchOptions
+    : CustomSearchOptions<TSearchParams>;
 
-  export interface CustomSearchParamsOptions<TSearchParams> {
+  export interface DefaultSearchOptions {
     /**
      * Constructor of search parameters representation.
      */
-    readonly SearchParams: new (search: string) => TSearchParams;
+    readonly Search?: (new (search: string) => UcSearchParams) | undefined;
+  }
+  export interface CustomSearchOptions<TSearch> {
+    /**
+     * Constructor of search parameters representation.
+     */
+    readonly Search: new (search: string) => TSearch;
   }
 }

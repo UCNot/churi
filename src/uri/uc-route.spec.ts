@@ -151,21 +151,20 @@ describe('UcRoute', () => {
 
   describe('matrix', () => {
     it('is empty by default', () => {
-      const charge = new UcRoute('/path').matrix.charge;
+      const { matrix } = new UcRoute('/path');
 
-      expect(charge).toBeURIChargeMap();
-      expect(charge).toHaveURIChargeEntries({});
+      expect([...matrix]).toHaveLength(0);
     });
     it('is empty without parameters', () => {
-      const charge = new UcRoute('/path;').matrix.charge;
+      const { matrix } = new UcRoute('/path;');
 
-      expect(charge).toBeURIChargeMap();
-      expect(charge).toHaveURIChargeEntries({});
+      expect([...matrix]).toHaveLength(0);
     });
     it('recognizes matrix parameters', () => {
       const charge = new UcRoute('/path;p1=v1(foo);p2=v2').matrix.charge;
 
-      expect(charge).toHaveURIChargeEntries({ p1: { v1: 'foo' }, p2: 'v2' });
+      expect(charge.get('p1')).toHaveURIChargeEntries({ v1: 'foo' });
+      expect(charge.get('p2')).toHaveURIChargeItems('v2');
     });
   });
 
