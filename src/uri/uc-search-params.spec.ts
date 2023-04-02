@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { UcSearchParams } from './uc-search-params.js';
 import '../spec/uri-charge-matchers.js';
+import { UcSearchParams } from './uc-search-params.js';
 
 describe('UcSearchParams', () => {
   it('parsed from string', () => {
@@ -79,6 +79,10 @@ describe('UcSearchParams', () => {
     expect(String(params)).toBe(input);
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
+
+    expect([...params.raw]).toEqual([['key foo', 'value+bar']]);
+    expect(params.raw.get('key foo')).toBe('value+bar');
+    expect(String(params.raw)).toBe(String(urlParams));
   });
   it('handles percent-encoded symbols', () => {
     const input = 'key%2Bfoo=value%2Bbar';
@@ -89,6 +93,10 @@ describe('UcSearchParams', () => {
     expect(String(params)).toBe(input);
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
+
+    expect([...params.raw]).toEqual([['key+foo', 'value%2Bbar']]);
+    expect(params.raw.get('key+foo')).toBe('value%2Bbar');
+    expect(String(params.raw)).toBe(String(urlParams));
   });
   it('ignores leading `?`', () => {
     const input = '?a=1&b=2&a=3';
@@ -149,10 +157,13 @@ describe('UcSearchParams', () => {
 
     it('detects parameter presence', () => {
       expect(params.has('aaa')).toBe(true);
+      expect(params.raw.has('aaa')).toBe(true);
       expect(params.has('bbb')).toBe(true);
+      expect(params.raw.has('bbb')).toBe(true);
     });
     it('detects parameter absence', () => {
       expect(params.has('ccc')).toBe(false);
+      expect(params.raw.has('ccc')).toBe(false);
     });
   });
 
@@ -160,23 +171,32 @@ describe('UcSearchParams', () => {
     let params: UcSearchParams;
 
     beforeAll(() => {
-      params = new UcSearchParams('aaa=111&bbb&aaa=333');
+      params = new UcSearchParams('aaa=11+1&bbb&aaa=333');
     });
 
     it('returns first parameter value', () => {
-      expect(params.get('aaa')).toBe('111');
+      expect(params.get('aaa')).toBe('11 1');
+      expect(params.raw.get('aaa')).toBe('11+1');
     });
     it('returns empty string for parameters without values', () => {
       expect(params.get('bbb')).toBe('');
+      expect(params.raw.get('bbb')).toBe('');
     });
     it('returns `null` for absent parameters', () => {
       expect(params.get('ccc')).toBeNull();
+      expect(params.raw.get('ccc')).toBeNull();
     });
     it('recognizes parameter without value', () => {
-      expect(new UcSearchParams('aaa').get('aaa')).toBe('');
+      params = new UcSearchParams('aaa');
+
+      expect(params.get('aaa')).toBe('');
+      expect(params.raw.get('aaa')).toBe('');
     });
     it('recognizes value with `=` char', () => {
-      expect(new UcSearchParams('aaa=bbb=ccc').get('aaa')).toBe('bbb=ccc');
+      params = new UcSearchParams('aaa=bbb=ccc');
+
+      expect(params.get('aaa')).toBe('bbb=ccc');
+      expect(params.raw.get('aaa')).toBe('bbb=ccc');
     });
   });
 
@@ -184,15 +204,18 @@ describe('UcSearchParams', () => {
     let params: UcSearchParams;
 
     beforeAll(() => {
-      params = new UcSearchParams('aaa&bbb=222&aaa=333');
+      params = new UcSearchParams('aaa&bbb=22+2&aaa=333');
     });
 
     it('returns all parameter values', () => {
       expect(params.getAll('aaa')).toEqual(['', '333']);
-      expect(params.getAll('bbb')).toEqual(['222']);
+      expect(params.raw.getAll('aaa')).toEqual(['', '333']);
+      expect(params.getAll('bbb')).toEqual(['22 2']);
+      expect(params.raw.getAll('bbb')).toEqual(['22+2']);
     });
     it('returns empty string for absent parameters', () => {
       expect(params.getAll('ccc')).toEqual([]);
+      expect(params.raw.getAll('ccc')).toEqual([]);
     });
   });
 
@@ -201,20 +224,22 @@ describe('UcSearchParams', () => {
     let urlParams = new URLSearchParams();
 
     beforeAll(() => {
-      urlParams = new URLSearchParams('aaa=111&bbb&aaa=333');
+      urlParams = new URLSearchParams('aa+a=11+1&bbb&aaa=333');
       params = new UcSearchParams(urlParams);
     });
 
     describe('keys', () => {
       it('iterates over keys in order of appearance', () => {
-        expect([...params.keys()]).toEqual(['aaa', 'bbb', 'aaa']);
+        expect([...params.keys()]).toEqual(['aa a', 'bbb', 'aaa']);
+        expect([...params.raw.keys()]).toEqual(['aa a', 'bbb', 'aaa']);
         expect([...params.keys()]).toEqual([...urlParams.keys()]);
       });
     });
 
     describe('values', () => {
       it('iterates over values in order of appearance', () => {
-        expect([...params.values()]).toEqual(['111', '', '333']);
+        expect([...params.values()]).toEqual(['11 1', '', '333']);
+        expect([...params.raw.values()]).toEqual(['11+1', '', '333']);
         expect([...params.values()]).toEqual([...urlParams.values()]);
       });
     });
@@ -222,7 +247,12 @@ describe('UcSearchParams', () => {
     describe('entries', () => {
       it('iterates over entries in order of appearance', () => {
         expect([...params.entries()]).toEqual([
-          ['aaa', '111'],
+          ['aa a', '11 1'],
+          ['bbb', ''],
+          ['aaa', '333'],
+        ]);
+        expect([...params.raw.entries()]).toEqual([
+          ['aa a', '11+1'],
           ['bbb', ''],
           ['aaa', '333'],
         ]);
@@ -233,15 +263,24 @@ describe('UcSearchParams', () => {
     describe('forEach', () => {
       it('iterates over parameters', () => {
         const result: unknown[] = [];
+        const rawResult: unknown[] = [];
 
         params.forEach((...args) => {
           result.push(args);
         });
+        params.raw.forEach((...args) => {
+          rawResult.push(args);
+        });
 
         expect(result).toEqual([
-          ['111', 'aaa', params],
+          ['11 1', 'aa a', params],
           ['', 'bbb', params],
           ['333', 'aaa', params],
+        ]);
+        expect(rawResult).toEqual([
+          ['11+1', 'aa a', params.raw],
+          ['', 'bbb', params.raw],
+          ['333', 'aaa', params.raw],
         ]);
 
         const urlResult: unknown[] = [];

@@ -5,6 +5,7 @@ import { URICharge } from '../charge/uri-charge.js';
 import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
 import { UcSearchParams$splitter } from '../impl/uc-search-params.splitter.js';
 import { UcPrimitive } from '../schema/uc-primitive.js';
+import { UcRawParams } from './uc-raw-params.js';
 
 /**
  * Charged search parameters representing a {@link ChURI#search query string} of the URI.
@@ -27,6 +28,8 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
   readonly #chargeParser: URIChargeParser<TValue, TCharge>;
   readonly #list: ChSearchParamValue[] = [];
   readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
+
+  #raw?: UcRawParams;
   #charge?: TCharge;
 
   /**
@@ -79,6 +82,10 @@ export class UcSearchParams<out TValue = UcPrimitive, out TCharge = URICharge<TV
    */
   get chargeParser(): URIChargeParser<TValue, TCharge> {
     return this.#chargeParser;
+  }
+
+  get raw(): UcRawParams {
+    return (this.#raw ??= new UcSearchParams$Raw(this, this.#list, this.#map));
   }
 
   #parse(search: string): Map<string, ChSearchParam<TValue, TCharge>> {
@@ -316,6 +323,86 @@ export namespace UcSearchParams {
   }
 }
 
+class UcSearchParams$Raw<out TValue = UcPrimitive, out TCharge = URICharge<TValue>>
+  implements UcRawParams {
+
+  readonly #params: UcSearchParams<TValue, TCharge>;
+  readonly #list: ChSearchParamValue[] = [];
+  readonly #map: Map<string, ChSearchParam<TValue, TCharge>>;
+
+  constructor(
+    params: UcSearchParams<TValue, TCharge>,
+    list: ChSearchParamValue[],
+    map: Map<string, ChSearchParam<TValue, TCharge>>,
+  ) {
+    this.#params = params;
+    this.#list = list;
+    this.#map = map;
+  }
+
+  has(name: string): boolean {
+    return this.#map.has(name);
+  }
+
+  get(name: string): string | null {
+    const entry = this.#map.get(name);
+
+    return entry ? entry.rawValues[0] : null;
+  }
+
+  getAll(name: string): string[] {
+    const entry = this.#map.get(name);
+
+    return entry ? entry.rawValues.slice() : [];
+  }
+
+  /**
+   * Iterates over all keys contained in this object. The keys are string objects.
+   *
+   * @returns An iterable iterator of parameter names in order of their appearance. Note that the same parameter name
+   * may be reported multiple times.
+   *
+   * @see [URLSearchParams.keys()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/keys).
+   */
+  *keys(): IterableIterator<string> {
+    for (const { key } of this.#list) {
+      yield key;
+    }
+  }
+
+  /**
+   * Iterates over all key/value pairs contained in this object. The key and value of each pair are string objects.
+   *
+   * @returns An iterable iterator of parameter name/value pairs in order of their appearance.
+   *
+   * @see [URLSearchParams.entries()](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams/entries).
+   */
+  *entries(): IterableIterator<[string, string]> {
+    for (const { key, rawValue } of this.#list) {
+      yield [key, rawValue];
+    }
+  }
+
+  *values(): IterableIterator<string> {
+    for (const { rawValue } of this.#list) {
+      yield rawValue;
+    }
+  }
+
+  forEach(callback: (value: string, key: string, parent: UcRawParams) => void): void {
+    this.#list.forEach(({ key, rawValue }) => callback(rawValue, key, this));
+  }
+
+  [Symbol.iterator](): IterableIterator<[string, string]> {
+    return this.entries();
+  }
+
+  toString(): string {
+    return this.#list.join(this.#params.splitter.joiner);
+  }
+
+}
+
 class ChSearchParamValue {
 
   readonly #param: ChSearchParam<unknown, unknown>;
@@ -334,8 +421,12 @@ class ChSearchParamValue {
     return this.#param.values[this.#index];
   }
 
+  get rawValue(): string {
+    return this.#param.rawValues[this.#index];
+  }
+
   toString(): string {
-    return this.#param.rawKey + '=' + this.#param.rawValues[this.#index];
+    return this.#param.rawKey + '=' + this.rawValue;
   }
 
 }
