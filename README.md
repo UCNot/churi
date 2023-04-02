@@ -157,19 +157,19 @@ Instead, a Charged URI string can be built with `chargeURI()` function.
 import { chargeURI, UcEntity } from '@hatsy/churi';
 
 console.debug(
-  `https://example.com`
-    + `/api(${chargeURI(new UcEntity('!v3.0'))})`
-    + `/user;id=${chargeURI(302875106592253n)}`
-    + `/article;slug=${chargeURI('hello-world')}`
-    + `/comments`
-    + `?date=${chargeURI({
+  `https://example.com` +
+    `/api(${chargeURI(new UcEntity('!v3.0'))})` +
+    `/user;id=${chargeURI(302875106592253n)}` +
+    `/article;slug=${chargeURI('hello-world')}` +
+    `/comments` +
+    `?date=${chargeURI({
       since: new UcEntity("!date'1970-01-01"),
       till: new UcEntity('!now'),
-    })}`
-    + `&range=${chargeURI({
+    })}` +
+    `&range=${chargeURI({
       from: 10,
       to: 20,
-    })},
+    })}`,
 );
 ```
 
