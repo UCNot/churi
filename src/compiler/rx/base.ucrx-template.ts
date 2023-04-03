@@ -36,6 +36,8 @@ export abstract class BaseUcrxTemplate {
     return this.lib.voidUcrx;
   }
 
+  abstract get typeName(): string;
+
   abstract get className(): string;
 
   get args(): UcrxArgs {

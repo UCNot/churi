@@ -33,6 +33,10 @@ export class CustomUcrxTemplate<
     return this.#schema;
   }
 
+  override get typeName(): string {
+    return ucSchemaTypeSymbol(this.schema);
+  }
+
   override get className(): string {
     return (this.#className ??= this.#declareClass());
   }
@@ -41,14 +45,10 @@ export class CustomUcrxTemplate<
     const { base } = this;
 
     return this.lib.declarations.declareClass(
-      this.preferredClassName(),
+      `${this.typeName}Ucrx`,
       name => this.#declareBody(name),
       { baseClass: base.className },
     );
-  }
-
-  protected preferredClassName(): string {
-    return ucSchemaTypeSymbol(this.schema);
   }
 
   #declareBody(className: string): UccSource {

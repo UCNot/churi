@@ -16,8 +16,6 @@ class DefaultUcdLib extends UcdLib {
 
 }
 
-const lib = new DefaultUcdLib();
-
 await Promise.all([
   emitDefaultEntities(),
   emitUcValueDeserializer(),
@@ -29,6 +27,8 @@ await Promise.all([
 ]);
 
 async function emitDefaultEntities() {
+  const lib = new DefaultUcdLib();
+
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
     new UccCode()
@@ -47,6 +47,8 @@ async function emitDefaultEntities() {
 }
 
 async function emitUcValueDeserializer() {
+  const lib = new DefaultUcdLib();
+
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
     lib.compileModule('sync').print(),

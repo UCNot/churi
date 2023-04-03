@@ -14,12 +14,16 @@ export class VoidUcrxTemplate extends BaseUcrxTemplate {
     return;
   }
 
+  override get typeName(): string {
+    return 'Void';
+  }
+
   override get className(): string {
     return (this.#className ??= this.#importClass());
   }
 
   #importClass(): string {
-    return this.lib.import(CHURI_MODULE, 'VoidUcrx');
+    return this.lib.import(CHURI_MODULE, `${this.typeName}Ucrx`);
   }
 
 }
