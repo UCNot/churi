@@ -48,7 +48,7 @@ export class CustomUcrxTemplate<
   }
 
   protected preferredClassName(): string {
-    return ucSchemaTypeSymbol(this.schema);
+    return ucSchemaTypeSymbol(this.schema) + 'Ucrx';
   }
 
   #declareBody(className: string): UccSource {
