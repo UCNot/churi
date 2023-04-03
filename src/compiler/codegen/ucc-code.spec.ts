@@ -41,11 +41,11 @@ describe('UccCode', () => {
     });
   });
 
-  describe('prePrint', () => {
+  describe('emit', () => {
     it('allows inserting code after call', () => {
       code.write('first();');
 
-      const record = code.prePrint();
+      const record = code.emit();
 
       code.write('second();');
 

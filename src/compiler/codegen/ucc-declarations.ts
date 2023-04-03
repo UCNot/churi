@@ -91,8 +91,8 @@ export class UccDeclarations implements UccFragment {
 
   toCode(): UccSource {
     return {
-      prePrint: () => {
-        const records = this.#prePrintAll();
+      emit: () => {
+        const records = this.#emitAll();
 
         return {
           printTo: lines => this.#printAll(lines, records),
@@ -101,17 +101,17 @@ export class UccDeclarations implements UccFragment {
     };
   }
 
-  #prePrintAll(): Map<UccDeclSnippet, string | UccPrinter.Record> {
+  #emitAll(): Map<UccDeclSnippet, string | UccPrinter.Record> {
     const records = new Map<UccDeclSnippet, string | UccPrinter.Record>();
 
     for (const snippet of this.#all) {
-      this.#prePrintSnippet(snippet, records);
+      this.#emitSnippet(snippet, records);
     }
 
     return records;
   }
 
-  #prePrintSnippet(
+  #emitSnippet(
     snippet: UccDeclSnippet,
     records: Map<UccDeclSnippet, string | UccPrinter.Record>,
   ): void {
@@ -120,7 +120,7 @@ export class UccDeclarations implements UccFragment {
 
       try {
         records.set(snippet, '/* Printing... */'); // Prevent recurrent duplicates.
-        records.set(snippet, snippet.prePrint());
+        records.set(snippet, snippet.emit());
       } finally {
         this.#stack.end(prev);
       }
@@ -198,8 +198,8 @@ class UccDeclSnippet {
     return this.#name;
   }
 
-  prePrint(): string | UccPrinter.Record {
-    return new UccCode().write(this.#snippet(this.#name)).prePrint();
+  emit(): string | UccPrinter.Record {
+    return new UccCode().write(this.#snippet(this.#name)).emit();
   }
 
 }

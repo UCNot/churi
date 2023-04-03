@@ -1,14 +1,14 @@
 import { UccPrinter } from './ucc-printer.js';
 
-export class UccCode implements UccPrintable {
+export class UccCode implements UccEmitter {
 
   static get none(): UccSource {
     return UccCode$none;
   }
 
   readonly #parent: UccCode | undefined;
-  readonly #parts: UccPrintable[] = [];
-  #addPart: (part: UccPrintable) => void;
+  readonly #parts: UccEmitter[] = [];
+  #addPart: (part: UccEmitter) => void;
 
   constructor(parent?: UccCode) {
     this.#parent = parent;
@@ -67,13 +67,13 @@ export class UccCode implements UccPrintable {
     return this;
   }
 
-  prePrint(): UccPrinter.Record {
-    const records = this.#parts.map(part => part.prePrint());
+  emit(): UccPrinter.Record {
+    const records = this.#parts.map(part => part.emit());
     const addPart = this.#addPart;
 
     this.#addPart = part => {
       addPart(part);
-      records.push(part.prePrint());
+      records.push(part.emit());
     };
 
     return {
@@ -86,7 +86,7 @@ export class UccCode implements UccPrintable {
   }
 
   toLines(lines?: string[]): string[] {
-    return new UccPrinter().print(this.prePrint()).toLines(lines);
+    return new UccPrinter().print(this.emit()).toLines(lines);
   }
 
   toString(): string {
@@ -95,8 +95,8 @@ export class UccCode implements UccPrintable {
 
 }
 
-export interface UccPrintable {
-  prePrint(): string | UccPrinter.Record;
+export interface UccEmitter {
+  emit(): string | UccPrinter.Record;
 }
 
 export type UccBuilder = (this: void, code: UccCode) => void;
@@ -105,12 +105,10 @@ export interface UccFragment {
   toCode(): UccSource;
 }
 
-export type UccSource = string | UccPrinter.Record | UccPrintable | UccFragment | UccBuilder;
+export type UccSource = string | UccPrinter.Record | UccEmitter | UccFragment | UccBuilder;
 
-function isUccPrintable(source: UccSource): source is UccPrintable {
-  return (
-    typeof source === 'object' && 'prePrint' in source && typeof source.prePrint === 'function'
-  );
+function isUccPrintable(source: UccSource): source is UccEmitter {
+  return typeof source === 'object' && 'emit' in source && typeof source.emit === 'function';
 }
 
 function isUccFragment(source: UccSource): source is UccFragment {
@@ -121,7 +119,7 @@ function UccCode$none(_code: UccCode): void {
   // No code.
 }
 
-class UccCode$Record implements UccPrintable {
+class UccCode$Record implements UccEmitter {
 
   readonly #record: UccPrinter.Record | string;
 
@@ -129,15 +127,15 @@ class UccCode$Record implements UccPrintable {
     this.#record = record;
   }
 
-  prePrint(): string | UccPrinter.Record {
+  emit(): string | UccPrinter.Record {
     return this.#record;
   }
 
 }
 
-class UccCode$NewLine$ implements UccPrintable {
+class UccCode$NewLine$ implements UccEmitter {
 
-  prePrint(): this {
+  emit(): this {
     return this;
   }
 
@@ -149,7 +147,7 @@ class UccCode$NewLine$ implements UccPrintable {
 
 const UccCode$NewLine = /*#__PURE__*/ new UccCode$NewLine$();
 
-class UccCode$Indented implements UccPrintable {
+class UccCode$Indented implements UccEmitter {
 
   readonly #code: UccCode;
 
@@ -157,8 +155,8 @@ class UccCode$Indented implements UccPrintable {
     this.#code = fragment;
   }
 
-  prePrint(): UccPrinter.Record {
-    const record = this.#code.prePrint();
+  emit(): UccPrinter.Record {
+    const record = this.#code.emit();
 
     return { printTo: lines => lines.indent(lines => lines.print(record)) };
   }
