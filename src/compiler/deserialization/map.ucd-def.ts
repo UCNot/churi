@@ -40,6 +40,7 @@ export class MapUcdDef<
     return new this(lib, schema);
   }
 
+  #typeName?: string;
   readonly #ns: UccNamespace;
   readonly #varEntry = lazyValue(() => this.#ns.name('entry'));
   readonly #varRx = lazyValue(() => this.#ns.name('rx'));
@@ -53,6 +54,29 @@ export class MapUcdDef<
     });
 
     this.#ns = lib.ns.nest();
+  }
+
+  override get typeName(): string {
+    if (!this.#typeName) {
+      const { schema } = this;
+      const { entries, extra } = schema;
+      const entryTypeNames = new Set<string>();
+
+      const addEntry = (entryKey: string | null, entrySchema: UcSchema): void => {
+        const { typeName } = this.entryTemplate(entryKey, entrySchema);
+
+        entryTypeNames.add(typeName);
+      };
+
+      Object.entries<UcSchema>(entries).forEach(([key, schema]) => addEntry(key, schema));
+      if (extra) {
+        addEntry(null, extra);
+      }
+
+      this.#typeName = `Map${ucUcSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
+    }
+
+    return this.#typeName;
   }
 
   #getAllocation(): MapUcdDef.Allocation {
@@ -88,25 +112,6 @@ export class MapUcdDef<
     }
 
     return this.#allocation;
-  }
-
-  protected override preferredClassName(): string {
-    const { schema } = this;
-    const { entries, extra } = schema;
-    const entryClassNames = new Set<string>();
-
-    const addEntry = (entryKey: string | null, entrySchema: UcSchema): void => {
-      const { className } = this.entryTemplate(entryKey, entrySchema);
-
-      entryClassNames.add(className.endsWith('Ucrx') ? className.slice(0, -4) : className);
-    };
-
-    Object.entries<UcSchema>(entries).forEach(([key, schema]) => addEntry(key, schema));
-    if (extra) {
-      addEntry(null, extra);
-    }
-
-    return `Map${ucUcSchemaVariant(schema)}Of` + [...entryClassNames].join('Or') + 'Ucrx';
   }
 
   protected override declareConstructor({ context }: UcrxArgs.ByName): UccSource {

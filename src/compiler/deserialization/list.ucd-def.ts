@@ -31,6 +31,7 @@ export class ListUcdDef<
     return new this(lib, schema);
   }
 
+  #typeName?: string;
   #itemTemplate?: UcrxTemplate;
   #allocation?: ListUcdDef.Allocation;
 
@@ -46,12 +47,13 @@ export class ListUcdDef<
     return this.#isMatrix ? this.lib.voidUcrx : this.#getItemTemplate();
   }
 
-  override get permitsSingle(): boolean {
-    return false;
+  override get typeName(): string {
+    return (this.#typeName ??=
+      'List' + ucUcSchemaVariant(this.schema) + 'Of' + this.#getItemTemplate().typeName);
   }
 
-  protected override preferredClassName(): string {
-    return 'List' + ucUcSchemaVariant(this.schema) + 'Of' + this.#getItemTemplate().className;
+  override get permitsSingle(): boolean {
+    return false;
   }
 
   protected override discoverTypes(): Set<string> {

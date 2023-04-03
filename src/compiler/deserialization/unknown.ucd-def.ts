@@ -32,8 +32,8 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     });
   }
 
-  protected override preferredClassName(): string {
-    return this.schema.nullable ? 'AnyUcrx' : 'NonNullUcrx';
+  override get typeName(): string {
+    return this.schema.nullable ? 'Any' : 'NonNull';
   }
 
   protected override discoverTypes(): Set<string> {

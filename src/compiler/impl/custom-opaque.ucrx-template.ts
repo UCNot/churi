@@ -11,6 +11,10 @@ export class CustomOpaqueUcrxTemplate extends BaseUcrxTemplate {
     super({ lib, args: [] });
   }
 
+  override get typeName(): string {
+    return `Opaque`;
+  }
+
   override get className(): string {
     return (this.#className ??= this.#declareClass());
   }
@@ -22,9 +26,13 @@ export class CustomOpaqueUcrxTemplate extends BaseUcrxTemplate {
   }
 
   #declareClass(): string {
-    return this.lib.declarations.declareClass('OpaqueUcrx', name => this.#declareBody(name), {
-      baseClass: this.base.className,
-    });
+    return this.lib.declarations.declareClass(
+      `${this.typeName}Ucrx`,
+      name => this.#declareBody(name),
+      {
+        baseClass: this.base.className,
+      },
+    );
   }
 
   #declareBody(_className: string): UccSource {
