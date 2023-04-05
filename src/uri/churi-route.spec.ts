@@ -161,10 +161,10 @@ describe('ChURIRoute', () => {
       expect([...matrix]).toHaveLength(0);
     });
     it('recognizes matrix parameters', () => {
-      const charge = new ChURIRoute('/path;p1=v1(foo);p2=v2').matrix.charge;
+      const { matrix } = new ChURIRoute('/path;p1=v1(foo);p2=v2');
 
-      expect(charge.get('p1')).toHaveURIChargeEntries({ v1: 'foo' });
-      expect(charge.get('p2')).toHaveURIChargeItems('v2');
+      expect(matrix.getCharge('p1')).toHaveURIChargeEntries({ v1: 'foo' });
+      expect(matrix.getCharge('p2')).toHaveURIChargeItems('v2');
     });
   });
 

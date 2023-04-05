@@ -107,16 +107,16 @@ console.debug(route.path);
 console.debug(route.name, route.charge.get('api').value);
 // api !v3.0
 
-console.debug(route.at(1).name, route.at(1).matrix.charge.get('id').value);
+console.debug(route.at(1).name, route.at(1).matrix.getCharge('id').value);
 // user 302875106592253n
 
-console.debug(route.at(2).name, route.at(2).matrix.charge.get('slug').value);
+console.debug(route.at(2).name, route.at(2).matrix.getCharge('slug').value);
 // article hello-world
 
-console.debug(query.charge.get('date').get('since').value);
+console.debug(query.getCharge('date').get('since').value);
 // 1970-01-01T00:00:00.000Z
 
-console.debug(query.charge.get('range').get('from').value, query.charge.get('range').get('to').value);
+console.debug(query.getCharge('range').get('from').value, query.getCharge('range').get('to').value);
 // 10 20
 ```
 

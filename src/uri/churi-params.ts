@@ -1,3 +1,6 @@
+import { parseURICharge } from '#churi/uri-charge/deserializer';
+import { URICharge$List } from '../schema/uri-charge/uri-charge.impl.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import { ChURIMatrix$splitter, ChURIQuery$splitter } from './churi-param-splitter.impl.js';
 import { ChURIParamSplitter } from './churi-param-splitter.js';
 import {
@@ -6,9 +9,6 @@ import {
   parseChURIParams,
   provideChURIParams,
 } from './churi-param.impl.js';
-import { ChURIParamsCharge } from './churi-params-charge.js';
-import { ChURIParams$Raw } from './churi-raw-params.impl.js';
-import { ChURIRawParams } from './churi-raw-params.js';
 
 /**
  * Abstract parameters of {@link ChURI charged URI}. A base class for {@link ChURIQuery search parameters},
@@ -18,49 +18,31 @@ import { ChURIRawParams } from './churi-raw-params.js';
  *
  * [URLSearchParams class]: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
  *
- * @typeParam TCharge - Parameters charge representation type. {@link ChURIParamsCharge} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
-export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
-  implements Iterable<[string, string]> {
+export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[string, string]> {
 
-  readonly #Charge: ChURIParams.CustomOptions<TCharge>['Charge'];
   readonly #list: ChURIParamValue[] = [];
   readonly #map: Map<string, ChURIParam>;
-  readonly #rawCharge: string | null;
+  readonly #rawArg: string | null;
+  readonly #parser: ChURIParams.Parser<TCharge>;
 
-  #raw?: ChURIRawParams;
-  #charge?: TCharge;
-
-  /**
-   * Constructs search parameters.
-   *
-   * @param params - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
-   * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
-   * @param options - Initialization options.
-   */
-  constructor(
-    params:
-      | string
-      | Iterable<readonly [string, (string | null)?]>
-      | Readonly<Record<string, string | null | undefined>>,
-    ...options: ChURIParamsCharge extends TCharge
-      ? [ChURIParams.DefaultOptions?]
-      : [ChURIParams.CustomOptions<TCharge>]
-  );
+  readonly #charges = new Map<string, TCharge>();
+  #arg: TCharge | typeof ChURIParams$NoArg = ChURIParams$NoArg;
 
   /**
    * Constructs search parameters.
    *
    * @param params - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
    * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
-   * @param options - Initialization options.
+   * @param parser - Parser of parameter charges.
    */
   constructor(
     params:
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    options: ChURIParams.Options<TCharge>,
+    ...parser: URICharge extends TCharge ? [ChURIParams.Parser?] : [ChURIParams.Parser<TCharge>]
   );
 
   constructor(
@@ -68,20 +50,18 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
       | string
       | Iterable<readonly [string, (string | null)?]>
       | Readonly<Record<string, string | null | undefined>>,
-    {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      Charge = ChURIParamsCharge,
-    }: Partial<ChURIParams.Options<TCharge>> = {},
+    parser = ChURIParams$parse as ChURIParams.Parser<TCharge>,
   ) {
-    this.#Charge = Charge as ChURIParams.CustomOptions<TCharge>['Charge'];
+    this.#parser = parser;
+
     if (typeof params === 'string') {
       const [entries, rawCharge] = parseChURIParams(params, this, this.#list);
 
       this.#map = entries;
-      this.#rawCharge = rawCharge;
+      this.#rawArg = rawCharge;
     } else {
       this.#map = provideChURIParams(params, this.#list);
-      this.#rawCharge = null;
+      this.#rawArg = null;
     }
   }
 
@@ -91,17 +71,17 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
   abstract get splitter(): ChURIParamSplitter;
 
   /**
-   * Raw parameter values.
+   * Obtains positional argument.
+   *
+   * The very first parameter is treated as positional argument unless it contains an _equals sign_ (`= (U+003D)`),
+   * i.e. the first _named_ parameter name and value.
    */
-  get raw(): ChURIRawParams {
-    return (this.#raw ??= new ChURIParams$Raw(this, this.#rawCharge, this.#list, this.#map));
-  }
+  get arg(): TCharge {
+    if (this.#arg === ChURIParams$NoArg) {
+      this.#arg = this.#parser(this.#rawArg == null ? [] : [this.#rawArg], null, this);
+    }
 
-  /**
-   * Parameters charge.
-   */
-  get charge(): TCharge {
-    return (this.#charge ??= new this.#Charge(this as ChURIParams));
+    return this.#arg as TCharge;
   }
 
   /**
@@ -145,6 +125,26 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
     const entry = this.#map.get(name);
 
     return entry ? entry.values.slice() : [];
+  }
+
+  /**
+   * Obtains a charge of the named parameter.
+   *
+   * @param name - Target parameter name.
+   *
+   * @returns Parameter charge.
+   */
+  getCharge(name: string): TCharge {
+    if (this.#charges.has(name)) {
+      return this.#charges.get(name) as TCharge;
+    }
+
+    const rawValues = this.#map.get(name)?.rawValues ?? [];
+    const charge = this.#parser(rawValues, name, this);
+
+    this.#charges.set(name, charge);
+
+    return charge;
   }
 
   /**
@@ -222,17 +222,25 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
 }
 
 export namespace ChURIParams {
-  export type Options<TCharge = ChURIParamsCharge> = ChURIParamsCharge extends TCharge
-    ? DefaultOptions
-    : CustomOptions<TCharge>;
-
-  export interface DefaultOptions {
-    readonly Charge?: (new (params: ChURIParams) => ChURIParamsCharge) | undefined;
-  }
-
-  export interface CustomOptions<out TCharge> {
-    readonly Charge: new (params: ChURIParams) => TCharge;
-  }
+  /**
+   * Parser of URI search parameter charges.
+   *
+   * Builds parameter charge by raw parameter values.
+   *
+   * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+   * @param rawValues - Array of raw parameter values as they present in URI (i.e. not URI-decoded). Empty for absent
+   * parameter.
+   * @param name - Target parameter name, or `null` to parse {@link ChURIParams#arg positional argument}.
+   * @param params - URI search parameters instance.
+   *
+   * @returns Parameter charge.
+   */
+  export type Parser<out TCharge = URICharge> = (
+    this: void,
+    rawValues: string[],
+    name: string | null,
+    params: ChURIParams<TCharge>,
+  ) => TCharge;
 }
 
 /**
@@ -240,7 +248,7 @@ export namespace ChURIParams {
  *
  * @typeParam TCharge - Parameters charge representation type. {@link ChURIParamsCharge} by default.
  */
-export class ChURIQuery<out TCharge = ChURIParamsCharge> extends ChURIParams<TCharge> {
+export class ChURIQuery<out TCharge = URICharge> extends ChURIParams<TCharge> {
 
   /**
    * Search parameters splitter.
@@ -260,7 +268,7 @@ export class ChURIQuery<out TCharge = ChURIParamsCharge> extends ChURIParams<TCh
  *
  * @typeParam TCharge - Parameters charge representation type. {@link ChURIParamsCharge} by default.
  */
-export class ChURIMatrix<out TCharge = ChURIParamsCharge> extends ChURIParams<TCharge> {
+export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
 
   /**
    * Matrix parameters splitter.
@@ -272,3 +280,17 @@ export class ChURIMatrix<out TCharge = ChURIParamsCharge> extends ChURIParams<TC
   }
 
 }
+
+function ChURIParams$parse(rawValues: string[], _key: string | null, _params: ChURIParams): any {
+  if (rawValues.length < 2) {
+    return rawValues.length ? parseURICharge(rawValues[0]) : URICharge.none;
+  }
+
+  return new URICharge$List(
+    rawValues
+      .map(rawValue => parseURICharge(rawValue))
+      .filter<URICharge.Some>((charge: URICharge): charge is URICharge.Some => charge.isSome()),
+  );
+}
+
+const ChURIParams$NoArg = {};
