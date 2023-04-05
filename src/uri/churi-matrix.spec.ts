@@ -3,7 +3,7 @@ import { ChURIMatrix } from './churi-params.js';
 
 describe('ChURIMatrix', () => {
   it('decodes semicolon-separated params', () => {
-    const params = new ChURIMatrix('?a=1;b=2;a=3');
+    const params = new ChURIMatrix(';a=1;b=2;a=3');
 
     expect([...params]).toEqual([
       ['a', '1'],

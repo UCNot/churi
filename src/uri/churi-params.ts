@@ -1,7 +1,11 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { URICharge$List } from '../schema/uri-charge/uri-charge.impl.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { ChURIMatrix$splitter, ChURIQuery$splitter } from './churi-param-splitter.impl.js';
+import {
+  ChURIAnchor$splitter,
+  ChURIMatrix$splitter,
+  ChURIQuery$splitter,
+} from './churi-param-splitter.impl.js';
 import { ChURIParamSplitter } from './churi-param-splitter.js';
 import {
   ChURIParam,
@@ -22,6 +26,15 @@ import {
  */
 export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[string, string]> {
 
+  /**
+   * Search parameters splitter.
+   *
+   * Splits parameters separated by `"&" (U+0026)` symbol by default.
+   */
+  static get splitter(): ChURIParamSplitter {
+    return ChURIQuery$splitter;
+  }
+
   readonly #list: ChURIParamValue[] = [];
   readonly #map: Map<string, ChURIParam>;
   readonly #rawArg: string | null;
@@ -33,18 +46,11 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
   /**
    * Constructs search parameters.
    *
-   * @param params - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
-   * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
+   * @param params - Either a string containing parameters to parse (a {@link ChURIParamSplitter#prefix prefix}
+   * symbol is ignored), an iterable of key/value pairs representing string parameter values, or a record of string
+   * keys and string values.
    * @param parser - Parser of parameter charges.
    */
-  constructor(
-    params:
-      | string
-      | Iterable<readonly [string, (string | null)?]>
-      | Readonly<Record<string, string | null | undefined>>,
-    ...parser: URICharge extends TCharge ? [ChURIParams.Parser?] : [ChURIParams.Parser<TCharge>]
-  );
-
   constructor(
     params:
       | string
@@ -55,7 +61,7 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
     this.#parser = parser;
 
     if (typeof params === 'string') {
-      const [entries, rawCharge] = parseChURIParams(params, this, this.#list);
+      const [entries, rawCharge] = parseChURIParams(params, new.target.splitter, this.#list);
 
       this.#map = entries;
       this.#rawArg = rawCharge;
@@ -64,11 +70,6 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
       this.#rawArg = null;
     }
   }
-
-  /**
-   * Search parameters splitter.
-   */
-  abstract get splitter(): ChURIParamSplitter;
 
   /**
    * Obtains positional argument.
@@ -216,7 +217,7 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
    * @returns The string containing parameters joined with {@link ChURIParams.Splitter#joiner joiner} symbol.
    */
   toString(): string {
-    return this.#list.join(this.splitter.joiner);
+    return this.#list.join((this.constructor as typeof ChURIParams<TCharge>).splitter.joiner);
   }
 
 }
@@ -244,29 +245,36 @@ export namespace ChURIParams {
 }
 
 /**
- * Charged search parameters representing a {@link ChURI#search query string} of the URI.
+ * Anchor parameters representing a {@link ChURI#hash hash (fragment part)} of URI.
  *
- * @typeParam TCharge - Parameters charge representation type. {@link ChURIParamsCharge} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
-export class ChURIQuery<out TCharge = URICharge> extends ChURIParams<TCharge> {
+export class ChURIAnchor<out TCharge = URICharge> extends ChURIParams<TCharge> {
 
   /**
-   * Search parameters splitter.
+   * Anchor parameters splitter.
    *
    * Splits parameters separated by `"&" (U+0026)` symbol.
    */
-  get splitter(): ChURIParamSplitter {
-    return ChURIQuery$splitter;
+  static override get splitter(): ChURIParamSplitter {
+    return ChURIAnchor$splitter;
   }
 
 }
+
+/**
+ * Charged search parameters representing a {@link ChURI#search query string} of the URI.
+ *
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+ */
+export class ChURIQuery<out TCharge = URICharge> extends ChURIParams<TCharge> {}
 
 /**
  * Charged matrix URI parameters representation.
  *
  * In contrast to {@link ChURIQuery search parameters}, uses `";" (U+003B)` as separator.
  *
- * @typeParam TCharge - Parameters charge representation type. {@link ChURIParamsCharge} by default.
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
 
@@ -275,7 +283,7 @@ export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
    *
    * Splits parameters separated by `";" (U+003B)` symbol.
    */
-  override get splitter(): ChURIParamSplitter {
+  static override get splitter(): ChURIParamSplitter {
     return ChURIMatrix$splitter;
   }
 

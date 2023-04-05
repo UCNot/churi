@@ -1,6 +1,6 @@
 import { isIterable } from '@proc7ts/primitives';
 import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
-import { type ChURIParams } from './churi-params.js';
+import { ChURIParamSplitter } from './churi-param-splitter.js';
 
 export class ChURIParamValue {
 
@@ -39,10 +39,10 @@ export interface ChURIParam {
 
 export function parseChURIParams(
   params: string,
-  { splitter }: ChURIParams<unknown>,
+  splitter: ChURIParamSplitter,
   list: ChURIParamValue[],
 ): [entries: Map<string, ChURIParam>, rawCharge: string | null] {
-  if (params.startsWith('?')) {
+  if (params.startsWith(splitter.prefix)) {
     params = params.slice(1);
   }
 

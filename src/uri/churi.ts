@@ -1,5 +1,5 @@
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { ChURIQuery } from './churi-params.js';
+import { ChURIAnchor, ChURIQuery } from './churi-params.js';
 import { ChURIRoute } from './churi-route.js';
 
 /**
@@ -20,15 +20,21 @@ import { ChURIRoute } from './churi-route.js';
  *
  * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
  * @typeParam TQuery - URI query representation type. {@link ChURIQuery} by default.
+ * @typeParam TAnchor - URI anchor representation type. {@link ChURIAnchor} by default.
  */
-export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery> {
+export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery, out TAnchor = ChURIAnchor> {
 
   readonly #url: URL;
   #scheme?: string;
+
   readonly #Route: new (path: string) => TRoute;
-  readonly #Query: new (query: string) => TQuery;
   #route?: TRoute;
+
+  readonly #Query: new (query: string) => TQuery;
   #query?: TQuery;
+
+  readonly #Anchor: new (query: string) => TAnchor;
+  #anchor?: TAnchor;
 
   /**
    * Constructs charged URI.
@@ -40,25 +46,38 @@ export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery> {
     uri: string,
     ...options: ChURIRoute extends TRoute
       ? ChURIQuery extends TQuery
-        ? [ChURI.Options?]
-        : [ChURI.Options<TRoute, TQuery>]
-      : [ChURI.Options<TRoute, TQuery>]
+        ? ChURIAnchor extends TAnchor
+          ? [ChURI.Options?]
+          : [ChURI.Options<TRoute, TQuery, TAnchor>]
+        : [ChURI.Options<TRoute, TQuery, TAnchor>]
+      : [ChURI.Options<TRoute, TQuery, TAnchor>]
   );
+
+  /**
+   * Constructs charged URI.
+   *
+   * @param uri - Absolute URI string conforming to [RFC3986](https://www.rfc-editor.org/rfc/rfc3986).
+   * @param options - Charged URI options.
+   */
+  constructor(uri: string, options: ChURI.Options<TRoute, TQuery, TAnchor>);
 
   constructor(
     uri: string,
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Route = ChURIRoute as new (path: string) => TRoute,
+      Route = ChURIRoute,
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Query: Search = ChURIQuery as new (search: string) => TQuery,
-    }: Partial<ChURI.CustomRouteOptions<TRoute> & ChURI.CustomSearchOptions<TQuery>> = {},
+      Query = ChURIQuery,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      Anchor = ChURIAnchor,
+    }: Partial<ChURI.Options<TRoute>> = {},
   ) {
     const url = new URL(uri);
 
     this.#url = url;
-    this.#Route = Route;
-    this.#Query = Search;
+    this.#Route = Route as new (path: string) => TRoute;
+    this.#Query = Query as new (search: string) => TQuery;
+    this.#Anchor = Anchor as new (search: string) => TAnchor;
   }
 
   /**
@@ -165,19 +184,19 @@ export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery> {
    *
    * Resembles [URL.searchParams] in its readonly part.
    *
+   * This is an alias of {@link query} property.
+   *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
   get searchParams(): TQuery {
-    return (this.#query ??= new this.#Query(this.search));
+    return this.query;
   }
 
   /**
-   * Decoded URI query.
-   *
-   * An alias of {@link searchParams}.
+   * Decoded URI query. The same as {@link searchParams}.
    */
   get query(): TQuery {
-    return this.searchParams;
+    return (this.#query ??= new this.#Query(this.search));
   }
 
   /**
@@ -190,6 +209,13 @@ export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery> {
    */
   get hash(): string {
     return this.#url.hash;
+  }
+
+  /**
+   * URI anchor
+   */
+  get anchor(): TAnchor {
+    return (this.#anchor ??= new this.#Anchor(this.hash));
   }
 
   /**
@@ -235,10 +261,14 @@ export namespace ChURI {
    * Charged URI construction options.
    *
    * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
-   * @typeParam TSearch - Search parameters representation type. {@link ChURIQuery} by default.
+   * @typeParam TQuery - URI query representation type. {@link ChURIQuery} by default.
+   * @typeParam TAnchor - URI anchor representation type. {@link ChURIAnchor} by default.
    */
-  export type Options<TRoute = ChURIRoute, TSearch = ChURIQuery> = RouteOptions<TRoute> &
-    SearchOptions<TSearch>;
+  export type Options<
+    TRoute = ChURIRoute,
+    TQuery = ChURIQuery,
+    TAnchor = ChURIAnchor,
+  > = RouteOptions<TRoute> & QueryOptions<TQuery> & AnchorOptions<TAnchor>;
 
   /**
    * Charged URI construction options specifying its route representation class.
@@ -264,24 +294,48 @@ export namespace ChURI {
   }
 
   /**
-   * Charged URI construction options specifying its search parameters representation class.
+   * Charged URI construction options specifying its query representation class.
    *
-   * @typeParam TRoute - Custom route representation type.
+   * @typeParam TRoute - Custom query representation type.
    */
-  export type SearchOptions<TSearchParams> = ChURIQuery extends ChURIQuery
-    ? DefaultSearchOptions
-    : CustomSearchOptions<TSearchParams>;
+  export type QueryOptions<TQuery> = ChURIQuery extends ChURIQuery
+    ? DefaultQueryOptions
+    : CustomQueryOptions<TQuery>;
 
-  export interface DefaultSearchOptions {
+  export interface DefaultQueryOptions {
     /**
      * Constructor of URI query. {@link ChURIQuery by default}.
      */
     readonly Query?: (new (query: string) => ChURIQuery) | undefined;
   }
-  export interface CustomSearchOptions<TSearch> {
+
+  export interface CustomQueryOptions<TQuery> {
     /**
      * Constructor of URI query.
      */
-    readonly Query: new (query: string) => TSearch;
+    readonly Query: new (query: string) => TQuery;
+  }
+
+  /**
+   * Charged URI construction options specifying its anchor representation class.
+   *
+   * @typeParam TAnchor - Custom anchor representation type.
+   */
+  export type AnchorOptions<TAnchor> = ChURIQuery extends ChURIAnchor
+    ? DefaultAnchorOptions
+    : CustomAnchorOptions<TAnchor>;
+
+  export interface DefaultAnchorOptions {
+    /**
+     * Constructor of URI anchor. {@link ChURIAnchor by default}.
+     */
+    readonly Anchor?: (new (query: string) => ChURIAnchor) | undefined;
+  }
+
+  export interface CustomAnchorOptions<TAnchor> {
+    /**
+     * Constructor of URI anchor.
+     */
+    readonly Anchor: new (query: string) => TAnchor;
   }
 }

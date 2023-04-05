@@ -11,7 +11,7 @@ import { ChURIMatrix } from './churi-params.js';
  */
 export class ChURIRoute<out TMatrix = ChURIMatrix> {
 
-  readonly #options: UcRoute.CustomOptions<TMatrix>;
+  readonly #options: ChURIRoute.CustomOptions<TMatrix>;
 
   #data: ChURIRoute$Data<TMatrix>;
   #index = 0;
@@ -29,20 +29,18 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
   constructor(
     path: string,
     ...options: ChURIMatrix extends TMatrix
-      ? [UcRoute.Options<TMatrix>?]
-      : [UcRoute.Options<TMatrix>]
+      ? [ChURIRoute.Options<TMatrix>?]
+      : [ChURIRoute.Options<TMatrix>]
   );
 
   constructor(
     path: string,
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Matrix = ChURIMatrix as new (matrix: string) => TMatrix,
-    }: Partial<UcRoute.CustomOptions<TMatrix>> = {},
+      Matrix = ChURIMatrix,
+    }: Partial<ChURIRoute.Options<TMatrix>> = {},
   ) {
-    this.#options = {
-      Matrix,
-    };
+    this.#options = { Matrix } as ChURIRoute.CustomOptions<TMatrix>;
     this.#data = new ChURIRoute$Data(path, this);
     this.#index = 0;
   }
@@ -210,13 +208,13 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
   protected createFragment(_index: number): ChURIRoute<TMatrix> {
     return new (this.constructor as typeof ChURIRoute<TMatrix>)(
       '',
-      this.#options as UcRoute.Options<TMatrix>,
+      this.#options as ChURIRoute.Options<TMatrix>,
     );
   }
 
 }
 
-export namespace UcRoute {
+export namespace ChURIRoute {
   /**
    * Options for charged URI route construction.
    *
@@ -234,7 +232,7 @@ export namespace UcRoute {
     readonly Matrix?: (new (matrix: string) => ChURIMatrix) | undefined;
   }
 
-  export interface CustomOptions<TMatrix> {
+  export interface CustomOptions<out TMatrix> {
     /**
      * Constructor of matrix parameters representation.
      */

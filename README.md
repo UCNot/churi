@@ -16,7 +16,9 @@ URI charge may be used:
 - as query parameter value,
 - as positional argument immediately following `?` within query,
 - as [Matrix URI] parameter value,
-- as path fragment.
+- as path fragment,
+- as URI hash (anchor) parameter value,
+- as positional argument immediately following `#` within hash.
 
 **Example:**
 

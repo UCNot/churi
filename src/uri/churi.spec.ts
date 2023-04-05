@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import '../spec/uri-charge-matchers.js';
 import { ChURI } from './churi.js';
 
 describe('ChURI', () => {
@@ -148,43 +149,49 @@ describe('ChURI', () => {
 
   describe('search', () => {
     it('is empty when absent', () => {
-      const uri = new ChURI('route:path');
+      const { search } = new ChURI('route:path');
 
-      expect(uri.search).toBe('');
+      expect(search).toBe('');
     });
     it('is empty when empty', () => {
-      const uri = new ChURI('route:?');
+      const { search } = new ChURI('route:?');
 
-      expect(uri.search).toBe('');
+      expect(search).toBe('');
     });
     it('remains as is when present', () => {
-      const uri = new ChURI('route:?test');
+      const { search } = new ChURI('route:?test');
 
-      expect(uri.search).toBe('?test');
+      expect(search).toBe('?test');
     });
   });
 
   describe('searchParams', () => {
     it('is empty when absent', () => {
-      const uri = new ChURI('route:path');
+      const { searchParams } = new ChURI('route:path');
 
-      expect([...uri.searchParams]).toEqual([]);
-      expect(String(uri.searchParams)).toBe('');
+      expect([...searchParams]).toEqual([]);
+      expect(String(searchParams)).toBe('');
     });
     it('is empty when empty', () => {
-      const uri = new ChURI('route:?');
+      const { searchParams } = new ChURI('route:?');
 
-      expect([...uri.searchParams]).toEqual([]);
-      expect(String(uri.searchParams)).toBe('');
+      expect([...searchParams]).toEqual([]);
+      expect(String(searchParams)).toBe('');
     });
     it('contains search parameters when present', () => {
-      const uri = new ChURI('route:?&test&foo=bar');
+      const { searchParams } = new ChURI('route:?&test&foo=bar');
 
-      expect([...uri.searchParams]).toEqual([
+      expect([...searchParams]).toEqual([
         ['test', ''],
         ['foo', 'bar'],
       ]);
-      expect(String(uri.searchParams)).toBe('test=&foo=bar');
+      expect(String(searchParams)).toBe('test=&foo=bar');
+    });
+    it('contains positional argument when present', () => {
+      const { query } = new ChURI('route:?test(foo)&bar=baz');
+
+      expect(query.arg).toHaveURIChargeItems({ test: 'foo' });
+      expect([...query]).toEqual([['bar', 'baz']]);
     });
   });
 
@@ -198,19 +205,49 @@ describe('ChURI', () => {
 
   describe('hash', () => {
     it('is empty when absent', () => {
-      const uri = new ChURI('route:path');
+      const { hash } = new ChURI('route:path');
 
-      expect(uri.hash).toBe('');
+      expect(hash).toBe('');
     });
     it('is empty when empty', () => {
-      const uri = new ChURI('route:#');
+      const { hash } = new ChURI('route:#');
 
-      expect(uri.hash).toBe('');
+      expect(hash).toBe('');
     });
     it('remains as is when present', () => {
-      const uri = new ChURI('route:#test');
+      const { hash } = new ChURI('route:#test');
 
-      expect(uri.hash).toBe('#test');
+      expect(hash).toBe('#test');
+    });
+  });
+
+  describe('anchor', () => {
+    it('is empty when absent', () => {
+      const { anchor } = new ChURI('route:path');
+
+      expect([...anchor]).toEqual([]);
+      expect(String(anchor)).toBe('');
+    });
+    it('is empty when empty', () => {
+      const { anchor } = new ChURI('route:#');
+
+      expect([...anchor]).toEqual([]);
+      expect(String(anchor)).toBe('');
+    });
+    it('contains parameters when present', () => {
+      const { anchor } = new ChURI('route:#&test&foo=bar');
+
+      expect([...anchor]).toEqual([
+        ['test', ''],
+        ['foo', 'bar'],
+      ]);
+      expect(String(anchor)).toBe('test=&foo=bar');
+    });
+    it('contains positional argument when present', () => {
+      const { anchor } = new ChURI('route:#test(foo)&bar=baz');
+
+      expect(anchor.arg).toHaveURIChargeItems({ test: 'foo' });
+      expect([...anchor]).toEqual([['bar', 'baz']]);
     });
   });
 

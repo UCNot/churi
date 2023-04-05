@@ -2,12 +2,18 @@ import { ChURIParamSplitter } from './churi-param-splitter.js';
 
 class ChURIParams$Splitter implements ChURIParamSplitter {
 
+  readonly #prefix: string;
   readonly #joiner: string;
   readonly #splitter: RegExp;
 
-  constructor(separator: string) {
+  constructor(prefix: string, separator: string) {
+    this.#prefix = prefix;
     this.#joiner = separator;
     this.#splitter = new RegExp(`(=|${separator}+)`);
+  }
+
+  get prefix(): string {
+    return this.#prefix;
   }
 
   get joiner(): string {
@@ -57,5 +63,6 @@ class ChURIParams$Splitter implements ChURIParamSplitter {
 
 }
 
-export const ChURIQuery$splitter = /*#__PURE__*/ new ChURIParams$Splitter('&');
-export const ChURIMatrix$splitter = /*#__PURE__*/ new ChURIParams$Splitter(';');
+export const ChURIAnchor$splitter = /*#__PURE__*/ new ChURIParams$Splitter('#', '&');
+export const ChURIQuery$splitter = /*#__PURE__*/ new ChURIParams$Splitter('?', '&');
+export const ChURIMatrix$splitter = /*#__PURE__*/ new ChURIParams$Splitter(';', ';');

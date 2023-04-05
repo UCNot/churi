@@ -3,6 +3,13 @@
  */
 export interface ChURIParamSplitter {
   /**
+   * Prefix symbol.
+   *
+   * E.g. `?` for query, `;` for matrix, or `#` for hash.
+   */
+  readonly prefix: string;
+
+  /**
    * Symbol used to join search parameters.
    *
    * @defaultValue `"&" (U+0026)`
