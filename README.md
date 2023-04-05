@@ -14,8 +14,8 @@ It is like JSON for GET requests, but can do even more.
 URI charge may be used:
 
 - as query parameter value,
+- as positional argument immediately following `?` within query,
 - as [Matrix URI] parameter value,
-- as a positional argument immediately following `?` (within query) or first `;` (within path fragment),
 - as path fragment.
 
 **Example:**
@@ -104,7 +104,7 @@ const { route, searchParams: query } = new ChURI(
 console.debug(route.path);
 // /api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
 
-console.debug(route.name, route.charge.get('api').value);
+console.debug(route.name, route.matrix.arg.get('api').value);
 // api !v3.0
 
 console.debug(route.at(1).name, route.at(1).matrix.getCharge('id').value);

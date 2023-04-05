@@ -131,24 +131,6 @@ describe('ChURIRoute', () => {
     });
   });
 
-  describe('charge', () => {
-    it('is string value without charge', () => {
-      expect(new ChURIRoute('/path').charge).toHaveURIChargeValue('path');
-    });
-    it('recognizes single charge', () => {
-      expect(new ChURIRoute('/path(foo)').charge).toHaveURIChargeItems({ path: 'foo' });
-    });
-    it('recognizes list charge', () => {
-      expect(new ChURIRoute('/path,foo,bar)').charge).toHaveURIChargeItems('path', 'foo', 'bar');
-    });
-    it('recognizes map charge', () => {
-      expect(new ChURIRoute('/path(foo)bar(baz)').charge).toHaveURIChargeItems({
-        path: 'foo',
-        bar: 'baz',
-      });
-    });
-  });
-
   describe('matrix', () => {
     it('is empty by default', () => {
       const { matrix } = new ChURIRoute('/path');
@@ -165,6 +147,28 @@ describe('ChURIRoute', () => {
 
       expect(matrix.getCharge('p1')).toHaveURIChargeEntries({ v1: 'foo' });
       expect(matrix.getCharge('p2')).toHaveURIChargeItems('v2');
+    });
+
+    describe('arg', () => {
+      it('is string value without charge', () => {
+        expect(new ChURIRoute('/path').matrix.arg).toHaveURIChargeValue('path');
+      });
+      it('recognizes single charge', () => {
+        expect(new ChURIRoute('/path(foo)').matrix.arg).toHaveURIChargeItems({ path: 'foo' });
+      });
+      it('recognizes list charge', () => {
+        expect(new ChURIRoute('/path,foo,bar)').matrix.arg).toHaveURIChargeItems(
+          'path',
+          'foo',
+          'bar',
+        );
+      });
+      it('recognizes map charge', () => {
+        expect(new ChURIRoute('/path(foo)bar(baz)').matrix.arg).toHaveURIChargeItems({
+          path: 'foo',
+          bar: 'baz',
+        });
+      });
     });
   });
 
