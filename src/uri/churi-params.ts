@@ -263,6 +263,25 @@ export class ChURIAnchor<out TCharge = URICharge> extends ChURIParams<TCharge> {
 }
 
 /**
+ * Authentication info representing a {@link ChURI#username username} part of URI, possibly with Matrix-like parameters
+ * separated by _semicolons_ `";" (U+003B)`.
+ *
+ * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
+ */
+export class ChURIAuth<out TCharge = URICharge> extends ChURIParams<TCharge> {
+
+  /**
+   * Matrix parameters splitter.
+   *
+   * Splits parameters separated by `";" (U+003B)` symbol.
+   */
+  static override get splitter(): ChURIParamSplitter {
+    return ChURIMatrix$splitter;
+  }
+
+}
+
+/**
  * Charged search parameters representing a {@link ChURI#search query string} of the URI.
  *
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.

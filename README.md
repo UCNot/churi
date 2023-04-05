@@ -18,7 +18,8 @@ URI charge may be used:
 - as [Matrix URI] parameter value,
 - as path fragment,
 - as URI hash (anchor) parameter value,
-- as positional argument immediately following `#` within hash.
+- as positional argument immediately following `#` within hash,
+- as username and authentication parameters.
 
 **Example:**
 

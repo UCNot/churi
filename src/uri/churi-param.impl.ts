@@ -42,7 +42,7 @@ export function parseChURIParams(
   splitter: ChURIParamSplitter,
   list: ChURIParamValue[],
 ): [entries: Map<string, ChURIParam>, rawCharge: string | null] {
-  if (params.startsWith(splitter.prefix)) {
+  if (splitter.prefix !== splitter.joiner && params.startsWith(splitter.prefix)) {
     params = params.slice(1);
   }
 
