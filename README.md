@@ -11,15 +11,15 @@ An URI that may contain arbitrary JavaScript values encoded with [URI charge] mi
 
 It is like JSON for GET requests, but can do even more.
 
-URI charge may be used:
+Various URI parts could be charged:
 
-- as query parameter value,
-- as positional argument immediately following `?` within query,
-- as [Matrix URI] parameter value,
-- as path fragment,
-- as URI hash (anchor) parameter value,
-- as positional argument immediately following `#` within hash,
-- as username and authentication parameters.
+- query parameter values,
+- positional argument immediately following `?` within query,
+- [Matrix URI] parameter values,
+- path fragments,
+- URI hash (anchor) parameter values,
+- positional argument immediately following `#` within hash,
+- username and authentication parameters.
 
 **Example:**
 
