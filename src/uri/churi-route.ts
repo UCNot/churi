@@ -36,12 +36,13 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
   constructor(
     path: string,
     {
+      override,
       // eslint-disable-next-line @typescript-eslint/naming-convention
       Matrix = ChURIMatrix,
     }: Partial<ChURIRoute.Options<TMatrix>> = {},
   ) {
     this.#options = { Matrix } as ChURIRoute.CustomOptions<TMatrix>;
-    this.#data = new ChURIRoute$Data(path, this);
+    this.#data = new ChURIRoute$Data(path, override, this);
     this.#index = 0;
   }
 
@@ -227,12 +228,22 @@ export namespace ChURIRoute {
 
   export interface DefaultOptions {
     /**
+     * Matrix parameters override.
+     */
+    readonly override?: string | undefined;
+
+    /**
      * Constructor of matrix parameters representation.
      */
     readonly Matrix?: (new (matrix: string) => ChURIMatrix) | undefined;
   }
 
   export interface CustomOptions<out TMatrix> {
+    /**
+     * Matrix parameters override.
+     */
+    readonly override?: string | undefined;
+
     /**
      * Constructor of matrix parameters representation.
      */
@@ -250,11 +261,13 @@ interface UcRoute$Parts {
 class ChURIRoute$Data<out TMatrix> {
 
   readonly #path: string;
+  readonly #override: string | undefined;
   #fragments: readonly string[] | undefined;
   readonly #parts: (ChURIRoute<TMatrix> | undefined)[];
 
-  constructor(path: string, firstPart: ChURIRoute<TMatrix>) {
+  constructor(path: string, override: string | undefined, firstPart: ChURIRoute<TMatrix>) {
     this.#path = path;
+    this.#override = override;
     this.#parts = [firstPart];
   }
 
@@ -294,27 +307,15 @@ class ChURIRoute$Data<out TMatrix> {
 
       return true;
     });
-    let i = 0;
 
-    while (i < fragments.length) {
-      const fragment = fragments[i];
-
-      if (fragment === '..') {
-        if (i) {
-          fragments.splice(i - 1, 2);
-          --i;
-        } else {
-          fragments.splice(i, 1);
-        }
-
-        continue;
-      }
-
-      ++i;
-    }
+    ChURIRoute$normalizeFragments(fragments);
 
     if (!fragments.length || (fragments.length === 1 && !fragments[0])) {
       return leadingSlash || trailingSlash ? ['/'] : [''];
+    }
+
+    if (this.#override) {
+      ChURIRoute$overrideFragments(fragments, this.#override);
     }
 
     if (leadingSlash) {
@@ -335,4 +336,49 @@ class ChURIRoute$Data<out TMatrix> {
     this.#parts[index] = route;
   }
 
+}
+
+function ChURIRoute$normalizeFragments(fragments: string[]): void {
+  let i = 0;
+
+  while (i < fragments.length) {
+    const fragment = fragments[i];
+
+    if (fragment === '..') {
+      if (i) {
+        fragments.splice(i - 1, 2);
+        --i;
+      } else {
+        fragments.splice(i, 1);
+      }
+
+      continue;
+    }
+
+    ++i;
+  }
+}
+
+function ChURIRoute$overrideFragments(fragments: string[], pathOverride: string): void {
+  if (pathOverride.startsWith('/')) {
+    pathOverride = pathOverride.slice(1);
+  }
+
+  const overrides = pathOverride.split('/').filter(fragment => fragment !== '.');
+
+  ChURIRoute$normalizeFragments(overrides);
+
+  for (let i = 0; i < fragments.length; ++i) {
+    if (i >= overrides.length) {
+      break;
+    }
+
+    const override = overrides[i];
+
+    if (override.startsWith('*')) {
+      fragments[i] += override.slice(1);
+    } else {
+      fragments[i] = override;
+    }
+  }
 }

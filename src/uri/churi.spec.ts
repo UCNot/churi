@@ -201,6 +201,20 @@ describe('ChURI', () => {
     });
   });
 
+  describe('path override', () => {
+    it('affects path and query', () => {
+      const { route, query } = new ChURI('route:/some/path?/*;id=13?name=value');
+
+      expect(route.path).toBe('/some;id=13/path');
+      expect(query.get('name')).toBe('value');
+    });
+    it('does not affect query without search params', () => {
+      const { query } = new ChURI('route:/some/path?/*;id=13#some');
+
+      expect(query.toString()).toBe('');
+    });
+  });
+
   describe('query', () => {
     it('is an alias of searchParams', () => {
       const uri = new ChURI('route:?test&foo=bar');

@@ -206,6 +206,28 @@ describe('ChURIRoute', () => {
     });
   });
 
+  describe('override', () => {
+    it('replaces path fragment', () => {
+      const route = new ChURIRoute('/some/path', { override: 'other' });
+
+      expect(route.toString()).toBe('/other/path');
+    });
+    it('extends path fragment', () => {
+      const route = new ChURIRoute('/some/path', { override: '/*/*;param=13' });
+
+      expect(route.toString()).toBe('/some/path;param=13');
+
+      const param = route.get(1)?.matrix.getCharge('param');
+
+      expect(param).toHaveURIChargeValue(13);
+    });
+    it('collapses path fragment', () => {
+      const route = new ChURIRoute('/some/path', { override: '//*' });
+
+      expect(route.toString()).toBe('//path');
+    });
+  });
+
   describe('toString', () => {
     it('reflects path', () => {
       expect(String(new ChURIRoute('some/long/path'))).toBe('some/long/path');

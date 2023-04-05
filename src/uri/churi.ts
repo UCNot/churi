@@ -39,7 +39,7 @@ export class ChURI<
   readonly #Auth: new (query: string) => TAuth;
   #auth?: TAuth;
 
-  readonly #Route: new (path: string) => TRoute;
+  readonly #Route: ChURI.CustomRouteOptions<TRoute>['Route'];
   #route?: TRoute;
 
   readonly #Query: new (query: string) => TQuery;
@@ -47,6 +47,8 @@ export class ChURI<
 
   readonly #Anchor: new (query: string) => TAnchor;
   #anchor?: TAnchor;
+
+  #override?: ChURI$Override;
 
   /**
    * Constructs charged URI.
@@ -218,7 +220,9 @@ export class ChURI<
    * The returned {@link ChURIRoute} instance refers the first fragment of the path.
    */
   get route(): TRoute {
-    return (this.#route ??= new this.#Route(this.pathname));
+    return (this.#route ??= new this.#Route(this.pathname, {
+      override: this.#getOverride().pathname,
+    }));
   }
 
   /**
@@ -248,7 +252,7 @@ export class ChURI<
    * Decoded URI query. The same as {@link searchParams}.
    */
   get query(): TQuery {
-    return (this.#query ??= new this.#Query(this.search));
+    return (this.#query ??= new this.#Query(this.#getOverride().search));
   }
 
   /**
@@ -306,6 +310,34 @@ export class ChURI<
     return this.toString();
   }
 
+  #getOverride(): ChURI$Override {
+    if (this.#override) {
+      return this.#override;
+    }
+
+    const { search } = this;
+
+    if (!search.startsWith('?/')) {
+      // No override
+      return (this.#override = { search });
+    }
+
+    // Extract
+    const queryStart = search.indexOf('?', 2);
+
+    if (queryStart < 0) {
+      return (this.#override = {
+        search: '',
+        pathname: search,
+      });
+    }
+
+    return (this.#override = {
+      search: search.slice(queryStart + 1),
+      pathname: search.slice(1, queryStart),
+    });
+  }
+
 }
 
 export namespace ChURI {
@@ -337,14 +369,19 @@ export namespace ChURI {
     /**
      * Constructor of route representation.
      */
-    readonly Route?: (new (path: string) => ChURIRoute) | undefined;
+    readonly Route?:
+      | (new (path: string, options?: { readonly override?: string | undefined }) => ChURIRoute)
+      | undefined;
   }
 
   export interface CustomRouteOptions<out TRoute> {
     /**
      * Constructor of route representation.
      */
-    readonly Route: new (path: string) => TRoute;
+    readonly Route: new (
+      path: string,
+      options?: { readonly override?: string | undefined },
+    ) => TRoute;
   }
 
   /**
@@ -419,3 +456,8 @@ export namespace ChURI {
 
 const URI_PATTERN =
   /^((?:[a-zA-Z][\w+-.]*:)+)(?:\/\/(?:([^@#?:]*):?[^@?#]*@)([^?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/;
+
+interface ChURI$Override {
+  readonly search: string;
+  readonly pathname?: string | undefined;
+}
