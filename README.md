@@ -14,8 +14,9 @@ It is like JSON for GET requests, but can do even more.
 URI charge may be used:
 
 - as query parameter value,
-- as [Matrix URI] parameters,
-- as path fragment argument.
+- as [Matrix URI] parameter value,
+- as a positional argument immediately following `?` (within query) or first `;` (within path fragment),
+- as path fragment.
 
 **Example:**
 

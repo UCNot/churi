@@ -10,13 +10,14 @@ export interface ChURIParamSplitter {
   readonly joiner: string;
 
   /**
-   * Splits search string onto parameter key/value pairs.
+   * Splits parameters string onto key/value pairs.
    *
    * By default, splits `&`-separated
    *
-   * @param search - Search string to split.
+   * @param params - Parameters string to split.
    *
-   * @returns Iterable of URI-encoded key/value pairs.
+   * @returns Iterable of URI-encoded key/value pairs. A value can be `null` when absent, e.g. when _equals sign_
+   * is missing.
    */
-  split(search: string): Iterable<readonly [string, string]>;
+  split(params: string): Iterable<readonly [string, string | null]>;
 }

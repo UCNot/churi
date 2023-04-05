@@ -4,14 +4,25 @@ import { ChURIRawParams } from './churi-raw-params.js';
 
 export class ChURIParams$Raw implements ChURIRawParams {
 
+  readonly #arg: string | null;
   readonly #params: ChURIParams<unknown>;
   readonly #list: ChURIParamValue[] = [];
   readonly #map: Map<string, ChURIParam>;
 
-  constructor(params: ChURIParams<unknown>, list: ChURIParamValue[], map: Map<string, ChURIParam>) {
+  constructor(
+    params: ChURIParams<unknown>,
+    arg: string | null,
+    list: ChURIParamValue[],
+    map: Map<string, ChURIParam>,
+  ) {
+    this.#arg = arg;
     this.#params = params;
     this.#list = list;
     this.#map = map;
+  }
+
+  get arg(): string | null {
+    return this.#arg;
   }
 
   has(name: string): boolean {

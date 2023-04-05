@@ -4,7 +4,7 @@ import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import type { ChURIParams } from './churi-params.js';
 
 /**
- * The charge of {@link ChURIParams URI parameters}.
+ * A charge of {@link ChURIParams URI parameters}.
  *
  * Allows to parse parameter values in URI charge format.
  *
@@ -12,12 +12,13 @@ import type { ChURIParams } from './churi-params.js';
  */
 export class ChURIParamsCharge<out TCharge = URICharge> {
 
+  #arg: TCharge | typeof ChURIParamsCharge$NoArgs = ChURIParamsCharge$NoArgs;
   readonly #params: ChURIParams;
   readonly #parser: ChURIParamsCharge.Parser<TCharge>;
   readonly #charges = new Map<string, TCharge>();
 
   /**
-   * Constructs the charge of URI search parameters.
+   * Constructs a charge of URI search parameters.
    *
    * @param params - Source search parameters.
    * @param parser - Parser of parameter charges.
@@ -42,6 +43,22 @@ export class ChURIParamsCharge<out TCharge = URICharge> {
   }
 
   /**
+   * Obtains a charge of positional argument.
+   *
+   * The very first parameter is treated as positional argument unless it is contains an _equals sign_ (`= (U+003D)`),
+   * i.e. the first _named_ parameter name and value.
+   */
+  get arg(): TCharge {
+    if (this.#arg === ChURIParamsCharge$NoArgs) {
+      const { arg } = this.#params.raw;
+
+      this.#arg = this.#parser(arg == null ? [] : [arg], null, this.#params);
+    }
+
+    return this.#arg as TCharge;
+  }
+
+  /**
    * Obtains a charge of the named parameter.
    *
    * @param name - Target parameter name.
@@ -63,6 +80,8 @@ export class ChURIParamsCharge<out TCharge = URICharge> {
 
 }
 
+const ChURIParamsCharge$NoArgs = {};
+
 export namespace ChURIParamsCharge {
   /**
    * Parser of URI search parameter charge.
@@ -72,7 +91,7 @@ export namespace ChURIParamsCharge {
    * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
    * @param rawValues - Array of {@link UcRawParams#getAll raw parameter values} as they present in URI (i.e. not
    * URI-decoded). Empty for absent parameter.
-   * @param name - Target parameter name.
+   * @param name - Target parameter name, or `null` to parse {@link ChURIRawParams#arg positional argument}.
    * @param params - URI search parameters instance.
    *
    * @returns Parameter charge.
@@ -80,12 +99,16 @@ export namespace ChURIParamsCharge {
   export type Parser<out TCharge = URICharge> = (
     this: void,
     rawValues: string[],
-    name: string,
+    name: string | null,
     params: ChURIParams,
   ) => TCharge;
 }
 
-function ChURIParamsCharge$parse(rawValues: string[], _key: string, _params: ChURIParams): any {
+function ChURIParamsCharge$parse(
+  rawValues: string[],
+  _key: string | null,
+  _params: ChURIParams,
+): any {
   if (rawValues.length < 2) {
     return rawValues.length ? parseURICharge(rawValues[0]) : URICharge.none;
   }

@@ -41,7 +41,7 @@ export function parseChURIParams(
   params: string,
   { splitter }: ChURIParams<unknown>,
   list: ChURIParamValue[],
-): Map<string, ChURIParam> {
+): [entries: Map<string, ChURIParam>, rawCharge: string | null] {
   if (params.startsWith('?')) {
     params = params.slice(1);
   }
@@ -49,24 +49,38 @@ export function parseChURIParams(
   const entries = new Map<string, ChURIParam$Parsed>();
 
   if (!params) {
-    return entries;
+    return [entries, null];
   }
 
-  for (const [rawKey, rawValue] of splitter.split(params)) {
+  let isFirst = true;
+  let rawCharge: string | null = null;
+
+  for (const [rawKey, optionalValue] of splitter.split(params)) {
+    if (isFirst) {
+      isFirst = false;
+      if (optionalValue == null) {
+        // First parameter without value treated as parameters charge.
+        rawCharge = rawKey;
+
+        continue;
+      }
+    }
+
     const key = decodeSearchParam(rawKey);
+    const value = optionalValue ?? '';
     const prev = entries.get(key);
 
     if (prev) {
-      list.push(prev.add(rawValue));
+      list.push(prev.add(value));
     } else {
-      const param = new ChURIParam$Parsed(key, rawKey, rawValue);
+      const param = new ChURIParam$Parsed(key, rawKey, value);
 
       entries.set(key, param);
       list.push(new ChURIParamValue(param, 0));
     }
   }
 
-  return entries;
+  return [entries, rawCharge];
 }
 
 export function provideChURIParams(

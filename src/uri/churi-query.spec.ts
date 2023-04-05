@@ -32,7 +32,7 @@ describe('ChURIQuery', () => {
     expect(String(params)).toBe(String(urlParams));
   });
   it('handles missing value', () => {
-    const input = 'a&b=2';
+    const input = '&a&b=2';
     const params = new ChURIQuery(input);
     const urlParams = new URLSearchParams(input);
 
@@ -43,6 +43,29 @@ describe('ChURIQuery', () => {
     expect(String(params)).toBe('a=&b=2');
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles positional argument', () => {
+    const {
+      charge: { arg },
+    } = new ChURIQuery('abc&a&b=2');
+
+    expect(arg).toBeURIChargeSingle('string');
+    expect(arg).toHaveURIChargeValue('abc');
+  });
+  it('handles missing positional argument', () => {
+    const {
+      charge: { arg },
+    } = new ChURIQuery('abc=&a&b=2');
+
+    expect(arg).toBeURIChargeNone();
+  });
+  it('handles empty positional argument', () => {
+    const {
+      charge: { arg },
+    } = new ChURIQuery('&a&b=2');
+
+    expect(arg).toBeURIChargeSingle('string');
+    expect(arg).toHaveURIChargeValue('');
   });
   it('handles value with `=`', () => {
     const input = 'a==&b=2=3';
@@ -186,8 +209,8 @@ describe('ChURIQuery', () => {
       expect(params.get('ccc')).toBeNull();
       expect(params.raw.get('ccc')).toBeNull();
     });
-    it('recognizes parameter without value', () => {
-      params = new ChURIQuery('aaa');
+    it('recognizes second parameter without value', () => {
+      params = new ChURIQuery('&aaa');
 
       expect(params.get('aaa')).toBe('');
       expect(params.raw.get('aaa')).toBe('');
@@ -204,7 +227,7 @@ describe('ChURIQuery', () => {
     let params: ChURIQuery;
 
     beforeAll(() => {
-      params = new ChURIQuery('aaa&bbb=22+2&aaa=333');
+      params = new ChURIQuery('&aaa&bbb=22+2&aaa=333');
     });
 
     it('returns all parameter values', () => {

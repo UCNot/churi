@@ -178,7 +178,7 @@ describe('ChURI', () => {
       expect(String(uri.searchParams)).toBe('');
     });
     it('contains search parameters when present', () => {
-      const uri = new ChURI('route:?test&foo=bar');
+      const uri = new ChURI('route:?&test&foo=bar');
 
       expect([...uri.searchParams]).toEqual([
         ['test', ''],

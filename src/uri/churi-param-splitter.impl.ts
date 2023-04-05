@@ -14,15 +14,19 @@ class ChURIParams$Splitter implements ChURIParamSplitter {
     return this.#joiner;
   }
 
-  *split(search: string): IterableIterator<readonly [string, string]> {
+  *split(search: string): IterableIterator<readonly [string, string | null]> {
     const separator = this.#joiner;
     let key: string | null = null;
     let value: string | null = null;
+    let isFirst = true;
 
     for (const part of search.split(this.#splitter)) {
+      const wasFirst = isFirst;
+
+      isFirst = false;
       if (part.startsWith(separator)) {
         if (key != null) {
-          yield [key, value ?? ''];
+          yield [key, value];
           key = null;
           value = null;
         }
@@ -41,11 +45,13 @@ class ChURIParams$Splitter implements ChURIParamSplitter {
         } else {
           value = part;
         }
+      } else if (wasFirst) {
+        yield ['', null];
       }
     }
 
     if (key != null) {
-      yield [key, value ?? ''];
+      yield [key, value];
     }
   }
 

@@ -26,6 +26,7 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
   readonly #Charge: ChURIParams.CustomOptions<TCharge>['Charge'];
   readonly #list: ChURIParamValue[] = [];
   readonly #map: Map<string, ChURIParam>;
+  readonly #rawCharge: string | null;
 
   #raw?: ChURIRawParams;
   #charge?: TCharge;
@@ -47,6 +48,21 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
       : [ChURIParams.CustomOptions<TCharge>]
   );
 
+  /**
+   * Constructs search parameters.
+   *
+   * @param params - Either a string containing parameters to parse (a leading `"?" (U+OO3F)"` character is ignored),
+   * an iterable of key/value pairs representing string parameter values, or a record of string keys and string values.
+   * @param options - Initialization options.
+   */
+  constructor(
+    params:
+      | string
+      | Iterable<readonly [string, (string | null)?]>
+      | Readonly<Record<string, string | null | undefined>>,
+    options: ChURIParams.Options<TCharge>,
+  );
+
   constructor(
     params:
       | string
@@ -54,14 +70,19 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
       | Readonly<Record<string, string | null | undefined>>,
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Charge = ChURIParamsCharge as ChURIParams.CustomOptions<TCharge>['Charge'],
-    }: Partial<ChURIParams.CustomOptions<TCharge>> = {},
+      Charge = ChURIParamsCharge,
+    }: Partial<ChURIParams.Options<TCharge>> = {},
   ) {
-    this.#Charge = Charge;
-    this.#map =
-      typeof params === 'string'
-        ? parseChURIParams(params, this, this.#list)
-        : provideChURIParams(params, this.#list);
+    this.#Charge = Charge as ChURIParams.CustomOptions<TCharge>['Charge'];
+    if (typeof params === 'string') {
+      const [entries, rawCharge] = parseChURIParams(params, this, this.#list);
+
+      this.#map = entries;
+      this.#rawCharge = rawCharge;
+    } else {
+      this.#map = provideChURIParams(params, this.#list);
+      this.#rawCharge = null;
+    }
   }
 
   /**
@@ -73,7 +94,7 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
    * Raw parameter values.
    */
   get raw(): ChURIRawParams {
-    return (this.#raw ??= new ChURIParams$Raw(this, this.#list, this.#map));
+    return (this.#raw ??= new ChURIParams$Raw(this, this.#rawCharge, this.#list, this.#map));
   }
 
   /**
@@ -201,6 +222,10 @@ export abstract class ChURIParams<out TCharge = ChURIParamsCharge>
 }
 
 export namespace ChURIParams {
+  export type Options<TCharge = ChURIParamsCharge> = ChURIParamsCharge extends TCharge
+    ? DefaultOptions
+    : CustomOptions<TCharge>;
+
   export interface DefaultOptions {
     readonly Charge?: (new (params: ChURIParams) => ChURIParamsCharge) | undefined;
   }

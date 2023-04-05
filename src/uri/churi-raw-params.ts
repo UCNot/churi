@@ -5,6 +5,14 @@
  */
 export interface ChURIRawParams extends Iterable<[string, string]> {
   /**
+   * Raw positional argument.
+   *
+   * The very first parameter is treated as positional argument unless it is contains an _equals sign_ (`= (U+003D)`),
+   * i.e. the first _named_ parameter name and value.
+   */
+  get arg(): string | null;
+
+  /**
    * Checks whether a parameter with the specified name present.
    *
    * @param name - Target parameter name.
