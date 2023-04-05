@@ -1,7 +1,7 @@
-import { chargeURI, chargeURIArray, chargeURIMap } from '../../schema/charge-uri.js';
-import { UcUnknown } from '../../schema/unknown/uc-unknown.js';
-import { URICharge } from '../../schema/uri-charge/uri-charge.js';
-import { URIChargeable } from '../../schema/uri-chargeable.js';
+import { chargeURI, chargeURIArray, chargeURIMap } from '../charge-uri.js';
+import { UcUnknown } from '../unknown/uc-unknown.js';
+import { URIChargeable } from '../uri-chargeable.js';
+import { URICharge } from './uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
 

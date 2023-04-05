@@ -11,11 +11,15 @@ An URI that may contain arbitrary JavaScript values encoded with [URI charge] mi
 
 It is like JSON for GET requests, but can do even more.
 
-URI charge may be used:
+Various URI parts could be charged:
 
-- as query parameter value,
-- as [Matrix URI] parameters,
-- as path fragment argument.
+- query parameter values,
+- positional argument immediately following `?` within query,
+- [Matrix URI] parameter values,
+- path fragments,
+- URI hash (anchor) parameter values,
+- positional argument immediately following `#` within hash,
+- username and authentication parameters.
 
 **Example:**
 
@@ -103,19 +107,19 @@ const { route, searchParams: query } = new ChURI(
 console.debug(route.path);
 // /api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
 
-console.debug(route.name, route.charge.get('api').value);
+console.debug(route.name, route.matrix.arg.get('api').value);
 // api !v3.0
 
-console.debug(route.at(1).name, route.at(1).matrix.charge.get('id').value);
+console.debug(route.at(1).name, route.at(1).matrix.getCharge('id').value);
 // user 302875106592253n
 
-console.debug(route.at(2).name, route.at(2).matrix.charge.get('slug').value);
+console.debug(route.at(2).name, route.at(2).matrix.getCharge('slug').value);
 // article hello-world
 
-console.debug(query.charge.get('date').get('since').value);
+console.debug(query.getCharge('date').get('since').value);
 // 1970-01-01T00:00:00.000Z
 
-console.debug(query.charge.get('range').get('from').value, query.charge.get('range').get('to').value);
+console.debug(query.getCharge('range').get('from').value, query.getCharge('range').get('to').value);
 // 10 20
 ```
 

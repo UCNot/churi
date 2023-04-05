@@ -1,6 +1,6 @@
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { UcRoute } from './uc-route.js';
-import { UcSearchParams } from './uc-search-params.js';
+import { ChURIAnchor, ChURIAuth, ChURIQuery } from './churi-params.js';
+import { ChURIRoute } from './churi-route.js';
 
 /**
  * Charged URI.
@@ -18,17 +18,35 @@ import { UcSearchParams } from './uc-search-params.js';
  * [URI]: https://ru.wikipedia.org/wiki/URI
  * [URL class]:https://developer.mozilla.org/en-US/docs/Web/API/URL
  *
- * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
- * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
+ * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
+ * @typeParam TQuery - URI query representation type. {@link ChURIQuery} by default.
+ * @typeParam TAnchor - URI anchor representation type. {@link ChURIAnchor} by default.
+ * @typeParam TAuth - Authentication info representation type. {@link ChURIAuth} by default.
  */
-export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
+export class ChURI<
+  out TRoute = ChURIRoute,
+  out TQuery = ChURIQuery,
+  out TAnchor = ChURIAnchor,
+  out TAuth = ChURIAuth,
+> {
 
+  readonly #prefix: string;
+  readonly #protocol: string;
+  readonly #scheme: string;
   readonly #url: URL;
-  #scheme?: string;
+
+  readonly #rawUser: string;
+  readonly #Auth: new (query: string) => TAuth;
+  #auth?: TAuth;
+
   readonly #Route: new (path: string) => TRoute;
-  readonly #Search: new (search: string) => TSearch;
   #route?: TRoute;
-  #searchParams?: TSearch;
+
+  readonly #Query: new (query: string) => TQuery;
+  #query?: TQuery;
+
+  readonly #Anchor: new (query: string) => TAnchor;
+  #anchor?: TAnchor;
 
   /**
    * Constructs charged URI.
@@ -38,43 +56,89 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    */
   constructor(
     uri: string,
-    ...options: UcRoute extends TRoute
-      ? UcSearchParams extends TSearch
-        ? [ChURI.Options?]
-        : [ChURI.Options<TRoute, TSearch>]
-      : [ChURI.Options<TRoute, TSearch>]
+    ...options: ChURIRoute extends TRoute
+      ? ChURIQuery extends TQuery
+        ? ChURIAnchor extends TAnchor
+          ? ChURIAuth extends TAuth
+            ? [ChURI.Options?]
+            : [ChURI.Options<TRoute, TQuery, TAnchor>]
+          : [ChURI.Options<TRoute, TQuery, TAnchor>]
+        : [ChURI.Options<TRoute, TQuery, TAnchor>]
+      : [ChURI.Options<TRoute, TQuery, TAnchor>]
   );
+
+  /**
+   * Constructs charged URI.
+   *
+   * @param uri - Absolute URI string conforming to [RFC3986](https://www.rfc-editor.org/rfc/rfc3986).
+   * @param options - Charged URI options.
+   */
+  constructor(uri: string, options: ChURI.Options<TRoute, TQuery, TAnchor>);
 
   constructor(
     uri: string,
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Route = UcRoute as new (path: string) => TRoute,
+      Route = ChURIRoute,
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Search = UcSearchParams as new (search: string) => TSearch,
-    }: Partial<ChURI.CustomRouteOptions<TRoute> & ChURI.CustomSearchOptions<TSearch>> = {},
+      Query = ChURIQuery,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      Anchor = ChURIAnchor,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      Auth = ChURIAuth,
+    }: Partial<ChURI.Options<TRoute>> = {},
   ) {
-    const url = new URL(uri);
+    const result = URI_PATTERN.exec(uri);
 
-    this.#url = url;
-    this.#Route = Route;
-    this.#Search = Search;
+    if (!result) {
+      throw new SyntaxError('Invalid URI');
+    }
+
+    const hProto = result[1]; // Hierarchical protocol
+    const lastColon = hProto.lastIndexOf(':', hProto.length - 2);
+
+    if (lastColon < 0) {
+      // Use the last sub-scheme for the URL.
+      this.#url = new URL(uri);
+      this.#prefix = '';
+      this.#protocol = this.#url.protocol;
+    } else {
+      this.#url = new URL(uri.slice(lastColon + 1));
+      this.#prefix = uri.slice(0, lastColon + 1).toLowerCase();
+      this.#protocol = hProto.toLowerCase();
+    }
+
+    this.#scheme = this.#protocol.slice(0, -1); // Without trailing colon.
+    this.#rawUser = result[2] ?? '';
+
+    this.#Route = Route as new (path: string) => TRoute;
+    this.#Query = Query as new (search: string) => TQuery;
+    this.#Anchor = Anchor as new (search: string) => TAnchor;
+    this.#Auth = Auth as new (search: string) => TAuth;
   }
 
   /**
-   * String representing the protocol scheme of the URI, including the final `:`.
+   * String representing _hierarchical_ protocol scheme of the URI, including the final `:`.
+   *
+   * In contrast to [URL.protocol], hierarchical protocol includes all protocols preceding host or path.
+   * I.e. for URIs like`blob:http://example.com` it returns `blob:http:` rather just `blob:`.
+   *
+   * [URL.protocol]: https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol
    */
   get protocol(): string {
-    return this.#url.protocol;
+    return this.#protocol;
   }
 
   /**
-   * String containing URI scheme without trailing `:`.
+   * String containing _hierarchical_ URI scheme without trailing `:`.
+   *
+   * hierarchical scheme includes all schemae preceding host or path.
+   * I.e. for URIs like`blob:http://example.com` it returns `blob:http` rather just `blob`.
    *
    * See [RFC3986, Section 3.1](https://www.rfc-editor.org/rfc/rfc3986#section-3.1)
    */
   get scheme(): string {
-    return (this.#scheme ??= this.protocol.slice(0, -1));
+    return this.#scheme;
   }
 
   /**
@@ -84,6 +148,13 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    */
   get username(): string {
     return this.#url.username;
+  }
+
+  /**
+   * Authentication info contained within {@link username}.
+   */
+  get auth(): TAuth {
+    return (this.#auth ??= new this.#Auth(this.#rawUser));
   }
 
   /**
@@ -144,7 +215,7 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
   /**
    * Parsed path representing route.
    *
-   * The returned {@link UcRoute} instance refers the first fragment of the path.
+   * The returned {@link ChURIRoute} instance refers the first fragment of the path.
    */
   get route(): TRoute {
     return (this.#route ??= new this.#Route(this.pathname));
@@ -165,10 +236,19 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    *
    * Resembles [URL.searchParams] in its readonly part.
    *
+   * This is an alias of {@link query} property.
+   *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): TSearch {
-    return (this.#searchParams ??= new this.#Search(this.search));
+  get searchParams(): TQuery {
+    return this.query;
+  }
+
+  /**
+   * Decoded URI query. The same as {@link searchParams}.
+   */
+  get query(): TQuery {
+    return (this.#query ??= new this.#Query(this.search));
   }
 
   /**
@@ -184,12 +264,19 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
   }
 
   /**
+   * URI anchor
+   */
+  get anchor(): TAnchor {
+    return (this.#anchor ??= new this.#Anchor(this.hash));
+  }
+
+  /**
    * String containing the whole URI.
    *
    * See [URL.href](https://developer.mozilla.org/en-US/docs/Web/API/URL/href)
    */
   get href(): string {
-    return this.#url.href;
+    return this.#prefix + this.#url.href;
   }
 
   /**
@@ -198,7 +285,7 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    * @returns New (writable) URL instance.
    */
   toURL(): URL {
-    return new URL(this.#url.href);
+    return new URL(this.href);
   }
 
   /**
@@ -225,18 +312,24 @@ export namespace ChURI {
   /**
    * Charged URI construction options.
    *
-   * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
-   * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
+   * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
+   * @typeParam TQuery - URI query representation type. {@link ChURIQuery} by default.
+   * @typeParam TAnchor - URI anchor representation type. {@link ChURIAnchor} by default.
+   * @typeParam TAuth - Authentication info representation type. {@link ChURIAuth} by default.
    */
-  export type Options<TRoute = UcRoute, TSearch = UcSearchParams> = RouteOptions<TRoute> &
-    SearchOptions<TSearch>;
+  export type Options<
+    TRoute = ChURIRoute,
+    TQuery = ChURIQuery,
+    TAnchor = ChURIAnchor,
+    TAuth = ChURIAuth,
+  > = RouteOptions<TRoute> & QueryOptions<TQuery> & AnchorOptions<TAnchor> & AuthOptions<TAuth>;
 
   /**
    * Charged URI construction options specifying its route representation class.
    *
    * @typeParam TRoute - Custom route representation type.
    */
-  export type RouteOptions<TRoute> = UcRoute extends TRoute
+  export type RouteOptions<TRoute> = ChURIRoute extends TRoute
     ? DefaultRouteOptions
     : CustomRouteOptions<TRoute>;
 
@@ -244,7 +337,7 @@ export namespace ChURI {
     /**
      * Constructor of route representation.
      */
-    readonly Route?: (new (path: string) => UcRoute) | undefined;
+    readonly Route?: (new (path: string) => ChURIRoute) | undefined;
   }
 
   export interface CustomRouteOptions<out TRoute> {
@@ -255,24 +348,74 @@ export namespace ChURI {
   }
 
   /**
-   * Charged URI construction options specifying its search parameters representation class.
+   * Charged URI construction options specifying its query representation class.
    *
-   * @typeParam TRoute - Custom route representation type.
+   * @typeParam TRoute - Custom query representation type.
    */
-  export type SearchOptions<TSearchParams> = UcSearchParams extends UcSearchParams
-    ? DefaultSearchOptions
-    : CustomSearchOptions<TSearchParams>;
+  export type QueryOptions<TQuery> = ChURIQuery extends ChURIQuery
+    ? DefaultQueryOptions
+    : CustomQueryOptions<TQuery>;
 
-  export interface DefaultSearchOptions {
+  export interface DefaultQueryOptions {
     /**
-     * Constructor of search parameters representation.
+     * Constructor of URI query. {@link ChURIQuery by default}.
      */
-    readonly Search?: (new (search: string) => UcSearchParams) | undefined;
+    readonly Query?: (new (query: string) => ChURIQuery) | undefined;
   }
-  export interface CustomSearchOptions<TSearch> {
+
+  export interface CustomQueryOptions<TQuery> {
     /**
-     * Constructor of search parameters representation.
+     * Constructor of URI query.
      */
-    readonly Search: new (search: string) => TSearch;
+    readonly Query: new (query: string) => TQuery;
+  }
+
+  /**
+   * Charged URI construction options specifying its anchor representation class.
+   *
+   * @typeParam TAnchor - Custom anchor representation type.
+   */
+  export type AnchorOptions<TAnchor> = ChURIQuery extends ChURIAnchor
+    ? DefaultAnchorOptions
+    : CustomAnchorOptions<TAnchor>;
+
+  export interface DefaultAnchorOptions {
+    /**
+     * Constructor of URI anchor. {@link ChURIAnchor by default}.
+     */
+    readonly Anchor?: (new (query: string) => ChURIAnchor) | undefined;
+  }
+
+  export interface CustomAnchorOptions<TAnchor> {
+    /**
+     * Constructor of URI anchor.
+     */
+    readonly Anchor: new (query: string) => TAnchor;
+  }
+
+  /**
+   * Charged URI construction options specifying its anchor representation class.
+   *
+   * @typeParam TAuth - Custom authentication info representation type.
+   */
+  export type AuthOptions<TAuth> = ChURIQuery extends ChURIAuth
+    ? DefaultAuthOptions
+    : CustomAuthOptions<TAuth>;
+
+  export interface DefaultAuthOptions {
+    /**
+     * Constructor of authentication info. {@link ChURIAuth by default}.
+     */
+    readonly Auth?: (new (query: string) => ChURIAuth) | undefined;
+  }
+
+  export interface CustomAuthOptions<out TAuth> {
+    /**
+     * Constructor of authentication info.
+     */
+    readonly Auth: new (query: string) => TAuth;
   }
 }
+
+const URI_PATTERN =
+  /^((?:[a-zA-Z][\w+-.]*:)+)(?:\/\/(?:([^@#?:]*):?[^@?#]*@)([^?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/;

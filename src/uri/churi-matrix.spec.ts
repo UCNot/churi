@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcMatrixParams } from './uc-search-params.js';
+import { ChURIMatrix } from './churi-params.js';
 
-describe('UcMatrixParams', () => {
+describe('ChURIMatrix', () => {
   it('decodes semicolon-separated params', () => {
-    const params = new UcMatrixParams('?a=1;b=2;a=3');
+    const params = new ChURIMatrix(';a=1;b=2;a=3');
 
     expect([...params]).toEqual([
       ['a', '1'],
@@ -12,7 +12,7 @@ describe('UcMatrixParams', () => {
     ]);
   });
   it('encodes semicolon-separated params', () => {
-    const params = new UcMatrixParams({ a: 'a1', b: 'b2', c: 'c3' });
+    const params = new ChURIMatrix({ a: 'a1', b: 'b2', c: 'c3' });
 
     expect(String(params)).toBe('a=a1;b=b2;c=c3');
   });
