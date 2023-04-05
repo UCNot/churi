@@ -1,6 +1,6 @@
-import type { UcSearchParams } from '../uri/uc-search-params.js';
+import { ChURIParamSplitter } from './churi-param-splitter.js';
 
-class UcSearchParams$Splitter implements UcSearchParams.Splitter {
+class ChURIParams$Splitter implements ChURIParamSplitter {
 
   readonly #joiner: string;
   readonly #splitter: RegExp;
@@ -51,5 +51,5 @@ class UcSearchParams$Splitter implements UcSearchParams.Splitter {
 
 }
 
-export const UcSearchParams$splitter = /*#__PURE__*/ new UcSearchParams$Splitter('&');
-export const UcMatrixParams$splitter = /*#__PURE__*/ new UcSearchParams$Splitter(';');
+export const ChURIQuery$splitter = /*#__PURE__*/ new ChURIParams$Splitter('&');
+export const ChURIMatrix$splitter = /*#__PURE__*/ new ChURIParams$Splitter(';');

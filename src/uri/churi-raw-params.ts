@@ -1,10 +1,9 @@
 /**
- * Search parameters representing a {@link UcSearchParams#raw query string} of the URI, containing raw
- * (i.e. _not_ URI-decoded) values.
+ * Raw parameters of the URI. In contrast to search parameters, does not URI-decodes parameter values.
  *
- * Unlike values, parameter keys _are_ URI-decoded.
+ * Still URI-decodes parameter keys.
  */
-export interface UcRawParams extends Iterable<[string, string]> {
+export interface ChURIRawParams extends Iterable<[string, string]> {
   /**
    * Checks whether a parameter with the specified name present.
    *
@@ -62,7 +61,7 @@ export interface UcRawParams extends Iterable<[string, string]> {
    * @param callback - Function to execute on each element. Accepts parameter name, string parameter value, and `this`
    * instance as arguments.
    */
-  forEach(callback: (value: string, key: string, parent: UcRawParams) => void): void;
+  forEach(callback: (value: string, key: string, parent: ChURIRawParams) => void): void;
 
   /**
    * Iterates over all key/value pairs contained in this object. The key and value of each pair are string objects.

@@ -1,6 +1,6 @@
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { UcRoute } from './uc-route.js';
-import { UcSearchParams } from './uc-search-params.js';
+import { ChURIQuery } from './churi-params.js';
+import { ChURIRoute } from './churi-route.js';
 
 /**
  * Charged URI.
@@ -18,17 +18,17 @@ import { UcSearchParams } from './uc-search-params.js';
  * [URI]: https://ru.wikipedia.org/wiki/URI
  * [URL class]:https://developer.mozilla.org/en-US/docs/Web/API/URL
  *
- * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
- * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
+ * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
+ * @typeParam TQuery - URI query representation type. {@link ChURIQuery} by default.
  */
-export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
+export class ChURI<out TRoute = ChURIRoute, out TQuery = ChURIQuery> {
 
   readonly #url: URL;
   #scheme?: string;
   readonly #Route: new (path: string) => TRoute;
-  readonly #Search: new (search: string) => TSearch;
+  readonly #Query: new (query: string) => TQuery;
   #route?: TRoute;
-  #searchParams?: TSearch;
+  #query?: TQuery;
 
   /**
    * Constructs charged URI.
@@ -38,27 +38,27 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    */
   constructor(
     uri: string,
-    ...options: UcRoute extends TRoute
-      ? UcSearchParams extends TSearch
+    ...options: ChURIRoute extends TRoute
+      ? ChURIQuery extends TQuery
         ? [ChURI.Options?]
-        : [ChURI.Options<TRoute, TSearch>]
-      : [ChURI.Options<TRoute, TSearch>]
+        : [ChURI.Options<TRoute, TQuery>]
+      : [ChURI.Options<TRoute, TQuery>]
   );
 
   constructor(
     uri: string,
     {
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Route = UcRoute as new (path: string) => TRoute,
+      Route = ChURIRoute as new (path: string) => TRoute,
       // eslint-disable-next-line @typescript-eslint/naming-convention
-      Search = UcSearchParams as new (search: string) => TSearch,
-    }: Partial<ChURI.CustomRouteOptions<TRoute> & ChURI.CustomSearchOptions<TSearch>> = {},
+      Query: Search = ChURIQuery as new (search: string) => TQuery,
+    }: Partial<ChURI.CustomRouteOptions<TRoute> & ChURI.CustomSearchOptions<TQuery>> = {},
   ) {
     const url = new URL(uri);
 
     this.#url = url;
     this.#Route = Route;
-    this.#Search = Search;
+    this.#Query = Search;
   }
 
   /**
@@ -144,7 +144,7 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
   /**
    * Parsed path representing route.
    *
-   * The returned {@link UcRoute} instance refers the first fragment of the path.
+   * The returned {@link ChURIRoute} instance refers the first fragment of the path.
    */
   get route(): TRoute {
     return (this.#route ??= new this.#Route(this.pathname));
@@ -167,8 +167,17 @@ export class ChURI<out TRoute = UcRoute, out TSearch = UcSearchParams> {
    *
    * [URL.searchParams]: https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams
    */
-  get searchParams(): TSearch {
-    return (this.#searchParams ??= new this.#Search(this.search));
+  get searchParams(): TQuery {
+    return (this.#query ??= new this.#Query(this.search));
+  }
+
+  /**
+   * Decoded URI query.
+   *
+   * An alias of {@link searchParams}.
+   */
+  get query(): TQuery {
+    return this.searchParams;
   }
 
   /**
@@ -225,10 +234,10 @@ export namespace ChURI {
   /**
    * Charged URI construction options.
    *
-   * @typeParam TRoute - Route representation type. {@link UcRoute} by default.
-   * @typeParam TSearch - Search parameters representation type. {@link UcSearchParams} by default.
+   * @typeParam TRoute - Route representation type. {@link ChURIRoute} by default.
+   * @typeParam TSearch - Search parameters representation type. {@link ChURIQuery} by default.
    */
-  export type Options<TRoute = UcRoute, TSearch = UcSearchParams> = RouteOptions<TRoute> &
+  export type Options<TRoute = ChURIRoute, TSearch = ChURIQuery> = RouteOptions<TRoute> &
     SearchOptions<TSearch>;
 
   /**
@@ -236,7 +245,7 @@ export namespace ChURI {
    *
    * @typeParam TRoute - Custom route representation type.
    */
-  export type RouteOptions<TRoute> = UcRoute extends TRoute
+  export type RouteOptions<TRoute> = ChURIRoute extends TRoute
     ? DefaultRouteOptions
     : CustomRouteOptions<TRoute>;
 
@@ -244,7 +253,7 @@ export namespace ChURI {
     /**
      * Constructor of route representation.
      */
-    readonly Route?: (new (path: string) => UcRoute) | undefined;
+    readonly Route?: (new (path: string) => ChURIRoute) | undefined;
   }
 
   export interface CustomRouteOptions<out TRoute> {
@@ -259,20 +268,20 @@ export namespace ChURI {
    *
    * @typeParam TRoute - Custom route representation type.
    */
-  export type SearchOptions<TSearchParams> = UcSearchParams extends UcSearchParams
+  export type SearchOptions<TSearchParams> = ChURIQuery extends ChURIQuery
     ? DefaultSearchOptions
     : CustomSearchOptions<TSearchParams>;
 
   export interface DefaultSearchOptions {
     /**
-     * Constructor of search parameters representation.
+     * Constructor of URI query. {@link ChURIQuery by default}.
      */
-    readonly Search?: (new (search: string) => UcSearchParams) | undefined;
+    readonly Query?: (new (query: string) => ChURIQuery) | undefined;
   }
   export interface CustomSearchOptions<TSearch> {
     /**
-     * Constructor of search parameters representation.
+     * Constructor of URI query.
      */
-    readonly Search: new (search: string) => TSearch;
+    readonly Query: new (query: string) => TSearch;
   }
 }

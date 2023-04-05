@@ -188,6 +188,14 @@ describe('ChURI', () => {
     });
   });
 
+  describe('query', () => {
+    it('is an alias of searchParams', () => {
+      const uri = new ChURI('route:?test&foo=bar');
+
+      expect(uri.query).toBe(uri.searchParams);
+    });
+  });
+
   describe('hash', () => {
     it('is empty when absent', () => {
       const uri = new ChURI('route:path');
