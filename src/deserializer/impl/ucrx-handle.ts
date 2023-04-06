@@ -1,6 +1,6 @@
 import { UcrxContext } from '../../rx/ucrx-context.js';
 import { ucrxUnexpectedTypeError } from '../../rx/ucrx-errors.js';
-import { ucrxItem } from '../../rx/ucrx-value.js';
+import { ucrxItem } from '../../rx/ucrx-item.js';
 import { Ucrx } from '../../rx/ucrx.js';
 
 export class UcrxHandle {

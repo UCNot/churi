@@ -1,3 +1,5 @@
+import { Ucrx } from '../../rx/ucrx.js';
+import { Uctx } from '../../rx/uctx.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
 import { URIChargeable } from '../uri-chargeable.js';
 
@@ -8,7 +10,7 @@ import { URIChargeable } from '../uri-chargeable.js';
  * and {@link URICharge.List lists}. When part of the charge is not available, corresponding property or method returns
  * {@link URICharge.none}, which means the absence of charge.
  */
-export abstract class URICharge implements URIChargeable {
+export abstract class URICharge implements URIChargeable, Uctx {
 
   /**
    * URI charge instance representing the absent charge.
@@ -147,6 +149,13 @@ export abstract class URICharge implements URIChargeable {
    * @returns String with encoded value, or `undefined` for {@link URICharge.none absent charge}.
    */
   abstract chargeURI(placement: URIChargeable.Placement): string | undefined;
+
+  /**
+   * Transfers this URI charge to the given receiver.
+   *
+   * @param rx - Charge receiver.
+   */
+  abstract toUc(rx: Ucrx): void;
 
 }
 
@@ -347,6 +356,10 @@ class URICharge$None extends URICharge implements URICharge.None {
 
   override chargeURI(_placement: URIChargeable.Placement): undefined {
     return;
+  }
+
+  override toUc(_rx: Ucrx): void {
+    // Nothing to charge.
   }
 
   override toString(): string {

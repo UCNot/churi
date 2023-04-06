@@ -1,3 +1,6 @@
+import { Ucrx } from '../../rx/ucrx.js';
+import { Uctx } from '../../rx/uctx.js';
+import { UcLexer } from '../../syntax/uc-lexer.js';
 import { URIChargeable } from '../uri-chargeable.js';
 
 /**
@@ -6,7 +9,7 @@ import { URIChargeable } from '../uri-chargeable.js';
  * This representation is used when entity is not recognized by parser.
  */
 
-export class UcEntity implements URIChargeable {
+export class UcEntity implements URIChargeable, Uctx {
 
   readonly #raw: string;
 
@@ -47,6 +50,15 @@ export class UcEntity implements URIChargeable {
    */
   chargeURI(_placement: URIChargeable.Placement): string {
     return this.#raw;
+  }
+
+  /**
+   * Represents this entity as charge and transfers it to the given charge receiver.
+   *
+   * @param rx - Charge receiver.
+   */
+  toUc(rx: Ucrx): void {
+    rx.ent(UcLexer.scan(this.raw));
   }
 
   /**

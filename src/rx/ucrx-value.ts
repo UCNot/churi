@@ -1,122 +1,95 @@
-import { UcToken } from '../syntax/uc-token.js';
-import { UcrxContext } from './ucrx-context.js';
-import {
-  ucrxUnexpectedEntryError,
-  ucrxUnexpectedNullError,
-  ucrxUnexpectedTypeError,
-  ucrxUnrecognizedEntityError,
-} from './ucrx-errors.js';
 import { Ucrx } from './ucrx.js';
+import { Uctx } from './uctx.js';
 
-export function ucrxSuffix(context: UcrxContext, rx: Ucrx, key: string): 0 | 1 {
-  const entryRx = ucrxEntry(context, rx, key);
-
-  if (entryRx) {
-    ucrxString(context, entryRx, '');
-
-    rx.map();
-
-    return 1;
-  }
-
-  return 0;
+/**
+ * Represents arbitrary value as charge and transfers it to the given charge receiver.
+ *
+ * Handles primitive values, {@link Uctx custom charge transfers}, as well as arbitrary arrays and object literals.
+ *
+ * @param rx - Charge receiver.
+ * @param value - Value to charge with.
+ */
+export function ucrxValue(rx: Ucrx, value: unknown): void {
+  UCRX_CHARGERS[typeof value](rx, value);
 }
 
-export function ucrxEmptyMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
-  if (rx.map()) {
-    return 1;
+const UCRX_CHARGERS: {
+  readonly [type in string]: (rx: Ucrx, value: any) => void;
+} = {
+  bigint(rx: Ucrx, value: bigint) {
+    rx.big(value);
+  },
+  boolean(rx: Ucrx, value: boolean) {
+    rx.bol(value);
+  },
+  function: ucrxFunction,
+  number(rx: Ucrx, value: number) {
+    rx.num(value);
+  },
+  object: ucrxObject,
+  string(rx: Ucrx, value: string) {
+    rx.str(value);
+  },
+  undefined: () => undefined,
+};
+
+function ucrxFunction(rx: Ucrx, value: Uctx): void {
+  if (typeof value.toUc === 'function') {
+    value.toUc(rx);
+  } else if (typeof value.toJSON === 'function') {
+    ucrxValue(rx, value.toJSON());
   }
-
-  context.error(ucrxUnexpectedTypeError('empty map', rx));
-
-  return 0;
 }
 
-export function ucrxEntry(context: UcrxContext, rx: Ucrx, key: string): Ucrx | undefined {
-  const entryRx = rx.for(key);
-
-  if (entryRx) {
-    return entryRx;
-  }
-
-  if (entryRx != null) {
-    context.error(ucrxUnexpectedTypeError('map', rx));
+function ucrxObject(rx: Ucrx, value: Uctx): void {
+  if (!value) {
+    // null
+    rx.nul();
 
     return;
   }
-
-  context.error(ucrxUnexpectedEntryError(key));
-
-  return context.opaqueRx;
+  if (typeof value.toUc === 'function') {
+    value.toUc(rx);
+  } else if (typeof value.toJSON === 'function') {
+    ucrxValue(rx, value.toJSON());
+  } else if (Array.isArray(value)) {
+    ucrxArray(rx, value);
+  } else {
+    ucrxMap(rx, Object.entries(value));
+  }
 }
 
-export function ucrxBoolean(context: UcrxContext, rx: Ucrx, value: boolean): 0 | 1 {
-  if (rx.bol(value)) {
-    return 1;
+/** @internal */
+export function ucrxArray(rx: Ucrx, list: unknown[]): 0 | 1 {
+  const listRx = rx.nls();
+
+  if (!listRx) {
+    return 0; // Unexpected list
+  }
+  rx.and();
+
+  for (const item of list) {
+    ucrxValue(rx, item ?? null);
   }
 
-  context.error(ucrxUnexpectedTypeError('boolean', rx));
+  rx.end();
 
-  return 0;
+  return 1;
 }
 
-export function ucrxBigInt(context: UcrxContext, rx: Ucrx, value: bigint): 0 | 1 {
-  if (rx.big(value)) {
-    return 1;
+/** @internal */
+export function ucrxMap(rx: Ucrx, entries: Iterable<[PropertyKey, unknown]>): 0 | 1 {
+  for (const [key, value] of entries) {
+    if (value !== undefined) {
+      const entryRx = rx.for(key);
+
+      if (entryRx) {
+        ucrxValue(entryRx, value);
+      } else if (entryRx != null) {
+        return 0; // Unexpected map.
+      }
+    }
   }
 
-  context.error(ucrxUnexpectedTypeError('bigint', rx));
-
-  return 0;
-}
-
-export function ucrxEntity(context: UcrxContext, rx: Ucrx, value: readonly UcToken[]): 0 | 1 {
-  /* istanbul ignore next */
-  if (rx.ent(value)) {
-    return 1;
-  }
-
-  context.error(ucrxUnrecognizedEntityError(value));
-
-  return 0;
-}
-
-export function ucrxNumber(context: UcrxContext, rx: Ucrx, value: number): 0 | 1 {
-  if (rx.num(value)) {
-    return 1;
-  }
-
-  context.error(ucrxUnexpectedTypeError('number', rx));
-
-  return 0;
-}
-
-export function ucrxString(context: UcrxContext, rx: Ucrx, value: string): 0 | 1 {
-  if (rx.str(value)) {
-    return 1;
-  }
-
-  context.error(ucrxUnexpectedTypeError('string', rx));
-
-  return 0;
-}
-
-export function ucrxNull(context: UcrxContext, rx: Ucrx): 0 | 1 {
-  if (rx.nul()) {
-    return 1;
-  }
-
-  context.error(ucrxUnexpectedNullError(rx));
-
-  return 0;
-}
-
-export function ucrxItem(context: UcrxContext, rx: Ucrx): 0 | 1 {
-  if (rx.and()) {
-    return 1;
-  }
-
-  context.error(ucrxUnexpectedTypeError('list', rx));
-
-  return 0;
+  return rx.map();
 }

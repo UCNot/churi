@@ -13,7 +13,7 @@ import {
   ucrxEntry,
   ucrxString,
   ucrxSuffix,
-} from '../../rx/ucrx-value.js';
+} from '../../rx/ucrx-item.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {

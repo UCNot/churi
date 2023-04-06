@@ -1,6 +1,6 @@
 import { UcdEntityPrefixDef } from '../compiler/deserialization/ucd-entity-prefix-def.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
-import { ucrxString } from '../rx/ucrx-value.js';
+import { ucrxString } from '../rx/ucrx-item.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';

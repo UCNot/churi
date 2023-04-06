@@ -1,5 +1,5 @@
 import { UcrxContext } from '../rx/ucrx-context.js';
-import { ucrxNumber } from '../rx/ucrx-value.js';
+import { ucrxNumber } from '../rx/ucrx-item.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 

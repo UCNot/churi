@@ -1,25 +1,25 @@
-import { UcrxContext } from '@hatsy/churi';
 import { Ucrx } from './ucrx.js';
 
 /**
  * Charge transfer interface.
  *
- * Customizes charge encoding for the object implementing this interface.
+ * Customizes the object charge.
  */
 export interface Uctx {
   /**
-   * Encodes the charge with to the given charge receiver.
+   * Represents the object as charge and transfers it to the given charge receiver.
+   *
+   * It is expected that the receiver accepts charges of any type, so it is not necessary to check the results
+   * of receiver's method calls.
    *
    * @param rx - Charge receiver.
-   *
-   * @returns Nothing or truthy value if charge succeed, or falsy value if charge failed.
    */
-  toUc?(rx: Ucrx, context: UcrxContext): void | boolean | 0 | 1;
+  toUc?(rx: Ucrx): void;
 
   /**
-   * Represents the value as JSON.
+   * Represents the object as JSON.
    *
-   * This method is called if {@link toUc} is absent. The result is encoded then with built-in algorithm.
+   * Called if {@link toUc} is absent. The result is encoded then with built-in algorithm.
    *
    * @returns The value to encode instead.
    */
