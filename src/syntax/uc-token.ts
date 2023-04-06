@@ -1,7 +1,7 @@
 // Line terminators.
 export const UC_TOKEN_LF = 0x0a as const;
 export const UC_TOKEN_CR = 0x0d as const;
-export const UC_TOKEN_CRLF = 0x0d0a as const; // Windows-style
+export const UC_TOKEN_CRLF = 0x0a0d as const; // Windows-style
 
 // Padding prefixes.
 // Lowest byte is a code (space or tab), higher byte is the number of repeats.

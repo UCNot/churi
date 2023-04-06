@@ -20,9 +20,7 @@ export function printUcToken(token: UcToken, encodeString?: (token: string) => s
     return encodeString ? encodeString(token) : token;
   }
 
-  const mask = token & 0xff;
-
-  switch (mask) {
+  switch (token & 0xff) {
     case UC_TOKEN_PREFIX_SPACE:
       return ' '.repeat((token >>> 8) + 1);
     case UC_TOKEN_PREFIX_TAB:

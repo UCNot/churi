@@ -34,7 +34,7 @@ export class TokenUcrx implements Ucrx {
   }
 
   readonly #add: (token: UcToken) => void;
-  #mode = TokenUcrx$None;
+  #mode = TokenUcrx$Single;
 
   constructor(addToken: (token: UcToken) => void) {
     this.#add = addToken;
@@ -171,28 +171,6 @@ const TokenUcrx$Invalid: TokenUcrx$Mode = {
   end: TokenUcrx$error,
 };
 
-const TokenUcrx$None: TokenUcrx$Mode = {
-  and(_addToken) {
-    return TokenUcrx$startList(TokenUcrx$Invalid);
-  },
-  add(_addToken): TokenUcrx$Mode {
-    return TokenUcrx$Single;
-  },
-  empty(addToken): TokenUcrx$Mode {
-    addToken('');
-
-    return TokenUcrx$Single;
-  },
-  nls(_addToken) {
-    return TokenUcrx$startList(TokenUcrx$Invalid);
-  },
-  entry(_addToken) {
-    return TokenUcrx$startMap(this);
-  },
-  endMap: TokenUcrx$endMap,
-  end: TokenUcrx$end,
-};
-
 const TokenUcrx$Single: TokenUcrx$Mode = {
   and: TokenUcrx$error,
   add(_addToken): TokenUcrx$Mode {
@@ -203,11 +181,17 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
 
     return TokenUcrx$Invalid;
   },
-  nls: TokenUcrx$error,
+  nls(_addToken) {
+    return TokenUcrx$startList(TokenUcrx$Invalid);
+  },
   entry(_addToken) {
     return TokenUcrx$startMap(this);
   },
-  endMap: TokenUcrx$endMap,
+  endMap(addToken) {
+    addToken(UC_TOKEN_DOLLAR_SIGN);
+
+    return TokenUcrx$Invalid;
+  },
   end: TokenUcrx$end,
 };
 
@@ -280,18 +264,10 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, closeParenthesis = false): To
 
 function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
   return {
-    and(_addToken) {
-      return TokenUcrx$startList(this);
-    },
-    add(_addToken) {
-      return this;
-    },
-    empty(_addToken) {
-      return this;
-    },
-    nls(_addToken) {
-      return TokenUcrx$startList(this);
-    },
+    and: TokenUcrx$error,
+    add: TokenUcrx$error,
+    empty: TokenUcrx$error,
+    nls: TokenUcrx$error,
     entry(addToken) {
       addToken(UC_TOKEN_CLOSING_PARENTHESIS);
 
@@ -302,22 +278,14 @@ function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
 
       return prev;
     },
-    end(_addToken) {
-      return this;
-    },
+    end: TokenUcrx$end,
   };
-}
-
-function TokenUcrx$endMap(addToken: (token: UcToken) => void): TokenUcrx$Mode {
-  addToken(UC_TOKEN_DOLLAR_SIGN);
-
-  return TokenUcrx$Invalid;
-}
-
-function TokenUcrx$end(_addToken: (token: UcToken) => void): TokenUcrx$Mode {
-  return TokenUcrx$Invalid;
 }
 
 function TokenUcrx$error(): never {
   throw new TypeError('Invalid charge');
+}
+
+function TokenUcrx$end(_addToken: (token: UcToken) => void): TokenUcrx$Mode {
+  return TokenUcrx$Invalid;
 }

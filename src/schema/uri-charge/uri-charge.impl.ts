@@ -19,7 +19,7 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
   abstract chargeURI(placement: URIChargeable.Placement): string;
 
   override toString(): string {
-    return TokenUcrx.print(this);
+    return TokenUcrx.print(this)!;
   }
 
 }
