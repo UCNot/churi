@@ -1,5 +1,4 @@
 import { chargeURI } from './charge-uri.js';
-import { URIChargeable } from './uri-chargeable.js';
 
 /**
  * Tagged template for Charged URI string.
@@ -8,7 +7,7 @@ import { URIChargeable } from './uri-chargeable.js';
  * - Removes whitespace around charges.
  * - Removes spaces around new lines within template strings.
  * - _Does not_ alter template strings otherwise. It is up to the user to URI-encode them.
- * - Applies {@link chargeURI} to substituted values at appropriate {@link URIChargeable.Placement placement}.
+ * - Applies {@link chargeURI} to substituted values.
  *
  * @param strings - Template strings.
  * @param values - Substituted values.
@@ -25,16 +24,6 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
   let commaRequired = false;
   let commaBefore = true;
   let commaAfter = true;
-
-  const itemPlacement: URIChargeable.Item = {
-    as: 'item',
-    omitCommaBefore() {
-      commaBefore = false;
-    },
-    omitCommaAfter() {
-      commaAfter = false;
-    },
-  };
 
   for (const value of values) {
     const prefix = templates[index];
@@ -90,7 +79,7 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
       commaAfter = true;
 
       // Substitute `null` for undefined item.
-      const itemCharge = chargeURI(value, itemPlacement) ?? '--';
+      const itemCharge = chargeURI(value) ?? '--';
 
       if (!omitCommaPrefix && (commaRequired || commaBefore)) {
         uri += ',';

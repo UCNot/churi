@@ -1,9 +1,10 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { describe, expect, it } from '@jest/globals';
-import { chargeURI, chargeURIKey } from './charge-uri.js';
-import { UcEntity } from './entity/uc-entity.js';
-import { URICharge } from './uri-charge/uri-charge.js';
-import { URIChargeable } from './uri-chargeable.js';
+import { Uctx } from './uctx.js';
+import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
+import { chargeURI } from './charge-uri.js';
+import { UcEntity } from '../schema/entity/uc-entity.js';
+import { URICharge } from '../schema/uri-charge/uri-charge.js';
 
 describe('chargeURI', () => {
   describe('bigint value', () => {
@@ -29,8 +30,8 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: false })).toBe('foo(-)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([true])).toBe(',!');
-      expect(chargeURI([false])).toBe(',-');
+      expect(chargeURI([true])).toBe('!,');
+      expect(chargeURI([false])).toBe('-,');
     });
   });
 
@@ -39,15 +40,15 @@ describe('chargeURI', () => {
       expect(chargeURI(() => 1)).toBeUndefined();
     });
     it('uses custom encoder', () => {
-      const fn: URIChargeable = () => 1;
+      const fn: Uctx = () => 1;
 
-      fn.chargeURI = () => '!fn';
+      fn.toUc = rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'fn']);
       fn.toJSON = () => '!fn.json';
 
       expect(chargeURI(fn)).toBe('!fn');
     });
     it('uses JSON encoder', () => {
-      const fn: URIChargeable = () => 1;
+      const fn: Uctx = () => 1;
 
       fn.toJSON = () => ({ fn: true });
 
@@ -85,12 +86,12 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(chargeURI(['Hello, (World)!'])).toBe(',Hello%2C%20%28World%29!');
-      expect(chargeURI(['-test'])).toBe(",'-test");
+      expect(chargeURI(['Hello, (World)!'])).toBe('Hello%2C%20%28World%29!,');
+      expect(chargeURI(['-test'])).toBe("'-test,");
     });
     it('escapes special prefixes', () => {
       expect(chargeURI('!foo')).toBe("'!foo");
-      expect(chargeURI('$foo')).toBe('%24foo');
+      expect(chargeURI('$foo')).toBe("'%24foo");
       expect(chargeURI("'foo")).toBe("''foo");
       expect(chargeURI('-foo')).toBe("'-foo");
       expect(chargeURI('0foo')).toBe("'0foo");
@@ -120,7 +121,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: null })).toBe('foo(--)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([null])).toBe(',--');
+      expect(chargeURI([null])).toBe('--,');
     });
   });
 
@@ -134,7 +135,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ bar: 1, foo: undefined })).toBe('bar(1)');
     });
     it('is encoded like null as array item value', () => {
-      expect(chargeURI([undefined])).toBe(',--');
+      expect(chargeURI([undefined])).toBe('--,');
       expect(chargeURI([1, undefined])).toBe('1,--');
       expect(chargeURI([undefined, 2])).toBe('--,2');
     });
@@ -151,21 +152,21 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: { bar: { baz: 1 } } })).toBe('foo(bar(baz(1)))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([{ foo: 'bar' }])).toBe(',foo(bar)');
+      expect(chargeURI([{ foo: 'bar' }])).toBe('foo(bar),');
     });
     it('appended to list when last item value', () => {
       expect(chargeURI(['', { foo: 'bar' }])).toBe("',foo(bar)");
     });
-    it('uses custom encoder', () => {
-      const obj: URIChargeable = {
-        chargeURI: () => '!obj',
+    it('uses custom charge transfer', () => {
+      const obj: Uctx = {
+        toUc: rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'obj']),
         toJSON: () => '!obj.json',
       };
 
       expect(chargeURI(obj)).toBe('!obj');
     });
     it('uses JSON encoder', () => {
-      const obj: URIChargeable = {
+      const obj: Uctx = {
         toJSON: () => ({
           obj: 'json',
         }),
@@ -202,7 +203,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: { bar: {} } })).toBe('foo(bar($))');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([{}])).toBe(',$');
+      expect(chargeURI([{}])).toBe('$,');
     });
   });
 
@@ -220,26 +221,26 @@ describe('chargeURI', () => {
       expect(chargeURI({ '': 1 })).toBe('$(1)');
     });
     it('escaped when nested', () => {
-      expect(chargeURI([{ '': 1 }])).toBe(',$(1)');
+      expect(chargeURI([{ '': 1 }])).toBe('$(1),');
     });
   });
 
   describe('suffix', () => {
     it('appended to map', () => {
-      expect(chargeURI({ test1: '', test2: '', suffix: '' })).toBe('test1()test2()suffix');
+      expect(chargeURI({ test1: '', test2: '', suffix: '' })).toBe('test1()test2()suffix()');
     });
     it('escaped and appended as list item value', () => {
-      expect(chargeURI(['', { foo: '' }])).toBe("',$foo");
-      expect(chargeURI(['', { '!foo': '' }])).toBe("',$!foo");
+      expect(chargeURI(['', { foo: '' }])).toBe("',foo()");
+      expect(chargeURI(['', { '!foo': '' }])).toBe("',$!foo()");
     });
   });
 
   describe('array value with one item', () => {
     it('encoded as top-level list', () => {
-      expect(chargeURI(['bar'])).toBe(',bar');
+      expect(chargeURI(['bar'])).toBe('bar,');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: ['bar'] })).toBe('foo(,bar)');
+      expect(chargeURI({ foo: ['bar'] })).toBe('foo(bar,)');
     });
     it('encoded as nested list item value', () => {
       expect(chargeURI([['bar']])).toBe('(bar)');
@@ -251,7 +252,7 @@ describe('chargeURI', () => {
 
   describe('array value empty string item', () => {
     it('escapes the only empty string', () => {
-      expect(chargeURI([''])).toBe(",'");
+      expect(chargeURI([''])).toBe("',");
     });
     it('escapes leading empty string', () => {
       expect(chargeURI(['', 'tail'])).toBe("',tail");
@@ -271,11 +272,18 @@ describe('chargeURI', () => {
     it('encoded as map entry value', () => {
       expect(chargeURI({ foo: ['bar', 'baz'] })).toBe('foo(bar,baz)');
     });
+    it('encoded as nested map entry value', () => {
+      expect(chargeURI({ foo: [['bar', 'baz']] })).toBe('foo((bar,baz))');
+    });
     it('encoded as nested list item value', () => {
       expect(chargeURI([['bar', 'baz']])).toBe('(bar,baz)');
     });
     it('encoded as deeply nested list item value', () => {
       expect(chargeURI([[['bar', 'baz']]])).toBe('((bar,baz))');
+    });
+    it('encoded as nested list following map', () => {
+      expect(chargeURI([{ foo: 'bar' }, ['baz']])).toBe('foo(bar),(baz)');
+      expect(chargeURI([[{ foo: 'bar' }, ['baz']]])).toBe('(foo(bar),(baz))');
     });
   });
 
@@ -302,7 +310,7 @@ describe('chargeURI', () => {
       expect(chargeURI({ foo: new UcEntity('!test') })).toBe('foo(!test)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([new UcEntity('!test')])).toBe(',!test');
+      expect(chargeURI([new UcEntity('!test')])).toBe('!test,');
     });
   });
 
@@ -320,26 +328,5 @@ describe('chargeURI', () => {
       expect(String(URICharge.none)).toBe('!None');
       expect(chargeURI(URICharge.none)).toBeUndefined();
     });
-  });
-});
-
-describe('chargeURIKey', () => {
-  it('escapes special prefixes', () => {
-    expect(chargeURIKey('!foo')).toBe('$!foo');
-    expect(chargeURIKey('$foo')).toBe('%24foo');
-    expect(chargeURIKey("'foo")).toBe("$'foo");
-  });
-  it('does not escape special prefixes allowed within keys', () => {
-    expect(chargeURIKey('-foo')).toBe('-foo');
-    expect(chargeURIKey('0foo')).toBe('0foo');
-    expect(chargeURIKey('1foo')).toBe('1foo');
-    expect(chargeURIKey('2foo')).toBe('2foo');
-    expect(chargeURIKey('3foo')).toBe('3foo');
-    expect(chargeURIKey('4foo')).toBe('4foo');
-    expect(chargeURIKey('5foo')).toBe('5foo');
-    expect(chargeURIKey('6foo')).toBe('6foo');
-    expect(chargeURIKey('7foo')).toBe('7foo');
-    expect(chargeURIKey('8foo')).toBe('8foo');
-    expect(chargeURIKey('9foo')).toBe('9foo');
   });
 });

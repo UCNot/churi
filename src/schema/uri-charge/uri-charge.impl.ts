@@ -1,9 +1,7 @@
 import { TokenUcrx } from '../../rx/token.ucrx.js';
 import { ucrxArray, ucrxMap, ucrxValue } from '../../rx/ucrx-value.js';
 import { Ucrx } from '../../rx/ucrx.js';
-import { chargeURI, chargeURIArray, chargeURIMap } from '../charge-uri.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
-import { URIChargeable } from '../uri-chargeable.js';
 import { URICharge } from './uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
@@ -15,8 +13,6 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
   override isSome(): true {
     return true;
   }
-
-  abstract chargeURI(placement: URIChargeable.Placement): string;
 
   override toString(): string {
     return TokenUcrx.print(this)!;
@@ -85,10 +81,6 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
     // No entries
   }
 
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURI(this.#value, placement)!;
-  }
-
   override toUc(rx: Ucrx): void {
     ucrxValue(rx, this.#value);
   }
@@ -152,10 +144,6 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
   override keys(): IterableIterator<string> {
     return this.#map.keys();
-  }
-
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURIMap(this.#map, placement);
   }
 
   override toUc(rx: Ucrx): void {
@@ -226,10 +214,6 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
 
   override *keys(): IterableIterator<never> {
     // Not a map
-  }
-
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURIArray(this.#list, placement);
   }
 
   override toUc(rx: Ucrx): void {
