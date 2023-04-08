@@ -1,5 +1,9 @@
 import { Ucrx } from './ucrx.js';
-import { UctxMode$AsItem, UctxMode$Default as UctxMode$TopLevel } from './uctx-mode.impl.js';
+import {
+  UctxMode$AsItem,
+  UctxMode$Default,
+  UctxMode$Default as UctxMode$TopLevel,
+} from './uctx-mode.impl.js';
 import { UctxMode } from './uctx-mode.js';
 import { Uctx } from './uctx.js';
 
@@ -91,7 +95,7 @@ export function uctxMap(rx: Ucrx, entries: Iterable<[PropertyKey, unknown]>): 0 
       const entryRx = rx.for(key);
 
       if (entryRx) {
-        uctxValue(entryRx, value, UctxMode$AsItem);
+        uctxValue(entryRx, value, UctxMode$Default);
       } else if (entryRx != null) {
         return 0; // Unexpected map.
       }
