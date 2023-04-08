@@ -15,7 +15,7 @@ export interface UcrxContext {
   /**
    * Reports charge error.
    *
-   * Implementation may throw an {@link @hatsy/churi!UcError error} or just record the `error` info.
+   * Implementation may throw an {@link churi!UcError error} or just record the `error` info.
    *
    * @param error - Error info to report.
    */

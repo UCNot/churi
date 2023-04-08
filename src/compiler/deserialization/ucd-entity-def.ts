@@ -25,7 +25,7 @@ export interface UcdEntityDef {
   readonly methods?: UcrxMethod<any> | readonly UcrxMethod<any>[] | undefined;
 
   /**
-   * Generates code that creates {@link @hatsy/churi!EntityUcrx entity receiver}.
+   * Generates code that creates {@link churi!EntityUcrx entity receiver}.
    *
    * Generated code expected to place created receiver instance between the given
    * {@link UcdEntityDef.Location#prefix prefix} and {@link UcdEntityDef.Location#suffix suffix}.

@@ -17,6 +17,6 @@ export function readPlainEntity(
 export const PlainEntityUcdDef: UcdEntityPrefixDef = {
   entityPrefix: '!plain',
   createRx({ lib, prefix, suffix }) {
-    return `${prefix}${lib.import('@hatsy/churi/spec', 'readPlainEntity')}${suffix}`;
+    return `${prefix}${lib.import('churi/spec', 'readPlainEntity')}${suffix}`;
   },
 };

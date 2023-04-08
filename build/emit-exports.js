@@ -1,6 +1,6 @@
 import { ucUnknown } from '#churi/core';
 import { URIChargeUcdLib } from '#churi/uri-charge/compiler';
-import { DefaultUcdDefs, UccCode, UcdLib } from '@hatsy/churi/compiler';
+import { DefaultUcdDefs, UccCode, UcdLib } from 'churi/compiler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -61,7 +61,7 @@ async function emitUcValueDeserializerTypes() {
     path.join(distDir, 'churi.uc-value.deserializer.d.ts'),
     [
       `/// <reference path="churi.core.d.ts" />\n`,
-      `import type { UcDeserializer } from '@hatsy/churi';\n`,
+      `import type { UcDeserializer } from 'churi';\n`,
       '\n',
       `export const parseUcValue: UcDeserializer.Sync<unknown>;\n`,
     ],
@@ -82,7 +82,7 @@ async function emitURIChargeDeserializerTypes() {
     path.join(distDir, 'churi.uri-charge.deserializer.d.ts'),
     [
       `/// <reference path="churi.core.d.ts" />\n`,
-      `import type { UcDeserializer, URICharge } from '@hatsy/churi';\n`,
+      `import type { UcDeserializer, URICharge } from 'churi';\n`,
       '\n',
       `export const parseURICharge: UcDeserializer.Sync<URICharge>;\n`,
     ],

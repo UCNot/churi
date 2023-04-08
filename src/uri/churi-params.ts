@@ -16,7 +16,7 @@ import {
 
 /**
  * Abstract parameters of {@link ChURI charged URI}. A base class for {@link ChURIQuery search parameters},
- * {@link UcMatrixParams matrix parameters}, and {@link ChURIAnchor hash parameters}.
+ * {@link ChURIMatrix matrix parameters}, and {@link ChURIAnchor hash parameters}.
  *
  * Resembles standard [URLSearchParams class] in its read-only part.
  *
@@ -214,7 +214,7 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
   /**
    * Builds a query string.
    *
-   * @returns The string containing parameters joined with {@link ChURIParams.Splitter#joiner joiner} symbol.
+   * @returns The string containing parameters joined with {@link ChURIParamSplitter#joiner joiner} symbol.
    */
   toString(): string {
     return this.#list.join((this.constructor as typeof ChURIParams<TCharge>).splitter.joiner);
@@ -236,12 +236,14 @@ export namespace ChURIParams {
    *
    * @returns Parameter charge.
    */
-  export type Parser<out TCharge = URICharge> = (
-    this: void,
-    rawValues: string[],
-    name: string | null,
-    params: ChURIParams<TCharge>,
-  ) => TCharge;
+  export type Parser<out TCharge = URICharge> = {
+    parseParams(
+      this: void,
+      rawValues: string[],
+      name: string | null,
+      params: ChURIParams<TCharge>,
+    ): TCharge;
+  }['parseParams'];
 }
 
 /**

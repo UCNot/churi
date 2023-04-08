@@ -62,8 +62,8 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 
 > **[Read more about URI charge format >>>][uri charge]**
 
-[npm-image]: https://img.shields.io/npm/v/@hatsy/churi.svg?logo=npm
-[npm-url]: https://www.npmjs.com/package/@hatsy/churi
+[npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
+[npm-url]: https://www.npmjs.com/package/churi
 [build-status-img]: https://github.com/hatsyjs/churi/workflows/Build/badge.svg
 [build-status-link]: https://github.com/hatsyjs/churi/actions?query=workflow:Build
 [quality-img]: https://app.codacy.com/project/badge/Grade/e0cde60880cf434f8e46f63334d86b1e
@@ -92,7 +92,7 @@ Everything is built on demand. Nothing is parsed until requested.
 Given the example above:
 
 ```typescript
-import { ChURI } from '@hatsy/churi';
+import { ChURI } from 'churi';
 
 const { route, searchParams: query } = new ChURI(
   'https://example.com' +
@@ -134,7 +134,7 @@ To build Charged URI a tagged template can be used.
 The following code reconstructs the URI from example above:
 
 ```typescript
-import { churi, UcEntity } from '@hatsy/churi';
+import { churi, UcEntity } from 'churi';
 
 console.debug(churi`
   https://example.com
@@ -158,7 +158,7 @@ The `UcEntity` above used to avoid escaping and percent-encoding and should be u
 Instead, a Charged URI string can be built with `chargeURI()` function.
 
 ```typescript
-import { chargeURI, UcEntity } from '@hatsy/churi';
+import { chargeURI, UcEntity } from 'churi';
 
 console.debug(
   `https://example.com` +

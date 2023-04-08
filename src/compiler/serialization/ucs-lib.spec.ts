@@ -34,7 +34,7 @@ describe('UcsLib', () => {
 
       expect(module.lib).toBe(lib);
       expect(new UccCode().write(module).toString()).toBe(module.print());
-      expect(module.print()).toContain(`} from '@hatsy/churi/serializer';\n`);
+      expect(module.print()).toContain(`} from 'churi/serializer';\n`);
       expect(module.print()).toContain('export async function writeValue(stream, value) {\n');
     });
   });

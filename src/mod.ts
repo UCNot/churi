@@ -1,5 +1,5 @@
 /**
- * @module @hatsy/churi
+ * @module churi
  */
 export * from './rx/mod.js';
 export * from './schema/mod.js';

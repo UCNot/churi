@@ -1,7 +1,7 @@
 /**
  * Charge transfer mode.
  *
- * Passed to {@link Uctx#toUc charge transfer} instance to alter its behavior depending on which part of URI to charge.
+ * Passed to {@link Uctx#toUC charge transfer} instance to alter its behavior depending on which part of URI to charge.
  */
 export interface UctxMode {
   /**

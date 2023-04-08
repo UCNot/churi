@@ -49,7 +49,7 @@ describe('UcString serializer', () => {
         return new UcsFunction<T, TSchema>({
           ...options,
           createWriter(serializer, writer, stream) {
-            const UcsWriter = serializer.lib.import('@hatsy/churi/spec', 'SmallChunkUcsWriter');
+            const UcsWriter = serializer.lib.import('churi/spec', 'SmallChunkUcsWriter');
 
             return `const ${writer} = new ${UcsWriter}(${stream}, 4);`;
           },

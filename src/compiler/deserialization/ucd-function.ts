@@ -196,7 +196,7 @@ export namespace UcdFunction {
   }
 
   /**
-   * A location inside deserializer function to insert {@link @hatsy/churi!Ucrx charge receiver} initialization code
+   * A location inside deserializer function to insert {@link churi!Ucrx charge receiver} initialization code
    * into.
    *
    * @typeParam T - Deserialized value type.
@@ -216,17 +216,17 @@ export namespace UcdFunction {
     /**
      * Generated code prefix.
      *
-     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right after this
+     * Generated {@link churi!Ucrx receiver} expression expected to be placed right after this
      * prefix.
      *
-     * This may be e.g. a {@link @hatsy/churi/deserializer!UcdReader#read function call}.
+     * This may be e.g. a {@link churi/deserializer!UcdReader#read function call}.
      */
     readonly prefix: string;
 
     /**
      * Generated code suffix.
      *
-     * Generated {@link @hatsy/churi!Ucrx receiver} expression expected to be placed right before this
+     * Generated {@link churi!Ucrx receiver} expression expected to be placed right before this
      * suffix.
      *
      * This may be e.g. a closing parenthesis for function call.

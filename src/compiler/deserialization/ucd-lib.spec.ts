@@ -20,7 +20,7 @@ describe('UcdLib', () => {
 
       const code = new UccCode().write(compiled).toString();
 
-      expect(code).toContain("import('@hatsy/churi/deserializer')");
+      expect(code).toContain("import('churi/deserializer')");
       expect(code).toContain(
         'async readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -34,7 +34,7 @@ describe('UcdLib', () => {
 
       const code = new UccCode().write(compiled).toString();
 
-      expect(code).toContain("import('@hatsy/churi/deserializer')");
+      expect(code).toContain("import('churi/deserializer')");
       expect(code).toContain(
         'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -48,7 +48,7 @@ describe('UcdLib', () => {
 
       const code = new UccCode().write(compiled).toString();
 
-      expect(code).toContain("import('@hatsy/churi/deserializer')");
+      expect(code).toContain("import('churi/deserializer')");
       expect(code).toContain(
         'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -66,7 +66,7 @@ describe('UcdLib', () => {
       const code = module.print();
 
       expect(new UccCode().write(module).toString()).toBe(code);
-      expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
+      expect(code).toContain(`} from 'churi/deserializer';\n`);
       expect(code).toContain(
         'export async function readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -81,7 +81,7 @@ describe('UcdLib', () => {
       const code = module.print();
 
       expect(new UccCode().write(module).toString()).toBe(code);
-      expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
+      expect(code).toContain(`} from 'churi/deserializer';\n`);
       expect(code).toContain(
         'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -96,7 +96,7 @@ describe('UcdLib', () => {
       const code = module.print();
 
       expect(new UccCode().write(module).toString()).toBe(code);
-      expect(code).toContain(`} from '@hatsy/churi/deserializer';\n`);
+      expect(code).toContain(`} from 'churi/deserializer';\n`);
       expect(code).toContain(
         'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );

@@ -108,8 +108,8 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
   /**
    * The URI-decoded name of the {@link fragment} this instance refers.
    *
-   * Unlike {@link fragment}, the name does not contain fragment {@link charge} or {@link matrix} parameters. It also
-   * omits slashes.
+   * Unlike {@link fragment}, the name does not contain fragment charge or {@link matrix} parameters. It also omits
+   * slashes.
    */
   get name(): string {
     return this.#getParts().name;
