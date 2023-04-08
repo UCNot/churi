@@ -1,4 +1,5 @@
 import { Ucrx } from './ucrx.js';
+import { UctxMode } from './uctx-mode.js';
 
 /**
  * Charge transfer interface.
@@ -13,13 +14,14 @@ export interface Uctx {
    * of receiver's method calls.
    *
    * @param rx - Charge receiver.
+   * @param mode - Transfer mode.
    */
-  toUc?(rx: Ucrx): void;
+  toUC?(rx: Ucrx, mode: UctxMode): void;
 
   /**
    * Represents the object as JSON.
    *
-   * Called if {@link toUc} is absent. The result is encoded then with built-in algorithm.
+   * Called if {@link toUC} is absent. The result is encoded then with built-in algorithm.
    *
    * @returns The value to encode instead.
    */

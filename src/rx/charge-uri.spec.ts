@@ -1,10 +1,10 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
 import { describe, expect, it } from '@jest/globals';
-import { Uctx } from './uctx.js';
-import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
-import { chargeURI } from './charge-uri.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
+import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
+import { chargeURI } from './charge-uri.js';
+import { Uctx } from './uctx.js';
 
 describe('chargeURI', () => {
   describe('bigint value', () => {
@@ -42,7 +42,7 @@ describe('chargeURI', () => {
     it('uses custom encoder', () => {
       const fn: Uctx = () => 1;
 
-      fn.toUc = rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'fn']);
+      fn.toUC = rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'fn']);
       fn.toJSON = () => '!fn.json';
 
       expect(chargeURI(fn)).toBe('!fn');
@@ -159,7 +159,7 @@ describe('chargeURI', () => {
     });
     it('uses custom charge transfer', () => {
       const obj: Uctx = {
-        toUc: rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'obj']),
+        toUC: rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'obj']),
         toJSON: () => '!obj.json',
       };
 

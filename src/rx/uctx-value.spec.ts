@@ -1,8 +1,8 @@
-import { TokenUcrx } from '@hatsy/churi';
 import { describe, expect, it } from '@jest/globals';
+import { TokenUcrx } from './token.ucrx.js';
 import { Ucrx } from './ucrx.js';
 
-describe('ucrxValue', () => {
+describe('uctxValue', () => {
   it('handles unsupported list', () => {
     class TestUcrx extends TokenUcrx {
 
@@ -12,7 +12,7 @@ describe('ucrxValue', () => {
 
 }
 
-    expect(TestUcrx.charge([1, 2, 3])).toEqual([]);
+    expect(TestUcrx.charge([1, 2, 3], { asItem: true })).toEqual([]);
   });
 
   it('handles unsupported map', () => {

@@ -9,26 +9,29 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../syntax/uc-token.js';
-import { ucrxValue } from './ucrx-value.js';
 import { Ucrx } from './ucrx.js';
+import { UctxMode$Default } from './uctx-mode.impl.js';
+import { UctxMode } from './uctx-mode.js';
+import { uctxValue } from './uctx-value.js';
 
 export class TokenUcrx implements Ucrx {
 
-  static charge(value: unknown): UcToken[] {
+  static charge(value: unknown, mode: UctxMode = UctxMode$Default): UcToken[] {
     const tokens: UcToken[] = [];
 
-    ucrxValue(new this(token => tokens.push(token)), value);
+    uctxValue(new this(token => tokens.push(token)), value, mode);
 
     return tokens;
   }
 
   static print(
     value: unknown,
+    mode: UctxMode,
     encodeString: (token: string) => string = encodeUcToken,
   ): string | undefined {
     const chunks: string[] = [];
 
-    ucrxValue(new this(token => chunks.push(printUcToken(token, encodeString))), value);
+    uctxValue(new this(token => chunks.push(printUcToken(token, encodeString))), value, mode);
 
     return chunks.length ? chunks.join('') : undefined;
   }
@@ -172,7 +175,9 @@ const TokenUcrx$Invalid: TokenUcrx$Mode = {
 };
 
 const TokenUcrx$Single: TokenUcrx$Mode = {
-  and: TokenUcrx$error,
+  and(_addToken) {
+    return TokenUcrx$startList(this, false);
+  },
   add(_addToken): TokenUcrx$Mode {
     return TokenUcrx$Invalid;
   },
@@ -181,9 +186,7 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
 
     return TokenUcrx$Invalid;
   },
-  nls(_addToken) {
-    return TokenUcrx$startList(TokenUcrx$Invalid);
-  },
+  nls: TokenUcrx$error,
   entry(_addToken) {
     return TokenUcrx$startMap(this);
   },
@@ -195,7 +198,7 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
   end: TokenUcrx$end,
 };
 
-function TokenUcrx$startList(prev: TokenUcrx$Mode, closeParenthesis = false): TokenUcrx$Mode {
+function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$Mode {
   let itemCount = 0;
   let lastEmpty = false;
   let lastNls = false;
@@ -250,7 +253,7 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, closeParenthesis = false): To
       if (lastEmpty) {
         addToken(UC_TOKEN_APOSTROPHE);
       }
-      if (closeParenthesis) {
+      if (nested) {
         addToken(UC_TOKEN_CLOSING_PARENTHESIS);
       } else if (itemCount < 2 && !lastNls) {
         // Empty list.

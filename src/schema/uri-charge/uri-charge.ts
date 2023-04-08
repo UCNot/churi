@@ -1,4 +1,5 @@
 import { Ucrx } from '../../rx/ucrx.js';
+import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
 
@@ -144,8 +145,9 @@ export abstract class URICharge implements Uctx {
    * Transfers this URI charge to the given receiver.
    *
    * @param rx - Charge receiver.
+   * @param mode - Transfer mode.
    */
-  abstract toUc(rx: Ucrx): void;
+  abstract toUC(rx: Ucrx, mode: UctxMode): void;
 
 }
 
@@ -334,7 +336,7 @@ class URICharge$None extends URICharge implements URICharge.None {
     // Not a map.
   }
 
-  override toUc(_rx: Ucrx): void {
+  override toUC(_rx: Ucrx, _mode: UctxMode): void {
     // Nothing to charge.
   }
 
