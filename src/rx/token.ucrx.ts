@@ -18,20 +18,28 @@ export class TokenUcrx implements Ucrx {
 
   static charge(value: unknown, mode: UctxMode = UctxMode$Default): UcToken[] {
     const tokens: UcToken[] = [];
+    const rx = new this(token => tokens.push(token));
 
-    uctxValue(new this(token => tokens.push(token)), value, mode);
+    if (mode.asItem) {
+      rx.and();
+    }
+    uctxValue(rx, value, mode);
 
     return tokens;
   }
 
   static print(
     value: unknown,
-    mode: UctxMode,
+    mode: UctxMode = UctxMode$Default,
     encodeString: (token: string) => string = encodeUcToken,
   ): string | undefined {
     const chunks: string[] = [];
+    const rx = new this(token => chunks.push(printUcToken(token, encodeString)));
 
-    uctxValue(new this(token => chunks.push(printUcToken(token, encodeString))), value, mode);
+    if (mode.asItem) {
+      rx.and();
+    }
+    uctxValue(rx, value, mode);
 
     return chunks.length ? chunks.join('') : undefined;
   }
