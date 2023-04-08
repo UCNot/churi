@@ -7,44 +7,38 @@ export interface UcProcessing {
   /**
    * Schema deserializer instructions.
    */
-  readonly deserializer?: UcProcessing.Instruction;
+  readonly deserializer?: UcProcessing.Feature;
 
   /**
    * Schema serializer instructions.
    */
-  readonly serializer?: UcProcessing.Instruction;
+  readonly serializer?: UcProcessing.Feature;
 
-  readonly [tool: string]: UcProcessing.Instruction;
+  readonly [tool: string]: UcProcessing.Feature;
 }
 
 export namespace UcProcessing {
   /**
-   * One or more schema processing instructions.
+   * Schema processing instructions.
    */
-  export type Instructions = Instruction | readonly Instructions[] | undefined;
+  export type Instruction = Feature | readonly Feature[] | undefined;
 
   /**
-   * Schema processing instruction.
+   * An instruction to enable schema processing feature.
    *
-   * Specifies a configuration to import from specific ECMAScript module. The imported configuration is a function with
-   * signature specific to processing tool.
+   * The feature is declared in ECMAScript module and exported from it as a named symbol.
+   *
+   * The feature signature is specific to processing tool.
    */
-  export interface Instruction {
+  export interface Feature {
     /**
-     * Name of ECMAScript module to import configuration from.
+     * Name of ECMAScript module to import the feature from.
      */
     readonly from: string;
 
     /**
-     * Configuration symbol to import {@link from} the module.
-     *
-     * The symbol is either a function to call, or an object with {@link method} to call if the latter specified.
+     * ECMAScript symbol to import {@link from} the module and use as schema processing feature.
      */
-    readonly symbol: string;
-
-    /**
-     * Static method to call on imported {@link symbol}.
-     */
-    readonly method?: string | undefined;
+    readonly feature: string;
   }
 }

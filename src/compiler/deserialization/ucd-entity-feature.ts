@@ -2,7 +2,7 @@ import { UccSource } from '../codegen/ucc-code.js';
 import { UcdLib } from './ucd-lib.js';
 
 /**
- * Entity deserializer configuration signature.
+ * Entity deserialization support feature.
  *
  * Generates code that creates {@link churi!EntityUcrx entity receiver}.
  *
@@ -13,10 +13,12 @@ import { UcdLib } from './ucd-lib.js';
  *
  * @returns Source of code that create entity receiver.
  */
-export type UcdEntityConfig = (setup: UcdEntitySetup) => UccSource;
+export type UcdEntityFeature = (setup: UcdEntitySetup) => UccSource;
 
 /**
  * Entity deserialization setup.
+ *
+ * Passed to {@link UcdEntityFeature entity deserialization support feature} when the latter enabled.
  */
 export interface UcdEntitySetup {
   /**

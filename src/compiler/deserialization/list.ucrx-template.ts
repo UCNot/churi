@@ -13,15 +13,15 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcdSetup } from './ucd-feature.js';
 import { UcdLib } from './ucd-lib.js';
-import { UcdSetup } from './ucd-setup.js';
 
 export class ListUcrxTemplate<
   TItem = unknown,
   TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
 > extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
 
-  static configure(setup: UcdSetup): void {
+  static configureDeserializer(setup: UcdSetup): void {
     setup.useUcrxTemplate<unknown[], UcList.Schema>('list', (lib, schema) => new this(lib, schema));
   }
 

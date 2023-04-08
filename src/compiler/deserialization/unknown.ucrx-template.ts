@@ -11,11 +11,11 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdSetup } from './ucd-feature.js';
 
 export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 
-  static configure(setup: UcdSetup): void {
+  static configureDeserializer(setup: UcdSetup): void {
     setup.useUcrxTemplate('unknown', (lib, schema) => new this(lib, schema));
   }
 

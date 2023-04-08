@@ -103,11 +103,10 @@ let UcList$idSeq = 0;
 const UcList$processing: UcProcessing = {
   deserializer: {
     from: DESERIALIZER_MODULE,
-    symbol: 'ListUcrxTemplate',
-    method: 'configure',
+    feature: 'ListUcrxTemplate',
   },
   serializer: {
     from: SERIALIZER_MODULE,
-    symbol: 'ucsConfigureList',
+    feature: 'ucsSupportList',
   },
 };

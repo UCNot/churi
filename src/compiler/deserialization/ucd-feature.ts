@@ -2,21 +2,32 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UcdEntityConfig } from './ucd-entity-setup.js';
+import { UcdEntityFeature } from './ucd-entity-feature.js';
 
 /**
- * Deserializer configuration signature.
+ * Deserializer feature.
  *
- * @typeParam setup - Deserializer setup.
+ * Configures deserializer when called.
  */
-export type UcdConfig = (setup: UcdSetup) => void;
+export type UcdFeature =
+  | ((this: void, setup: UcdSetup) => void)
+  | { configureDeserializer(setup: UcdSetup): void };
 
 /**
  * Deserializer setup.
  *
- * Passed to configuration
+ * Passed to {@link UcdFeature deserializer feature} when the latter enabled.
  */
 export interface UcdSetup {
+  /**
+   * Enables the given deserializer `feature`, unless enabled already.
+   *
+   * @param feature - Deserializer feature to enable.
+   *
+   * @returns `this` instance.
+   */
+  enable(feature: UcdFeature): this;
+
   /**
    * Assigns template that generates a charge receiver code used to deserialize the given type.
    *
@@ -43,19 +54,19 @@ export interface UcdSetup {
    * Configures entity handler.
    *
    * @param entity - Matching entity. Either string or array of entity tokens.
-   * @param config - Entity configuration.
+   * @param feature - Entity support feature.
    *
    * @returns `this` instance.
    */
-  handleEntity(entity: string | readonly UcToken[], config: UcdEntityConfig): this;
+  handleEntity(entity: string | readonly UcToken[], feature: UcdEntityFeature): this;
 
   /**
    * Configures entity prefix handler.
    *
    * @param entity - Matching entity prefix. Either string or array of entity tokens.
-   * @param config - Entity configuration.
+   * @param feature - Entity support feature.
    *
    * @returns `this` instance.
    */
-  handleEntityPrefix(prefix: string | readonly UcToken[], config: UcdEntityConfig): this;
+  handleEntityPrefix(prefix: string | readonly UcToken[], feature: UcdEntityFeature): this;
 }

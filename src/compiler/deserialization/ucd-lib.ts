@@ -11,10 +11,10 @@ import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.j
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { ucdConfigureDefaults } from './ucd-configure-defaults.js';
-import { UcdEntityConfig } from './ucd-entity-setup.js';
+import { UcdEntityFeature } from './ucd-entity-feature.js';
+import { UcdFeature, UcdSetup } from './ucd-feature.js';
 import { UcdFunction } from './ucd-function.js';
-import { UcdConfig, UcdSetup } from './ucd-setup.js';
+import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends UcrxLib {
 
@@ -31,7 +31,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   constructor(options: UcdLib.Options<TSchemae>) {
     const {
       schemae,
-      config,
+      features,
       defaultEntities: defaultEntities = true,
       createDeserializer = options => new UcdFunction(options),
     } = options;
@@ -39,10 +39,28 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     const types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
     // Ignore default entity definitions.
     // Precompiled entity handler will be used.
-    const entities: UcdLib$EntityConfig[] | undefined = config || !defaultEntities ? [] : undefined;
+    const entities: UcdLib$EntityConfig[] | undefined =
+      features || !defaultEntities ? [] : undefined;
     const methods = new Set<UcrxMethod<any>>();
+    const enabled = new Set<UcdFeature>();
+
+    const enableFeature = (feature: UcdFeature): void => {
+      if (!enabled.has(feature)) {
+        enabled.add(feature);
+        if ('configureDeserializer' in feature) {
+          feature.configureDeserializer(setup);
+        } else {
+          feature(setup);
+        }
+      }
+    };
 
     const setup: UcdSetup = {
+      enable(feature) {
+        enableFeature(feature);
+
+        return this;
+      },
       useUcrxTemplate(type, factory) {
         types.set(type, factory);
 
@@ -53,19 +71,19 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 
         return this;
       },
-      handleEntity(entity, config) {
-        entities?.push({ entity, config });
+      handleEntity(entity, feature) {
+        entities?.push({ entity, feature });
 
         return this;
       },
-      handleEntityPrefix(entity, config) {
-        entities?.push({ entity, config, prefix: true });
+      handleEntityPrefix(entity, feature) {
+        entities?.push({ entity, feature, prefix: true });
 
         return this;
       },
     };
 
-    (config ? asArray(config) : [ucdConfigureDefaults]).forEach(configure => configure(setup));
+    (features ? asArray(features) : [ucdSupportDefaults]).forEach(enableFeature);
 
     super({ ...options, methods });
 
@@ -114,7 +132,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
     return code => code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entities!.forEach(({ entity, config, prefix }, index, { length }) => {
+        this.#entities!.forEach(({ entity, feature, prefix }, index, { length }) => {
           if (typeof entity === 'string') {
             entity = UcLexer.scan(entity);
           }
@@ -127,7 +145,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
             + ']';
 
           code.write(
-            config({
+            feature({
               lib: this,
               prefix: `${prefix ? '.addPrefix' : '.addEntity'}(${tokenArray}, `,
               suffix: ')',
@@ -296,7 +314,7 @@ export namespace UcdLib {
   export interface Options<TSchemae extends Schemae> extends Omit<UcrxLib.Options, 'methods'> {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
-    readonly config?: UcdConfig | readonly UcdConfig[] | undefined;
+    readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
     readonly defaultEntities?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
@@ -344,6 +362,6 @@ export namespace UcdLib {
 
 interface UcdLib$EntityConfig {
   readonly entity: string | readonly UcToken[];
-  readonly config: UcdEntityConfig;
+  readonly feature: UcdEntityFeature;
   readonly prefix?: boolean;
 }

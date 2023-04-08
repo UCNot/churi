@@ -20,12 +20,11 @@ const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
   process: {
     deserializer: {
       from: DESERIALIZER_MODULE,
-      symbol: 'UnknownUcrxTemplate',
-      method: 'configure',
+      feature: 'UnknownUcrxTemplate',
     },
     serializer: {
       from: SERIALIZER_MODULE,
-      symbol: 'ucsConfigureUnknown',
+      feature: 'ucsSupportUnknown',
     },
   },
 };

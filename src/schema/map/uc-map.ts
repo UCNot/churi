@@ -215,11 +215,10 @@ let UcMap$idSeq = 0;
 const UcMap$processing: UcProcessing = {
   deserializer: {
     from: DESERIALIZER_MODULE,
-    symbol: 'MapUcrxTemplate',
-    method: 'configure',
+    feature: 'MapUcrxTemplate',
   },
   serializer: {
     from: SERIALIZER_MODULE,
-    symbol: 'ucsConfigureMap',
+    feature: 'ucsSupportMap',
   },
 };

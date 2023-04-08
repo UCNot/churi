@@ -19,11 +19,7 @@ export class URIChargeUcdLib extends UcdLib<{ parseURICharge: UcSchema<URICharge
   constructor() {
     super({
       schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
-      config(setup) {
-        URIChargeMapUcrxTemplate.configure(setup);
-        URIChargeListUcrxTemplate.configure(setup);
-        URIChargeUcrxTemplate.configure(setup);
-      },
+      features: [URIChargeMapUcrxTemplate, URIChargeListUcrxTemplate, URIChargeUcrxTemplate],
     });
   }
 

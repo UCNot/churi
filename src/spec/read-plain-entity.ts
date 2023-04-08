@@ -1,4 +1,4 @@
-import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-feature.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { ucrxString } from '../rx/ucrx-item.js';
 import { Ucrx } from '../rx/ucrx.js';
@@ -14,7 +14,7 @@ export function readPlainEntity(
   return ucrxString(context, rx, printUcTokens([...prefix, ...args]));
 }
 
-export function ucdConfigurePlainEntity(setup: UcdSetup): void {
+export function ucdSupportPlainEntity(setup: UcdSetup): void {
   setup.handleEntityPrefix('!plain', ({ lib, prefix, suffix }) => code => {
     code.write(`${prefix}${lib.import('churi/spec', 'readPlainEntity')}${suffix}`);
   });

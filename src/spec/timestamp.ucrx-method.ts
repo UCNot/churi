@@ -1,4 +1,4 @@
-import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-feature.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
 import { CHURI_MODULE } from '../impl/module-names.js';
 
@@ -8,12 +8,11 @@ export const TimestampUcrxMethod = new UcrxSetter({
   typeName: 'date',
 });
 
-export function ucdConfigureTimestampEntity(setup: UcdSetup): void {
-  setup.declareUcrxMethod(TimestampUcrxMethod);
-  ucdConfigureTimestampEntityOnly(setup);
+export function ucdSupportTimestampEntity(setup: UcdSetup): void {
+  setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampEntityOnly);
 }
 
-export function ucdConfigureTimestampEntityOnly(setup: UcdSetup): void {
+export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
   setup.handleEntityPrefix("!timestamp'", ({ lib, prefix, suffix }) => code => {
     const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
     const readTimestamp = lib.declarations.declare(
