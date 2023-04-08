@@ -1,4 +1,8 @@
-import { URIChargeable } from '../uri-chargeable.js';
+import { chargeURI } from '../../rx/charge-uri.js';
+import { Ucrx } from '../../rx/ucrx.js';
+import { UctxMode } from '../../rx/uctx-mode.js';
+import { Uctx } from '../../rx/uctx.js';
+import { UcLexer } from '../../syntax/uc-lexer.js';
 
 /**
  * Opaque URI charge entity.
@@ -6,7 +10,7 @@ import { URIChargeable } from '../uri-chargeable.js';
  * This representation is used when entity is not recognized by parser.
  */
 
-export class UcEntity implements URIChargeable {
+export class UcEntity implements Uctx {
 
   readonly #raw: string;
 
@@ -39,14 +43,14 @@ export class UcEntity implements URIChargeable {
   }
 
   /**
-   * Encodes this entity into URI charge.
+   * Represents this entity as charge and transfers it to the given charge receiver.
    *
-   * @param _placement - The ignored placement of encoded entity.
-   *
-   * @returns The entity {@link raw as is}.
+   * @param rx - Charge receiver.
+   * @param mode - Transfer mode.
    */
-  chargeURI(_placement: URIChargeable.Placement): string {
-    return this.#raw;
+  toUC(rx: Ucrx, mode: UctxMode): void;
+  toUC(rx: Ucrx, _mode: UctxMode): void {
+    rx.ent(UcLexer.scan(this.raw));
   }
 
   /**
@@ -55,7 +59,7 @@ export class UcEntity implements URIChargeable {
    * @returns The {@link chargeURI encoded} entity.
    */
   toString(): string {
-    return this.chargeURI({});
+    return chargeURI(this)!;
   }
 
 }

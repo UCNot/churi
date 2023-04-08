@@ -1,6 +1,8 @@
-import { chargeURI, chargeURIArray, chargeURIMap } from '../charge-uri.js';
+import { TokenUcrx } from '../../rx/token.ucrx.js';
+import { Ucrx } from '../../rx/ucrx.js';
+import { UctxMode } from '../../rx/uctx-mode.js';
+import { uctxArray, uctxMap, uctxValue } from '../../rx/uctx-value.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
-import { URIChargeable } from '../uri-chargeable.js';
 import { URICharge } from './uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
@@ -13,10 +15,8 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
     return true;
   }
 
-  abstract chargeURI(placement: URIChargeable.Placement): string;
-
   override toString(): string {
-    return this.chargeURI({});
+    return TokenUcrx.print(this)!;
   }
 
 }
@@ -82,8 +82,8 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
     // No entries
   }
 
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURI(this.#value, placement)!;
+  override toUC(rx: Ucrx, mode: UctxMode): void {
+    uctxValue(rx, this.#value, mode);
   }
 
 }
@@ -147,8 +147,8 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
     return this.#map.keys();
   }
 
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURIMap(this.#map, placement);
+  override toUC(rx: Ucrx, _mode: UctxMode): void {
+    uctxMap(rx, this.#map);
   }
 
 }
@@ -217,8 +217,8 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
     // Not a map
   }
 
-  override chargeURI(placement: URIChargeable.Placement): string {
-    return chargeURIArray(this.#list, placement);
+  override toUC(rx: Ucrx, mode: UctxMode): void {
+    uctxArray(rx, this.#list, mode);
   }
 
 }

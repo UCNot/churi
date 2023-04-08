@@ -1,5 +1,5 @@
 import { chargeURI } from './charge-uri.js';
-import { URIChargeable } from './uri-chargeable.js';
+import { UctxMode$AsItem } from './uctx-mode.impl.js';
 
 /**
  * Tagged template for Charged URI string.
@@ -8,7 +8,7 @@ import { URIChargeable } from './uri-chargeable.js';
  * - Removes whitespace around charges.
  * - Removes spaces around new lines within template strings.
  * - _Does not_ alter template strings otherwise. It is up to the user to URI-encode them.
- * - Applies {@link chargeURI} to substituted values at appropriate {@link URIChargeable.Placement placement}.
+ * - Applies {@link chargeURI} to substituted values.
  *
  * @param strings - Template strings.
  * @param values - Substituted values.
@@ -18,28 +18,15 @@ import { URIChargeable } from './uri-chargeable.js';
 export function churi(strings: TemplateStringsArray, ...values: unknown[]): string {
   const templates = strings.map(str => str.trim().replaceAll(SPACES_AROUND_NL_PATTERN, ''));
 
-  let uri = '';
+  const chunks: string[] = [];
   let index = 0;
-  let isItem = false;
-
+  let asItem = false;
   let commaRequired = false;
-  let commaBefore = true;
-  let commaAfter = true;
-
-  const itemPlacement: URIChargeable.Item = {
-    as: 'item',
-    omitCommaBefore() {
-      commaBefore = false;
-    },
-    omitCommaAfter() {
-      commaAfter = false;
-    },
-  };
 
   for (const value of values) {
     const prefix = templates[index];
     const nextIndex = index + 1;
-    let omitCommaPrefix = false;
+    let omitComma = false;
 
     const checkForNextItem = (): void => {
       const suffix = templates[nextIndex];
@@ -49,33 +36,33 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
 
         if (suffixChar === ',' || suffixChar === '(') {
           // There is a next item in the list.
-          isItem = true;
+          asItem = true;
 
           // No need to place prefix comma.
-          omitCommaPrefix = true;
+          omitComma = true;
         } else {
           // No next item.
-          isItem = false;
+          asItem = false;
 
           // Reset for the next list.
           commaRequired = false;
         }
       } else if (nextIndex < values.length) {
         // There is a next item in the list, but comma is unspecified.
-        isItem = true;
+        asItem = true;
 
         // No need to place prefix comma.
-        omitCommaPrefix = true;
+        omitComma = true;
       }
     };
 
-    uri += prefix;
     if (prefix) {
+      chunks.push(prefix);
       switch (prefix[prefix.length - 1]) {
         case '(':
         case ',':
-          omitCommaPrefix = true; // No need for comma for first item or because it is part of template.
-          isItem = true;
+          omitComma = true; // No need for comma for first item or because it is part of template.
+          asItem = true;
 
           break;
         default:
@@ -85,29 +72,33 @@ export function churi(strings: TemplateStringsArray, ...values: unknown[]): stri
       checkForNextItem();
     }
 
-    if (isItem) {
-      commaBefore = true;
-      commaAfter = true;
-
+    if (asItem) {
       // Substitute `null` for undefined item.
-      const itemCharge = chargeURI(value, itemPlacement) ?? '--';
+      const itemCharge = chargeURI(value, UctxMode$AsItem) ?? '--';
 
-      if (!omitCommaPrefix && (commaRequired || commaBefore)) {
-        uri += ',';
+      if (!omitComma && commaRequired) {
+        if (
+          !(chunks.length && chunks[chunks.length - 1].endsWith(')') && itemCharge.startsWith('('))
+        ) {
+          // No need for comma before nested list
+          chunks.push(',');
+        }
       }
 
-      uri += itemCharge;
+      chunks.push(itemCharge);
 
-      commaRequired = commaAfter;
+      commaRequired = true;
     } else {
       // Substitute `null` for undefined value.
-      uri += chargeURI(value) ?? '--';
+      chunks.push(chargeURI(value) ?? '--');
     }
 
     index = nextIndex;
   }
 
-  return uri + templates[index];
+  chunks.push(templates[index]);
+
+  return chunks.join('');
 }
 
 const SPACES_AROUND_NL_PATTERN = /\s*[\r\n]+\s*/g;

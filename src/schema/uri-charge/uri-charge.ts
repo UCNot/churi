@@ -1,5 +1,7 @@
+import { Ucrx } from '../../rx/ucrx.js';
+import { UctxMode } from '../../rx/uctx-mode.js';
+import { Uctx } from '../../rx/uctx.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
-import { URIChargeable } from '../uri-chargeable.js';
 
 /**
  * Generic URI charge representation.
@@ -8,7 +10,7 @@ import { URIChargeable } from '../uri-chargeable.js';
  * and {@link URICharge.List lists}. When part of the charge is not available, corresponding property or method returns
  * {@link URICharge.none}, which means the absence of charge.
  */
-export abstract class URICharge implements URIChargeable {
+export abstract class URICharge implements Uctx {
 
   /**
    * URI charge instance representing the absent charge.
@@ -140,13 +142,12 @@ export abstract class URICharge implements URIChargeable {
   abstract keys(): IterableIterator<string>;
 
   /**
-   * Encodes this URI charge.
+   * Transfers this URI charge to the given receiver.
    *
-   * @param placement -  The supposed placement of encoded value.
-   *
-   * @returns String with encoded value, or `undefined` for {@link URICharge.none absent charge}.
+   * @param rx - Charge receiver.
+   * @param mode - Transfer mode.
    */
-  abstract chargeURI(placement: URIChargeable.Placement): string | undefined;
+  abstract toUC(rx: Ucrx, mode: UctxMode): void;
 
 }
 
@@ -204,18 +205,14 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
-
-    chargeURI(_placement: URIChargeable.Placement): undefined;
   }
 
   /**
    * URI charge that represents {@link URICharge#isSome something}, in contrast to {@link URICharge.None none}.
    */
-  export interface Some extends URICharge, URIChargeable {
+  export interface Some extends URICharge {
     isNone(): false;
     isSome(): true;
-
-    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -242,8 +239,6 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
-
-    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -258,8 +253,6 @@ export namespace URICharge {
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
-
-    chargeURI(placement: URIChargeable.Placement): string;
   }
 
   /**
@@ -282,8 +275,6 @@ export namespace URICharge {
     at(index: 0 | -1): this;
     at(index: number): this | None;
     list(): IterableIterator<this>;
-
-    chargeURI(placement: URIChargeable.Placement): string;
   }
 }
 
@@ -345,8 +336,8 @@ class URICharge$None extends URICharge implements URICharge.None {
     // Not a map.
   }
 
-  override chargeURI(_placement: URIChargeable.Placement): undefined {
-    return;
+  override toUC(_rx: Ucrx, _mode: UctxMode): void {
+    // Nothing to charge.
   }
 
   override toString(): string {

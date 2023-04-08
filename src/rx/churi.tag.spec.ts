@@ -86,8 +86,8 @@ describe('churi tag', () => {
   it('charges list with single item', () => {
     const list = ['11'];
 
-    expect(churi`${list}`).toBe(",'11");
-    expect(churi`?p=${list}`).toBe("?p=,'11");
+    expect(churi`${list}`).toBe("'11,");
+    expect(churi`?p=${list}`).toBe("?p='11,");
   });
   it('charges empty list', () => {
     expect(churi`${[]}`).toBe(',');

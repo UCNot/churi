@@ -1,6 +1,6 @@
 import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
-import { ucrxBigInt, ucrxBoolean, ucrxNull, ucrxNumber, ucrxString } from '../../rx/ucrx-value.js';
+import { ucrxBigInt, ucrxBoolean, ucrxNull, ucrxNumber, ucrxString } from '../../rx/ucrx-item.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { UcdReader } from '../ucd-reader.js';
 

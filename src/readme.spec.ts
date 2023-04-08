@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
-import { chargeURI } from '../schema/charge-uri.js';
-import { churi } from '../schema/churi.tag.js';
-import { UcEntity } from '../schema/entity/uc-entity.js';
+import { chargeURI } from './rx/charge-uri.js';
+import { churi } from './rx/churi.tag.js';
+import { UcEntity } from './schema/entity/uc-entity.js';
 
 const DOC_EXAMPLE =
   'https://example.com/api(!v3.0)/user;id=0n302875106592253'

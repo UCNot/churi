@@ -1,26 +1,37 @@
-import { UcToken, UC_TOKEN_PREFIX_SPACE, UC_TOKEN_PREFIX_TAB } from './uc-token.js';
+import { asis } from '@proc7ts/primitives';
+import { escapeUcSpecials } from '../impl/uc-string-escapes.js';
+import {
+  UC_TOKEN_CR,
+  UC_TOKEN_CRLF,
+  UC_TOKEN_PREFIX_SPACE,
+  UC_TOKEN_PREFIX_TAB,
+  UcToken,
+} from './uc-token.js';
 
-export function printUcTokens(tokens: readonly UcToken[]): string {
-  return tokens.map(printUcToken).join('');
+export function printUcTokens(
+  tokens: readonly UcToken[],
+  encodeString: (token: string) => string = asis,
+): string {
+  return tokens.map(token => printUcToken(token, encodeString)).join('');
 }
 
-export function printUcToken(token: UcToken): string {
+export function printUcToken(token: UcToken, encodeString?: (token: string) => string): string {
   if (typeof token === 'string') {
-    return token;
+    return encodeString ? encodeString(token) : token;
   }
 
-  if (token < 0x7f) {
-    return String.fromCharCode(token);
-  }
-
-  const mask = token & 0xff;
-
-  switch (mask) {
+  switch (token & 0xff) {
     case UC_TOKEN_PREFIX_SPACE:
       return ' '.repeat((token >>> 8) + 1);
     case UC_TOKEN_PREFIX_TAB:
       return '\t'.repeat((token >>> 8) + 1);
-    default:
-      return '\r\n';
+    case UC_TOKEN_CR:
+      return token === UC_TOKEN_CRLF ? '\r\n' : '\r';
   }
+
+  return String.fromCharCode(token);
+}
+
+export function encodeUcToken(token: string): string {
+  return escapeUcSpecials(encodeURIComponent(token));
 }
