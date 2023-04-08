@@ -1,4 +1,6 @@
+import { DESERIALIZER_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
+import { UcProcessing } from '../uc-processing.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
 
@@ -19,7 +21,7 @@ export namespace UcMap {
    * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
    */
   export interface Schema<
-    TEntriesSpec extends Schema.Entries.Spec,
+    TEntriesSpec extends Schema.Entries.Spec = Schema.Entries.Spec,
     TExtraSpec extends UcSchema.Spec | false = false,
   > extends UcSchema<ObjectType<TEntriesSpec, TExtraSpec>> {
     readonly type: 'map';
@@ -177,6 +179,7 @@ export function ucMap<
       return {
         type: 'map',
         id: id ?? `map_${++UcMap$idSeq}`,
+        process: UcMap$processing,
         entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
         extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
           TEntriesSpec,
@@ -208,3 +211,15 @@ export function ucMap<
 }
 
 let UcMap$idSeq = 0;
+
+const UcMap$processing: UcProcessing = {
+  deserializer: {
+    from: DESERIALIZER_MODULE,
+    symbol: 'MapUcrxTemplate',
+    method: 'configure',
+  },
+  serializer: {
+    from: SERIALIZER_MODULE,
+    symbol: 'ucsConfigureMap',
+  },
+};

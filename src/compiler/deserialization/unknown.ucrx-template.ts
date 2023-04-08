@@ -11,18 +11,15 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
+import { UcdSetup } from './ucd-setup.js';
 
-export class UnknownUcdDef extends CustomUcrxTemplate {
+export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 
-  static get type(): string | UcSchema.Class {
-    return 'unknown';
+  static configure(setup: UcdSetup): void {
+    setup.useUcrxTemplate('unknown', (lib, schema) => new this(lib, schema));
   }
 
-  static createTemplate(lib: UcrxLib, schema: UcSchema): UcrxTemplate {
-    return new this(lib, schema);
-  }
-
-  #allocation?: UnknownUcdDef.Allocation;
+  #allocation?: UnknownUcrxTemplate.Allocation;
 
   constructor(lib: UcrxLib, schema: UcSchema) {
     super({
@@ -40,11 +37,11 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     return this.schema.nullable ? anyTypes : nonNullTypes;
   }
 
-  #getAllocation(): UnknownUcdDef.Allocation {
+  #getAllocation(): UnknownUcrxTemplate.Allocation {
     return (this.#allocation ??= this.#allocate());
   }
 
-  #allocate(): UnknownUcdDef.Allocation {
+  #allocate(): UnknownUcrxTemplate.Allocation {
     const { lib } = this;
     const { resolver } = lib;
     const listSpec = ucList(this.schema);
@@ -196,13 +193,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   protected addItem<TArg extends string>(
-    allocation: UnknownUcdDef.Allocation,
+    allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource;
 
   protected addItem<TArg extends string>(
-    { listRx }: UnknownUcdDef.Allocation,
+    { listRx }: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource {
@@ -210,13 +207,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   protected setValue<TArg extends string>(
-    allocation: UnknownUcdDef.Allocation,
+    allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource;
 
   protected setValue<TArg extends string>(
-    _allocation: UnknownUcdDef.Allocation,
+    _allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource {
@@ -225,7 +222,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 
 }
 
-export namespace UnknownUcdDef {
+export namespace UnknownUcrxTemplate {
   export interface Allocation {
     readonly context: string;
     readonly listRx: string;

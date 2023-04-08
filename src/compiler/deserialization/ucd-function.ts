@@ -73,9 +73,10 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   get template(): UcrxTemplate<T, TSchema> {
     if (!this.#template) {
-      const template = this.#lib
-        .typeDefFor<T, TSchema>(this.schema)
-        ?.createTemplate(this.lib, this.schema);
+      const template = this.#lib.ucrxTemplateFactoryFor<T, TSchema>(this.schema)?.(
+        this.lib,
+        this.schema,
+      );
 
       if (!template) {
         throw new UnsupportedUcSchemaError(

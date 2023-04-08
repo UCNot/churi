@@ -1,3 +1,5 @@
+import { DESERIALIZER_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { UcProcessing } from '../uc-processing.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
 
@@ -86,6 +88,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       return {
         type: 'list',
         id: id ?? `list_${++UcList$idSeq}`,
+        process: UcList$processing,
         item,
         toString() {
           return `${ucSchemaName(item)}[]`;
@@ -96,3 +99,15 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
 }
 
 let UcList$idSeq = 0;
+
+const UcList$processing: UcProcessing = {
+  deserializer: {
+    from: DESERIALIZER_MODULE,
+    symbol: 'ListUcrxTemplate',
+    method: 'configure',
+  },
+  serializer: {
+    from: SERIALIZER_MODULE,
+    symbol: 'ucsConfigureList',
+  },
+};

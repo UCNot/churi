@@ -1,3 +1,4 @@
+import { DESERIALIZER_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcBoolean } from '../boolean/uc-boolean.js';
 import { UcBigInt } from '../numeric/uc-bigint.js';
 import { UcNumber } from '../numeric/uc-number.js';
@@ -16,6 +17,17 @@ export namespace UcUnknown {
 const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
   type: 'unknown',
   nullable: true,
+  process: {
+    deserializer: {
+      from: DESERIALIZER_MODULE,
+      symbol: 'UnknownUcrxTemplate',
+      method: 'configure',
+    },
+    serializer: {
+      from: SERIALIZER_MODULE,
+      symbol: 'ucsConfigureUnknown',
+    },
+  },
 };
 
 export function ucUnknown(): UcNullable<UcUnknown, UcUnknown.Schema> {

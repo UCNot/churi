@@ -1,20 +1,12 @@
 import { ucUnknown } from '#churi/core';
 import { URIChargeUcdLib } from '#churi/uri-charge/compiler';
-import { DefaultUcdDefs, UccCode, UcdLib } from 'churi/compiler';
+import { UccCode, UcdLib } from 'churi/compiler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const distDir = path.resolve(path.dirname(scriptPath), '..', 'dist');
-
-class DefaultUcdLib extends UcdLib {
-
-  constructor() {
-    super({ schemae: { parseUcValue: ucUnknown() } });
-  }
-
-}
 
 await Promise.all([
   emitDefaultEntities(),
@@ -27,7 +19,7 @@ await Promise.all([
 ]);
 
 async function emitDefaultEntities() {
-  const lib = new DefaultUcdLib();
+  const lib = new UcdLib({ schemae: {}, defaultEntities: false });
 
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
@@ -35,11 +27,7 @@ async function emitDefaultEntities() {
       .write(
         lib.imports.asStatic(),
         '',
-        lib.createEntityHandler({
-          entityDefs: DefaultUcdDefs.filter(def => !!def.entity || !!def.entityPrefix),
-          prefix: `export const onEntity$byDefault = `,
-          suffix: ';',
-        }),
+        lib.createEntityHandler(`export const onEntity$byDefault = `, ';'),
       )
       .toString(),
     'utf-8',
@@ -47,7 +35,7 @@ async function emitDefaultEntities() {
 }
 
 async function emitUcValueDeserializer() {
-  const lib = new DefaultUcdLib();
+  const lib = new UcdLib({ schemae: { parseUcValue: ucUnknown() } });
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),

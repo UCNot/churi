@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
+import { ucdConfigureBasic } from '../../compiler/deserialization/ucd-configure-basic.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
-import { PlainEntityUcdDef } from '../../spec/read-plain-entity.js';
-import { TimestampEntityDef } from '../../spec/timestamp.ucrx-method.js';
+import { ucdConfigurePlainEntity } from '../../spec/read-plain-entity.js';
+import { ucdConfigureTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcNonNullable, UcNullable, ucNullable } from '../uc-nullable.js';
@@ -121,7 +121,7 @@ describe('UcUnknown deserializer', () => {
     beforeEach(async () => {
       lib = new UcdLib({
         schemae: { readValue: ucUnknown() },
-        definitions: [...BasicUcdDefs, PlainEntityUcdDef, TimestampEntityDef],
+        config: [ucdConfigureBasic, ucdConfigurePlainEntity, ucdConfigureTimestampEntity],
       });
       ({ readValue } = await lib.compile().toDeserializers());
     });

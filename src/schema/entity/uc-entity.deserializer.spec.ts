@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
+import { ucdConfigureBasic } from '../../compiler/deserialization/ucd-configure-basic.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { readTokens } from '../../spec/read-chunks.js';
-import { PlainEntityUcdDef } from '../../spec/read-plain-entity.js';
-import { TimestampEntityDef } from '../../spec/timestamp.ucrx-method.js';
+import { ucdConfigurePlainEntity } from '../../spec/read-plain-entity.js';
+import {
+  ucdConfigureTimestampEntity,
+  ucdConfigureTimestampEntityOnly,
+} from '../../spec/timestamp.ucrx-method.js';
 import { UC_TOKEN_EXCLAMATION_MARK } from '../../syntax/uc-token.js';
 import { UcErrorInfo } from '../uc-error.js';
 
@@ -22,7 +25,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readNumber: Number,
       },
-      definitions: BasicUcdDefs,
+      config: ucdConfigureBasic,
     });
 
     const { readNumber } = await lib.compile('async').toDeserializers();
@@ -43,7 +46,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readNumber: Number,
       },
-      definitions: BasicUcdDefs,
+      config: ucdConfigureBasic,
     });
 
     const { readNumber } = await lib.compile('sync').toDeserializers();
@@ -65,7 +68,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readString: String,
       },
-      definitions: [...BasicUcdDefs, PlainEntityUcdDef],
+      config: [ucdConfigureBasic, ucdConfigurePlainEntity],
     });
     const { readString } = await lib.compile('sync').toDeserializers();
 
@@ -76,7 +79,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readString: String,
       },
-      definitions: [...BasicUcdDefs, PlainEntityUcdDef],
+      config: [ucdConfigureBasic, ucdConfigurePlainEntity],
     });
     const { readString } = await lib.compile('async').toDeserializers();
 
@@ -89,7 +92,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readTimestamp: Number,
       },
-      definitions: [...BasicUcdDefs, TimestampEntityDef],
+      config: [ucdConfigureBasic, ucdConfigureTimestampEntity],
     });
     const now = new Date();
     const { readTimestamp } = await lib.compile('sync').toDeserializers();
@@ -101,13 +104,7 @@ describe('UcEntity deserializer', () => {
       schemae: {
         readTimestamp: Number,
       },
-      definitions: [
-        ...BasicUcdDefs,
-        {
-          ...TimestampEntityDef,
-          methods: [],
-        },
-      ],
+      config: [ucdConfigureBasic, ucdConfigureTimestampEntityOnly],
     });
 
     await expect(lib.compile('sync').toDeserializers()).rejects.toThrow(
