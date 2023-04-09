@@ -13,9 +13,9 @@ describe('UccPrinter', () => {
       await expect(
         printer
           .print('{')
-          .indent(lines => lines
+          .indent(span => span
               .print('{')
-              .indent(lines => lines.print('foo();', 'bar();'), '/* indent */ ')
+              .indent(span => span.print('foo();', 'bar();'), '/* indent */ ')
               .print('}'))
           .print('}')
           .toText(),
@@ -28,7 +28,7 @@ describe('UccPrinter', () => {
       await expect(
         printer
           .print('{')
-          .indent(lines => lines.print())
+          .indent(span => span.print())
           .print('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
@@ -37,7 +37,7 @@ describe('UccPrinter', () => {
       await expect(
         printer
           .print('{')
-          .indent(lines => lines.print(''))
+          .indent(span => span.print(''))
           .print('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
@@ -46,7 +46,7 @@ describe('UccPrinter', () => {
       await expect(
         printer
           .print('{')
-          .indent(lines => lines.print().print('').print())
+          .indent(span => span.print().print('').print())
           .print('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');

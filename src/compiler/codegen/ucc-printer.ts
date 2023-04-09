@@ -1,13 +1,13 @@
-export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
+export class UccPrinter implements UccPrintable, UccPrintSpan {
 
   readonly #indent: string;
-  readonly #records: (string | UccPrinter.Record)[] = [];
+  readonly #records: (string | UccPrintable)[] = [];
 
   constructor(indent = '') {
     this.#indent = indent;
   }
 
-  print(...records: (string | UccPrinter.Record)[]): this {
+  print(...records: (string | UccPrintable)[]): this {
     this.#records.push(...records);
 
     return this;
@@ -22,16 +22,16 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
     return this;
   }
 
-  printTo(lines: UccPrinter.Lines): void {
+  printTo(span: UccPrintSpan): void {
     if (!this.#indent) {
-      lines.print(...this.#records);
+      span.print(...this.#records);
     } else {
-      lines.indent(lines => lines.print(...this.#records), this.#indent);
+      span.indent(lines => lines.print(...this.#records), this.#indent);
     }
   }
 
   async toLines(lines: string[] = []): Promise<string[]> {
-    this.printTo(new UccPrinter$Lines(this.#indent, lines));
+    this.printTo(new UccPrinter$Span(this.#indent, lines));
 
     return Promise.resolve(lines);
   }
@@ -44,7 +44,7 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
 
 }
 
-class UccPrinter$Lines implements UccPrinter.Lines {
+class UccPrinter$Span implements UccPrintSpan {
 
   readonly #indent: string;
   readonly #lines: string[];
@@ -54,7 +54,7 @@ class UccPrinter$Lines implements UccPrinter.Lines {
     this.#lines = lines;
   }
 
-  print(...records: (string | UccPrinter.Record)[]): this {
+  print(...records: (string | UccPrintable)[]): this {
     if (records.length) {
       for (const record of records) {
         if (typeof record === 'string') {
@@ -80,21 +80,19 @@ class UccPrinter$Lines implements UccPrinter.Lines {
     }
   }
 
-  indent(print: (printer: UccPrinter.Lines) => void, indent = '  '): this {
-    print(new UccPrinter$Lines(`${this.#indent}${indent}`, this.#lines));
+  indent(print: (span: UccPrintSpan) => void, indent = '  '): this {
+    print(new UccPrinter$Span(`${this.#indent}${indent}`, this.#lines));
 
     return this;
   }
 
 }
 
-export namespace UccPrinter {
-  export interface Record {
-    printTo(lines: UccPrinter.Lines): void;
-  }
+export interface UccPrintable {
+  printTo(span: UccPrintSpan): void;
+}
 
-  export interface Lines {
-    print(...records: (string | UccPrinter.Record)[]): this;
-    indent(print: (lines: UccPrinter.Lines) => void, indent?: string): this;
-  }
+export interface UccPrintSpan {
+  print(...records: (string | UccPrintable)[]): this;
+  indent(print: (span: UccPrintSpan) => void, indent?: string): this;
 }

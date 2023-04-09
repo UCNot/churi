@@ -34,20 +34,20 @@ export class UccImports {
 
   asStatic(): UccSource {
     return {
-      printTo: lines => {
+      printTo: span => {
         for (const [from, moduleImports] of this.#imports) {
           if (moduleImports.size > 1) {
-            lines
+            span
               .print(`import {`)
-              .indent(lines => {
+              .indent(span => {
                 for (const [name, alias] of moduleImports) {
-                  lines.print(`${this.#staticClause(name, alias)},`);
+                  span.print(`${this.#staticClause(name, alias)},`);
                 }
               })
               .print(`} from '${escapeJsString(from)}';`);
           } else {
             for (const [name, alias] of moduleImports) {
-              lines.print(`import { ${this.#staticClause(name, alias)} } from '${from}';`);
+              span.print(`import { ${this.#staticClause(name, alias)} } from '${from}';`);
             }
           }
         }
@@ -61,20 +61,20 @@ export class UccImports {
 
   asDynamic(): UccSource {
     return {
-      printTo: lines => {
+      printTo: span => {
         for (const [from, moduleImports] of this.#imports) {
           if (moduleImports.size > 1) {
-            lines
+            span
               .print('const {')
-              .indent(lines => {
+              .indent(span => {
                 for (const [name, alias] of moduleImports) {
-                  lines.print(`${this.#dynamicClause(name, alias)},`);
+                  span.print(`${this.#dynamicClause(name, alias)},`);
                 }
               })
               .print(`} = await import('${escapeJsString(from)}');`);
           } else {
             for (const [name, alias] of moduleImports) {
-              lines.print(
+              span.print(
                 `const { ${this.#dynamicClause(name, alias)} } = await import('${escapeJsString(
                   from,
                 )}');`,

@@ -1,4 +1,4 @@
-import { UccPrinter } from './ucc-printer.js';
+import { UccPrintSpan, UccPrintable, UccPrinter } from './ucc-printer.js';
 
 export class UccCode implements UccEmitter {
 
@@ -67,7 +67,7 @@ export class UccCode implements UccEmitter {
     return this;
   }
 
-  emit(): UccPrinter.Record {
+  emit(): UccPrintable {
     const records = this.#parts.map(part => part.emit());
     const addPart = this.#addPart;
 
@@ -77,9 +77,9 @@ export class UccCode implements UccEmitter {
     };
 
     return {
-      printTo: lines => {
+      printTo: span => {
         if (records.length) {
-          lines.print(...records);
+          span.print(...records);
         }
       },
     };
@@ -98,7 +98,7 @@ export class UccCode implements UccEmitter {
 }
 
 export interface UccEmitter {
-  emit(): string | UccPrinter.Record;
+  emit(): string | UccPrintable;
 }
 
 export type UccBuilder = (this: void, code: UccCode) => void;
@@ -107,7 +107,7 @@ export interface UccFragment {
   toCode(): UccSource;
 }
 
-export type UccSource = string | UccPrinter.Record | UccEmitter | UccFragment | UccBuilder;
+export type UccSource = string | UccPrintable | UccEmitter | UccFragment | UccBuilder;
 
 function isUccPrintable(source: UccSource): source is UccEmitter {
   return typeof source === 'object' && 'emit' in source && typeof source.emit === 'function';
@@ -123,13 +123,13 @@ function UccCode$none(_code: UccCode): void {
 
 class UccCode$Record implements UccEmitter {
 
-  readonly #record: UccPrinter.Record | string;
+  readonly #record: UccPrintable | string;
 
-  constructor(record: UccPrinter.Record | string) {
+  constructor(record: UccPrintable | string) {
     this.#record = record;
   }
 
-  emit(): string | UccPrinter.Record {
+  emit(): string | UccPrintable {
     return this.#record;
   }
 
@@ -141,7 +141,7 @@ class UccCode$NewLine$ implements UccEmitter {
     return this;
   }
 
-  printTo(lines: UccPrinter.Lines): void {
+  printTo(lines: UccPrintSpan): void {
     lines.print();
   }
 
@@ -157,10 +157,10 @@ class UccCode$Indented implements UccEmitter {
     this.#code = fragment;
   }
 
-  emit(): UccPrinter.Record {
+  emit(): UccPrintable {
     const record = this.#code.emit();
 
-    return { printTo: lines => lines.indent(lines => lines.print(record)) };
+    return { printTo: span => span.indent(span => span.print(record)) };
   }
 
 }

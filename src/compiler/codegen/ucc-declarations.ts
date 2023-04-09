@@ -1,7 +1,7 @@
 import { safeJsId } from '../impl/safe-js-id.js';
 import { UccCode, UccFragment, UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
-import { UccPrinter } from './ucc-printer.js';
+import { UccPrintSpan, UccPrintable } from './ucc-printer.js';
 
 export class UccDeclarations implements UccFragment {
 
@@ -95,14 +95,14 @@ export class UccDeclarations implements UccFragment {
         const records = this.#emitAll();
 
         return {
-          printTo: lines => this.#printAll(lines, records),
+          printTo: span => this.#printAll(span, records),
         };
       },
     };
   }
 
-  #emitAll(): Map<UccDeclSnippet, string | UccPrinter.Record> {
-    const records = new Map<UccDeclSnippet, string | UccPrinter.Record>();
+  #emitAll(): Map<UccDeclSnippet, string | UccPrintable> {
+    const records = new Map<UccDeclSnippet, string | UccPrintable>();
 
     for (const snippet of this.#all) {
       this.#emitSnippet(snippet, records);
@@ -111,10 +111,7 @@ export class UccDeclarations implements UccFragment {
     return records;
   }
 
-  #emitSnippet(
-    snippet: UccDeclSnippet,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
-  ): void {
+  #emitSnippet(snippet: UccDeclSnippet, records: Map<UccDeclSnippet, string | UccPrintable>): void {
     if (!records.has(snippet)) {
       const prev = this.#stack.start(snippet);
 
@@ -127,23 +124,20 @@ export class UccDeclarations implements UccFragment {
     }
   }
 
-  #printAll(
-    lines: UccPrinter.Lines,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
-  ): void {
+  #printAll(span: UccPrintSpan, records: Map<UccDeclSnippet, string | UccPrintable>): void {
     const printed = new Set<UccDeclSnippet>();
 
     for (const [snippet, record] of records) {
-      this.#printSnippet(snippet, record, records, printed, lines);
+      this.#printSnippet(snippet, record, records, printed, span);
     }
   }
 
   #printSnippet(
     snippet: UccDeclSnippet,
-    record: string | UccPrinter.Record,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
+    record: string | UccPrintable,
+    records: Map<UccDeclSnippet, string | UccPrintable>,
     printed: Set<UccDeclSnippet>,
-    lines: UccPrinter.Lines,
+    span: UccPrintSpan,
   ): void {
     if (!printed.has(snippet)) {
       // Prevent infinite recursion.
@@ -151,11 +145,11 @@ export class UccDeclarations implements UccFragment {
 
       // First, print all snipped dependencies.
       for (const dep of snippet.deps) {
-        this.#printSnippet(dep, records.get(dep)!, records, printed, lines);
+        this.#printSnippet(dep, records.get(dep)!, records, printed, span);
       }
 
       // Then, print the snippet itself.
-      lines.print(record);
+      span.print(record);
     }
   }
 
@@ -198,7 +192,7 @@ class UccDeclSnippet {
     return this.#name;
   }
 
-  emit(): string | UccPrinter.Record {
+  emit(): string | UccPrintable {
     return new UccCode().write(this.#snippet(this.#name)).emit();
   }
 
