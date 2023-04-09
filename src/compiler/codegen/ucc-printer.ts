@@ -23,17 +23,23 @@ export class UccPrinter implements UccPrintable, UccPrintSpan {
   }
 
   printTo(span: UccPrintSpan): void {
-    if (!this.#indent) {
-      span.print(...this.#records);
-    } else {
-      span.indent(lines => lines.print(...this.#records), this.#indent);
+    if (this.#records.length) {
+      if (this.#indent) {
+        span.indent(span => span.print(...this.#records), this.#indent);
+      } else {
+        span.print(...this.#records);
+      }
     }
   }
 
-  async toLines(lines: string[] = []): Promise<string[]> {
-    this.printTo(new UccPrinter$Span(this.#indent, lines));
+  async toLines(): Promise<string[]> {
+    const lines = await toUccPrintRecord(this.#indent, this);
 
-    return Promise.resolve(lines);
+    if (lines.length && lines[0] === '\n') {
+      return lines.slice(1);
+    }
+
+    return lines;
   }
 
   async toText(): Promise<string> {
@@ -47,11 +53,11 @@ export class UccPrinter implements UccPrintable, UccPrintSpan {
 class UccPrinter$Span implements UccPrintSpan {
 
   readonly #indent: string;
-  readonly #lines: string[];
+  readonly #records: UccPrintRecord[];
 
-  constructor(indent: string, lines: string[]) {
+  constructor(indent: string, records: UccPrintRecord[]) {
     this.#indent = indent;
-    this.#lines = lines;
+    this.#records = records;
   }
 
   print(...records: (string | UccPrintable)[]): this {
@@ -59,12 +65,12 @@ class UccPrinter$Span implements UccPrintSpan {
       for (const record of records) {
         if (typeof record === 'string') {
           if (record) {
-            this.#lines.push(`${this.#indent}${record}\n`);
+            this.#records.push([`${this.#indent}${record}\n`]);
           } else {
             this.#newLine();
           }
         } else {
-          record.printTo(this);
+          this.#records.push(toUccPrintRecord(this.#indent, record));
         }
       }
     } else {
@@ -75,13 +81,11 @@ class UccPrinter$Span implements UccPrintSpan {
   }
 
   #newLine(): void {
-    if (this.#lines.length && this.#lines[this.#lines.length - 1] !== '\n') {
-      this.#lines.push('\n');
-    }
+    this.#records.push([]);
   }
 
   indent(print: (span: UccPrintSpan) => void, indent = '  '): this {
-    print(new UccPrinter$Span(`${this.#indent}${indent}`, this.#lines));
+    print(new UccPrinter$Span(`${this.#indent}${indent}`, this.#records));
 
     return this;
   }
@@ -89,10 +93,41 @@ class UccPrinter$Span implements UccPrintSpan {
 }
 
 export interface UccPrintable {
-  printTo(span: UccPrintSpan): void;
+  printTo(span: UccPrintSpan): void | PromiseLike<void>;
 }
 
 export interface UccPrintSpan {
   print(...records: (string | UccPrintable)[]): this;
   indent(print: (span: UccPrintSpan) => void, indent?: string): this;
+}
+
+type UccPrintRecord = string[] | Promise<string[]>;
+
+async function toUccPrintRecord(indent: string, record: UccPrintable): Promise<string[]> {
+  const spanRecords: UccPrintRecord[] = [];
+  const span = new UccPrinter$Span(indent, spanRecords);
+
+  await record.printTo(span);
+
+  return await uccPrintRecords(spanRecords);
+}
+
+async function uccPrintRecords(records: UccPrintRecord[]): Promise<string[]> {
+  const out = await Promise.all(records);
+  let prevNL = false;
+
+  return out.flatMap(lines => {
+    if (lines.length) {
+      prevNL = false;
+
+      return lines;
+    }
+    if (prevNL) {
+      return [];
+    }
+
+    prevNL = true;
+
+    return ['\n'];
+  });
 }

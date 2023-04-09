@@ -85,8 +85,8 @@ export class UccCode implements UccEmitter {
     };
   }
 
-  async toLines(lines?: string[]): Promise<string[]> {
-    return new UccPrinter().print(this.emit()).toLines(lines);
+  async toLines(): Promise<string[]> {
+    return new UccPrinter().print(this.emit()).toLines();
   }
 
   async toText(): Promise<string> {
@@ -160,7 +160,11 @@ class UccCode$Indented implements UccEmitter {
   emit(): UccPrintable {
     const record = this.#code.emit();
 
-    return { printTo: span => span.indent(span => span.print(record)) };
+    return {
+      printTo: span => {
+        span.indent(span => span.print(record));
+      },
+    };
   }
 
 }

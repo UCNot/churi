@@ -37,16 +37,24 @@ describe('UccPrinter', () => {
       await expect(
         printer
           .print('{')
-          .indent(span => span.print(''))
+          .indent(span => span.print('').print('').print(''))
           .print('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
+    });
+    it('removes all leading newlines', async () => {
+      await expect(
+        printer.print().print('').print('').print().print().print('text').toText(),
+      ).resolves.toBe('text\n');
+    });
+    it('removes all newlines for empty output', async () => {
+      await expect(printer.print().print('').print('').print().print().toText()).resolves.toBe('');
     });
     it('appends at most one new line', async () => {
       await expect(
         printer
           .print('{')
-          .indent(span => span.print().print('').print())
+          .indent(span => span.print().print('').print('').print().print())
           .print('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
