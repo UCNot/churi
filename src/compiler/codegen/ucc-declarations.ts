@@ -1,29 +1,50 @@
+import { asArray } from '@proc7ts/primitives';
 import { safeJsId } from '../impl/safe-js-id.js';
 import { UccCode, UccFragment, UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
-import { UccPrinter } from './ucc-printer.js';
+import { UccPrintSpan, UccPrintable } from './ucc-printer.js';
 
 export class UccDeclarations implements UccFragment {
 
   readonly #ns: UccNamespace;
-  readonly #stack = new UccDeclStack();
   readonly #byKey = new Map<string, UccDeclSnippet>();
+  readonly #byName = new Map<string, UccDeclSnippet>();
   readonly #all: UccDeclSnippet[] = [];
+  #addDecl: (key: string | undefined, snippet: UccDeclSnippet) => void;
 
   constructor(ns: UccNamespace) {
     this.#ns = ns;
+    this.#addDecl = this.#doAddDecl;
+  }
+
+  #doAddDecl(key: string | undefined, snippet: UccDeclSnippet): void {
+    if (key) {
+      this.#byKey.set(key, snippet);
+    }
+    this.#byName.set(snippet.name, snippet);
+    this.#all.push(snippet);
   }
 
   declare(
     id: string,
-    initializer: string | ((prefix: string, suffix: string) => UccSource),
-    options?: { readonly key?: string | null | undefined },
+    initializer: string | ((location: UccInitLocation) => UccSource),
+    options?: {
+      readonly exported?: boolean | undefined;
+      readonly key?: string | null | undefined;
+      readonly deps?: readonly string[] | undefined;
+    },
   ): string {
+    const modifier = options?.exported ? 'export ' : '';
+
     return this.#declare(
       id,
       typeof initializer === 'string'
-        ? name => `const ${name} = ${initializer};`
-        : name => initializer(`const ${name} = `, `;`),
+        ? ({ name }) => `${modifier}const ${name} = ${initializer};`
+        : location => initializer({
+              ...location,
+              prefix: `${modifier}const ${location.name} = `,
+              suffix: `;`,
+            }),
       options,
     );
   }
@@ -33,35 +54,50 @@ export class UccDeclarations implements UccFragment {
     initializer: string,
     {
       prefix = 'CONST_',
-    }: { readonly prefix?: string | undefined; readonly key?: string | undefined } = {},
+      deps,
+    }: {
+      readonly prefix?: string | undefined;
+      readonly deps?: readonly string[] | undefined;
+    } = {},
   ): string {
-    return this.declare(prefix + safeJsId(key), initializer, { key: initializer });
+    return this.declare(prefix + safeJsId(key), initializer, { key: initializer, deps });
   }
 
   declareClass(
     className: string,
-    body: (name: string) => UccSource,
+    body: (location: UccDeclLocation) => UccSource,
     {
       key = null,
       baseClass,
-    }: { readonly key?: string | null | undefined; readonly baseClass?: string | undefined } = {},
+      deps = [],
+    }: {
+      readonly key?: string | null | undefined;
+      readonly baseClass?: string | undefined;
+      readonly deps?: readonly string[] | undefined;
+    } = {},
   ): string {
     return this.#declare(
       className,
-      name => code => {
+      location => code => {
         code
-          .write(`class ${name} ` + (baseClass ? `extends ${baseClass} {` : `{`))
-          .indent(body(name))
+          .write(`class ${location.name} ` + (baseClass ? `extends ${baseClass} {` : `{`))
+          .indent(body(location))
           .write(`}`);
       },
-      { key },
+      { key, deps: [...asArray(baseClass), ...deps] },
     );
   }
 
   #declare(
     id: string,
-    snippet: (name: string) => UccSource,
-    { key = id }: { readonly key?: string | null | undefined } = {},
+    snippet: (location: UccDeclLocation) => UccSource,
+    {
+      key = id,
+      deps,
+    }: {
+      readonly key?: string | null | undefined;
+      readonly deps?: readonly string[] | undefined;
+    } = {},
   ): string {
     let snippetKey: string | undefined;
 
@@ -71,7 +107,7 @@ export class UccDeclarations implements UccFragment {
       const knownSnippet = this.#byKey.get(snippetKey);
 
       if (knownSnippet) {
-        this.#stack.addDep(knownSnippet);
+        knownSnippet.addDeps(deps);
 
         return knownSnippet.name;
       }
@@ -80,126 +116,155 @@ export class UccDeclarations implements UccFragment {
     const name = this.#ns.name(id);
     const newSnippet = new UccDeclSnippet(name, snippet);
 
-    if (snippetKey) {
-      this.#byKey.set(snippetKey, newSnippet);
-    }
-    this.#all.push(newSnippet);
-    this.#stack.addDep(newSnippet);
+    newSnippet.addDeps(deps);
+    this.#addDecl(snippetKey, newSnippet);
 
     return name;
   }
 
   toCode(): UccSource {
     return {
-      emit: () => {
-        const records = this.#emitAll();
+      emit: async () => await this.#emit(),
+    };
+  }
 
-        return {
-          printTo: lines => this.#printAll(lines, records),
+  async #emit(): Promise<UccPrintable> {
+    const promises = this.#emitAll();
+    const resolutions = [...promises].map(
+      async ([snippet, record]) => [snippet, await record] as const,
+    );
+    let whenAllEmitted: Promise<unknown> = Promise.resolve();
+
+    this.#addDecl = (key, snippet) => {
+      this.#doAddDecl(key, snippet);
+
+      const whenEmitted = this.#emitSnippet(snippet, promises);
+
+      whenAllEmitted = Promise.all([
+        whenAllEmitted,
+        (async () => {
+          records.set(snippet, await whenEmitted);
+        })(),
+      ]);
+    };
+
+    const records = new Map<UccDeclSnippet, string | UccPrintable>(await Promise.all(resolutions));
+
+    return {
+      printTo: async span => {
+        this.#addDecl = () => {
+          throw new TypeError('Declarations already printed');
         };
+
+        await whenAllEmitted;
+
+        this.#printAll(span, records);
       },
     };
   }
 
-  #emitAll(): Map<UccDeclSnippet, string | UccPrinter.Record> {
-    const records = new Map<UccDeclSnippet, string | UccPrinter.Record>();
+  #emitAll(): Map<UccDeclSnippet, Promise<string | UccPrintable>> {
+    const promises = new Map<UccDeclSnippet, Promise<string | UccPrintable>>();
 
     for (const snippet of this.#all) {
-      this.#emitSnippet(snippet, records);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this.#emitSnippet(snippet, promises);
     }
 
-    return records;
+    return promises;
   }
 
   #emitSnippet(
     snippet: UccDeclSnippet,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
-  ): void {
-    if (!records.has(snippet)) {
-      const prev = this.#stack.start(snippet);
+    promises: Map<UccDeclSnippet, Promise<string | UccPrintable>>,
+  ): Promise<string | UccPrintable> {
+    promises.set(snippet, Promise.resolve('/* Emitting... */')); // Prevent recurrent duplicates.
 
-      try {
-        records.set(snippet, '/* Printing... */'); // Prevent recurrent duplicates.
-        records.set(snippet, snippet.emit());
-      } finally {
-        this.#stack.end(prev);
-      }
-    }
+    const whenEmitted = snippet.emit();
+
+    promises.set(snippet, whenEmitted);
+
+    return whenEmitted;
   }
 
-  #printAll(
-    lines: UccPrinter.Lines,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
-  ): void {
+  #printAll(span: UccPrintSpan, records: Map<UccDeclSnippet, string | UccPrintable>): void {
     const printed = new Set<UccDeclSnippet>();
 
     for (const [snippet, record] of records) {
-      this.#printSnippet(snippet, record, records, printed, lines);
+      this.#printSnippet(snippet, record, records, printed, span);
     }
   }
 
   #printSnippet(
     snippet: UccDeclSnippet,
-    record: string | UccPrinter.Record,
-    records: Map<UccDeclSnippet, string | UccPrinter.Record>,
+    record: string | UccPrintable,
+    records: Map<UccDeclSnippet, string | UccPrintable>,
     printed: Set<UccDeclSnippet>,
-    lines: UccPrinter.Lines,
+    span: UccPrintSpan,
   ): void {
     if (!printed.has(snippet)) {
       // Prevent infinite recursion.
       printed.add(snippet);
 
       // First, print all snipped dependencies.
-      for (const dep of snippet.deps) {
-        this.#printSnippet(dep, records.get(dep)!, records, printed, lines);
+      for (const depName of snippet.deps()) {
+        const dep = this.#byName.get(depName);
+
+        if (dep) {
+          this.#printSnippet(dep, records.get(dep)!, records, printed, span);
+        }
       }
 
       // Then, print the snippet itself.
-      lines.print(record);
+      span.print(record);
     }
   }
 
 }
 
-class UccDeclStack {
+export interface UccDeclLocation {
+  readonly name: string;
+  addDep(this: void, dep: string): void;
+}
 
-  #top: UccDeclSnippet | null = null;
-
-  start(snippet: UccDeclSnippet): UccDeclSnippet | null {
-    const top = this.#top;
-
-    this.#top = snippet;
-
-    return top;
-  }
-
-  addDep(dependency: UccDeclSnippet): void {
-    this.#top?.deps.add(dependency);
-  }
-
-  end(top: UccDeclSnippet | null): void {
-    this.#top = top;
-  }
-
+export interface UccInitLocation extends UccDeclLocation {
+  readonly prefix: string;
+  readonly suffix: string;
 }
 
 class UccDeclSnippet {
 
   readonly #name: string;
-  readonly #snippet: (name: string) => UccSource;
-  readonly deps = new Set<UccDeclSnippet>();
+  readonly #snippet: (location: UccDeclLocation) => UccSource;
+  readonly #deps = new Set<string>();
 
-  constructor(name: string, snippet: (name: string) => UccSource) {
+  constructor(name: string, snippet: (location: UccDeclLocation) => UccSource) {
     this.#name = name;
     this.#snippet = snippet;
+  }
+
+  deps(): IterableIterator<string> {
+    return this.#deps.values();
+  }
+
+  addDep(dep: string): void {
+    this.#deps.add(dep);
+  }
+
+  addDeps(deps: readonly string[] | undefined): void {
+    if (deps) {
+      deps.forEach(dep => this.#deps.add(dep));
+    }
   }
 
   get name(): string {
     return this.#name;
   }
 
-  emit(): string | UccPrinter.Record {
-    return new UccCode().write(this.#snippet(this.#name)).emit();
+  async emit(): Promise<UccPrintable> {
+    return await new UccCode()
+      .write(this.#snippet({ name: this.#name, addDep: this.addDep.bind(this) }))
+      .emit();
   }
 
 }

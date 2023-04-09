@@ -7,6 +7,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
+import { UccInitLocation } from '../codegen/ucc-declarations.js';
 import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -123,15 +124,16 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     }
 
     // Generate custom entity handler.
-    return this.declarations.declare('onEntity$byDefault', (prefix, suffix) => code => {
-      code.write(this.createEntityHandler(prefix, suffix));
+    return this.declarations.declare('onEntity$byDefault', location => code => {
+      code.write(this.createEntityHandler(location));
     });
   }
 
-  createEntityHandler(prefix: string, suffix: string): UccSource {
+  createEntityHandler({ prefix, suffix, addDep }: UccInitLocation): UccSource {
     const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
-    return code => code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
+    return code => {
+      code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
         this.#entities!.forEach(({ entity, feature, prefix }, index, { length }) => {
           if (typeof entity === 'string') {
             entity = UcLexer.scan(entity);
@@ -149,6 +151,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
               lib: this,
               prefix: `${prefix ? '.addPrefix' : '.addEntity'}(${tokenArray}, `,
               suffix: ')',
+              addDep,
             }),
           );
 
@@ -157,6 +160,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           }
         });
       });
+    };
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -210,7 +214,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   }
 
   #toFactoryCode(mode: UcDeserializer.Mode): UccSource {
-    return code => code
+    return code => {
+      code
         .write('return (async () => {')
         .indent(
           this.imports.asDynamic(),
@@ -220,20 +225,23 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           this.#returnDeserializers(mode),
         )
         .write('})();');
+    };
   }
 
   #returnDeserializers(mode: UcDeserializer.Mode): UccSource {
-    return code => code
+    return code => {
+      code
         .write('return {')
         .indent(this.#declareDeserializers(mode, mode === 'async' ? 'async ' : '', ','))
         .write('};');
+    };
   }
 
   async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode(mode)).toString();
+    const text = await new UccCode().write(this.#toFactoryCode(mode)).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code) as () => Promise<UcdLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcdLib.Exports<TSchemae>>;
 
     return await factory();
   }
@@ -242,18 +250,20 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     return {
       lib: this,
       toCode: () => this.#toModuleCode(mode),
-      print: () => this.#printModule(mode),
+      toText: async () => await this.#toModuleText(mode),
     };
   }
 
   #toModuleCode(mode: UcDeserializer.Mode): UccSource {
-    return code => code.write(
+    return code => {
+      code.write(
         this.imports.asStatic(),
         '',
         this.declarations,
         '',
         this.#exportDeserializers(mode),
       );
+    };
   }
 
   #exportDeserializers(mode: UcDeserializer.Mode): UccSource {
@@ -304,8 +314,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     };
   }
 
-  #printModule(mode: UcDeserializer.Mode): string {
-    return new UccCode().write(this.#toModuleCode(mode)).toString();
+  async #toModuleText(mode: UcDeserializer.Mode): Promise<string> {
+    return await new UccCode().write(this.#toModuleCode(mode)).toText();
   }
 
 }
@@ -356,7 +366,7 @@ export namespace UcdLib {
 
   export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcdLib<TSchemae>;
-    print(): string;
+    toText(): Promise<string>;
   }
 }
 

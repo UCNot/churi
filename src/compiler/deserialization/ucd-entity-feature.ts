@@ -43,4 +43,11 @@ export interface UcdEntitySetup {
    * This may be e.g. a closing parenthesis of method call.
    */
   readonly suffix: string;
+
+  /**
+   * Make entity handler depend on the given symbol.
+   *
+   * @param dep - Dependency symbol name.
+   */
+  addDep(this: void, dep: string): void;
 }

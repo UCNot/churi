@@ -10,46 +10,64 @@ describe('UccCode', () => {
   });
 
   describe('none', () => {
-    it('produces no code', () => {
-      expect(new UccCode().write(UccCode.none).toString()).toBe('');
+    it('produces no code', async () => {
+      await expect(new UccCode().write(UccCode.none).toText()).resolves.toBe('');
     });
   });
 
   describe('write', () => {
-    it('appends new line without indentation', () => {
-      expect(
+    it('appends new line without indentation', async () => {
+      await expect(
         code
           .write('{')
-          .indent(code => code.write())
+          .indent(code => {
+            code.write();
+          })
           .write('}')
-          .toString(),
-      ).toBe('{\n}\n');
+          .toText(),
+      ).resolves.toBe('{\n\n}\n');
     });
-    it('appends at most one new line', () => {
-      expect(
+    it('appends at most one new line', async () => {
+      await expect(
         code
           .write('{')
-          .indent(code => code.write().write('').write())
+          .indent(code => {
+            code.write().write('').write();
+          })
           .write('}')
-          .toString(),
-      ).toBe('{\n\n}\n');
+          .toText(),
+      ).resolves.toBe('{\n\n}\n');
     });
-    it('prevents adding code fragment to itself', () => {
-      expect(() => code.write(inner => inner.write(code))).toThrow(
+    it('prevents adding code fragment to itself', async () => {
+      code.write(inner => {
+        inner.write(code);
+      });
+
+      await expect(code.toText()).rejects.toThrow(
         new TypeError('Can not insert code fragment into itself'),
       );
     });
   });
 
   describe('emit', () => {
-    it('allows inserting code after call', () => {
+    it('allows inserting code after call', async () => {
       code.write('first();');
 
-      const record = code.emit();
+      const record = await code.emit();
 
       code.write('second();');
 
-      expect(new UccPrinter().print(record).toString()).toBe('first();\nsecond();\n');
+      await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\nsecond();\n');
+      await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\nsecond();\n');
+    });
+    it('prevents inserting code after print', async () => {
+      code.write('first();');
+
+      const record = await code.emit();
+
+      await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\n');
+
+      expect(() => code.write('second();')).toThrow(new TypeError('Code printed already'));
     });
   });
 });

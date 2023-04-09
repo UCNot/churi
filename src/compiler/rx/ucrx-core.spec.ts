@@ -14,72 +14,72 @@ describe('UcrxCore', () => {
   });
 
   describe('ent', () => {
-    it('constructs UcEntity instance', () => {
-      expect(
+    it('constructs UcEntity instance', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.ent.stub({ value: 'value' }, UcrxCore.ent.toMethod(lib), template))
-          .toString(),
-      ).toBe('return this.any(new UcEntity(printUcTokens(value)));\n');
+          .toText(),
+      ).resolves.toBe('return this.any(new UcEntity(printUcTokens(value)));\n');
     });
   });
 
   describe('nls', () => {
-    it('has empty stub', () => {
-      expect(
+    it('has empty stub', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.nls.stub({ '': '' }, UcrxCore.nls.toMethod(lib), template))
-          .toString(),
-      ).toBe('');
+          .toText(),
+      ).resolves.toBe('');
     });
   });
 
   describe('nul', () => {
-    it('has stub assigning null', () => {
-      expect(
+    it('has stub assigning null', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.nul.stub({ '': '' }, UcrxCore.nul.toMethod(lib), template))
-          .toString(),
-      ).toBe('return this.any(null);\n');
+          .toText(),
+      ).resolves.toBe('return this.any(null);\n');
     });
   });
 
   describe('for', () => {
-    it('has empty stub', () => {
-      expect(
+    it('has empty stub', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.for.stub({ key: 'key' }, UcrxCore.for.toMethod(lib), template))
-          .toString(),
-      ).toBe('');
+          .toText(),
+      ).resolves.toBe('');
     });
   });
 
   describe('map', () => {
-    it('has stub returning 0', () => {
-      expect(
+    it('has stub returning 0', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.map.stub({ '': '' }, UcrxCore.map.toMethod(lib), template))
-          .toString(),
-      ).toBe('return 0;\n');
+          .toText(),
+      ).resolves.toBe('return 0;\n');
     });
   });
 
   describe('and', () => {
-    it('has stub returning 0', () => {
-      expect(
+    it('has stub returning 0', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.and.stub({ '': '' }, UcrxCore.and.toMethod(lib), template))
-          .toString(),
-      ).toBe('return 0;\n');
+          .toText(),
+      ).resolves.toBe('return 0;\n');
     });
   });
 
   describe('end', () => {
-    it('has empty stub', () => {
-      expect(
+    it('has empty stub', async () => {
+      await expect(
         new UccCode()
           .write(UcrxCore.end.stub({ '': '' }, UcrxCore.end.toMethod(lib), template))
-          .toString(),
-      ).toBe('');
+          .toText(),
+      ).resolves.toBe('');
     });
   });
 });

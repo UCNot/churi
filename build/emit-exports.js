@@ -21,15 +21,13 @@ await Promise.all([
 async function emitDefaultEntities() {
   const lib = new UcdLib({ schemae: {}, defaultEntities: false });
 
+  lib.declarations.declare('onEntity$byDefault', location => lib.createEntityHandler(location), {
+    exported: true,
+  });
+
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    new UccCode()
-      .write(
-        lib.imports.asStatic(),
-        '',
-        lib.createEntityHandler(`export const onEntity$byDefault = `, ';'),
-      )
-      .toString(),
+    await new UccCode().write(lib.imports.asStatic(), '', lib.declarations).toText(),
     'utf-8',
   );
 }
@@ -39,7 +37,7 @@ async function emitUcValueDeserializer() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
-    lib.compileModule('sync').print(),
+    await lib.compileModule('sync').toText(),
     'utf-8',
   );
 }
@@ -60,7 +58,7 @@ async function emitUcValueDeserializerTypes() {
 async function emitURIChargeDeserializer() {
   await fs.writeFile(
     path.join(distDir, 'churi.uri-charge.deserializer.js'),
-    new URIChargeUcdLib().compileModule('sync').print(),
+    await new URIChargeUcdLib().compileModule('sync').toText(),
     'utf-8',
   );
 }

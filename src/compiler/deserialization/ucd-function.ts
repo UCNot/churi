@@ -130,7 +130,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
       code
         .write(`if (${syncReader}) {`)
-        .indent(code => code
+        .indent(code => {
+          code
             .write(`try {`)
             .indent(
               `${syncReader}.read(`
@@ -143,7 +144,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             .write(`} finally {`)
             .indent(`${syncReader}.done();`)
             .write(`}`)
-            .write('return result;'))
+            .write('return result;');
+        })
         .write(`}`);
 
       code

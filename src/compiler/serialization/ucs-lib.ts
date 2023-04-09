@@ -87,7 +87,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   #toFactoryCode(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return (async () => {')
         .indent(
           this.imports.asDynamic(),
@@ -99,10 +100,12 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           this.#returnSerializers(),
         )
         .write('})();');
+    };
   }
 
   #returnSerializers(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
@@ -113,13 +116,14 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           }
         })
         .write('};');
+    };
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode()).toString();
+    const text = await new UccCode().write(this.#toFactoryCode()).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcsLib.Exports<TSchemae>>;
 
     return await factory();
   }
@@ -128,12 +132,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return {
       lib: this,
       toCode: this.#toModuleCode.bind(this),
-      print: this.#printModule.bind(this),
+      toText: this.#toModuleText.bind(this),
     };
   }
 
   #toModuleCode(): UccBuilder {
-    return code => code.write(
+    return code => {
+      code.write(
         this.imports.asStatic(),
         '',
         this.declarations,
@@ -142,6 +147,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
         '',
         this.#exportSerializers(),
       );
+    };
   }
 
   #exportSerializers(): UccBuilder {
@@ -155,12 +161,14 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  #printModule(): string {
-    return new UccCode().write(this.#toModuleCode()).toString();
+  async #toModuleText(): Promise<string> {
+    return await new UccCode().write(this.#toModuleCode()).toText();
   }
 
   #compileSerializers(): UccBuilder {
-    return code => code.write(...this.#allSerializers());
+    return code => {
+      code.write(...this.#allSerializers());
+    };
   }
 
   *#allSerializers(): Iterable<UcsFunction> {
@@ -198,6 +206,6 @@ export namespace UcsLib {
 
   export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcsLib<TSchemae>;
-    print(): string;
+    toText(): Promise<string>;
   }
 }

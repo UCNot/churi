@@ -1,4 +1,5 @@
 import { UccSource } from '../codegen/ucc-code.js';
+import { UccDeclLocation } from '../codegen/ucc-declarations.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -28,14 +29,14 @@ export class CustomOpaqueUcrxTemplate extends BaseUcrxTemplate {
   #declareClass(): string {
     return this.lib.declarations.declareClass(
       `${this.typeName}Ucrx`,
-      name => this.#declareBody(name),
+      location => this.#declareBody(location),
       {
         baseClass: this.base.className,
       },
     );
   }
 
-  #declareBody(_className: string): UccSource {
+  #declareBody(_location: UccDeclLocation): UccSource {
     return code => {
       code.write(this.#declareConstructor(), this.declareTypes(), this.declareMethods());
     };

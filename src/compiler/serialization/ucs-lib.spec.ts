@@ -26,16 +26,18 @@ describe('UcsLib', () => {
   });
 
   describe('compileModule', () => {
-    it('compiles module', () => {
+    it('compiles module', async () => {
       const lib = new UcsLib<{ writeValue: UcSchema.Spec<number> }>({
         schemae: { writeValue: Number },
       });
       const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);
-      expect(new UccCode().write(module).toString()).toBe(module.print());
-      expect(module.print()).toContain(`} from 'churi/serializer';\n`);
-      expect(module.print()).toContain('export async function writeValue(stream, value) {\n');
+      await expect(new UccCode().write(module).toText()).resolves.toBe(await module.toText());
+      await expect(module.toText()).resolves.toContain(`} from 'churi/serializer';\n`);
+      await expect(module.toText()).resolves.toContain(
+        'export async function writeValue(stream, value) {\n',
+      );
     });
   });
 });
