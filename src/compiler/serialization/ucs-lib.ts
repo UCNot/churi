@@ -116,10 +116,10 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode()).toString();
+    const text = await new UccCode().write(this.#toFactoryCode()).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcsLib.Exports<TSchemae>>;
 
     return await factory();
   }
@@ -128,7 +128,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return {
       lib: this,
       toCode: this.#toModuleCode.bind(this),
-      print: this.#printModule.bind(this),
+      toText: this.#toModuleText.bind(this),
     };
   }
 
@@ -155,8 +155,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  #printModule(): string {
-    return new UccCode().write(this.#toModuleCode()).toString();
+  async #toModuleText(): Promise<string> {
+    return await new UccCode().write(this.#toModuleCode()).toText();
   }
 
   #compileSerializers(): UccBuilder {
@@ -198,6 +198,6 @@ export namespace UcsLib {
 
   export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcsLib<TSchemae>;
-    print(): string;
+    toText(): Promise<string>;
   }
 }

@@ -85,12 +85,14 @@ export class UccCode implements UccEmitter {
     };
   }
 
-  toLines(lines?: string[]): string[] {
+  async toLines(lines?: string[]): Promise<string[]> {
     return new UccPrinter().print(this.emit()).toLines(lines);
   }
 
-  toString(): string {
-    return this.toLines().join('');
+  async toText(): Promise<string> {
+    const lines = await this.toLines();
+
+    return lines.join('');
   }
 
 }

@@ -30,14 +30,16 @@ export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
     }
   }
 
-  toLines(lines: string[] = []): string[] {
+  async toLines(lines: string[] = []): Promise<string[]> {
     this.printTo(new UccPrinter$Lines(this.#indent, lines));
 
-    return lines;
+    return Promise.resolve(lines);
   }
 
-  toString(): string {
-    return this.toLines().join('');
+  async toText(): Promise<string> {
+    const lines = await this.toLines();
+
+    return lines.join('');
   }
 
 }

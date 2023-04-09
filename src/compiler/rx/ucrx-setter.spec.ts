@@ -15,14 +15,14 @@ describe('UcrxSetter', () => {
   });
 
   describe('stub', () => {
-    it('sets value', () => {
+    it('sets value', async () => {
       const setter = new UcrxSetter({ key: 'test' });
 
-      expect(
+      await expect(
         new UccCode()
           .write(setter.stub({ value: 'value' }, new UccMethod('test', setter.args), template))
-          .toString(),
-      ).toBe('return this.set(value);\n');
+          .toText(),
+      ).resolves.toBe('return this.set(value);\n');
     });
   });
 });
