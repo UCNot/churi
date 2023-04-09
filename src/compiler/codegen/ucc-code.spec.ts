@@ -20,7 +20,9 @@ describe('UccCode', () => {
       await expect(
         code
           .write('{')
-          .indent(code => code.write())
+          .indent(code => {
+            code.write();
+          })
           .write('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
@@ -29,13 +31,19 @@ describe('UccCode', () => {
       await expect(
         code
           .write('{')
-          .indent(code => code.write().write('').write())
+          .indent(code => {
+            code.write().write('').write();
+          })
           .write('}')
           .toText(),
       ).resolves.toBe('{\n\n}\n');
     });
-    it('prevents adding code fragment to itself', () => {
-      expect(() => code.write(inner => inner.write(code))).toThrow(
+    it('prevents adding code fragment to itself', async () => {
+      code.write(inner => {
+        inner.write(code);
+      });
+
+      await expect(code.toText()).rejects.toThrow(
         new TypeError('Can not insert code fragment into itself'),
       );
     });
@@ -45,11 +53,21 @@ describe('UccCode', () => {
     it('allows inserting code after call', async () => {
       code.write('first();');
 
-      const record = code.emit();
+      const record = await code.emit();
 
       code.write('second();');
 
       await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\nsecond();\n');
+      await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\nsecond();\n');
+    });
+    it('prevents inserting code after print', async () => {
+      code.write('first();');
+
+      const record = await code.emit();
+
+      await expect(new UccPrinter().print(record).toText()).resolves.toBe('first();\n');
+
+      expect(() => code.write('second();')).toThrow(new TypeError('Code printed already'));
     });
   });
 });

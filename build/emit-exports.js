@@ -21,15 +21,13 @@ await Promise.all([
 async function emitDefaultEntities() {
   const lib = new UcdLib({ schemae: {}, defaultEntities: false });
 
+  lib.declarations.declare('onEntity$byDefault', location => lib.createEntityHandler(location), {
+    exported: true,
+  });
+
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    await new UccCode()
-      .write(
-        lib.imports.asStatic(),
-        '',
-        lib.createEntityHandler(`export const onEntity$byDefault = `, ';'),
-      )
-      .toText(),
+    await new UccCode().write(lib.imports.asStatic(), '', lib.declarations).toText(),
     'utf-8',
   );
 }

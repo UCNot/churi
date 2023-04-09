@@ -132,7 +132,7 @@ export class MapUcrxTemplate<
     const { entries } = this.schema;
     const { lib } = this;
 
-    return lib.declarations.declare(`${this.className}$entries`, (prefix, suffix) => code => {
+    return lib.declarations.declare(`${this.className}$entries`, ({ prefix, suffix }) => code => {
       code
         .write(`${prefix}{`)
         .indent(code => {
@@ -156,7 +156,7 @@ export class MapUcrxTemplate<
     const { lib } = this;
     const entry = this.createEntry(null, extra);
 
-    return lib.declarations.declare(`${this.className}$extra`, (prefix, suffix) => entry.declare(prefix, suffix));
+    return lib.declarations.declare(`${this.className}$extra`, ({ prefix, suffix }) => entry.declare(prefix, suffix));
   }
 
   entryTemplate(key: string | null, schema: UcSchema): UcrxTemplate {

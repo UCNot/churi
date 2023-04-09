@@ -12,7 +12,11 @@ export class UccCode implements UccEmitter {
 
   constructor(parent?: UccCode) {
     this.#parent = parent;
-    this.#addPart = part => this.#parts.push(part);
+    this.#addPart = this.#doAddPart;
+  }
+
+  #doAddPart(part: UccEmitter): void {
+    this.#parts.push(part);
   }
 
   write(...fragments: UccSource[]): this {
@@ -31,9 +35,13 @@ export class UccCode implements UccEmitter {
     if (typeof fragment === 'function') {
       const code = new UccCode(this);
 
-      fragment(code as this);
+      this.#addPart({
+        async emit(): Promise<UccPrintable> {
+          await fragment(code);
 
-      this.#addPart(code);
+          return await code.emit();
+        },
+      });
     } else if (isUccPrintable(fragment)) {
       if (fragment instanceof UccCode && fragment.#contains(this)) {
         throw new TypeError('Can not insert code fragment into itself');
@@ -67,26 +75,43 @@ export class UccCode implements UccEmitter {
     return this;
   }
 
-  emit(): UccPrintable {
-    const records = this.#parts.map(part => part.emit());
-    const addPart = this.#addPart;
+  async emit(): Promise<UccPrintable> {
+    const extraRecords: (string | UccPrintable)[] = [];
+    let whenEmitted: Promise<unknown> = Promise.resolve();
 
     this.#addPart = part => {
-      addPart(part);
-      records.push(part.emit());
+      this.#doAddPart(part);
+
+      whenEmitted = Promise.all([
+        whenEmitted,
+        (async () => {
+          extraRecords.push(await part.emit());
+        })(),
+      ]);
     };
 
-    return {
-      printTo: span => {
+    const records = await Promise.all(this.#parts.map(async part => await part.emit()));
+
+    return Promise.resolve({
+      printTo: async span => {
+        this.#addPart = () => {
+          throw new TypeError('Code printed already');
+        };
+
+        await whenEmitted;
+
         if (records.length) {
           span.print(...records);
         }
+        if (extraRecords.length) {
+          span.print(...extraRecords);
+        }
       },
-    };
+    });
   }
 
   async toLines(): Promise<string[]> {
-    return new UccPrinter().print(this.emit()).toLines();
+    return new UccPrinter().print(await this.emit()).toLines();
   }
 
   async toText(): Promise<string> {
@@ -98,10 +123,10 @@ export class UccCode implements UccEmitter {
 }
 
 export interface UccEmitter {
-  emit(): string | UccPrintable;
+  emit(): string | UccPrintable | PromiseLike<string | UccPrintable>;
 }
 
-export type UccBuilder = (this: void, code: UccCode) => void;
+export type UccBuilder = (this: void, code: UccCode) => void | PromiseLike<void>;
 
 export interface UccFragment {
   toCode(): UccSource;
@@ -157,8 +182,8 @@ class UccCode$Indented implements UccEmitter {
     this.#code = fragment;
   }
 
-  emit(): UccPrintable {
-    const record = this.#code.emit();
+  async emit(): Promise<UccPrintable> {
+    const record = await this.#code.emit();
 
     return {
       printTo: span => {

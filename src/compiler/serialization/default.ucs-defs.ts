@@ -141,22 +141,29 @@ class Default$UcsDefs {
             `${textEncoder}.encode('${escapeJsString(encodeUcsKey(key))}(')`,
             {
               prefix: 'EP_',
+              deps: [textEncoder],
             },
           )
         : emptyEntryPrefix;
 
-      return code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${entryPrefix})`);
+      return code => {
+        code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${entryPrefix})`);
+      };
     };
     let writeEntryPrefix = writeDefaultEntryPrefix;
 
     if (this.#mayBeEmpty(schema)) {
       const entryWritten = ns.name(`${value}$entryWritten`);
 
-      startMap = code => code.write(`let ${entryWritten} = false;`);
-      endMap = code => code
+      startMap = code => {
+        code.write(`let ${entryWritten} = false;`);
+      };
+      endMap = code => {
+        code
           .write(`if (!${entryWritten}) {`)
           .indent(`await ${args.writer}.ready; ${args.writer}.write(${emptyMap});`)
           .write(`}`);
+      };
       writeEntryPrefix = key => code => {
         code.write(`${entryWritten} = true;`, writeDefaultEntryPrefix(key));
       };
@@ -241,19 +248,19 @@ class Default$UcsDefs {
       if (schema.nullable) {
         code.write(`if (${value} != null) {`).indent(onValue);
         if (schema.optional) {
-          code
-            .write(`} else if (${value} === null) {`)
-            .indent(
-              onNull
-                ?? (code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`)),
-            );
+          code.write(`} else if (${value} === null) {`).indent(
+            onNull
+              ?? (code => {
+                code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
+              }),
+          );
         } else {
-          code
-            .write(`} else {`)
-            .indent(
-              onNull
-                ?? (code => code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`)),
-            );
+          code.write(`} else {`).indent(
+            onNull
+              ?? (code => {
+                code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
+              }),
+          );
         }
         code.write('}');
       } else if (schema.optional) {

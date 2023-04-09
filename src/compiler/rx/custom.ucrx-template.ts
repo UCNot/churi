@@ -1,6 +1,7 @@
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccCode, UccSource } from '../codegen/ucc-code.js';
+import { UccDeclLocation } from '../codegen/ucc-declarations.js';
 import { UccMethod } from '../codegen/ucc-method.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
@@ -46,13 +47,13 @@ export class CustomUcrxTemplate<
 
     return this.lib.declarations.declareClass(
       `${this.typeName}Ucrx`,
-      name => this.#declareBody(name),
+      location => this.#declareBody(location),
       { baseClass: base.className },
     );
   }
 
-  #declareBody(className: string): UccSource {
-    this.#className = className;
+  #declareBody({ name }: UccDeclLocation): UccSource {
+    this.#className = name;
 
     return code => {
       code.write(

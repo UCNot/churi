@@ -87,7 +87,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   #toFactoryCode(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return (async () => {')
         .indent(
           this.imports.asDynamic(),
@@ -99,10 +100,12 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           this.#returnSerializers(),
         )
         .write('})();');
+    };
   }
 
   #returnSerializers(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
@@ -113,6 +116,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           }
         })
         .write('};');
+    };
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
@@ -133,7 +137,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   #toModuleCode(): UccBuilder {
-    return code => code.write(
+    return code => {
+      code.write(
         this.imports.asStatic(),
         '',
         this.declarations,
@@ -142,6 +147,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
         '',
         this.#exportSerializers(),
       );
+    };
   }
 
   #exportSerializers(): UccBuilder {
@@ -160,7 +166,9 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   #compileSerializers(): UccBuilder {
-    return code => code.write(...this.#allSerializers());
+    return code => {
+      code.write(...this.#allSerializers());
+    };
   }
 
   *#allSerializers(): Iterable<UcsFunction> {
