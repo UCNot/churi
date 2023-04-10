@@ -24,7 +24,7 @@ export class UccPrinter implements UccPrintable {
   }
 
   #newLine(): void {
-    this.#records.push([]);
+    this.#records.push(['\n']);
   }
 
   async #print(printable: UccPrintable): Promise<string[]> {
@@ -60,27 +60,36 @@ export class UccPrinter implements UccPrintable {
   #append(lines: string[], indent: string): void {
     const prefix = this.#indent + indent;
 
-    this.#records.push(lines.map(line => `${prefix}${line}`));
+    this.#records.push(
+      lines.map(line => (line !== '\n' ? `${prefix}${line}` : line /* Do not indent NL */)),
+    );
+  }
+
+  async *lines(): AsyncIterableIterator<string> {
+    const records = await Promise.all(this.#records);
+    let prevNL = false;
+
+    for (const lines of records) {
+      for (const line of lines) {
+        if (line !== '\n') {
+          yield line;
+          prevNL = false;
+        } else if (!prevNL) {
+          yield line;
+          prevNL = true;
+        }
+      }
+    }
   }
 
   async toLines(): Promise<string[]> {
-    const out = await Promise.all(this.#records);
-    let prevNL = true;
+    const lines: string[] = [];
 
-    return out.flatMap(lines => {
-      if (lines.length) {
-        prevNL = false;
+    for await (const line of this.lines()) {
+      lines.push(line);
+    }
 
-        return lines;
-      }
-      if (prevNL) {
-        return [];
-      }
-
-      prevNL = true;
-
-      return ['\n'];
-    });
+    return lines;
   }
 
   async toText(): Promise<string> {

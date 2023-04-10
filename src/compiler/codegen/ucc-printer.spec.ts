@@ -45,19 +45,21 @@ describe('UccPrinter', () => {
     it('removes all leading newlines', async () => {
       await expect(
         printer.print().print('').print('').print().print().print('text').toText(),
-      ).resolves.toBe('text\n');
+      ).resolves.toBe('\ntext\n');
     });
-    it('removes all newlines for empty output', async () => {
-      await expect(printer.print().print('').print('').print().print().toText()).resolves.toBe('');
+    it('leaves single newline for empty output', async () => {
+      await expect(printer.print().print('').print('').print().print().toText()).resolves.toBe(
+        '\n',
+      );
     });
     it('appends at most one new line', async () => {
       await expect(
         printer
           .print('{')
-          .indent(span => span.print().print('').print('').print().print())
+          .indent(span => span.print('abc').print('').print('').print().print('def'))
           .print('}')
           .toText(),
-      ).resolves.toBe('{\n\n}\n');
+      ).resolves.toBe('{\n  abc\n\n  def\n}\n');
     });
   });
 });

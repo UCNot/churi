@@ -110,8 +110,18 @@ export class UccCode implements UccEmitter {
     });
   }
 
+  async *lines(): AsyncIterableIterator<string> {
+    yield* new UccPrinter().print(await this.emit()).lines();
+  }
+
   async toLines(): Promise<string[]> {
-    return new UccPrinter().print(await this.emit()).toLines();
+    const lines: string[] = [];
+
+    for await (const line of this.lines()) {
+      lines.push(line);
+    }
+
+    return lines;
   }
 
   async toText(): Promise<string> {

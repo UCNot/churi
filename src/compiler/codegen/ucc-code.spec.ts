@@ -25,7 +25,7 @@ describe('UccCode', () => {
           })
           .write('}')
           .toText(),
-      ).resolves.toBe('{\n\n}\n');
+      ).resolves.toBe('{\n}\n');
     });
     it('appends at most one new line', async () => {
       await expect(
