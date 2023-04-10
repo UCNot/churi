@@ -13,7 +13,7 @@ export function ucdSupportTimestampEntity(setup: UcdSetup): void {
 }
 
 export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
-  setup.handleEntityPrefix("!timestamp'", ({ lib, prefix, suffix, addDep }) => code => {
+  setup.handleEntityPrefix("!timestamp'", ({ lib, register, handleWith }) => code => {
     const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
     const readTimestamp = lib.declarations.declare(
       'readTimestampEntity',
@@ -30,8 +30,8 @@ export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
         },
     );
 
-    addDep(readTimestamp);
+    handleWith(readTimestamp);
 
-    code.write(`${prefix}${readTimestamp}${suffix}`);
+    code.write(register(readTimestamp));
   });
 }

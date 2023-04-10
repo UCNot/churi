@@ -4,14 +4,11 @@ import { UcdLib } from './ucd-lib.js';
 /**
  * Entity deserialization support feature.
  *
- * Generates code that creates {@link churi!EntityUcrx entity receiver}.
- *
- * Generated code expected to place created receiver instance between the given {@link UcdEntitySetup#prefix prefix}
- * and {@link UcdEntitySetup#suffix suffix}.
+ * Generates code that {@link UcdEntitySetup#register registers} {@link churi!EntityUcrx entity receiver}.
  *
  * @param setup - Entity deserialization setup.
  *
- * @returns Source of code that create entity receiver.
+ * @returns Source of entity registration code.
  */
 export type UcdEntityFeature = (setup: UcdEntitySetup) => UccSource;
 
@@ -27,27 +24,18 @@ export interface UcdEntitySetup {
   readonly lib: UcdLib;
 
   /**
-   * Generated code prefix.
+   * Builds code that registers created entity receiver.
    *
-   * Generated entity receiver expression expected to be placed right after this prefix.
+   * @param entityRx - Entity receiver expression.
    *
-   * This may be e.g. a method call with leading parameters.
+   * @returns Source of entity registration code.
    */
-  readonly prefix: string;
-
-  /**
-   * Generated code suffix.
-   *
-   * Generated entity receiver expression expected to be placed right before this suffix.
-   *
-   * This may be e.g. a closing parenthesis of method call.
-   */
-  readonly suffix: string;
+  register(entityRx: string): UccSource;
 
   /**
    * Make entity handler depend on the given symbol.
    *
    * @param dep - Dependency symbol name.
    */
-  addDep(this: void, dep: string): void;
+  handleWith(this: void, dep: string): void;
 }

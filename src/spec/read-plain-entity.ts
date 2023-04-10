@@ -15,7 +15,7 @@ export function readPlainEntity(
 }
 
 export function ucdSupportPlainEntity(setup: UcdSetup): void {
-  setup.handleEntityPrefix('!plain', ({ lib, prefix, suffix }) => code => {
-    code.write(`${prefix}${lib.import('churi/spec', 'readPlainEntity')}${suffix}`);
+  setup.handleEntityPrefix('!plain', ({ lib, register }) => code => {
+    code.write(register(lib.import('churi/spec', 'readPlainEntity')));
   });
 }

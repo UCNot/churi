@@ -10,11 +10,11 @@ export function ucdSupportNonFinite(setup: UcdSetup): void {
 }
 
 function handleUcdNonFinite(reader: string): UcdEntityFeature {
-  return ({ lib, prefix, suffix, addDep }: UcdEntitySetup) => {
+  return ({ lib, register, handleWith }: UcdEntitySetup) => {
     const readEntity = lib.import(DESERIALIZER_MODULE, reader);
 
-    addDep(readEntity);
+    handleWith(readEntity);
 
-    return `${prefix}${readEntity}${suffix}`;
+    return register(readEntity);
   };
 }

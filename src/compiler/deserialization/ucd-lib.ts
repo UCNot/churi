@@ -149,9 +149,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           code.write(
             feature({
               lib: this,
-              prefix: `${prefix ? '.addPrefix' : '.addEntity'}(${tokenArray}, `,
-              suffix: ')',
-              addDep,
+              register: entityRx => (prefix ? '.addPrefix' : '.addEntity') + `(${tokenArray}, ` + entityRx + ')',
+              handleWith: addDep,
             }),
           );
 
