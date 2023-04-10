@@ -1,4 +1,4 @@
-import { UccPrintSpan, UccPrintable, UccPrinter } from './ucc-printer.js';
+import { UccPrintable, UccPrinter } from './ucc-printer.js';
 
 export class UccCode implements UccEmitter {
 
@@ -166,7 +166,7 @@ class UccCode$NewLine$ implements UccEmitter {
     return this;
   }
 
-  printTo(lines: UccPrintSpan): void {
+  printTo(lines: UccPrinter): void {
     lines.print();
   }
 

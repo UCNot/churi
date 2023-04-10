@@ -19,7 +19,7 @@ describe('UccPrinter', () => {
               .print('}'))
           .print('}')
           .toText(),
-      ).resolves.toBe('{\n  {\n  /* indent */ foo();\n  /* indent */ bar();\n  }\n}\n');
+      ).resolves.toBe('{\n  {\n    /* indent */ foo();\n    /* indent */ bar();\n  }\n}\n');
     });
   });
 

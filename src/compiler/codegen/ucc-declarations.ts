@@ -2,7 +2,7 @@ import { asArray } from '@proc7ts/primitives';
 import { safeJsId } from '../impl/safe-js-id.js';
 import { UccCode, UccFragment, UccSource } from './ucc-code.js';
 import { UccNamespace } from './ucc-namespace.js';
-import { UccPrintSpan, UccPrintable } from './ucc-printer.js';
+import { UccPrintable, UccPrinter } from './ucc-printer.js';
 
 export class UccDeclarations implements UccFragment {
 
@@ -187,7 +187,7 @@ export class UccDeclarations implements UccFragment {
     return whenEmitted;
   }
 
-  #printAll(span: UccPrintSpan, records: Map<UccDeclSnippet, string | UccPrintable>): void {
+  #printAll(span: UccPrinter, records: Map<UccDeclSnippet, string | UccPrintable>): void {
     const printed = new Set<UccDeclSnippet>();
 
     for (const [snippet, record] of records) {
@@ -200,7 +200,7 @@ export class UccDeclarations implements UccFragment {
     record: string | UccPrintable,
     records: Map<UccDeclSnippet, string | UccPrintable>,
     printed: Set<UccDeclSnippet>,
-    span: UccPrintSpan,
+    span: UccPrinter,
   ): void {
     if (!printed.has(snippet)) {
       // Prevent infinite recursion.
