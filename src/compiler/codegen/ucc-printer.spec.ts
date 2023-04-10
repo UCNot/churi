@@ -8,21 +8,6 @@ describe('UccPrinter', () => {
     printer = new UccPrinter();
   });
 
-  describe('indent', () => {
-    it('indents lines', async () => {
-      await expect(
-        printer
-          .print('{')
-          .indent(span => span
-              .print('{')
-              .indent(span => span.print('foo();', 'bar();'), '/* indent */ ')
-              .print('}'))
-          .print('}')
-          .toText(),
-      ).resolves.toBe('{\n  {\n  /* indent */ foo();\n  /* indent */ bar();\n  }\n}\n');
-    });
-  });
-
   describe('print', () => {
     it('appends new line without indentation', async () => {
       await expect(
@@ -60,6 +45,36 @@ describe('UccPrinter', () => {
           .print('}')
           .toText(),
       ).resolves.toBe('{\n  abc\n\n  def\n}\n');
+    });
+  });
+
+  describe('inline', () => {
+    it('joins lines', async () => {
+      await expect(
+        printer
+          .print('{')
+          .indent(span => span
+              .print('{')
+              .indent(span => span.inline(span => span.print('foo();', 'bar();')))
+              .print('}'))
+          .print('}')
+          .toText(),
+      ).resolves.toBe('{\n  {\n    foo();bar();\n  }\n}\n');
+    });
+  });
+
+  describe('indent', () => {
+    it('indents lines', async () => {
+      await expect(
+        printer
+          .print('{')
+          .indent(span => span
+              .print('{')
+              .indent(span => span.print('foo();', 'bar();'), '/* indent */ ')
+              .print('}'))
+          .print('}')
+          .toText(),
+      ).resolves.toBe('{\n  {\n  /* indent */ foo();\n  /* indent */ bar();\n  }\n}\n');
     });
   });
 });

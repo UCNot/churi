@@ -49,6 +49,27 @@ describe('UccCode', () => {
     });
   });
 
+  describe('inline', () => {
+    it('joins lines', async () => {
+      await expect(
+        code
+          .write('{')
+          .indent(code => {
+            code
+              .write('{')
+              .indent(code => {
+                code.inline(code => {
+                  code.write('foo();', 'bar();');
+                });
+              })
+              .write('}');
+          })
+          .write('}')
+          .toText(),
+      ).resolves.toBe('{\n  {\n    foo();bar();\n  }\n}\n');
+    });
+  });
+
   describe('emit', () => {
     it('allows inserting code after call', async () => {
       code.write('first();');

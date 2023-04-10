@@ -1,3 +1,4 @@
+import { collectLines } from '../impl/collect-lines.js';
 import { UccPrintable, UccPrinter } from './ucc-printer.js';
 
 export class UccCode implements UccEmitter {
@@ -69,6 +70,12 @@ export class UccCode implements UccEmitter {
     }
   }
 
+  inline(...fragments: UccSource[]): this {
+    this.#addPart(new UccCode$Inline(new UccCode(this).write(...fragments)));
+
+    return this;
+  }
+
   indent(...fragments: UccSource[]): this {
     this.#addPart(new UccCode$Indented(new UccCode(this).write(...fragments)));
 
@@ -115,13 +122,7 @@ export class UccCode implements UccEmitter {
   }
 
   async toLines(): Promise<string[]> {
-    const lines: string[] = [];
-
-    for await (const line of this.lines()) {
-      lines.push(line);
-    }
-
-    return lines;
+    return await collectLines(this.lines());
   }
 
   async toText(): Promise<string> {
@@ -184,12 +185,32 @@ class UccCode$NewLine$ implements UccEmitter {
 
 const UccCode$NewLine = /*#__PURE__*/ new UccCode$NewLine$();
 
+class UccCode$Inline implements UccEmitter {
+
+  readonly #code: UccCode;
+
+  constructor(code: UccCode) {
+    this.#code = code;
+  }
+
+  async emit(): Promise<UccPrintable> {
+    const record = await this.#code.emit();
+
+    return {
+      printTo: span => {
+        span.inline(span => span.print(record));
+      },
+    };
+  }
+
+}
+
 class UccCode$Indented implements UccEmitter {
 
   readonly #code: UccCode;
 
-  constructor(fragment: UccCode) {
-    this.#code = fragment;
+  constructor(code: UccCode) {
+    this.#code = code;
   }
 
   async emit(): Promise<UccPrintable> {
