@@ -132,18 +132,22 @@ export class MapUcrxTemplate<
     const { entries } = this.schema;
     const { lib } = this;
 
-    return lib.declarations.declare(`${this.className}$entries`, ({ prefix, suffix }) => code => {
-      code
-        .write(`${prefix}{`)
-        .indent(code => {
-          for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
-            const entry = this.createEntry(key, entrySchema);
+    return lib.declarations.declare(`${this.className}$entries`, ({ init }) => init(code => {
+        code
+          .write(`{`)
+          .indent(code => {
+            for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
+              const entry = this.createEntry(key, entrySchema);
 
-            code.write(entry.declare(`${jsPropertyKey(key)}: `, `,`));
-          }
-        })
-        .write(`}${suffix}`);
-    });
+              code.write(
+                entry.declare(init => code => {
+                  code.inline(jsPropertyKey(key), ': ', init, ',');
+                }),
+              );
+            }
+          })
+          .write(`}`);
+      }));
   }
 
   #declareExtra(): string | undefined {
@@ -156,7 +160,7 @@ export class MapUcrxTemplate<
     const { lib } = this;
     const entry = this.createEntry(null, extra);
 
-    return lib.declarations.declare(`${this.className}$extra`, ({ prefix, suffix }) => entry.declare(prefix, suffix));
+    return lib.declarations.declare(`${this.className}$extra`, ({ init }) => entry.declare(init));
   }
 
   entryTemplate(key: string | null, schema: UcSchema): UcrxTemplate {

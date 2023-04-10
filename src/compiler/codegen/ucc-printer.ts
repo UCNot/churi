@@ -70,41 +70,71 @@ export class UccPrinter implements UccPrintable {
   }
 
   async #printTo(span: UccPrinter): Promise<void> {
-    const records = await Promise.all(this.#records);
-
-    if (this.#nl) {
-      records.forEach(lines => span.#appendLines(lines, this));
-    } else {
-      span.#appendLine(records.map(lines => lines.join('')).join(''));
-    }
+    span.#appendLines(await this.toLines(), this);
   }
 
   #appendLines(lines: string[], from: UccPrinter): void {
+    if (!lines.length) {
+      return;
+    }
+
     const prefix = this.#indent + from.#indent;
 
-    this.#records.push(
-      lines.map(line => (line !== '\n' ? `${prefix}${line}` : line) /* Do not indent NL */),
-    );
-  }
+    if (this.#nl) {
+      // Insert into block.
+      const lastLine = lines[lines.length - 1];
 
-  #appendLine(line: string): void {
-    this.#records.push([`${this.#indent}${line}${this.#nl}`]);
+      if (!lastLine.endsWith('\n')) {
+        // Add newline.
+        lines[lines.length - 1] += this.#nl;
+      }
+    } else {
+      // Insert into inline.
+      if (from.#indent) {
+        // Insert newline before indented code.
+        this.#records.push([from.#nl]);
+      }
+
+      const lastLine = lines[lines.length - 1];
+
+      if (lastLine.endsWith('\n')) {
+        // Remove last newline.
+        lines[lines.length - 1] = lastLine.slice(0, -1);
+      }
+    }
+
+    this.#records.push(
+      lines.map(line => (line && line !== '\n' ? `${prefix}${line}` : line) /* Do not indent NL */),
+    );
   }
 
   async *lines(): AsyncIterableIterator<string> {
     const records = await Promise.all(this.#records);
     let prevNL = false;
+    let lastLine = '';
 
     for (const lines of records) {
       for (const line of lines) {
         if (line !== '\n') {
-          yield line;
           prevNL = false;
+          lastLine += line;
+          if (line.endsWith('\n')) {
+            yield lastLine;
+            lastLine = '';
+          }
         } else if (!prevNL) {
+          if (lastLine) {
+            yield lastLine;
+            lastLine = '';
+          }
           yield line;
           prevNL = true;
         }
       }
+    }
+
+    if (lastLine) {
+      yield lastLine;
     }
   }
 

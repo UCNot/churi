@@ -61,10 +61,10 @@ export class MapUcrxEntry {
     return `${map}[${key}] = ${value};`;
   }
 
-  declare(prefix: string, suffix: string): UccSource {
-    return code => {
-      code.write(`${prefix}{`).indent(this.#rx(), this.#use()).write(`}${suffix}`);
-    };
+  declare(init: (value: UccSource) => UccSource): UccSource {
+    return init(code => {
+      code.write(`{`).indent(this.#rx(), this.#use(), '').write(`}`);
+    });
   }
 
   #rx(): UccSource {

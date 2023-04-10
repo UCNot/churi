@@ -129,12 +129,12 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     });
   }
 
-  createEntityHandler({ prefix, suffix, addDep }: UccInitLocation): UccSource {
+  createEntityHandler({ init, refer }: UccInitLocation): UccSource {
     const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
 
-    return code => {
-      code.write(`${prefix}new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entities!.forEach(({ entity, feature, prefix }, index, { length }) => {
+    return init(code => {
+      code.write(`new ${EntityUcrxHandler}()`).indent(code => {
+        this.#entities!.forEach(({ entity, feature, prefix }) => {
           if (typeof entity === 'string') {
             entity = UcLexer.scan(entity);
           }
@@ -149,17 +149,21 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
           code.write(
             feature({
               lib: this,
-              register: entityRx => (prefix ? '.addPrefix' : '.addEntity') + `(${tokenArray}, ` + entityRx + ')',
-              handleWith: addDep,
+              register: entityRx => code => {
+                code.inline(
+                  prefix ? '.addPrefix(' : '.addEntity(',
+                  tokenArray,
+                  ', ',
+                  entityRx,
+                  ')',
+                );
+              },
+              refer,
             }),
           );
-
-          if (index + 2 > length) {
-            code.write(`.toRx()${suffix}`);
-          }
         });
-      });
-    };
+      }, '.toRx()');
+    });
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(

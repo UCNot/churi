@@ -61,7 +61,7 @@ describe('UccDeclarations', () => {
     it('declares exported symbol', async () => {
       expect(declarations.declare('name', 'test1', { exported: true })).toBe('name');
       expect(
-        declarations.declare('name2', ({ prefix, suffix }) => `${prefix}test2${suffix}`, {
+        declarations.declare('name2', ({ init }) => init('test2'), {
           exported: true,
         }),
       ).toBe('name2');

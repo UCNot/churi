@@ -31,19 +31,22 @@ export class UccDeclarations implements UccFragment {
     options?: {
       readonly exported?: boolean | undefined;
       readonly key?: string | null | undefined;
-      readonly deps?: readonly string[] | undefined;
+      readonly refs?: readonly string[] | undefined;
     },
   ): string {
-    const modifier = options?.exported ? 'export ' : '';
+    const modifier = options?.exported ? 'export const ' : 'const ';
 
     return this.#declare(
       id,
       typeof initializer === 'string'
-        ? ({ name }) => `${modifier}const ${name} = ${initializer};`
+        ? ({ name }) => `${modifier}${name} = ${initializer};`
         : location => initializer({
               ...location,
-              prefix: `${modifier}const ${location.name} = `,
-              suffix: `;`,
+              init(value) {
+                return code => {
+                  code.inline(modifier, location.name, ' = ', value, ';');
+                };
+              },
             }),
       options,
     );
@@ -54,13 +57,13 @@ export class UccDeclarations implements UccFragment {
     initializer: string,
     {
       prefix = 'CONST_',
-      deps,
+      refs,
     }: {
       readonly prefix?: string | undefined;
-      readonly deps?: readonly string[] | undefined;
+      readonly refs?: readonly string[] | undefined;
     } = {},
   ): string {
-    return this.declare(prefix + safeJsId(key), initializer, { key: initializer, deps });
+    return this.declare(prefix + safeJsId(key), initializer, { key: initializer, refs });
   }
 
   declareClass(
@@ -69,11 +72,11 @@ export class UccDeclarations implements UccFragment {
     {
       key = null,
       baseClass,
-      deps = [],
+      refs = [],
     }: {
       readonly key?: string | null | undefined;
       readonly baseClass?: string | undefined;
-      readonly deps?: readonly string[] | undefined;
+      readonly refs?: readonly string[] | undefined;
     } = {},
   ): string {
     return this.#declare(
@@ -84,7 +87,7 @@ export class UccDeclarations implements UccFragment {
           .indent(body(location))
           .write(`}`);
       },
-      { key, deps: [...asArray(baseClass), ...deps] },
+      { key, refs: [...asArray(baseClass), ...refs] },
     );
   }
 
@@ -93,10 +96,10 @@ export class UccDeclarations implements UccFragment {
     snippet: (location: UccDeclLocation) => UccSource,
     {
       key = id,
-      deps,
+      refs,
     }: {
       readonly key?: string | null | undefined;
-      readonly deps?: readonly string[] | undefined;
+      readonly refs?: readonly string[] | undefined;
     } = {},
   ): string {
     let snippetKey: string | undefined;
@@ -107,7 +110,7 @@ export class UccDeclarations implements UccFragment {
       const knownSnippet = this.#byKey.get(snippetKey);
 
       if (knownSnippet) {
-        knownSnippet.addDeps(deps);
+        knownSnippet.referAll(refs);
 
         return knownSnippet.name;
       }
@@ -116,7 +119,7 @@ export class UccDeclarations implements UccFragment {
     const name = this.#ns.name(id);
     const newSnippet = new UccDeclSnippet(name, snippet);
 
-    newSnippet.addDeps(deps);
+    newSnippet.referAll(refs);
     this.#addDecl(snippetKey, newSnippet);
 
     return name;
@@ -207,11 +210,11 @@ export class UccDeclarations implements UccFragment {
       printed.add(snippet);
 
       // First, print all snipped dependencies.
-      for (const depName of snippet.deps()) {
-        const dep = this.#byName.get(depName);
+      for (const refName of snippet.refs()) {
+        const ref = this.#byName.get(refName);
 
-        if (dep) {
-          this.#printSnippet(dep, records.get(dep)!, records, printed, span);
+        if (ref) {
+          this.#printSnippet(ref, records.get(ref)!, records, printed, span);
         }
       }
 
@@ -224,36 +227,35 @@ export class UccDeclarations implements UccFragment {
 
 export interface UccDeclLocation {
   readonly name: string;
-  addDep(this: void, dep: string): void;
+  refer(this: void, ref: string): void;
 }
 
 export interface UccInitLocation extends UccDeclLocation {
-  readonly prefix: string;
-  readonly suffix: string;
+  init(this: void, value: UccSource): UccSource;
 }
 
 class UccDeclSnippet {
 
   readonly #name: string;
   readonly #snippet: (location: UccDeclLocation) => UccSource;
-  readonly #deps = new Set<string>();
+  readonly #refs = new Set<string>();
 
   constructor(name: string, snippet: (location: UccDeclLocation) => UccSource) {
     this.#name = name;
     this.#snippet = snippet;
   }
 
-  deps(): IterableIterator<string> {
-    return this.#deps.values();
+  refs(): IterableIterator<string> {
+    return this.#refs.values();
   }
 
-  addDep(dep: string): void {
-    this.#deps.add(dep);
+  refer(ref: string): void {
+    this.#refs.add(ref);
   }
 
-  addDeps(deps: readonly string[] | undefined): void {
-    if (deps) {
-      deps.forEach(dep => this.#deps.add(dep));
+  referAll(refs: readonly string[] | undefined): void {
+    if (refs) {
+      refs.forEach(ref => this.#refs.add(ref));
     }
   }
 
@@ -263,7 +265,7 @@ class UccDeclSnippet {
 
   async emit(): Promise<UccPrintable> {
     return await new UccCode()
-      .write(this.#snippet({ name: this.#name, addDep: this.addDep.bind(this) }))
+      .write(this.#snippet({ name: this.#name, refer: this.refer.bind(this) }))
       .emit();
   }
 

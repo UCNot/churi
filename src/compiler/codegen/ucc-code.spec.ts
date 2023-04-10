@@ -70,6 +70,27 @@ describe('UccCode', () => {
     });
   });
 
+  describe('indent inside inline', () => {
+    it('respects outer indentation', async () => {
+      await expect(
+        code
+          .write('const test = {')
+          .indent(code => {
+            code.inline(
+              'a: ',
+              '{',
+              code => {
+                code.indent('foo: 1,', 'bar: 2,', '');
+              },
+              '},',
+            );
+          })
+          .write('};')
+          .toText(),
+      ).resolves.toBe('const test = {\n  a: {\n    foo: 1,\n    bar: 2,\n  },\n};\n');
+    });
+  });
+
   describe('emit', () => {
     it('allows inserting code after call', async () => {
       code.write('first();');

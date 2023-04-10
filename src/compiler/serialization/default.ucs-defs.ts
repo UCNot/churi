@@ -141,7 +141,7 @@ class Default$UcsDefs {
             `${textEncoder}.encode('${escapeJsString(encodeUcsKey(key))}(')`,
             {
               prefix: 'EP_',
-              deps: [textEncoder],
+              refs: [textEncoder],
             },
           )
         : emptyEntryPrefix;

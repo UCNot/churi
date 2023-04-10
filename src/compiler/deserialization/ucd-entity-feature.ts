@@ -30,12 +30,14 @@ export interface UcdEntitySetup {
    *
    * @returns Source of entity registration code.
    */
-  register(entityRx: string): UccSource;
+  register(entityRx: UccSource): UccSource;
 
   /**
-   * Make entity handler depend on the given symbol.
+   * Makes entity handler refer the given symbol.
    *
-   * @param dep - Dependency symbol name.
+   * The referenced symbol will be declared before the entity handler.
+   *
+   * @param ref - Referenced symbol name.
    */
-  handleWith(this: void, dep: string): void;
+  refer(this: void, ref: string): void;
 }
