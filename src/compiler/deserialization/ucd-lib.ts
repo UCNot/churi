@@ -1,8 +1,6 @@
-import { asArray } from '@proc7ts/primitives';
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
@@ -10,85 +8,36 @@ import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccInitLocation } from '../codegen/ucc-declarations.js';
 import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
-import { UcdFeature, UcdSetup } from './ucd-feature.js';
 import { UcdFunction } from './ucd-function.js';
-import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
+/**
+ * Deserializer library that {@link UcdLib#compile compiles schemae} into deserialization functions.
+ *
+ * An {@link UcdSetup deserializer setup} expected to be used to configure and {@link UcdSetup#bootstrap bootstrap}
+ * the library instance.
+ *
+ * @typeParam TSchemae - Compiled schemae type.
+ */
 export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends UcrxLib {
 
   readonly #schemae: {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #types: Map<string | UcSchema.Class, UcrxTemplate.Factory>;
-  readonly #entities: UcdLib$EntityConfig[] | undefined;
+  readonly #options: UcdLib.Options<TSchemae>;
+  readonly #entities: UcdLib.EntityConfig[] | undefined;
   readonly #createDeserializer: Exclude<UcdLib.Options<TSchemae>['createDeserializer'], undefined>;
   readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
 
   constructor(options: UcdLib.Options<TSchemae>) {
-    const {
-      schemae,
-      features,
-      defaultEntities: defaultEntities = true,
-      createDeserializer = options => new UcdFunction(options),
-    } = options;
+    const { schemae, entities, createDeserializer = options => new UcdFunction(options) } = options;
 
-    const types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
-    // Ignore default entity definitions.
-    // Precompiled entity handler will be used.
-    const entities: UcdLib$EntityConfig[] | undefined =
-      features || !defaultEntities ? [] : undefined;
-    const methods = new Set<UcrxMethod<any>>();
-    const enabled = new Set<UcdFeature>();
+    super({ ...options });
 
-    const enableFeature = (feature: UcdFeature): void => {
-      if (!enabled.has(feature)) {
-        enabled.add(feature);
-        if ('configureDeserializer' in feature) {
-          feature.configureDeserializer(setup);
-        } else {
-          feature(setup);
-        }
-      }
-    };
-
-    const setup: UcdSetup = {
-      enable(feature) {
-        enableFeature(feature);
-
-        return this;
-      },
-      useUcrxTemplate(type, factory) {
-        types.set(type, factory);
-
-        return this;
-      },
-      declareUcrxMethod(method) {
-        methods.add(method);
-
-        return this;
-      },
-      handleEntity(entity, feature) {
-        entities?.push({ entity, feature });
-
-        return this;
-      },
-      handleEntityPrefix(entity, feature) {
-        entities?.push({ entity, feature, prefix: true });
-
-        return this;
-      },
-    };
-
-    (features ? asArray(features) : [ucdSupportDefaults]).forEach(enableFeature);
-
-    super({ ...options, methods });
-
-    this.#types = types;
+    this.#options = options;
     this.#entities = entities;
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
@@ -201,7 +150,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
   ucrxTemplateFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcrxTemplate.Factory<T, TSchema> | undefined {
-    return this.#types.get(schema.type) as UcrxTemplate.Factory<T, TSchema> | undefined;
+    return this.#options.ucrxTemplateFactoryFor?.(schema);
   }
 
   compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;
@@ -324,16 +273,25 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 }
 
 export namespace UcdLib {
-  export interface Options<TSchemae extends Schemae> extends Omit<UcrxLib.Options, 'methods'> {
+  export interface Options<TSchemae extends Schemae> extends UcrxLib.Options {
     readonly schemae: TSchemae;
-    readonly resolver?: UcSchemaResolver | undefined;
-    readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
-    readonly defaultEntities?: boolean | undefined;
+    readonly entities?: EntityConfig[] | undefined;
+
+    ucrxTemplateFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+      this: void,
+      schema: TSchema,
+    ): UcrxTemplate.Factory<T, TSchema> | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
       options: UcdFunction.Options<T, TSchema>,
     ): UcdFunction<T, TSchema>;
+  }
+
+  export interface EntityConfig {
+    readonly entity: string | readonly UcToken[];
+    readonly feature: UcdEntityFeature;
+    readonly prefix?: boolean;
   }
 
   export interface Schemae {
@@ -371,10 +329,4 @@ export namespace UcdLib {
     readonly lib: UcdLib<TSchemae>;
     toText(): Promise<string>;
   }
-}
-
-interface UcdLib$EntityConfig {
-  readonly entity: string | readonly UcToken[];
-  readonly feature: UcdEntityFeature;
-  readonly prefix?: boolean;
 }

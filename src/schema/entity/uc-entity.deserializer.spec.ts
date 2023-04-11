@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { ucdSupportBasic } from '../../compiler/deserialization/ucd-support-basic.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
@@ -21,12 +21,12 @@ describe('UcEntity deserializer', () => {
   });
 
   it('(async) does not recognize unknown entity', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readNumber: Number,
       },
       features: ucdSupportBasic,
-    });
+    }).bootstrap();
 
     const { readNumber } = await lib.compile('async').toDeserializers();
 
@@ -42,12 +42,12 @@ describe('UcEntity deserializer', () => {
     ]);
   });
   it('(sync) does not recognize unknown entity', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readNumber: Number,
       },
       features: ucdSupportBasic,
-    });
+    }).bootstrap();
 
     const { readNumber } = await lib.compile('sync').toDeserializers();
 
@@ -64,23 +64,23 @@ describe('UcEntity deserializer', () => {
   });
 
   it('recognizes by custom prefix', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readString: String,
       },
       features: [ucdSupportBasic, ucdSupportPlainEntity],
-    });
+    }).bootstrap();
     const { readString } = await lib.compile('sync').toDeserializers();
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
   it('closes hanging parentheses', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readString: String,
       },
       features: [ucdSupportBasic, ucdSupportPlainEntity],
-    });
+    }).bootstrap();
     const { readString } = await lib.compile('async').toDeserializers();
 
     await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
@@ -88,24 +88,24 @@ describe('UcEntity deserializer', () => {
     );
   });
   it('extends base ucrx', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readTimestamp: Number,
       },
       features: [ucdSupportBasic, ucdSupportTimestampEntity],
-    });
+    }).bootstrap();
     const now = new Date();
     const { readTimestamp } = await lib.compile('sync').toDeserializers();
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
   it('fails without required ucrx method', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         readTimestamp: Number,
       },
       features: [ucdSupportBasic, ucdSupportTimestampEntityOnly],
-    });
+    }).bootstrap();
 
     await expect(lib.compile('sync').toDeserializers()).rejects.toThrow(
       new ReferenceError(`Unknown charge receiver method: Ucrx.date(value)`),

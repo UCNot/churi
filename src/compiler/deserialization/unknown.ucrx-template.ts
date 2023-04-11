@@ -11,7 +11,7 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
-import { UcdSetup } from './ucd-feature.js';
+import { UcdSetup } from './ucd-setup.js';
 
 export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 

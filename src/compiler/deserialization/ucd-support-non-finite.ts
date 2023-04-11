@@ -1,6 +1,6 @@
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcdEntityFeature, UcdEntitySetup } from './ucd-entity-feature.js';
-import { UcdSetup } from './ucd-feature.js';
+import { UcdSetup } from './ucd-setup.js';
 
 export function ucdSupportNonFinite(setup: UcdSetup): void {
   setup

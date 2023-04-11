@@ -1,4 +1,4 @@
-import { UcdSetup } from '../compiler/deserialization/ucd-feature.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { ucrxString } from '../rx/ucrx-item.js';
 import { Ucrx } from '../rx/ucrx.js';

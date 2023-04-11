@@ -4,7 +4,7 @@ import { UccSource } from '../codegen/ucc-code.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UcdSetup } from './ucd-feature.js';
+import { UcdSetup } from './ucd-setup.js';
 
 export function ucdSupportPrimitives(setup: UcdSetup): void {
   setup

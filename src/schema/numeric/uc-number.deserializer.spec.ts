@@ -6,6 +6,7 @@ import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 
 describe('UcNumber deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -21,12 +22,12 @@ describe('UcNumber deserializer', () => {
   let readValue: UcDeserializer<number>;
 
   beforeEach(async () => {
-    lib = new UcdLib({
+    lib = await new UcdSetup({
       schemae: {
         readValue: Number,
       },
       features: [ucdSupportBasic, ucdSupportNonFinite],
-    });
+    }).bootstrap();
     ({ readValue } = await lib.compile().toDeserializers());
   });
 
@@ -35,11 +36,11 @@ describe('UcNumber deserializer', () => {
     await expect(readValue(readTokens('-123'))).resolves.toBe(-123);
   });
   it('deserializes number synchronously', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         parseValue: Number,
       },
-    });
+    }).bootstrap();
 
     const { parseValue } = await lib.compile('sync').toDeserializers();
 
@@ -47,11 +48,11 @@ describe('UcNumber deserializer', () => {
     expect(parseValue(parseTokens('-123'))).toBe(-123);
   });
   it('deserializes number from string', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         parseValue: Number,
       },
-    });
+    }).bootstrap();
 
     const { parseValue } = await lib.compile('sync').toDeserializers();
 

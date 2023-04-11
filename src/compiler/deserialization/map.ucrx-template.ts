@@ -13,8 +13,8 @@ import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
-import { UcdSetup } from './ucd-feature.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdSetup } from './ucd-setup.js';
 
 export class MapUcrxTemplate<
   TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
@@ -25,7 +25,7 @@ export class MapUcrxTemplate<
 > {
 
   static configureDeserializer(setup: UcdSetup): void {
-    setup.useUcrxTemplate<UcMap, UcMap.Schema>('map', (lib, schema) => new this(lib, schema));
+    setup.useUcrxTemplate('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
   }
 
   #typeName?: string;

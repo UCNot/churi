@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcdLib } from '../deserialization/ucd-lib.js';
+import { UcdSetup } from '../deserialization/ucd-setup.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxCore } from './ucrx-core.js';
 
@@ -8,8 +9,8 @@ describe('UcrxCore', () => {
   let lib: UcdLib;
   let template: BaseUcrxTemplate;
 
-  beforeEach(() => {
-    lib = new UcdLib({ schemae: {} });
+  beforeEach(async () => {
+    lib = await new UcdSetup({ schemae: {} }).bootstrap();
     template = lib.voidUcrx;
   });
 

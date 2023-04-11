@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { ucdSupportBasic } from '../../compiler/deserialization/ucd-support-basic.js';
 import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
@@ -23,7 +24,7 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({ schemae: { readValue: ucUnknown() } });
+      lib = await new UcdSetup({ schemae: { readValue: ucUnknown() } }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 
@@ -95,7 +96,9 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({ schemae: { readValue: ucNullable(ucUnknown(), false) } });
+      lib = await new UcdSetup({
+        schemae: { readValue: ucNullable(ucUnknown(), false) },
+      }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 
@@ -119,10 +122,10 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: { readValue: ucUnknown() },
         features: [ucdSupportBasic, ucdSupportPlainEntity, ucdSupportTimestampEntity],
-      });
+      }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 

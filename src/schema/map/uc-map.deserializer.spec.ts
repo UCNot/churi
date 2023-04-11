@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcList, ucList } from '../list/uc-list.js';
@@ -21,17 +22,17 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcSchema.Spec<string> }> }>;
+    let lib: UcdLib<{ readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string> }> }>;
     let readMap: UcDeserializer<{ foo: string }>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucMap<{ foo: UcSchema.Spec<string> }>({
             foo: String,
           }),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile().toDeserializers());
     });
 
@@ -110,13 +111,13 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('does not deserialize unrecognized entity schema', async () => {
-      const lib = new UcdLib({
+      const lib = await new UcdSetup({
         schemae: {
           readMap: ucMap({
             test: { type: 'test-type' },
           }),
         },
-      });
+      }).bootstrap();
 
       let error: UnsupportedUcSchemaError | undefined;
 
@@ -138,19 +139,19 @@ describe('UcMap deserializer', () => {
 
   describe('multiple entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
+      readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
     }>;
     let readMap: UcDeserializer<{ foo: string; bar: string }>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucMap<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>({
             foo: String,
             bar: String,
           }),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile().toDeserializers());
     });
 
@@ -266,12 +267,12 @@ describe('UcMap deserializer', () => {
 
   describe('extra entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema.Spec<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
     }>;
     let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucMap(
             {
@@ -282,7 +283,7 @@ describe('UcMap deserializer', () => {
             },
           ),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile().toDeserializers());
     });
 
@@ -294,7 +295,7 @@ describe('UcMap deserializer', () => {
       });
     });
     it('does not deserialize unrecognized extra schema', async () => {
-      const lib = new UcdLib({
+      const lib = await new UcdSetup({
         schemae: {
           readMap: ucMap(
             {
@@ -305,7 +306,7 @@ describe('UcMap deserializer', () => {
             },
           ),
         },
-      });
+      }).bootstrap();
 
       let error: UnsupportedUcSchemaError | undefined;
 
@@ -327,14 +328,14 @@ describe('UcMap deserializer', () => {
 
   describe('optional entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema.Spec<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
     }>;
     let readMap: UcDeserializer<
       { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
     >;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucMap(
             {
@@ -345,7 +346,7 @@ describe('UcMap deserializer', () => {
             },
           ),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile().toDeserializers());
     });
 
@@ -368,19 +369,22 @@ describe('UcMap deserializer', () => {
 
   describe('list entry', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema<{ foo: UcList.Schema.Spec<string>; bar: UcList.Schema.Spec<number> }>;
+      readMap: UcMap.Schema.Spec<{
+        foo: UcList.Schema.Spec<string>;
+        bar: UcList.Schema.Spec<number>;
+      }>;
     }>;
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucMap({
             foo: ucList<string>(String),
             bar: ucList<number>(Number),
           }),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile('sync').toDeserializers());
     });
 
@@ -443,7 +447,7 @@ describe('UcMap deserializer', () => {
     let readMap: UcDeserializer<{ foo: string } | null>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: {
           readMap: ucNullable(
             ucMap<{ foo: UcSchema.Spec<string> }>({
@@ -451,7 +455,7 @@ describe('UcMap deserializer', () => {
             }),
           ),
         },
-      });
+      }).bootstrap();
       ({ readMap } = await lib.compile().toDeserializers());
     });
 

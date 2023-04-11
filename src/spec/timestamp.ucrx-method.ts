@@ -1,4 +1,4 @@
-import { UcdSetup } from '../compiler/deserialization/ucd-feature.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
 import { CHURI_MODULE } from '../impl/module-names.js';
 

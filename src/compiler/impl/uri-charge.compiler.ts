@@ -9,20 +9,19 @@ import { ListUcrxTemplate } from '../deserialization/list.ucrx-template.js';
 import { MapUcrxEntry } from '../deserialization/map.ucrx-entry.js';
 import { MapUcrxTemplate } from '../deserialization/map.ucrx-template.js';
 import { UcdLib } from '../deserialization/ucd-lib.js';
+import { UcdSetup } from '../deserialization/ucd-setup.js';
 import { UnknownUcrxTemplate } from '../deserialization/unknown.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 
-export class URIChargeUcdLib extends UcdLib<{ parseURICharge: UcSchema<URICharge> }> {
-
-  constructor() {
-    super({
-      schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
-      features: [URIChargeMapUcrxTemplate, URIChargeListUcrxTemplate, URIChargeUcrxTemplate],
-    });
-  }
-
+export async function createURIChargeUcdLib(): Promise<
+  UcdLib<{ parseURICharge: UcSchema<URICharge> }>
+> {
+  return await new UcdSetup({
+    schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
+    features: [URIChargeMapUcrxTemplate, URIChargeListUcrxTemplate, URIChargeUcrxTemplate],
+  }).bootstrap();
 }
 
 class URIChargeListUcrxTemplate extends ListUcrxTemplate {
