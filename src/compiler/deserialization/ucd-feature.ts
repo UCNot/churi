@@ -4,25 +4,55 @@ import { UcdSetup } from './ucd-setup.js';
 /**
  * Deserializer feature.
  *
- * Configures deserializer when called.
+ * Configures deserializer during setup.
  *
- * May be enabled by {@link churi!UcInstructions.UseFeature schema instructions} or {@link UcdSetup#enable explicitly}.
+ * May be enabled by {@link churi!UcInstructions#deserializer schema instructions} or {@link UcdSetup#enable
+ * explicitly}.
  */
-export type UcdFeature =
-  | ((this: void, setup: UcdSetup) => void)
-  | { configureDeserializer(setup: UcdSetup): void };
+export type UcdFeature = UcdFeature.Object | UcdFeature.Function;
+
+export namespace UcdFeature {
+  /**
+   * Deserializer feature interface.
+   */
+  export interface Object {
+    /**
+     * Configures deserializer during setup.
+     *
+     * @param setup - Deserializer setup.
+     */
+    configureDeserializer(setup: UcdSetup): void;
+  }
+
+  /**
+   * Deserializer feature signature.
+   */
+  export type Function = UcdFeature.Object['configureDeserializer'];
+}
 
 /**
  * Schema deserializer feature.
  *
- * May be enabled by {@link churi!UcInstructions.UseFeature schema instructions}.
+ * May be enabled by {@link churi!UcInstructions#deserializer schema instructions}.
  */
-export interface UcdSchemaFeature {
+export type UcdSchemaFeature = UcdSchemaFeature.Object | UcdSchemaFeature.Function;
+
+export namespace UcdSchemaFeature {
   /**
-   * Configures schema deserialization.
-   *
-   * @param setup - Deserializer setup.
-   * @param schema - Configured schema instance.
+   * Schema deserializer feature interface.
    */
-  configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void;
+  export interface Object {
+    /**
+     * Configures schema deserialization during setup.
+     *
+     * @param setup - Deserializer setup.
+     * @param schema - Configured schema instance.
+     */
+    configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void;
+  }
+
+  /**
+   * Schema deserializer function signature.
+   */
+  export type Function = UcdSchemaFeature.Object['configureSchemaDeserializer'];
 }

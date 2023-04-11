@@ -17,22 +17,24 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  * Deserializer setup used to {@link UcdSetup#bootstrap bootstrap} {@link UcdLib deserializer library}.
  *
  * Passed to {@link UcdFeature deserializer feature} when the latter enabled.
+ *
+ * @typeParam TSchemae - Compiled schemae type.
  */
 export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   readonly #resolver: UcSchemaResolver;
-  readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
   readonly #options: UcdSetup.Options<TSchemae>;
   readonly #enabled = new Set<UcdFeature>();
   readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
   #hasPendingInstructions = false;
+  readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
   readonly #entities: UcdLib.EntityConfig[] | undefined;
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
-   * Constructs deserializer setup.
+   * Starts deserializer setup.
    *
-   * @param options
+   * @param options - Setup options.
    */
   constructor(options: UcdSetup.Options<TSchemae>) {
     this.#options = options;
@@ -74,7 +76,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   /**
-   * Applies schema processing instructions.
+   * Applies schema deserialization instructions.
    *
    * @param spec - Target schema specifier.
    *
@@ -102,6 +104,8 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   /**
    * Assigns template that generates a charge receiver code used to deserialize the given type.
    *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
    * @param type - Target type name or class.
    * @param factory - Template factory.
    *
@@ -290,17 +294,17 @@ class UcdSetup$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        setup.enable(feature);
+        (feature as UcdSchemaFeature.Function)(setup, this.#schema);
 
         return;
       }
     }
 
     if (feature === undefined) {
-      throw new ReferenceError(`No such feature: ${this}`);
+      throw new ReferenceError(`No such deserializer feature: ${this}`);
     }
 
-    throw new ReferenceError(`Not a feature: ${this}`);
+    throw new ReferenceError(`Not a deserializer feature: ${this}`);
   }
 
   toString(): string {

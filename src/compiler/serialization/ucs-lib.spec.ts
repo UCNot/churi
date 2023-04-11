@@ -2,15 +2,16 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcsLib } from './ucs-lib.js';
+import { UcsSetup } from './ucs-setup.js';
 
 describe('UcsLib', () => {
   describe('serializerFor', () => {
     let lib: UcsLib<{ writeValue: UcSchema.Spec<number> }>;
 
-    beforeEach(() => {
-      lib = new UcsLib<{ writeValue: UcSchema.Spec<number> }>({
+    beforeEach(async () => {
+      lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
         schemae: { writeValue: Number },
-      });
+      }).bootstrap();
     });
 
     it('obtains serializer for unknown schema', () => {
@@ -27,9 +28,9 @@ describe('UcsLib', () => {
 
   describe('compileModule', () => {
     it('compiles module', async () => {
-      const lib = new UcsLib<{ writeValue: UcSchema.Spec<number> }>({
+      const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
         schemae: { writeValue: Number },
-      });
+      }).bootstrap();
       const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);

@@ -55,7 +55,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccSource {
-    const serializer = this.lib.definitionFor(schema)?.serialize(this, schema, value, asItem);
+    const serializer = this.lib.generatorFor(schema)?.(this, schema, value, asItem);
 
     if (serializer == null) {
       throw new UnsupportedUcSchemaError(
