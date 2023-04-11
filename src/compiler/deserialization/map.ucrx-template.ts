@@ -24,8 +24,14 @@ export class MapUcrxTemplate<
   UcMap.Schema<TEntriesSpec, TExtraSpec>
 > {
 
-  static configureDeserializer(setup: UcdSetup): void {
+  static configureSchemaDeserializer(setup: UcdSetup, { entries, extra }: UcMap.Schema): void {
     setup.useUcrxTemplate('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+    for (const entrySchema of Object.values(entries)) {
+      setup.processSchema(entrySchema);
+    }
+    if (extra) {
+      setup.processSchema(extra);
+    }
   }
 
   #typeName?: string;

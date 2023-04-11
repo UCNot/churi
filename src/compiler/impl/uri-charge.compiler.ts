@@ -1,5 +1,7 @@
 import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
 import { jsStringLiteral } from '../../impl/quote-property-key.js';
+import { UcList } from '../../schema/list/uc-list.js';
+import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { URICharge } from '../../schema/uri-charge/uri-charge.js';
@@ -20,7 +22,18 @@ export async function createURIChargeUcdLib(): Promise<
 > {
   return await new UcdSetup({
     schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
-    features: [URIChargeMapUcrxTemplate, URIChargeListUcrxTemplate, URIChargeUcrxTemplate],
+    features(setup) {
+      setup
+        .useUcrxTemplate('unknown', (lib, schema) => new URIChargeUcrxTemplate(lib, schema))
+        .useUcrxTemplate(
+          'list',
+          (lib, schema: UcList.Schema) => new URIChargeListUcrxTemplate(lib, schema),
+        )
+        .useUcrxTemplate(
+          'map',
+          (lib, schema: UcMap.Schema) => new URIChargeMapUcrxTemplate(lib, schema),
+        );
+    },
   }).bootstrap();
 }
 

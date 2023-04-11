@@ -1,11 +1,14 @@
-import { asArray } from '@proc7ts/primitives';
+import { asArray, mayHaveProperties } from '@proc7ts/primitives';
+import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
+import { UcInstructions } from '../../schema/uc-instructions.js';
+import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
-import { UcdFeature } from './ucd-feature.js';
+import { UcdFeature, UcdSchemaFeature } from './ucd-feature.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
@@ -17,9 +20,12 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  */
 export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
+  readonly #resolver: UcSchemaResolver;
   readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
   readonly #options: UcdSetup.Options<TSchemae>;
   readonly #enabled = new Set<UcdFeature>();
+  readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
+  #hasPendingInstructions = false;
   readonly #entities: UcdLib.EntityConfig[] | undefined;
   readonly #methods = new Set<UcrxMethod<any>>();
 
@@ -31,11 +37,20 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   constructor(options: UcdSetup.Options<TSchemae>) {
     this.#options = options;
 
-    const { features, defaultEntities = true } = options;
+    const { resolver = new UcSchemaResolver(), features, defaultEntities = true } = options;
+
+    this.#resolver = resolver;
 
     // Ignore default entity definitions.
     // Precompiled entity handler will be used.
     this.#entities = features || !defaultEntities ? [] : undefined;
+  }
+
+  /**
+   * Configured schema resolver.
+   */
+  get resolver(): UcSchemaResolver {
+    return this.#resolver;
   }
 
   /**
@@ -56,6 +71,32 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     }
 
     return this;
+  }
+
+  /**
+   * Applies schema processing instructions.
+   *
+   * @param spec - Target schema specifier.
+   *
+   * @returns `this` instance.
+   */
+  processSchema<T>(spec: UcSchema.Spec<T>): this {
+    const schema = this.resolver.schemaOf(spec);
+    const use = asArray(schema.with?.deserializer?.use);
+
+    use.forEach(useFeature => this.#useFeature(schema, useFeature));
+
+    return this;
+  }
+
+  #useFeature(schema: UcSchema, { from, feature }: UcInstructions.UseFeature): void {
+    const { type, id = type } = schema;
+    const useId = `${id}::${from}::${feature}`;
+
+    if (!this.#uses.has(useId)) {
+      this.#hasPendingInstructions = true;
+      this.#uses.set(useId, new UcdSetup$FeatureUse(schema, from, feature));
+    }
   }
 
   /**
@@ -137,24 +178,54 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    * @returns Promise resolved to deserializer library options.
    */
   async bootstrapOptions(): Promise<UcdLib.Options<TSchemae>> {
-    await this.#enableFeatures();
+    await this.#init();
 
     return {
       ...this.#options,
+      resolver: this.resolver,
       entities: this.#entities,
       methods: this.#methods,
       ucrxTemplateFactoryFor: this.#ucrxTemplateFactoryFor.bind(this),
     };
   }
 
-  async #enableFeatures(): Promise<void> {
+  async #init(): Promise<void> {
+    this.#enableDefaultFeatures();
+    this.#collectInstructions();
+    await this.#processInstructions();
+    this.#enableExplicitFeatures();
+    await this.#processInstructions(); // More instructions may be added by explicit features.
+  }
+
+  #enableDefaultFeatures(): void {
     const { features } = this.#options;
 
-    (features ? asArray(features) : [ucdSupportDefaults]).forEach(feature => {
+    if (!features) {
+      this.enable(ucdSupportDefaults);
+    }
+  }
+
+  #collectInstructions(): void {
+    const { schemae } = this.#options;
+
+    Object.values(schemae).forEach(spec => {
+      this.processSchema(this.resolver.schemaOf(spec));
+    });
+  }
+
+  async #processInstructions(): Promise<void> {
+    while (this.#hasPendingInstructions) {
+      this.#hasPendingInstructions = false;
+      await Promise.all([...this.#uses.values()].map(async use => await use.enable(this)));
+    }
+  }
+
+  #enableExplicitFeatures(): void {
+    const { features } = this.#options;
+
+    asArray(features).forEach(feature => {
       this.enable(feature);
     });
-
-    return Promise.resolve();
   }
 
   #ucrxTemplateFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -177,4 +248,63 @@ export namespace UcdSetup {
       options: UcdFunction.Options<T, TSchema>,
     ): UcdFunction<T, TSchema>;
   }
+}
+
+class UcdSetup$FeatureUse {
+
+  readonly #schema: UcSchema;
+  readonly #from: string;
+  readonly #name: string;
+  #enabled = false;
+
+  constructor(schema: UcSchema, from: string, name: string) {
+    this.#schema = schema;
+    this.#from = from;
+    this.#name = name;
+  }
+
+  async enable(setup: UcdSetup): Promise<void> {
+    if (this.#enabled) {
+      return;
+    }
+
+    this.#enabled = true;
+
+    const { [this.#name]: feature }: { [name: string]: UcdFeature | UcdSchemaFeature } =
+      await import(this.#from);
+
+    if (mayHaveProperties(feature)) {
+      let configured = false;
+
+      if ('configureDeserializer' in feature) {
+        setup.enable(feature);
+        configured = true;
+      }
+      if ('configureSchemaDeserializer' in feature) {
+        feature.configureSchemaDeserializer(setup, this.#schema);
+        configured = true;
+      }
+
+      if (configured) {
+        return;
+      }
+
+      if (typeof feature === 'function') {
+        setup.enable(feature);
+
+        return;
+      }
+    }
+
+    if (feature === undefined) {
+      throw new ReferenceError(`No such feature: ${this}`);
+    }
+
+    throw new ReferenceError(`Not a feature: ${this}`);
+  }
+
+  toString(): string {
+    return `import(${jsStringLiteral(this.#from)}).${jsPropertyKey(this.#name)}`;
+  }
+
 }

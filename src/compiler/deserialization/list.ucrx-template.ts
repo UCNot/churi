@@ -21,8 +21,9 @@ export class ListUcrxTemplate<
   TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
 > extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
 
-  static configureDeserializer(setup: UcdSetup): void {
+  static configureSchemaDeserializer(setup: UcdSetup, { item }: UcList.Schema): void {
     setup.useUcrxTemplate('list', (lib, schema: UcList.Schema) => new this(lib, schema));
+    setup.processSchema(item);
   }
 
   #typeName?: string;

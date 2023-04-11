@@ -1,4 +1,4 @@
-import { DESERIALIZER_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
@@ -74,7 +74,7 @@ export namespace UcMap {
      * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Spec<
-      TEntriesSpec extends Entries.Spec,
+      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
       TExtraSpec extends UcSchema.Spec | false = false,
     > = Schema<TEntriesSpec, TExtraSpec> | Ref<TEntriesSpec, TExtraSpec>;
 
@@ -85,7 +85,7 @@ export namespace UcMap {
      * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Ref<
-      TEntriesSpec extends Entries.Spec,
+      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
       TExtraSpec extends UcSchema.Spec | false = false,
     > = UcSchema.Ref<ObjectType<TEntriesSpec, TExtraSpec>, Schema<TEntriesSpec, TExtraSpec>>;
 
@@ -215,13 +215,13 @@ let UcMap$idSeq = 0;
 const UcMap$instructions: UcInstructions = {
   deserializer: {
     use: {
-      from: DESERIALIZER_MODULE,
+      from: COMPILER_MODULE,
       feature: 'MapUcrxTemplate',
     },
   },
   serializer: {
     use: {
-      from: SERIALIZER_MODULE,
+      from: COMPILER_MODULE,
       feature: 'ucsSupportMap',
     },
   },

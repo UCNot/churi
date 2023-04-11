@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
-import { ucdSupportBasic } from '../../compiler/deserialization/ucd-support-basic.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
+import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 
 describe('UcNumber deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -26,7 +26,7 @@ describe('UcNumber deserializer', () => {
       schemae: {
         readValue: Number,
       },
-      features: [ucdSupportBasic, ucdSupportNonFinite],
+      features: [ucdSupportPrimitives, ucdSupportNonFinite],
     }).bootstrap();
     ({ readValue } = await lib.compile().toDeserializers());
   });
