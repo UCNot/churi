@@ -1,5 +1,4 @@
 import { asArray } from '@proc7ts/primitives';
-import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -19,7 +18,7 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
 export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
   readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
-  readonly #options: UcdConfig.Options<TSchemae>;
+  readonly #options: UcdSetup.Options<TSchemae>;
   readonly #enabled = new Set<UcdFeature>();
   readonly #entities: UcdLib.EntityConfig[] | undefined;
   readonly #methods = new Set<UcrxMethod<any>>();
@@ -29,7 +28,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    *
    * @param options
    */
-  constructor(options: UcdConfig.Options<TSchemae>) {
+  constructor(options: UcdSetup.Options<TSchemae>) {
     this.#options = options;
 
     const { features, defaultEntities = true } = options;
@@ -166,11 +165,10 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
 }
 
-export namespace UcdConfig {
+export namespace UcdSetup {
   export interface Options<TSchemae extends UcdLib.Schemae>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly schemae: TSchemae;
-    readonly resolver?: UcSchemaResolver | undefined;
     readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
     readonly defaultEntities?: boolean | undefined;
 
