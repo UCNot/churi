@@ -3,25 +3,28 @@
  *
  * Contains instructions for named processing tools.
  */
-export interface UcProcessing {
+export interface UcInstructions {
   /**
    * Schema deserializer instructions.
    */
-  readonly deserializer?: UcProcessing.Feature;
+  readonly deserializer?: UcInstructions.ForTool;
 
   /**
    * Schema serializer instructions.
    */
-  readonly serializer?: UcProcessing.Feature;
-
-  readonly [tool: string]: UcProcessing.Feature;
+  readonly serializer?: UcInstructions.ForTool;
 }
 
-export namespace UcProcessing {
+export namespace UcInstructions {
   /**
-   * Schema processing instructions.
+   * Schema processing instructions for particular tool.
    */
-  export type Instruction = Feature | readonly Feature[] | undefined;
+  export interface ForTool {
+    /**
+     * Features to enable for schema processing.
+     */
+    readonly use?: UseFeature | readonly UseFeature[] | undefined;
+  }
 
   /**
    * An instruction to enable schema processing feature.
@@ -30,7 +33,7 @@ export namespace UcProcessing {
    *
    * The feature signature is specific to processing tool.
    */
-  export interface Feature {
+  export interface UseFeature {
     /**
      * Name of ECMAScript module to import the feature from.
      */

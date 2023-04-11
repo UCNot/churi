@@ -1,4 +1,4 @@
-import { UcProcessing } from './uc-processing.js';
+import { UcInstructions } from './uc-instructions.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 
 /**
@@ -53,9 +53,9 @@ export interface UcSchema<out T = unknown> {
   readonly id?: string | UcSchema.Class | undefined;
 
   /**
-   * Schema processing instructions.
+   * Per-tool schema processing instructions.
    */
-  readonly process?: UcProcessing | undefined;
+  readonly with?: UcInstructions | undefined;
 
   /**
    * Returns the passed-in value.

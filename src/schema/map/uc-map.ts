@@ -1,6 +1,6 @@
 import { DESERIALIZER_MODULE, SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
-import { UcProcessing } from '../uc-processing.js';
+import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
 
@@ -179,7 +179,7 @@ export function ucMap<
       return {
         type: 'map',
         id: id ?? `map_${++UcMap$idSeq}`,
-        process: UcMap$processing,
+        with: UcMap$instructions,
         entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
         extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
           TEntriesSpec,
@@ -212,13 +212,17 @@ export function ucMap<
 
 let UcMap$idSeq = 0;
 
-const UcMap$processing: UcProcessing = {
+const UcMap$instructions: UcInstructions = {
   deserializer: {
-    from: DESERIALIZER_MODULE,
-    feature: 'MapUcrxTemplate',
+    use: {
+      from: DESERIALIZER_MODULE,
+      feature: 'MapUcrxTemplate',
+    },
   },
   serializer: {
-    from: SERIALIZER_MODULE,
-    feature: 'ucsSupportMap',
+    use: {
+      from: SERIALIZER_MODULE,
+      feature: 'ucsSupportMap',
+    },
   },
 };
