@@ -22,6 +22,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
+  readonly #resolver: UcSchemaResolver;
   readonly #options: UcsLib.Options<TSchemae>;
   readonly #createSerializer: Exclude<UcsLib.Options<TSchemae>['createSerializer'], undefined>;
   readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
@@ -37,10 +38,11 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
       createSerializer = options => new UcsFunction(options),
     } = options;
 
+    this.#resolver = resolver;
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
-        resolver.schemaOf(schemaSpec),
+        this.resolver.schemaOf(schemaSpec),
       ]),
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
@@ -50,6 +52,10 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
       this.serializerFor(schema, externalName);
     }
+  }
+
+  get resolver(): UcSchemaResolver {
+    return this.#resolver;
   }
 
   serializerFor<T, TSchema extends UcSchema<T>>(

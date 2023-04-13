@@ -18,7 +18,9 @@ export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): void;
 export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): void {
   setup.useUcsGenerator('map', ucsWriteMap);
   Object.values(entries).forEach(entrySchema => setup.processSchema(entrySchema));
+  // istanbul ignore next
   if (extra) {
+    // TODO Implement extra entries serialization.
     setup.processSchema(extra);
   }
 }
