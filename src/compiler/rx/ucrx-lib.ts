@@ -43,7 +43,7 @@ export abstract class UcrxLib extends UccLib {
     }
 
     // Register custom methods.
-    if (methods?.length) {
+    if (methods) {
       for (const method of methods) {
         if (!this.#methods.has(method)) {
           const name = ns.name(method.preferredKey);
@@ -100,6 +100,6 @@ export abstract class UcrxLib extends UccLib {
 export namespace UcrxLib {
   export interface Options extends UccLib.Options {
     readonly resolver?: UcSchemaResolver | undefined;
-    readonly methods?: readonly UcrxMethod[] | undefined;
+    readonly methods?: Iterable<UcrxMethod> | undefined;
   }
 }

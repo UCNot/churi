@@ -1,20 +1,12 @@
 import { ucUnknown } from '#churi/core';
-import { URIChargeUcdLib } from '#churi/uri-charge/compiler';
-import { DefaultUcdDefs, UccCode, UcdLib } from 'churi/compiler';
+import { createURIChargeUcdLib } from '#churi/uri-charge/compiler';
+import { UccCode, UcdSetup, ucdSupportDefaults } from 'churi/compiler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const distDir = path.resolve(path.dirname(scriptPath), '..', 'dist');
-
-class DefaultUcdLib extends UcdLib {
-
-  constructor() {
-    super({ schemae: { parseUcValue: ucUnknown() } });
-  }
-
-}
 
 await Promise.all([
   emitDefaultEntities(),
@@ -27,31 +19,31 @@ await Promise.all([
 ]);
 
 async function emitDefaultEntities() {
-  const lib = new DefaultUcdLib();
+  const lib = await new UcdSetup({
+    schemae: {},
+    features(setup) {
+      // Call explicitly rather enable to force entity handler generation.
+      ucdSupportDefaults(setup);
+    },
+  }).bootstrap();
+
+  lib.declarations.declare('onEntity$byDefault', location => lib.createEntityHandler(location), {
+    exported: true,
+  });
 
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    new UccCode()
-      .write(
-        lib.imports.asStatic(),
-        '',
-        lib.createEntityHandler({
-          entityDefs: DefaultUcdDefs.filter(def => !!def.entity || !!def.entityPrefix),
-          prefix: `export const onEntity$byDefault = `,
-          suffix: ';',
-        }),
-      )
-      .toString(),
+    await new UccCode().write(lib.imports.asStatic(), '', lib.declarations).toText(),
     'utf-8',
   );
 }
 
 async function emitUcValueDeserializer() {
-  const lib = new DefaultUcdLib();
+  const lib = await new UcdSetup({ schemae: { parseUcValue: ucUnknown() } }).bootstrap();
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
-    lib.compileModule('sync').print(),
+    await lib.compileModule('sync').toText(),
     'utf-8',
   );
 }
@@ -70,9 +62,11 @@ async function emitUcValueDeserializerTypes() {
 }
 
 async function emitURIChargeDeserializer() {
+  const lib = await createURIChargeUcdLib();
+
   await fs.writeFile(
     path.join(distDir, 'churi.uri-charge.deserializer.js'),
-    new URIChargeUcdLib().compileModule('sync').print(),
+    await lib.compileModule('sync').toText(),
     'utf-8',
   );
 }

@@ -4,6 +4,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -11,18 +12,29 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
+import { UcdSetup } from './ucd-setup.js';
 
-export class UnknownUcdDef extends CustomUcrxTemplate {
+export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 
-  static get type(): string | UcSchema.Class {
-    return 'unknown';
+  static configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void {
+    setup
+      .useUcrxTemplate('unknown', (lib, schema) => new this(lib, schema))
+      .processSchema(this.listSchemaFor(schema))
+      .processSchema(this.mapSchemaFor(schema));
   }
 
-  static createTemplate(lib: UcrxLib, schema: UcSchema): UcrxTemplate {
-    return new this(lib, schema);
+  static listSchemaFor(schema: UcSchema): UcList.Schema.Spec {
+    return ucList(schema, { id: 'listOf' + ucSchemaTypeSymbol(schema) });
   }
 
-  #allocation?: UnknownUcdDef.Allocation;
+  static mapSchemaFor(schema: UcSchema): UcMap.Schema.Spec<UcMap.Schema.Entries.Spec, UcSchema> {
+    return ucMap<UcMap.Schema.Entries.Spec, UcSchema>(
+      {},
+      { id: 'mapOf' + ucSchemaTypeSymbol(schema), extra: schema },
+    );
+  }
+
+  #allocation?: UnknownUcrxTemplate.Allocation;
 
   constructor(lib: UcrxLib, schema: UcSchema) {
     super({
@@ -40,15 +52,15 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
     return this.schema.nullable ? anyTypes : nonNullTypes;
   }
 
-  #getAllocation(): UnknownUcdDef.Allocation {
+  #getAllocation(): UnknownUcrxTemplate.Allocation {
     return (this.#allocation ??= this.#allocate());
   }
 
-  #allocate(): UnknownUcdDef.Allocation {
+  #allocate(): UnknownUcrxTemplate.Allocation {
     const { lib } = this;
     const { resolver } = lib;
-    const listSpec = ucList(this.schema);
-    const mapSpec = ucMap({}, { extra: this.schema });
+    const listSpec = (this.constructor as typeof UnknownUcrxTemplate).listSchemaFor(this.schema);
+    const mapSpec = (this.constructor as typeof UnknownUcrxTemplate).mapSchemaFor(this.schema);
 
     const listRx = this.declarePrivate('listRx');
     const mapRx = this.declarePrivate('mapRx');
@@ -196,13 +208,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   protected addItem<TArg extends string>(
-    allocation: UnknownUcdDef.Allocation,
+    allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource;
 
   protected addItem<TArg extends string>(
-    { listRx }: UnknownUcdDef.Allocation,
+    { listRx }: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource {
@@ -210,13 +222,13 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
   }
 
   protected setValue<TArg extends string>(
-    allocation: UnknownUcdDef.Allocation,
+    allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource;
 
   protected setValue<TArg extends string>(
-    _allocation: UnknownUcdDef.Allocation,
+    _allocation: UnknownUcrxTemplate.Allocation,
     method: UcrxMethod<TArg>,
     args: UccArgs.ByName<TArg>,
   ): UccSource {
@@ -225,7 +237,7 @@ export class UnknownUcdDef extends CustomUcrxTemplate {
 
 }
 
-export namespace UnknownUcdDef {
+export namespace UnknownUcrxTemplate {
   export interface Allocation {
     readonly context: string;
     readonly listRx: string;
@@ -234,7 +246,7 @@ export namespace UnknownUcdDef {
     readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;
     readonly mapTemplate: UcrxTemplate<
       Record<string, unknown>,
-      UcMap.Schema<Record<string, never>, UcSchema>
+      UcMap.Schema<UcMap.Schema.Entries.Spec, UcSchema>
     >;
   }
 }

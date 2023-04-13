@@ -2,15 +2,16 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcsLib } from './ucs-lib.js';
+import { UcsSetup } from './ucs-setup.js';
 
 describe('UcsLib', () => {
   describe('serializerFor', () => {
     let lib: UcsLib<{ writeValue: UcSchema.Spec<number> }>;
 
-    beforeEach(() => {
-      lib = new UcsLib<{ writeValue: UcSchema.Spec<number> }>({
+    beforeEach(async () => {
+      lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
         schemae: { writeValue: Number },
-      });
+      }).bootstrap();
     });
 
     it('obtains serializer for unknown schema', () => {
@@ -25,17 +26,25 @@ describe('UcsLib', () => {
     });
   });
 
+  describe('resolver', () => {
+    it('has default value', () => {
+      expect(new UcsLib({ schemae: {} }).resolver).toBeDefined();
+    });
+  });
+
   describe('compileModule', () => {
-    it('compiles module', () => {
-      const lib = new UcsLib<{ writeValue: UcSchema.Spec<number> }>({
+    it('compiles module', async () => {
+      const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
         schemae: { writeValue: Number },
-      });
+      }).bootstrap();
       const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);
-      expect(new UccCode().write(module).toString()).toBe(module.print());
-      expect(module.print()).toContain(`} from 'churi/serializer';\n`);
-      expect(module.print()).toContain('export async function writeValue(stream, value) {\n');
+      await expect(new UccCode().write(module).toText()).resolves.toBe(await module.toText());
+      await expect(module.toText()).resolves.toContain(`} from 'churi/serializer';\n`);
+      await expect(module.toText()).resolves.toContain(
+        'export async function writeValue(stream, value) {\n',
+      );
     });
   });
 });

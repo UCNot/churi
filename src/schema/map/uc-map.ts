@@ -1,4 +1,6 @@
+import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
+import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
 
@@ -19,7 +21,7 @@ export namespace UcMap {
    * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
    */
   export interface Schema<
-    TEntriesSpec extends Schema.Entries.Spec,
+    TEntriesSpec extends Schema.Entries.Spec = Schema.Entries.Spec,
     TExtraSpec extends UcSchema.Spec | false = false,
   > extends UcSchema<ObjectType<TEntriesSpec, TExtraSpec>> {
     readonly type: 'map';
@@ -72,7 +74,7 @@ export namespace UcMap {
      * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Spec<
-      TEntriesSpec extends Entries.Spec,
+      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
       TExtraSpec extends UcSchema.Spec | false = false,
     > = Schema<TEntriesSpec, TExtraSpec> | Ref<TEntriesSpec, TExtraSpec>;
 
@@ -83,7 +85,7 @@ export namespace UcMap {
      * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
      */
     export type Ref<
-      TEntriesSpec extends Entries.Spec,
+      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
       TExtraSpec extends UcSchema.Spec | false = false,
     > = UcSchema.Ref<ObjectType<TEntriesSpec, TExtraSpec>, Schema<TEntriesSpec, TExtraSpec>>;
 
@@ -177,6 +179,7 @@ export function ucMap<
       return {
         type: 'map',
         id: id ?? `map_${++UcMap$idSeq}`,
+        with: UcMap$instructions,
         entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
         extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
           TEntriesSpec,
@@ -208,3 +211,18 @@ export function ucMap<
 }
 
 let UcMap$idSeq = 0;
+
+const UcMap$instructions: UcInstructions = {
+  deserializer: {
+    use: {
+      from: COMPILER_MODULE,
+      feature: 'MapUcrxTemplate',
+    },
+  },
+  serializer: {
+    use: {
+      from: COMPILER_MODULE,
+      feature: 'ucsSupportMap',
+    },
+  },
+};

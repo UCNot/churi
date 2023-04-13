@@ -1,68 +1,22 @@
-export class UccPrinter implements UccPrinter.Record, UccPrinter.Lines {
+import { collectLines } from '../impl/collect-lines.js';
 
-  readonly #indent: string;
-  readonly #records: (string | UccPrinter.Record)[] = [];
+export class UccPrinter implements UccPrintable {
 
-  constructor(indent = '') {
-    this.#indent = indent;
-  }
+  #indent = '';
+  #nl = '\n';
+  readonly #records: UccPrintRecord[] = [];
 
-  print(...records: (string | UccPrinter.Record)[]): this {
-    this.#records.push(...records);
-
-    return this;
-  }
-
-  indent(print: (printer: UccPrinter) => void, indent = '  '): this {
-    const indented = new UccPrinter(indent);
-
-    print(indented);
-    this.print(indented);
-
-    return this;
-  }
-
-  printTo(lines: UccPrinter.Lines): void {
-    if (!this.#indent) {
-      lines.print(...this.#records);
-    } else {
-      lines.indent(lines => lines.print(...this.#records), this.#indent);
-    }
-  }
-
-  toLines(lines: string[] = []): string[] {
-    this.printTo(new UccPrinter$Lines(this.#indent, lines));
-
-    return lines;
-  }
-
-  toString(): string {
-    return this.toLines().join('');
-  }
-
-}
-
-class UccPrinter$Lines implements UccPrinter.Lines {
-
-  readonly #indent: string;
-  readonly #lines: string[];
-
-  constructor(indent: string, lines: string[]) {
-    this.#indent = indent;
-    this.#lines = lines;
-  }
-
-  print(...records: (string | UccPrinter.Record)[]): this {
+  print(...records: (string | UccPrintable)[]): this {
     if (records.length) {
       for (const record of records) {
         if (typeof record === 'string') {
           if (record) {
-            this.#lines.push(`${this.#indent}${record}\n`);
+            this.#records.push([`${record}${this.#nl}`]);
           } else {
             this.#newLine();
           }
         } else {
-          record.printTo(this);
+          this.#records.push(this.#print(record));
         }
       }
     } else {
@@ -73,26 +27,131 @@ class UccPrinter$Lines implements UccPrinter.Lines {
   }
 
   #newLine(): void {
-    if (this.#lines.length && this.#lines[this.#lines.length - 1] !== '\n') {
-      this.#lines.push('\n');
+    if (this.#nl) {
+      this.#records.push([this.#nl]);
     }
   }
 
-  indent(print: (printer: UccPrinter.Lines) => void, indent = '  '): this {
-    print(new UccPrinter$Lines(`${this.#indent}${indent}`, this.#lines));
+  async #print(printable: UccPrintable): Promise<string[]> {
+    const span = new UccPrinter();
+
+    span.#nl = this.#nl;
+    await printable.printTo(span);
+
+    return await span.toLines();
+  }
+
+  inline(print: (span: UccPrinter) => void): this {
+    const inline = new UccPrinter();
+
+    inline.#nl = '';
+    print(inline);
+    this.print(inline);
 
     return this;
   }
 
-}
+  indent(print: (span: UccPrinter) => void, indent = '  '): this {
+    const indented = new UccPrinter();
 
-export namespace UccPrinter {
-  export interface Record {
-    printTo(lines: UccPrinter.Lines): void;
+    indented.#indent = indent;
+    print(indented);
+    this.print(indented);
+
+    return this;
   }
 
-  export interface Lines {
-    print(...records: (string | UccPrinter.Record)[]): this;
-    indent(print: (lines: UccPrinter.Lines) => void, indent?: string): this;
+  printTo(span: UccPrinter): void {
+    if (this.#records.length) {
+      span.print({
+        printTo: this.#printTo.bind(this),
+      });
+    }
   }
+
+  async #printTo(span: UccPrinter): Promise<void> {
+    span.#appendLines(await this.toLines(), this);
+  }
+
+  #appendLines(lines: string[], from: UccPrinter): void {
+    if (!lines.length) {
+      return;
+    }
+
+    const prefix = this.#indent + from.#indent;
+
+    if (this.#nl) {
+      // Insert into block.
+      const lastLine = lines[lines.length - 1];
+
+      if (!lastLine.endsWith('\n')) {
+        // Add newline.
+        lines[lines.length - 1] += this.#nl;
+      }
+    } else {
+      // Insert into inline.
+      if (from.#indent) {
+        // Insert newline before indented code.
+        this.#records.push([from.#nl]);
+      }
+
+      const lastLine = lines[lines.length - 1];
+
+      if (lastLine.endsWith('\n')) {
+        // Remove last newline.
+        lines[lines.length - 1] = lastLine.slice(0, -1);
+      }
+    }
+
+    this.#records.push(
+      lines.map(line => (line && line !== '\n' ? `${prefix}${line}` : line) /* Do not indent NL */),
+    );
+  }
+
+  async *lines(): AsyncIterableIterator<string> {
+    const records = await Promise.all(this.#records);
+    let prevNL = false;
+    let lastLine = '';
+
+    for (const lines of records) {
+      for (const line of lines) {
+        if (line !== '\n') {
+          prevNL = false;
+          lastLine += line;
+          if (line.endsWith('\n')) {
+            yield lastLine;
+            lastLine = '';
+          }
+        } else if (!prevNL) {
+          if (lastLine) {
+            yield lastLine;
+            lastLine = '';
+          }
+          yield line;
+          prevNL = true;
+        }
+      }
+    }
+
+    if (lastLine) {
+      yield lastLine;
+    }
+  }
+
+  async toLines(): Promise<string[]> {
+    return await collectLines(this.lines());
+  }
+
+  async toText(): Promise<string> {
+    const lines = await this.toLines();
+
+    return lines.join('');
+  }
+
 }
+
+export interface UccPrintable {
+  printTo(span: UccPrinter): void | PromiseLike<void>;
+}
+
+type UccPrintRecord = string[] | Promise<string[]>;

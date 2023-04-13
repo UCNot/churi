@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
-import { PlainEntityUcdDef } from '../../spec/read-plain-entity.js';
-import { TimestampEntityDef } from '../../spec/timestamp.ucrx-method.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
+import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
+import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcNonNullable, UcNullable, ucNullable } from '../uc-nullable.js';
@@ -23,7 +24,7 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({ schemae: { readValue: ucUnknown() } });
+      lib = await new UcdSetup({ schemae: { readValue: ucUnknown() } }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 
@@ -95,7 +96,9 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({ schemae: { readValue: ucNullable(ucUnknown(), false) } });
+      lib = await new UcdSetup({
+        schemae: { readValue: ucNullable(ucUnknown(), false) },
+      }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 
@@ -119,10 +122,10 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = new UcdLib({
+      lib = await new UcdSetup({
         schemae: { readValue: ucUnknown() },
-        definitions: [...BasicUcdDefs, PlainEntityUcdDef, TimestampEntityDef],
-      });
+        features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
+      }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 

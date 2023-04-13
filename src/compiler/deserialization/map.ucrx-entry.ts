@@ -4,25 +4,25 @@ import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { MapUcdDef } from './map.ucd-def.js';
+import { MapUcrxTemplate } from './map.ucrx-template.js';
 
-export class EntryUcdDef {
+export class MapUcrxEntry {
 
-  readonly #mapDef: MapUcdDef;
+  readonly #mapDef: MapUcrxTemplate;
   readonly #key: string | null;
   readonly #schema: UcSchema;
   readonly #ns: UccNamespace;
   readonly #argValue = lazyValue(() => this.ns.name('value'));
   readonly #varEntrySetter = lazyValue(() => this.ns.name('setEntry'));
 
-  constructor(mapDef: MapUcdDef, key: string | null, schema: UcSchema) {
+  constructor(mapDef: MapUcrxTemplate, key: string | null, schema: UcSchema) {
     this.#mapDef = mapDef;
     this.#key = key;
     this.#schema = schema;
     this.#ns = mapDef.lib.ns.nest();
   }
 
-  get mapDef(): MapUcdDef {
+  get mapDef(): MapUcrxTemplate {
     return this.#mapDef;
   }
 
@@ -38,9 +38,9 @@ export class EntryUcdDef {
     return this.#ns;
   }
 
-  createRx(args: EntryUcdDef.RxArgs): UccSource;
+  createRx(args: MapUcrxEntry.RxArgs): UccSource;
 
-  createRx({ args: { map, key, context }, prefix, suffix }: EntryUcdDef.RxArgs): UccSource {
+  createRx({ args: { map, key, context }, prefix, suffix }: MapUcrxEntry.RxArgs): UccSource {
     const setEntry = this.#varEntrySetter();
     const value = this.#argValue();
 
@@ -61,10 +61,10 @@ export class EntryUcdDef {
     return `${map}[${key}] = ${value};`;
   }
 
-  declare(prefix: string, suffix: string): UccSource {
-    return code => {
-      code.write(`${prefix}{`).indent(this.#rx(), this.#use()).write(`}${suffix}`);
-    };
+  declare(init: (value: UccSource) => UccSource): UccSource {
+    return init(code => {
+      code.write(`{`).indent(this.#rx(), this.#use(), '').write(`}`);
+    });
   }
 
   #rx(): UccSource {
@@ -92,9 +92,9 @@ export class EntryUcdDef {
 
 }
 
-const UcdEntryArgs = /*#__PURE__*/ new UccArgs<EntryUcdDef.Arg>('context', 'map', 'key');
+const UcdEntryArgs = /*#__PURE__*/ new UccArgs<MapUcrxEntry.Arg>('context', 'map', 'key');
 
-export namespace EntryUcdDef {
+export namespace MapUcrxEntry {
   export type Arg = 'context' | 'map' | 'key';
   export interface RxArgs {
     readonly args: UccArgs.ByName<Arg>;

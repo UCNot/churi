@@ -14,26 +14,21 @@ import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdSetup } from './ucd-setup.js';
 
-export class ListUcdDef<
+export class ListUcrxTemplate<
   TItem = unknown,
   TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
 > extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
 
-  static get type(): string | UcSchema.Class {
-    return 'list';
-  }
-
-  static createTemplate<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
-    lib: UcdLib,
-    schema: UcList.Schema<TItem, TItemSpec>,
-  ): UcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
-    return new this(lib, schema);
+  static configureSchemaDeserializer(setup: UcdSetup, { item }: UcList.Schema): void {
+    setup.useUcrxTemplate('list', (lib, schema: UcList.Schema) => new this(lib, schema));
+    setup.processSchema(item);
   }
 
   #typeName?: string;
   #itemTemplate?: UcrxTemplate;
-  #allocation?: ListUcdDef.Allocation;
+  #allocation?: ListUcrxTemplate.Allocation;
 
   constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemSpec>) {
     super({
@@ -117,7 +112,7 @@ export class ListUcdDef<
     return !!this.#getItemTemplate().definedMethods.and;
   }
 
-  #getAllocation(): ListUcdDef.Allocation {
+  #getAllocation(): ListUcrxTemplate.Allocation {
     if (this.#allocation) {
       return this.#allocation;
     }
@@ -190,7 +185,7 @@ export class ListUcdDef<
     }
   }
 
-  #declareListMethods(allocation: ListUcdDef.ListAllocation): UcrxTemplate.MethodDecls {
+  #declareListMethods(allocation: ListUcrxTemplate.ListAllocation): UcrxTemplate.MethodDecls {
     const { context, listCreated, isNull } = allocation;
     const { lib } = this;
     const ucrxUnexpectedSingleItemError = lib.import(CHURI_MODULE, 'ucrxUnexpectedSingleItemError');
@@ -235,7 +230,7 @@ export class ListUcdDef<
     };
   }
 
-  #declareMatrixMethods(allocation: ListUcdDef.MatrixAllocation): UcrxTemplate.MethodDecls {
+  #declareMatrixMethods(allocation: ListUcrxTemplate.MatrixAllocation): UcrxTemplate.MethodDecls {
     const { context, addItem, itemRx, listCreated, isNull } = allocation;
     const itemTemplate = this.#getItemTemplate();
 
@@ -309,25 +304,25 @@ export class ListUcdDef<
     };
   }
 
-  addNull(allocation: ListUcdDef.Allocation): UccSource;
-  addNull({ addItem }: ListUcdDef.Allocation): UccSource {
+  addNull(allocation: ListUcrxTemplate.Allocation): UccSource;
+  addNull({ addItem }: ListUcrxTemplate.Allocation): UccSource {
     return addItem.call('this', { item: 'null' }) + ';';
   }
 
-  storeItems(allocation: ListUcdDef.Allocation): UccSource;
-  storeItems({ setList, items }: ListUcdDef.Allocation): UccSource {
+  storeItems(allocation: ListUcrxTemplate.Allocation): UccSource;
+  storeItems({ setList, items }: ListUcrxTemplate.Allocation): UccSource {
     return `${setList}(${items});`;
   }
 
-  storeNull(allocation: ListUcdDef.Allocation): UccSource;
-  storeNull({ setList }: ListUcdDef.Allocation): UccSource {
+  storeNull(allocation: ListUcrxTemplate.Allocation): UccSource;
+  storeNull({ setList }: ListUcrxTemplate.Allocation): UccSource {
     return `${setList}(null);`;
   }
 
   #delegate<TArg extends string>({
     itemRx,
     listCreated,
-  }: ListUcdDef.MatrixAllocation): UcrxMethod.Body<TArg> {
+  }: ListUcrxTemplate.MatrixAllocation): UcrxMethod.Body<TArg> {
     return (args, method) => code => {
       code
         .write(`if (${listCreated}) {`)
@@ -339,7 +334,7 @@ export class ListUcdDef<
 
 }
 
-export namespace ListUcdDef {
+export namespace ListUcrxTemplate {
   export type Allocation = MatrixAllocation | ListAllocation;
 
   export interface ListAllocation {

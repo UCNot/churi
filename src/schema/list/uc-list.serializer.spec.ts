@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
+import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucMap } from '../map/uc-map.js';
@@ -11,11 +12,11 @@ import { UcList, ucList } from './uc-list.js';
 
 describe('UcList serializer', () => {
   it('serializes list', async () => {
-    const lib = new UcsLib({
+    const lib = await new UcsSetup({
       schemae: {
         writeList: ucList(Number),
       },
-    });
+    }).bootstrap();
 
     const { writeList } = await lib.compile().toSerializers();
 
@@ -24,22 +25,22 @@ describe('UcList serializer', () => {
     );
   });
   it('serializes empty list', async () => {
-    const lib = new UcsLib({
+    const lib = await new UcsSetup({
       schemae: {
         writeList: ucList(Number),
       },
-    });
+    }).bootstrap();
 
     const { writeList } = await lib.compile().toSerializers();
 
     await expect(TextOutStream.read(async to => await writeList(to, []))).resolves.toBe(',');
   });
   it('serializes nulls', async () => {
-    const lib = new UcsLib({
+    const lib = await new UcsSetup({
       schemae: {
         writeList: ucList(ucNullable(Number)),
       },
-    });
+    }).bootstrap();
 
     const { writeList } = await lib.compile().toSerializers();
 
@@ -48,11 +49,11 @@ describe('UcList serializer', () => {
     );
   });
   it('serializes missing items as nulls', async () => {
-    const lib = new UcsLib({
+    const lib = await new UcsSetup({
       schemae: {
         writeList: ucList(ucOptional(Number)),
       },
-    });
+    }).bootstrap();
 
     const { writeList } = await lib.compile().toSerializers();
 
@@ -65,13 +66,13 @@ describe('UcList serializer', () => {
     let writeList: UcSerializer<{ foo: string }[]>;
 
     beforeEach(async () => {
-      const lib = new UcsLib({
+      const lib = await new UcsSetup({
         schemae: {
           writeList: ucList<{ foo: string }>(
             ucMap<{ foo: UcSchema.Spec<string> }>({ foo: String }),
           ),
         },
-      });
+      }).bootstrap();
 
       ({ writeList } = await lib.compile().toSerializers());
     });
@@ -84,14 +85,14 @@ describe('UcList serializer', () => {
   });
 
   describe('nested list', () => {
-    let lib: UcsLib<{ writeList: UcList.Schema<number[]> }>;
+    let lib: UcsLib<{ writeList: UcList.Schema.Spec<number[]> }>;
 
-    beforeEach(() => {
-      lib = new UcsLib({
+    beforeEach(async () => {
+      lib = await new UcsSetup({
         schemae: {
           writeList: ucList<number[]>(ucList<number>(Number)),
         },
-      });
+      }).bootstrap();
     });
 
     it('serialized with one item', async () => {
@@ -121,11 +122,11 @@ describe('UcList serializer', () => {
   });
 
   it('does not serialize unrecognized schema', async () => {
-    const lib = new UcsLib({
+    const lib = await new UcsSetup({
       schemae: {
         writeList: ucList<number>({ type: 'test-type' }),
       },
-    });
+    }).bootstrap();
 
     let error: UnsupportedUcSchemaError | undefined;
 

@@ -1,4 +1,5 @@
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcdLib } from '../deserialization/ucd-lib.js';
 import { BaseUcrxTemplate } from './base.ucrx-template.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
@@ -20,6 +21,10 @@ export interface UcrxTemplate<out T = unknown, out TSchema extends UcSchema<T> =
 }
 
 export namespace UcrxTemplate {
+  export type Factory<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
+    createTemplate(lib: UcdLib, schema: TSchema): UcrxTemplate<T, TSchema> | undefined;
+  }['createTemplate'];
+
   export interface Options {
     readonly lib: UcrxLib;
     readonly args?: UcrxArgs.Spec | undefined;

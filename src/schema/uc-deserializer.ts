@@ -40,7 +40,6 @@ export namespace UcDeserializer {
    *
    * Passed to {@link churi/compiler!UcdLib compiler} to a kind of deserializers to generate.
    *
-   *
    * Can be one of:
    *
    * - `sync` - to generate only {@link Sync synchronous} deserializers.
@@ -98,9 +97,7 @@ export namespace UcDeserializer {
     /**
      * Function to call to deserialize entities.
      *
-     * By default, entities will be deserialized with {@link churi/compiler!UcdEntityDef entity} and
-     * {@link churi/compiler!UcdEntityPrefixDef entity prefix} definitions available to
-     * {@link churi/compiler!UcdLib.Options#definitions compiler}.
+     * By default, entities will be deserialized by {@link churi/compiler!UcdSetup#handleEntity compiler}.
      */
     readonly onEntity?: EntityUcrx | undefined;
   }

@@ -55,7 +55,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   serialize(schema: UcSchema, value: string, asItem = '0'): UccSource {
-    const serializer = this.lib.definitionFor(schema)?.serialize(this, schema, value, asItem);
+    const serializer = this.lib.generatorFor(schema)?.(this, schema, value, asItem);
 
     if (serializer == null) {
       throw new UnsupportedUcSchemaError(
@@ -68,22 +68,26 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   toCode(): UccSource {
-    return code => code
+    return code => {
+      code
         .write(
           `async function ${this.name}(${this.args.writer}, ${this.args.value}, ${this.args.asItem}) {`,
         )
         .indent(this.serialize(this.schema, this.args.value, this.args.asItem))
         .write('}');
+    };
   }
 
   toUcSerializer(stream: string, value: string): UccSource {
-    return code => code
+    return code => {
+      code
         .write(this.#createWriter(this, this.args.writer, stream))
         .write(`try {`)
         .indent(`await ${this.name}(${this.args.writer}, ${value});`)
         .write(`} finally {`)
         .indent(`await ${this.args.writer}.done();`)
         .write(`}`);
+    };
   }
 
 }

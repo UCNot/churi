@@ -6,6 +6,7 @@ export * from './numeric/mod.js';
 export * from './string/mod.js';
 export * from './uc-deserializer.js';
 export * from './uc-error.js';
+export * from './uc-instructions.js';
 export * from './uc-nullable.js';
 export * from './uc-optional.js';
 export * from './uc-schema-name.js';

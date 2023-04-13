@@ -4,6 +4,7 @@ import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 
 describe('UcBigInt deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -19,11 +20,11 @@ describe('UcBigInt deserializer', () => {
   let readValue: UcDeserializer<bigint>;
 
   beforeEach(async () => {
-    lib = new UcdLib({
+    lib = await new UcdSetup({
       schemae: {
         readValue: BigInt,
       },
-    });
+    }).bootstrap();
     ({ readValue } = await lib.compile().toDeserializers());
   });
 

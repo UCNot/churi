@@ -177,8 +177,9 @@ console.debug(
 );
 ```
 
-Charging can be customized by implementing a `chargeURI()` method of `URIChargeable` interface. If not implemented,
-a `toJSON()` method will be used. Otherwise, predefined serialization algorithm will be applied similar to JSON one.
+Charging can be customized by implementing a `toUC()` method declared in `Uctx` interface. If not implemented,
+a `toJSON()` method will be used if defined. Otherwise, predefined serialization algorithm will be applied similar
+to `JSON.stringify()`.
 
 ## URI Charge Processing
 

@@ -1,3 +1,5 @@
+import { COMPILER_MODULE } from '../../impl/module-names.js';
+import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
 import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
 
@@ -34,9 +36,10 @@ export namespace UcList {
      *
      * @typeParam TItemSpec - Type of list item schema specifier.
      */
-    export type Spec<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>> =
-      | Schema<TItem, TItemSpec>
-      | Ref<TItem, TItemSpec>;
+    export type Spec<
+      TItem = unknown,
+      TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
+    > = Schema<TItem, TItemSpec> | Ref<TItem, TItemSpec>;
 
     /**
      * Reference to schema of URI charge list.
@@ -44,7 +47,7 @@ export namespace UcList {
      * @typeParam TItemSpec - Type of list item schema specifier.
      */
     export type Ref<
-      TItem,
+      TItem = unknown,
       TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
     > = UcSchema.Ref<TItem[], Schema<TItem, TItemSpec>>;
 
@@ -86,6 +89,7 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
       return {
         type: 'list',
         id: id ?? `list_${++UcList$idSeq}`,
+        with: UcList$instructions,
         item,
         toString() {
           return `${ucSchemaName(item)}[]`;
@@ -96,3 +100,18 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
 }
 
 let UcList$idSeq = 0;
+
+const UcList$instructions: UcInstructions = {
+  deserializer: {
+    use: {
+      from: COMPILER_MODULE,
+      feature: 'ListUcrxTemplate',
+    },
+  },
+  serializer: {
+    use: {
+      from: COMPILER_MODULE,
+      feature: 'ucsSupportList',
+    },
+  },
+};

@@ -1,4 +1,3 @@
-import { asArray } from '@proc7ts/primitives';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
@@ -6,44 +5,57 @@ import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
-import { DefaultUcsDefs } from './default.ucs-defs.js';
-import { UcsDef } from './ucs-def.js';
 import { UcsFunction } from './ucs-function.js';
+import { UcsGenerator } from './ucs-generator.js';
 
+/**
+ * Serializer library that {@link UcsLib#compile compiles schemae} into serialization functions.
+ *
+ * An {@link UcsSetup serializer setup} expected to be used to configure and {@link UcsSetup#bootstrap bootstrap}
+ * the library instance.
+ *
+ * @typeParam TSchemae - Compiled schemae type.
+ */
 export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends UccLib {
 
   readonly #schemae: {
     readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
   };
 
-  readonly #definitions: Map<string | UcSchema.Class, UcsDef>;
+  readonly #resolver: UcSchemaResolver;
+  readonly #options: UcsLib.Options<TSchemae>;
   readonly #createSerializer: Exclude<UcsLib.Options<TSchemae>['createSerializer'], undefined>;
   readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
 
   constructor(options: UcsLib.Options<TSchemae>) {
     super(options);
 
+    this.#options = options;
+
     const {
       schemae,
       resolver = new UcSchemaResolver(),
-      definitions = DefaultUcsDefs,
       createSerializer = options => new UcsFunction(options),
     } = options;
 
+    this.#resolver = resolver;
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
-        resolver.schemaOf(schemaSpec),
+        this.resolver.schemaOf(schemaSpec),
       ]),
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
     };
-    this.#definitions = new Map(asArray(definitions).map(def => [def.type, def]));
     this.#createSerializer = createSerializer;
 
     for (const [externalName, schema] of Object.entries(this.#schemae)) {
       this.serializerFor(schema, externalName);
     }
+  }
+
+  get resolver(): UcSchemaResolver {
+    return this.#resolver;
   }
 
   serializerFor<T, TSchema extends UcSchema<T>>(
@@ -74,8 +86,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return serializer;
   }
 
-  definitionFor<T>(schema: UcSchema<T>): UcsDef<T> | undefined {
-    return this.#definitions.get(schema.type) as UcsDef<T> | undefined;
+  generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcsGenerator<T> | undefined;
+  generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>({
+    type,
+  }: TSchema): UcsGenerator<T> | undefined {
+    return this.#options.generatorFor?.(type);
   }
 
   compile(): UcsLib.Compiled<TSchemae> {
@@ -87,7 +104,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
   }
 
   #toFactoryCode(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return (async () => {')
         .indent(
           this.imports.asDynamic(),
@@ -99,10 +117,12 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           this.#returnSerializers(),
         )
         .write('})();');
+    };
   }
 
   #returnSerializers(): UccBuilder {
-    return code => code
+    return code => {
+      code
         .write('return {')
         .indent(code => {
           for (const [externalName, schema] of Object.entries(this.#schemae)) {
@@ -113,13 +133,14 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
           }
         })
         .write('};');
+    };
   }
 
   async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
-    const code = new UccCode().write(this.#toFactoryCode()).toString();
+    const text = await new UccCode().write(this.#toFactoryCode()).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(code) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcsLib.Exports<TSchemae>>;
 
     return await factory();
   }
@@ -128,12 +149,13 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return {
       lib: this,
       toCode: this.#toModuleCode.bind(this),
-      print: this.#printModule.bind(this),
+      toText: this.#toModuleText.bind(this),
     };
   }
 
   #toModuleCode(): UccBuilder {
-    return code => code.write(
+    return code => {
+      code.write(
         this.imports.asStatic(),
         '',
         this.declarations,
@@ -142,6 +164,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
         '',
         this.#exportSerializers(),
       );
+    };
   }
 
   #exportSerializers(): UccBuilder {
@@ -155,12 +178,14 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  #printModule(): string {
-    return new UccCode().write(this.#toModuleCode()).toString();
+  async #toModuleText(): Promise<string> {
+    return await new UccCode().write(this.#toModuleCode()).toText();
   }
 
   #compileSerializers(): UccBuilder {
-    return code => code.write(...this.#allSerializers());
+    return code => {
+      code.write(...this.#allSerializers());
+    };
   }
 
   *#allSerializers(): Iterable<UcsFunction> {
@@ -175,7 +200,11 @@ export namespace UcsLib {
   export interface Options<TSchemae extends Schemae> extends UccLib.Options {
     readonly schemae: TSchemae;
     readonly resolver?: UcSchemaResolver | undefined;
-    readonly definitions?: UcsDef | readonly UcsDef[] | undefined;
+
+    generatorFor?<T, TSchema extends UcSchema<T>>(
+      this: void,
+      type: TSchema['type'],
+    ): UcsGenerator<T, TSchema> | undefined;
 
     createSerializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -198,6 +227,6 @@ export namespace UcsLib {
 
   export interface Module<TSchemae extends Schemae> extends UccFragment {
     readonly lib: UcsLib<TSchemae>;
-    print(): string;
+    toText(): Promise<string>;
   }
 }

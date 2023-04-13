@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { BasicUcdDefs } from '../../compiler/deserialization/basic.ucd-defs.js';
-import { NonFiniteUcdDefs } from '../../compiler/deserialization/non-finite.ucd-defs.js';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
+import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
@@ -21,12 +22,12 @@ describe('UcNumber deserializer', () => {
   let readValue: UcDeserializer<number>;
 
   beforeEach(async () => {
-    lib = new UcdLib({
+    lib = await new UcdSetup({
       schemae: {
         readValue: Number,
       },
-      definitions: [...BasicUcdDefs, ...NonFiniteUcdDefs],
-    });
+      features: [ucdSupportPrimitives, ucdSupportNonFinite],
+    }).bootstrap();
     ({ readValue } = await lib.compile().toDeserializers());
   });
 
@@ -35,11 +36,11 @@ describe('UcNumber deserializer', () => {
     await expect(readValue(readTokens('-123'))).resolves.toBe(-123);
   });
   it('deserializes number synchronously', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         parseValue: Number,
       },
-    });
+    }).bootstrap();
 
     const { parseValue } = await lib.compile('sync').toDeserializers();
 
@@ -47,11 +48,11 @@ describe('UcNumber deserializer', () => {
     expect(parseValue(parseTokens('-123'))).toBe(-123);
   });
   it('deserializes number from string', async () => {
-    const lib = new UcdLib({
+    const lib = await new UcdSetup({
       schemae: {
         parseValue: Number,
       },
-    });
+    }).bootstrap();
 
     const { parseValue } = await lib.compile('sync').toDeserializers();
 

@@ -12,10 +12,11 @@ import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { EntryUcdDef } from './entry.ucd-def.js';
+import { MapUcrxEntry } from './map.ucrx-entry.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdSetup } from './ucd-setup.js';
 
-export class MapUcdDef<
+export class MapUcrxTemplate<
   TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
   TExtraSpec extends UcSchema.Spec | false = false,
 > extends CustomUcrxTemplate<
@@ -23,28 +24,21 @@ export class MapUcdDef<
   UcMap.Schema<TEntriesSpec, TExtraSpec>
 > {
 
-  static get type(): string | UcSchema.Class {
-    return 'map';
-  }
-
-  static createTemplate<
-    TEntriesSpec extends UcMap.Schema.Entries.Spec,
-    TExtraSpec extends UcSchema.Spec | false,
-  >(
-    lib: UcdLib,
-    schema: UcMap.Schema<TEntriesSpec, TExtraSpec>,
-  ): UcrxTemplate<
-    UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
-    UcMap.Schema<TEntriesSpec, TExtraSpec>
-  > {
-    return new this(lib, schema);
+  static configureSchemaDeserializer(setup: UcdSetup, { entries, extra }: UcMap.Schema): void {
+    setup.useUcrxTemplate('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+    for (const entrySchema of Object.values(entries)) {
+      setup.processSchema(entrySchema);
+    }
+    if (extra) {
+      setup.processSchema(extra);
+    }
   }
 
   #typeName?: string;
   readonly #ns: UccNamespace;
   readonly #varEntry = lazyValue(() => this.#ns.name('entry'));
   readonly #varRx = lazyValue(() => this.#ns.name('rx'));
-  #allocation?: MapUcdDef.Allocation;
+  #allocation?: MapUcrxTemplate.Allocation;
 
   constructor(lib: UcdLib, schema: UcMap.Schema<TEntriesSpec, TExtraSpec>) {
     super({
@@ -79,13 +73,13 @@ export class MapUcdDef<
     return this.#typeName;
   }
 
-  #getAllocation(): MapUcdDef.Allocation {
+  #getAllocation(): MapUcrxTemplate.Allocation {
     if (!this.#allocation) {
       const entries = this.#declareEntries();
       const extra = this.#declareExtra();
 
       const requiredCount = this.#countRequired();
-      const decls: MapUcdDef.Decls = {
+      const decls: MapUcrxTemplate.Decls = {
         entries,
         extra,
         requiredCount,
@@ -144,18 +138,22 @@ export class MapUcdDef<
     const { entries } = this.schema;
     const { lib } = this;
 
-    return lib.declarations.declare(`${this.className}$entries`, (prefix, suffix) => code => {
-      code
-        .write(`${prefix}{`)
-        .indent(code => {
-          for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
-            const entry = this.createEntry(key, entrySchema);
+    return lib.declarations.declare(`${this.className}$entries`, ({ init }) => init(code => {
+        code
+          .write(`{`)
+          .indent(code => {
+            for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
+              const entry = this.createEntry(key, entrySchema);
 
-            code.write(entry.declare(`${jsPropertyKey(key)}: `, `,`));
-          }
-        })
-        .write(`}${suffix}`);
-    });
+              code.write(
+                entry.declare(init => code => {
+                  code.inline(jsPropertyKey(key), ': ', init, ',');
+                }),
+              );
+            }
+          })
+          .write(`}`);
+      }));
   }
 
   #declareExtra(): string | undefined {
@@ -168,7 +166,7 @@ export class MapUcdDef<
     const { lib } = this;
     const entry = this.createEntry(null, extra);
 
-    return lib.declarations.declare(`${this.className}$extra`, (prefix, suffix) => entry.declare(prefix, suffix));
+    return lib.declarations.declare(`${this.className}$extra`, ({ init }) => entry.declare(init));
   }
 
   entryTemplate(key: string | null, schema: UcSchema): UcrxTemplate {
@@ -187,21 +185,21 @@ export class MapUcdDef<
     }
   }
 
-  createEntry(key: string | null, schema: UcSchema): EntryUcdDef {
-    return new EntryUcdDef(this as MapUcdDef, key, schema);
+  createEntry(key: string | null, schema: UcSchema): MapUcrxEntry {
+    return new MapUcrxEntry(this as MapUcrxTemplate, key, schema);
   }
 
   allocateMap(prefix: string, suffix: string): UccSource {
     return `${prefix}{}${suffix}`;
   }
 
-  storeMap(setter: string, allocation: MapUcdDef.Allocation): UccSource;
-  storeMap(setter: string, { map }: MapUcdDef.Allocation): UccSource {
+  storeMap(setter: string, allocation: MapUcrxTemplate.Allocation): UccSource;
+  storeMap(setter: string, { map }: MapUcrxTemplate.Allocation): UccSource {
     return `${setter}(${map}[0]);`;
   }
 
-  reclaimMap(allocation: MapUcdDef.Allocation): UccSource;
-  reclaimMap({ map }: MapUcdDef.Allocation): UccSource {
+  reclaimMap(allocation: MapUcrxTemplate.Allocation): UccSource;
+  reclaimMap({ map }: MapUcrxTemplate.Allocation): UccSource {
     // Allocate map instance for the next list item.
     return this.allocateMap(`${map}[0] = `, `;`);
   }
@@ -277,7 +275,7 @@ export class MapUcdDef<
 
 }
 
-export namespace MapUcdDef {
+export namespace MapUcrxTemplate {
   export interface Decls {
     readonly entries: string;
     readonly extra: string | undefined;

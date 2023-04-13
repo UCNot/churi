@@ -1,4 +1,5 @@
 export const CHURI_MODULE = 'churi';
+export const COMPILER_MODULE = 'churi/compiler';
 export const SERIALIZER_MODULE = 'churi/serializer';
 export const DESERIALIZER_MODULE = 'churi/deserializer';
 export const URI_CHARGE_MODULE = '#churi/uri-charge';

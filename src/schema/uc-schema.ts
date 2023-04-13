@@ -1,3 +1,4 @@
+import { UcInstructions } from './uc-instructions.js';
 import { UcSchemaResolver } from './uc-schema-resolver.js';
 
 /**
@@ -50,6 +51,11 @@ export interface UcSchema<out T = unknown> {
    * @defaultValue Equal to {@link type}.
    */
   readonly id?: string | UcSchema.Class | undefined;
+
+  /**
+   * Per-tool schema processing instructions.
+   */
+  readonly with?: UcInstructions | undefined;
 
   /**
    * Returns the passed-in value.

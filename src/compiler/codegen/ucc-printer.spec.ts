@@ -8,48 +8,73 @@ describe('UccPrinter', () => {
     printer = new UccPrinter();
   });
 
-  describe('indent', () => {
-    it('indents lines', () => {
-      expect(
+  describe('print', () => {
+    it('appends new line without indentation', async () => {
+      await expect(
         printer
           .print('{')
-          .indent(lines => lines
-              .print('{')
-              .indent(lines => lines.print('foo();', 'bar();'), '/* indent */ ')
-              .print('}'))
+          .indent(span => span.print())
           .print('}')
-          .toString(),
-      ).toBe('{\n  {\n  /* indent */ foo();\n  /* indent */ bar();\n  }\n}\n');
+          .toText(),
+      ).resolves.toBe('{\n\n}\n');
+    });
+    it('appends new line without indentation instead of empty line', async () => {
+      await expect(
+        printer
+          .print('{')
+          .indent(span => span.print('').print('').print(''))
+          .print('}')
+          .toText(),
+      ).resolves.toBe('{\n\n}\n');
+    });
+    it('removes all leading newlines', async () => {
+      await expect(
+        printer.print().print('').print('').print().print().print('text').toText(),
+      ).resolves.toBe('\ntext\n');
+    });
+    it('leaves single newline for empty output', async () => {
+      await expect(printer.print().print('').print('').print().print().toText()).resolves.toBe(
+        '\n',
+      );
+    });
+    it('appends at most one new line', async () => {
+      await expect(
+        printer
+          .print('{')
+          .indent(span => span.print('abc').print('').print('').print().print('def'))
+          .print('}')
+          .toText(),
+      ).resolves.toBe('{\n  abc\n\n  def\n}\n');
     });
   });
 
-  describe('print', () => {
-    it('appends new line without indentation', () => {
-      expect(
+  describe('inline', () => {
+    it('joins lines', async () => {
+      await expect(
         printer
           .print('{')
-          .indent(lines => lines.print())
+          .indent(span => span
+              .print('{')
+              .indent(span => span.inline(span => span.print('foo();', 'bar();')))
+              .print('}'))
           .print('}')
-          .toString(),
-      ).toBe('{\n\n}\n');
+          .toText(),
+      ).resolves.toBe('{\n  {\n    foo();bar();\n  }\n}\n');
     });
-    it('appends new line without indentation instead of empty line', () => {
-      expect(
+  });
+
+  describe('indent', () => {
+    it('indents lines', async () => {
+      await expect(
         printer
           .print('{')
-          .indent(lines => lines.print(''))
+          .indent(span => span
+              .print('{')
+              .indent(span => span.print('foo();', 'bar();'), '/* indent */ ')
+              .print('}'))
           .print('}')
-          .toString(),
-      ).toBe('{\n\n}\n');
-    });
-    it('appends at most one new line', () => {
-      expect(
-        printer
-          .print('{')
-          .indent(lines => lines.print().print('').print())
-          .print('}')
-          .toString(),
-      ).toBe('{\n\n}\n');
+          .toText(),
+      ).resolves.toBe('{\n  {\n  /* indent */ foo();\n  /* indent */ bar();\n  }\n}\n');
     });
   });
 });
