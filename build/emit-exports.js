@@ -1,6 +1,6 @@
 import { ucUnknown } from '#churi/core';
 import { createURIChargeUcdLib } from '#churi/uri-charge/compiler';
-import { UccCode, UcdSetup } from 'churi/compiler';
+import { UccCode, UcdSetup, ucdSupportDefaults } from 'churi/compiler';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,13 @@ await Promise.all([
 ]);
 
 async function emitDefaultEntities() {
-  const lib = await new UcdSetup({ schemae: {}, defaultEntities: false }).bootstrap();
+  const lib = await new UcdSetup({
+    schemae: {},
+    features(setup) {
+      // Call explicitly rather enable to force entity handler generation.
+      ucdSupportDefaults(setup);
+    },
+  }).bootstrap();
 
   lib.declarations.declare('onEntity$byDefault', location => lib.createEntityHandler(location), {
     exported: true,

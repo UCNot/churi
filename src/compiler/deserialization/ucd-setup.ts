@@ -4,6 +4,7 @@ import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -28,7 +29,8 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
-  readonly #entities: UcdLib.EntityConfig[] | undefined;
+  #defaultEntities: UcdLib.EntityConfig[] | undefined;
+  #entities: UcdLib.EntityConfig[] | undefined = [];
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
@@ -39,13 +41,9 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   constructor(options: UcdSetup.Options<TSchemae>) {
     this.#options = options;
 
-    const { resolver = new UcSchemaResolver(), features, defaultEntities = true } = options;
+    const { resolver = new UcSchemaResolver() } = options;
 
     this.#resolver = resolver;
-
-    // Ignore default entity definitions.
-    // Precompiled entity handler will be used.
-    this.#entities = features || !defaultEntities ? [] : undefined;
   }
 
   /**
@@ -67,12 +65,30 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
       this.#enabled.add(feature);
       if ('configureDeserializer' in feature) {
         feature.configureDeserializer(this);
+      } else if (feature === ucdSupportDefaults) {
+        this.#enableDefault();
       } else {
         feature(this);
       }
     }
 
     return this;
+  }
+
+  #enableDefault(): void {
+    if (this.#entities?.length) {
+      // Custom entities registered already.
+      ucdSupportDefaults(this);
+
+      return;
+    }
+
+    ucdSupportDefaults(this);
+
+    // Stop registering default entities.
+    // Start registering custom ones.
+    this.#defaultEntities = this.#entities;
+    this.#entities = undefined;
   }
 
   /**
@@ -92,8 +108,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   #useFeature(schema: UcSchema, { from, feature }: UcInstructions.UseFeature): void {
-    const { type, id = type } = schema;
-    const useId = `${id}::${from}::${feature}`;
+    const useId = `${ucSchemaSymbol(schema)}::${from}::${feature}`;
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
@@ -142,7 +157,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    * @returns `this` instance.
    */
   handleEntity(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#entities?.push({ entity, feature });
+    this.#initEntities().push({ entity, feature });
 
     return this;
   }
@@ -157,9 +172,13 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    */
   handleEntityPrefix(prefix: string | readonly UcToken[], feature: UcdEntityFeature): this;
   handleEntityPrefix(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#entities?.push({ entity, feature, prefix: true });
+    this.#initEntities().push({ entity, feature, prefix: true });
 
     return this;
+  }
+
+  #initEntities(): UcdLib.EntityConfig[] {
+    return (this.#entities ??= this.#defaultEntities)!;
   }
 
   /**
@@ -245,7 +264,6 @@ export namespace UcdSetup {
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly schemae: TSchemae;
     readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
-    readonly defaultEntities?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
