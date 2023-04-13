@@ -1,5 +1,5 @@
-import { UcSchema } from 'churi';
 import { UcsFeature, UcsSchemaFeature } from '../compiler/serialization/ucs-feature.js';
+import { UcSchema } from '../schema/uc-schema.js';
 import { UcsWriter } from '../serializer/ucs-writer.js';
 import { writeUcAsIs } from '../serializer/write-uc-asis.js';
 
