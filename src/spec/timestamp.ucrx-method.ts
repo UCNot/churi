@@ -1,6 +1,13 @@
+import { UccArgs } from '../compiler/codegen/ucc-args.js';
+import { UccSource } from '../compiler/codegen/ucc-code.js';
+import { UcdFeature, UcdSchemaFeature } from '../compiler/deserialization/ucd-feature.js';
 import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
+import { CustomUcrxTemplate } from '../compiler/rx/custom.ucrx-template.js';
+import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
+import { UcrxTemplate } from '../compiler/rx/ucrx-template.js';
 import { CHURI_MODULE } from '../impl/module-names.js';
+import { UcSchema } from '../schema/uc-schema.js';
 
 export const TimestampUcrxMethod = new UcrxSetter({
   key: 'date',
@@ -31,4 +38,42 @@ export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
 
     code.write(register(readTimestamp));
   });
+}
+
+export const UcdSupportTimestamp: UcdFeature.Object = {
+  configureDeserializer(setup) {
+    setup
+      .enable(ucdSupportTimestampEntity)
+      .useUcrxTemplate<number>(
+        'timestamp',
+        (lib, schema) => new TimestampUcrxTemplate(lib, schema),
+      );
+  },
+};
+
+export const UcdSupportTimestampSchema: UcdSchemaFeature.Object = {
+  configureSchemaDeserializer(setup, _schema) {
+    setup.enable(UcdSupportTimestamp);
+  },
+};
+
+export function ucdSupportTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): void {
+  setup.enable(UcdSupportTimestamp);
+}
+
+class TimestampUcrxTemplate extends CustomUcrxTemplate<number> {
+
+  constructor(lib: UcrxLib, schema: UcSchema<number>) {
+    super({ lib, schema });
+  }
+
+  protected override overrideMethods(): UcrxTemplate.MethodDecls {
+    return {
+      num({ value }: UccArgs.ByName<'value'>): UccSource {
+        return `return this.set(${value});`;
+      },
+      nul: this.schema.nullable ? () => `return this.set(null);` : undefined,
+    };
+  }
+
 }
