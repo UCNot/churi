@@ -4,6 +4,7 @@ import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccLib } from '../codegen/ucc-lib.js';
+import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcsFeature, UcsSchemaFeature } from './ucs-feature.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
@@ -83,8 +84,7 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #useFeature(schema: UcSchema, { from, feature }: UcInstructions.UseFeature): void {
-    const { type, id = type } = schema;
-    const useId = `${id}::${from}::${feature}`;
+    const useId = `${ucSchemaSymbol(schema)}::${from}::${feature}`;
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
