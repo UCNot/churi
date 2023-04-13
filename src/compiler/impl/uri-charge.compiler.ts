@@ -12,6 +12,7 @@ import { MapUcrxEntry } from '../deserialization/map.ucrx-entry.js';
 import { MapUcrxTemplate } from '../deserialization/map.ucrx-template.js';
 import { UcdLib } from '../deserialization/ucd-lib.js';
 import { UcdSetup } from '../deserialization/ucd-setup.js';
+import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxTemplate } from '../deserialization/unknown.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -24,6 +25,7 @@ export async function createURIChargeUcdLib(): Promise<
     schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
     features(setup) {
       setup
+        .enable(ucdSupportDefaults)
         .useUcrxTemplate('unknown', (lib, schema) => new URIChargeUcrxTemplate(lib, schema))
         .useUcrxTemplate(
           'list',
