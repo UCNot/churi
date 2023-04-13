@@ -137,6 +137,7 @@ export class UccDeclarations implements UccFragment {
       async ([snippet, record]) => [snippet, await record] as const,
     );
     let whenAllEmitted: Promise<unknown> = Promise.resolve();
+    const records = new Map<UccDeclSnippet, string | UccPrintable>();
 
     this.#addDecl = (key, snippet) => {
       this.#doAddDecl(key, snippet);
@@ -151,7 +152,9 @@ export class UccDeclarations implements UccFragment {
       ]);
     };
 
-    const records = new Map<UccDeclSnippet, string | UccPrintable>(await Promise.all(resolutions));
+    for (const [snippet, record] of await Promise.all(resolutions)) {
+      records.set(snippet, record);
+    }
 
     return {
       printTo: async span => {
