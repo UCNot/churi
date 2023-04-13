@@ -7,3 +7,5 @@ export * from './ucs-support-defaults.js';
 export * from './ucs-support-list.js';
 export * from './ucs-support-map.js';
 export * from './ucs-support-primitives.js';
+export * from './ucs-support-unknown.js';
+
