@@ -155,7 +155,7 @@ describe('chargeURI', () => {
       expect(chargeURI([{ foo: 'bar' }])).toBe('foo(bar),');
     });
     it('appended to list when last item value', () => {
-      expect(chargeURI(['', { foo: 'bar' }])).toBe("',foo(bar)");
+      expect(chargeURI(['', { foo: 'bar' }])).toBe(',,foo(bar)');
     });
     it('uses custom charge transfer', () => {
       const obj: Uctx = {
@@ -230,8 +230,8 @@ describe('chargeURI', () => {
       expect(chargeURI({ test1: '', test2: '', suffix: '' })).toBe('test1()test2()suffix()');
     });
     it('escaped and appended as list item value', () => {
-      expect(chargeURI(['', { foo: '' }])).toBe("',foo()");
-      expect(chargeURI(['', { '!foo': '' }])).toBe("',$!foo()");
+      expect(chargeURI(['', { foo: '' }])).toBe(',,foo()');
+      expect(chargeURI(['', { '!foo': '' }])).toBe(',,$!foo()');
     });
   });
 
@@ -251,14 +251,23 @@ describe('chargeURI', () => {
   });
 
   describe('array value empty string item', () => {
-    it('escapes the only empty string', () => {
-      expect(chargeURI([''])).toBe("',");
+    it('encodes the only empty string as double comma', () => {
+      expect(chargeURI([''])).toBe(',,');
     });
-    it('escapes leading empty string', () => {
-      expect(chargeURI(['', 'tail'])).toBe("',tail");
+    it('escapes the only empty string of nested list', () => {
+      expect(chargeURI([['']])).toBe("(')");
     });
-    it('escapes trailing empty string', () => {
-      expect(chargeURI(['head', ''])).toBe("head,'");
+    it('encodes leading empty string as double comma', () => {
+      expect(chargeURI(['', 'tail'])).toBe(',,tail');
+    });
+    it('encodes leading empty string ff nested list as double comma', () => {
+      expect(chargeURI([['', 'tail']])).toBe('(,,tail)');
+    });
+    it('encodes trailing empty string as double comma', () => {
+      expect(chargeURI(['head', ''])).toBe('head,,');
+    });
+    it('escapes trailing empty string of nested list', () => {
+      expect(chargeURI([['head', '']])).toBe("(head,')");
     });
     it('does not escape empty string in the middle', () => {
       expect(chargeURI(['head', '', 'tail'])).toBe('head,,tail');

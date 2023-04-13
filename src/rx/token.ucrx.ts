@@ -214,7 +214,7 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
   const add = (addToken: (token: UcToken) => void, empty: boolean, nls: boolean): void => {
     if (itemCount) {
       if (lastEmpty && itemCount === 1) {
-        addToken(UC_TOKEN_APOSTROPHE);
+        addToken(UC_TOKEN_COMMA);
       }
       if (!nls || !lastNls) {
         // Add commas between items, unless items are nested lists.
@@ -259,9 +259,16 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
     },
     end(addToken) {
       if (lastEmpty) {
-        addToken(UC_TOKEN_APOSTROPHE);
-      }
-      if (nested) {
+        if (nested) {
+          addToken(UC_TOKEN_APOSTROPHE);
+          addToken(UC_TOKEN_CLOSING_PARENTHESIS);
+        } else {
+          addToken(UC_TOKEN_COMMA);
+          if (itemCount < 2) {
+            addToken(UC_TOKEN_COMMA);
+          }
+        }
+      } else if (nested) {
         addToken(UC_TOKEN_CLOSING_PARENTHESIS);
       } else if (itemCount < 2 && !lastNls) {
         // Empty list.
