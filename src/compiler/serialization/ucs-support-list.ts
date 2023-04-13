@@ -5,7 +5,6 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSource } from '../codegen/ucc-code.js';
-import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsSetup } from './ucs-setup.js';
@@ -32,7 +31,7 @@ function ucsWriteList<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
   const itemValue = ns.name(`${value}$item`);
   const itemWritten = ns.name(`${value}$itemWritten`);
 
-  return ucsCheckConstraints(fn, schema, value, code => {
+  return code => {
     code
       .write(`let ${itemWritten} = false;`)
       .write(`for (const ${itemValue} of ${value}) {`)
@@ -61,5 +60,5 @@ function ucsWriteList<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
       .write(`} else if (!${itemWritten}) {`)
       .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${comma});`)
       .write(`}`);
-  });
+  };
 }

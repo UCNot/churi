@@ -73,7 +73,7 @@ function ucsWriteMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
     };
   }
 
-  return ucsCheckConstraints(fn, schema, value, code => {
+  return code => {
     code.write(`let ${entryValue};`, startMap);
 
     for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
@@ -113,7 +113,7 @@ function ucsWriteMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
     }
 
     code.write(endMap);
-  });
+  };
 }
 
 function ucsMapMayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Spec>(

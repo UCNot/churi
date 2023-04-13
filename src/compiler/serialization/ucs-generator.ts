@@ -15,10 +15,5 @@ import { UcsFunction } from './ucs-function.js';
  * @returns Serializer code source, or `undefined` if the value serializer can not be generated.
  */
 export type UcsGenerator<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
-  serialize(
-    serializer: UcsFunction,
-    schema: TSchema,
-    value: string,
-    asItem: string,
-  ): UccSource | undefined;
+  serialize(fn: UcsFunction, schema: TSchema, value: string, asItem: string): UccSource | undefined;
 }['serialize'];

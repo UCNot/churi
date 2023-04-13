@@ -5,6 +5,7 @@ import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
+import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UcsFeature, UcsSchemaFeature } from './ucs-feature.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
@@ -106,7 +107,14 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     type: TSchema['type'],
     generator: UcsGenerator<T, TSchema>,
   ): this {
-    this.#generators.set(type, generator);
+    this.#generators.set(
+      type,
+      (fn: UcsFunction, schema: TSchema, value: string, asItem: string) => {
+        const onValue = generator(fn, schema, value, asItem);
+
+        return onValue && ucsCheckConstraints(fn, schema, value, onValue);
+      },
+    );
 
     return this;
   }
