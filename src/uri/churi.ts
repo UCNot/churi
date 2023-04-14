@@ -90,7 +90,7 @@ export class ChURI<
       Auth = ChURIAuth,
     }: Partial<ChURI.Options<TRoute>> = {},
   ) {
-    const result = URI_PATTERN.exec(uri);
+    const result = URI_PREFIX_PATTERN.exec(uri);
 
     if (!result) {
       throw new SyntaxError('Invalid URI');
@@ -454,8 +454,7 @@ export namespace ChURI {
   }
 }
 
-const URI_PATTERN =
-  /^((?:[a-zA-Z][\w+-.]*:)+)(?:\/\/(?:([^@#?:]*):?[^@?#]*@)([^?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?/;
+const URI_PREFIX_PATTERN = /^((?:[a-zA-Z][\w+-.]*:)+)(?:\/\/(?:([^@#?:]*):?[^@?#]*@)([^?#]*))?/;
 
 interface ChURI$Override {
   readonly search: string;
