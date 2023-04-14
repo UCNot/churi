@@ -153,7 +153,7 @@ console.debug(churi`
 `);
 ```
 
-The `UcEntity` above used to avoid escaping and percent-encoding and should be used with care.
+The `UcEntity` above used to add parts to URI as they are. It should be used with care.
 
 Instead, a Charged URI string can be built with `chargeURI()` function.
 

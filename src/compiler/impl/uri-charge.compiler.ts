@@ -115,10 +115,9 @@ class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
   #setEntity(method: UcrxSetter, { value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
     const type = jsStringLiteral(method.typeName!);
     const UcEntity = this.lib.import(CHURI_MODULE, 'UcEntity');
-    const printUcTokens = this.lib.import(CHURI_MODULE, 'printUcTokens');
     const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
 
-    return `return this.any(new ${URICharge$Single}(new ${UcEntity}(${printUcTokens}(${value})), ${type}));`;
+    return `return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}));`;
   }
 
   #setNull(): UccSource {

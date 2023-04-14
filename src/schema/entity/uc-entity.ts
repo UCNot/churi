@@ -2,7 +2,9 @@ import { chargeURI } from '../../rx/charge-uri.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
+import { encodeUcToken, printUcTokens } from '../../syntax/print-uc-token.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
+import { UcToken } from '../../syntax/uc-token.js';
 
 /**
  * Opaque URI charge entity.
@@ -12,22 +14,30 @@ import { UcLexer } from '../../syntax/uc-lexer.js';
 
 export class UcEntity implements Uctx {
 
-  readonly #raw: string;
+  readonly #tokens: readonly UcToken[];
+  #raw?: string;
 
   /**
    * Constructs unrecognized entity.
    *
-   * @param raw - The entity as is, with leading `!` and _not_ URI-decoded.
+   * @param tokens - The entity entity tokens. When string is given, it will be {@link UcLexer.scan scanned} for tokens.
    */
-  constructor(raw: string) {
-    this.#raw = raw;
+  constructor(tokens: string | readonly UcToken[]) {
+    this.#tokens = typeof tokens === 'string' ? UcLexer.scan(tokens) : tokens;
   }
 
   /**
-   * The entity as is, with leading `!` and _not_ URI-decoded.
+   * Entity tokens.
+   */
+  get tokens(): readonly UcToken[] {
+    return this.#tokens;
+  }
+
+  /**
+   * The entity as is.
    */
   get raw(): string {
-    return this.#raw;
+    return (this.#raw ??= printUcTokens(this.tokens, encodeUcToken));
   }
 
   get [Symbol.toStringTag](): string {
@@ -35,11 +45,11 @@ export class UcEntity implements Uctx {
   }
 
   [Symbol.toPrimitive](): string {
-    return this.#raw;
+    return this.raw;
   }
 
   valueOf(): string {
-    return this.#raw;
+    return this.raw;
   }
 
   /**
@@ -50,7 +60,7 @@ export class UcEntity implements Uctx {
    */
   toUC(rx: Ucrx, mode: UctxMode): void;
   toUC(rx: Ucrx, _mode: UctxMode): void {
-    rx.ent(UcLexer.scan(this.raw));
+    rx.ent(this.tokens);
   }
 
   /**
