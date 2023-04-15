@@ -4,8 +4,6 @@
 https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
-See the [explanation].
-
 , where:
 
 - `/api(!v3.0)` is a path fragment charged with `!v3.0` entity.
@@ -42,4 +40,4 @@ See the [explanation].
 > **[Read more about URI charge format >>>][uri charge]**
 
 [BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
+[URI charge]: ./uri-charge-format.md
