@@ -9,58 +9,15 @@
 
 An URI that may contain arbitrary JavaScript values encoded with [URI charge] micro-format.
 
-It is like JSON for GET requests, but can do even more.
-
-Various URI parts could be charged:
-
-- query parameter values,
-- positional argument immediately following `?` within query,
-- [Matrix URI] parameter values,
-- path fragments,
-- URI hash (anchor) parameter values,
-- positional argument immediately following `#` within hash,
-- username and authentication parameters.
-
-**Example:**
+It is like JSON for GET requests, but may contain even more:
 
 ```
 https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
-, where:
+> **[See the explanation >>>][explanation].**
 
-- `/api(!v3.0)` is a path fragment charged with `!v3.0` entity.
-
-  Entities are URI charge format extensions treated by custom handlers.
-
-- `/user;id=0n302875106592253` is a path fragment charged with user ID specified as `user` matrix parameter.
-
-  Notice the `0n` prefix preceding [BigInt] value (unsupported by JSON).
-
-- `/article;slug=hello-world` is a path fragment with simple string matrix parameter.
-
-- `?date=since(!date'1970-01-01)till(!now)` is a query parameter charged with map value.
-
-  Notice the `!date'1970-01-01` and `!now` entities.
-
-  The `date` parameter charge corresponds to JavaScript object literal like:
-
-  ```javascript
-  {
-    since: new Date('1970-01-01'),
-    till: new Date(),
-  }
-  ```
-
-- `&range=from(10)to(20)` is a query parameter charged with map value corresponding to JavaScript object literal like:
-  ```javascript
-  {
-    from: 10, // A number rather a string!
-    to: 20,   // A number rather a string!
-  }
-  ```
-
-> **[Read more about URI charge format >>>][uri charge]**
+> **[Read more about URI charge format >>>][URI charge]**
 
 [npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
 [npm-url]: https://www.npmjs.com/package/churi
@@ -74,118 +31,19 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 [github-url]: https://github.com/hatsyjs/churi
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
 [API documentation]: https://hatsyjs.github.io/churi/
+[explanation]: https://github.com/hatsyjs/churi/blob/master/doc/explanation.md
 [URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
-[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[Matrix URI]: https://www.w3.org/DesignIssues/MatrixURIs.html
 
-## Usage
+## This Package.
 
-This library represents Charged URIs as `ChURI` class instances. The latter resembles standard [URL class], except it is
-read-only. It also provides access to:
+This package provides:
 
-- query parameter charges,
-- path fragments and their charges,
-- matrix parameters and their charges.
+- [ChURI] class, which is a read-only [URL class] that grants access to charges.
+- URI [charging] utilities.
+- `application/uri-charge` data format support:
+  - Schema-less parser and serializer.
+  - Schema-based parser and serializer.
 
-Everything is built on demand. Nothing is parsed until requested.
-
-Given the example above:
-
-```typescript
-import { ChURI } from 'churi';
-
-const { route, searchParams: query } = new ChURI(
-  'https://example.com' +
-    '/api(!v3.0)' +
-    '/user;id=0n302875106592253' +
-    '/article;slug=hello-world' +
-    '/comments' +
-    `?date=since(!date'1970-01-01)till(!now)` +
-    '&range=from(10)to(20)',
-);
-
-console.debug(route.path);
-// /api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
-
-console.debug(route.name, route.matrix.arg.get('api').value);
-// api !v3.0
-
-console.debug(route.at(1).name, route.at(1).matrix.getCharge('id').value);
-// user 302875106592253n
-
-console.debug(route.at(2).name, route.at(2).matrix.getCharge('slug').value);
-// article hello-world
-
-console.debug(query.getCharge('date').get('since').value);
-// 1970-01-01T00:00:00.000Z
-
-console.debug(query.getCharge('range').get('from').value, query.getCharge('range').get('to').value);
-// 10 20
-```
-
+[ChURI]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md
+[charging]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md#charging
 [URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
-
-## Charging
-
-The `ChURI` class is read-only. It disallows URI manipulations.
-
-To build Charged URI a tagged template can be used.
-
-The following code reconstructs the URI from example above:
-
-```typescript
-import { churi, UcEntity } from 'churi';
-
-console.debug(churi`
-  https://example.com
-    /api(${new UcEntity('!v3.0')})
-    /user;id=${302875106592253n}
-    /article;slug=${'hello-world'}
-    /comments
-      ?date=${{
-        since: new UcEntity("!date'1970-01-01"),
-        till: new UcEntity('!now'),
-      }}
-      &range=${{
-        from: 10,
-        to: 20,
-      }}
-`);
-```
-
-The `UcEntity` above used to add parts to URI as they are. It should be used with care.
-
-Instead, a Charged URI string can be built with `chargeURI()` function.
-
-```typescript
-import { chargeURI, UcEntity } from 'churi';
-
-console.debug(
-  `https://example.com` +
-    `/api(${chargeURI(new UcEntity('!v3.0'))})` +
-    `/user;id=${chargeURI(302875106592253n)}` +
-    `/article;slug=${chargeURI('hello-world')}` +
-    `/comments` +
-    `?date=${chargeURI({
-      since: new UcEntity("!date'1970-01-01"),
-      till: new UcEntity('!now'),
-    })}` +
-    `&range=${chargeURI({
-      from: 10,
-      to: 20,
-    })}`,
-);
-```
-
-Charging can be customized by implementing a `toUC()` method declared in `Uctx` interface. If not implemented,
-a `toJSON()` method will be used if defined. Otherwise, predefined serialization algorithm will be applied similar
-to `JSON.stringify()`.
-
-## URI Charge Processing
-
-URI charge can be parsed from string and represented:
-
-- as `URICharge` instance by `parseURICharge()` function, or
-- as native `JavaScript` value by `parseUcValue()` one.
-
-> See [API documentation] for more info.
