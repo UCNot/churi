@@ -167,7 +167,7 @@ represents an object like
 ```json
 {
   "column": "first_name",
-  "includes": "john
+  "includes": "john"
 }
 ```
 
