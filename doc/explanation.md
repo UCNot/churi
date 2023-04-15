@@ -42,3 +42,4 @@ See the [explanation].
 > **[Read more about URI charge format >>>][uri charge]**
 
 [BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
