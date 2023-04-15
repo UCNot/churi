@@ -135,7 +135,7 @@ An list item containing another (nested) list should be enclosed into parenthese
 represents an array like
 
 ```json
-[["foo", "bar"], "baz"]
+[["foo", "bar"], ["baz"]]
 ```
 
 Note that comma is completely optional after nested list. So the list above can be encoded as:
