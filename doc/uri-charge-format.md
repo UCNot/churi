@@ -13,9 +13,9 @@ URI charge may be used in various parts of URI. E.g. within [query]:
 ?find=includes(first_name(john))&order=first_name(asc(!))second_name(asc(!))birthday(asc(-))&range=from(10)to(20)
 ```
 
-[bigint]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[infinity]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity
-[nan]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
+[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[Infinity]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity
+[NaN]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
 [query]: https://www.rfc-editor.org/rfc/rfc3986#section-3.4
 
 ## Primitive Values

@@ -8,13 +8,13 @@ Various URI parts could be charged:
 - query parameter values,
 
   ```
-  ?range=from(1970-01-01)to(!now)&query=test
+  ?range=since(date'1970-01-01)till(!now)&query=test
   ```
 
 - positional argument immediately following `?` within query,
 
   ```
-  ?range(from(1970-01-01)to(!now))query(test)
+  ?range(since(!date'1970-01-01)till(!now))query(test)
   ```
 
 - [Matrix URI] parameter values,

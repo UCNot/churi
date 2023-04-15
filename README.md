@@ -7,7 +7,7 @@
 [![GitHub Project][github-image]][github-url]
 [![API Documentation][api-docs-image]][api documentation]
 
-An URI that may contain arbitrary JavaScript values encoded with [URI charge] micro-format.
+URI that may contain arbitrary JavaScript values encoded with [URI charge] micro-format.
 
 It is like JSON for GET requests, but may contain even more:
 
@@ -40,10 +40,11 @@ This package provides:
 
 - [ChURI] class, which is a read-only [URL class] that grants access to charges.
 - URI [charging] utilities.
-- `application/uri-charge` data format support:
-  - Schema-less parser and serializer.
+- [`application/uri-charge`] MIME type support:
   - Schema-based parser and serializer.
+  - Schema-less parser and serializer.
 
 [ChURI]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md
 [charging]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md#charging
 [URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
+[`application/uri-charge`]: https://github.com/hatsyjs/churi/blob/master/doc/schema.md
