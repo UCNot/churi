@@ -34,7 +34,7 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 [explanation]: https://github.com/hatsyjs/churi/blob/master/doc/explanation.md
 [URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
 
-## This Package.
+## This Package
 
 This package provides:
 
