@@ -23,6 +23,19 @@
   },
   "type": "module",
   "types": "./dist/churi.d.ts",
+  "typesVersions": {
+    "*": {
+      "compiler": [
+        "./dist/churi.compiler.d.ts"
+      ],
+      "deserializer": [
+        "./dist/churi.deserializer.d.ts"
+      ],
+      "serializer": [
+        "./dist/churi.serializer.d.ts"
+      ]
+    }
+  },
   "exports": {
     ".": {
       "types": "./dist/churi.d.ts",
