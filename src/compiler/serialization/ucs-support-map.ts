@@ -118,8 +118,8 @@ function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
   };
 }
 
-function ucsMapMayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Model>(
-  schema: UcMap.Schema<TEntriesSpec>,
+function ucsMapMayBeEmpty<TEntriesModel extends UcMap.Schema.Entries.Model>(
+  schema: UcMap.Schema<TEntriesModel>,
 ): boolean {
   return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);
 }
