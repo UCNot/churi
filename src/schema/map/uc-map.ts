@@ -2,7 +2,7 @@ import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
-import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
+import { UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
  * URI charge map represented as JavaScript object.
@@ -68,28 +68,6 @@ export namespace UcMap {
 
   export namespace Schema {
     /**
-     * Schema specifier of URI charge map.
-     *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
-     */
-    export type Spec<
-      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
-      TExtraSpec extends UcSchema.Spec | false = false,
-    > = Schema<TEntriesSpec, TExtraSpec> | Ref<TEntriesSpec, TExtraSpec>;
-
-    /**
-     * Reference to schema of URI charge map.
-     *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
-     */
-    export type Ref<
-      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
-      TExtraSpec extends UcSchema.Spec | false = false,
-    > = UcSchema.Ref<ObjectType<TEntriesSpec, TExtraSpec>, Schema<TEntriesSpec, TExtraSpec>>;
-
-    /**
      * Per-entry schema of URI charge map.
      *
      * @typeParam TEntriesSpec - Per-entry schema specifier type.
@@ -149,7 +127,7 @@ export namespace UcMap {
 export function ucMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   spec: TEntriesSpec,
   options?: UcMap.Schema.ExactOptions,
-): UcMap.Schema.Ref<TEntriesSpec>;
+): UcMap.Schema<TEntriesSpec>;
 
 export function ucMap<
   TEntriesSpec extends UcMap.Schema.Entries.Spec,
@@ -157,7 +135,7 @@ export function ucMap<
 >(
   spec: TEntriesSpec,
   options: UcMap.Schema.ExtraOptions<TExtraSpec>,
-): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec>;
+): UcMap.Schema<TEntriesSpec, TExtraSpec>;
 
 export function ucMap<
   TEntriesSpec extends UcMap.Schema.Entries.Spec,
@@ -165,47 +143,38 @@ export function ucMap<
 >(
   spec: TEntriesSpec,
   { id, extra }: UcMap.Schema.Options<TExtraSpec> = {},
-): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec> {
+): UcMap.Schema<TEntriesSpec, TExtraSpec> {
+  const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
+    const schema = ucSchema(spec) as UcSchema;
+
+    return [key, schema];
+  });
+
   return {
-    [UcSchema__symbol]: resolver => {
-      const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(
-        ([key, spec]) => {
-          const schema = resolver.schemaOf(spec);
+    type: 'map',
+    id: id ?? `map_${++UcMap$idSeq}`,
+    with: UcMap$instructions,
+    entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
+    extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesSpec, TExtraSpec>['extra'],
+    toString() {
+      let out = '{';
 
-          return [key, schema];
-        },
-      );
+      entries.every(([key, entry], i) => {
+        if (i) {
+          out += ', ';
+        }
+        out += jsPropertyKey(key) + ': ' + ucSchemaName(entry);
 
-      return {
-        type: 'map',
-        id: id ?? `map_${++UcMap$idSeq}`,
-        with: UcMap$instructions,
-        entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
-        extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
-          TEntriesSpec,
-          TExtraSpec
-        >['extra'],
-        toString() {
-          let out = '{';
+        if (i < 2) {
+          return true;
+        }
 
-          entries.every(([key, entry], i) => {
-            if (i) {
-              out += ', ';
-            }
-            out += jsPropertyKey(key) + ': ' + ucSchemaName(entry);
+        out += ', ...';
 
-            if (i < 2) {
-              return true;
-            }
+        return false;
+      });
 
-            out += ', ...';
-
-            return false;
-          });
-
-          return out + '}';
-        },
-      };
+      return out + '}';
     },
   };
 }

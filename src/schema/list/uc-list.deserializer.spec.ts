@@ -259,7 +259,7 @@ describe('UcList deserializer', () => {
     let readList: UcDeserializer<number[] | null>;
 
     beforeEach(async () => {
-      const lib = await new UcdSetup<{ readList: UcNullable.Spec<number[]> }>({
+      const lib = await new UcdSetup<{ readList: UcNullable<number[]> }>({
         schemae: {
           readList: ucNullable(ucList<number>(Number)),
         },
@@ -304,7 +304,7 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const nullableNumber = ucNullable<number>(Number);
-      const lib = await new UcdSetup<{ readList: UcNullable.Spec<(number | null)[]> }>({
+      const lib = await new UcdSetup<{ readList: UcNullable<(number | null)[]> }>({
         schemae: {
           readList: ucNullable(ucList<number | null>(nullableNumber)),
         },

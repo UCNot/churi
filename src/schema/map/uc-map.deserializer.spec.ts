@@ -22,7 +22,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let lib: UcdLib<{ readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string> }> }>;
+    let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcSchema.Spec<string> }> }>;
     let readMap: UcDeserializer<{ foo: string }>;
 
     beforeEach(async () => {
@@ -139,7 +139,7 @@ describe('UcMap deserializer', () => {
 
   describe('multiple entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
+      readMap: UcMap.Schema<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
     }>;
     let readMap: UcDeserializer<{ foo: string; bar: string }>;
 
@@ -267,7 +267,7 @@ describe('UcMap deserializer', () => {
 
   describe('extra entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
     }>;
     let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
 
@@ -328,7 +328,7 @@ describe('UcMap deserializer', () => {
 
   describe('optional entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema<{ length: UcOptional<number> }, UcSchema.Spec<string>>;
     }>;
     let readMap: UcDeserializer<
       { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
@@ -369,9 +369,9 @@ describe('UcMap deserializer', () => {
 
   describe('list entry', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{
-        foo: UcList.Schema.Spec<string>;
-        bar: UcList.Schema.Spec<number>;
+      readMap: UcMap.Schema<{
+        foo: UcList.Schema<string>;
+        bar: UcList.Schema<number>;
       }>;
     }>;
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
@@ -443,7 +443,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('nullable', () => {
-    let lib: UcdLib<{ readMap: UcNullable.Spec<{ foo: string }> }>;
+    let lib: UcdLib<{ readMap: UcNullable<{ foo: string }> }>;
     let readMap: UcDeserializer<{ foo: string } | null>;
 
     beforeEach(async () => {

@@ -85,7 +85,7 @@ describe('UcList serializer', () => {
   });
 
   describe('nested list', () => {
-    let lib: UcsLib<{ writeList: UcList.Schema.Spec<number[]> }>;
+    let lib: UcsLib<{ writeList: UcList.Schema<number[]> }>;
 
     beforeEach(async () => {
       lib = await new UcsSetup({

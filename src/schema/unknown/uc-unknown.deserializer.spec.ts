@@ -92,7 +92,7 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let lib: UcdLib<{ readValue: UcNonNullable.Spec<UcUnknown, UcUnknown.Schema> }>;
+    let lib: UcdLib<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {

@@ -1,10 +1,4 @@
 import { UcInstructions } from './uc-instructions.js';
-import { UcSchemaResolver } from './uc-schema-resolver.js';
-
-/**
- * A key of URI charge schema {@link UcSchema.Ref reference} method that resolves to schema instance.
- */
-export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSchema');
 
 /**
  * URI charge schema definition.
@@ -14,8 +8,6 @@ export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSchema');
  * @typeParam T - Implied data type.
  */
 export interface UcSchema<out T = unknown> {
-  readonly [UcSchema__symbol]?: undefined;
-
   /**
    * Whether the data is optional.
    *
@@ -72,21 +64,26 @@ export interface UcSchema<out T = unknown> {
   toString?(): string;
 }
 
-/**
- * Creates URI charge schema {@link UcSchema.Ref reference}.
- *
- * @typeParam T - Implied data type.
- * @typeParam TSchema - Schema type.
- * @param resolve - Schema instance resolver.
- *
- * @returns Resolved schema instance or data class.
- */
-export function ucSchemaRef<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-  resolve: (resolver: UcSchemaResolver) => TSchema | UcSchema.Class<T>,
-): UcSchema.Ref<T, TSchema> {
-  return {
-    [UcSchema__symbol]: resolve,
-  };
+export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): TSchema;
+
+export function ucSchema<T>(type: UcSchema.Class<T>): UcSchema<T>;
+
+export function ucSchema<T, TSchema extends UcSchema.Spec<T> = UcSchema.Spec<T>>(
+  spec: TSchema,
+): TSchema;
+
+export function ucSchema<T, TSchema extends UcSchema.Spec<T> = UcSchema.Spec<T>>(
+  spec: TSchema,
+): TSchema {
+  if (typeof spec === 'function') {
+    return {
+      optional: false,
+      nullable: false,
+      type: spec,
+    } as TSchema;
+  }
+
+  return spec;
 }
 
 export namespace UcSchema {
@@ -100,8 +97,7 @@ export namespace UcSchema {
    */
   export type Spec<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> =
     | TSchema
-    | (UcSchema<T> extends TSchema ? Class<T> : never)
-    | Ref<T, TSchema>;
+    | (UcSchema<T> extends TSchema ? Class<T> : never);
 
   /**
    * Class constructor useable as URI charge schema.
@@ -110,48 +106,16 @@ export namespace UcSchema {
    */
   export type Class<T = unknown> = Constructor<T> | Factory<T>;
 
-  export interface Constructor<out T = unknown> {
-    readonly [UcSchema__symbol]?: undefined;
-    new (...args: never[]): T;
-  }
+  export type Constructor<out T = unknown> = new (...args: never[]) => T;
 
-  export interface Factory<out T = unknown> {
-    readonly [UcSchema__symbol]?: undefined;
-    (...args: never[]): T;
-  }
-
-  /**
-   * Reference to URI charge schema.
-   *
-   * Can be used as schema {@link Spec specifier}. Supposed to be {@link UcSchemaResolver#schemaOf resolved} to schema
-   * instance.
-   *
-   * Can be created by {@link ucSchemaRef} function.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   */
-  export interface Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-    /**
-     * Resolves schema instance.
-     *
-     * @param resolver - Resolver of nested schemae.
-     *
-     * @returns Resolved schema instance or data class.
-     */
-    [UcSchema__symbol](this: void, resolver: UcSchemaResolver): TSchema | UcSchema.Class<T>;
-  }
+  export type Factory<out T = unknown> = (...args: never[]) => T;
 
   /**
    * URI charge schema type of the given specifier.
    *
    * @typeParam TSpec - Schema specifier type.
    */
-  export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema>
-    ? TSchema
-    : TSpec extends Class<infer T>
-    ? UcSchema<T>
-    : TSpec;
+  export type Of<TSpec extends Spec> = TSpec extends Class<infer T> ? UcSchema<T> : TSpec;
 
   /**
    * Data type compatible with particular URI charge schema, including possible {@link UcSchema#nullable null} and
@@ -172,8 +136,6 @@ export namespace UcSchema {
    * @typeParam TSpec - Schema specifier type.
    */
   export type ImpliedType<TSpec extends Spec> = TSpec extends UcSchema<infer T>
-    ? T
-    : TSpec extends Ref<infer T>
     ? T
     : TSpec extends Class<infer T>
     ? T

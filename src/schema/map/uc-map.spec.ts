@@ -1,29 +1,21 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { ucSchemaName } from '../uc-schema-name.js';
-import { UcSchemaResolver } from '../uc-schema-resolver.js';
-import { UcSchema, ucSchemaRef } from '../uc-schema.js';
+import { UcSchema } from '../uc-schema.js';
 import { UcMap, ucMap } from './uc-map.js';
 
 describe('UcMap', () => {
-  let spec: UcMap.Schema.Spec<{
-    foo: UcSchema<string>;
-    bar: UcSchema.Ref<number>;
-  }>;
-  let resolver: UcSchemaResolver;
   let schema: UcMap.Schema<{ foo: UcSchema<string>; bar: UcSchema<number> }>;
 
   beforeEach(() => {
-    spec = ucMap({
+    schema = ucMap({
       foo: new EntrySchema<string>('test-string'),
-      bar: ucSchemaRef(() => new EntrySchema<number>('test-number')),
+      bar: new EntrySchema<number>('test-number'),
     });
-    resolver = new UcSchemaResolver();
-    schema = resolver.schemaOf(spec);
   });
 
   describe('entries', () => {
     it('contains per-entry schema', () => {
-      expect([...Object.keys(resolver.schemaOf(spec).entries)]).toEqual(['foo', 'bar']);
+      expect([...Object.keys(schema.entries)]).toEqual(['foo', 'bar']);
     });
   });
 
@@ -38,13 +30,12 @@ describe('UcMap', () => {
       expect(ucSchemaName(schema)).toBe('{foo: test-string, bar: test-number}');
     });
     it('reflects only a few entry schemae', () => {
-      const spec = ucMap({
+      const schema = ucMap({
         foo: new EntrySchema<string>('test-string'),
         '0abc': new EntrySchema<string>('test-string'),
         '%abc': new EntrySchema<string>('test-string'),
         bar: new EntrySchema<string>('test-string'),
       });
-      const schema = resolver.schemaOf(spec);
 
       expect(ucSchemaName(schema)).toBe(
         `{foo: test-string, '0abc': test-string, '%abc': test-string, ...}`,

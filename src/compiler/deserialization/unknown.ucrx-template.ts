@@ -23,11 +23,11 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
       .processSchema(this.mapSchemaFor(schema));
   }
 
-  static listSchemaFor(schema: UcSchema): UcList.Schema.Spec {
+  static listSchemaFor(schema: UcSchema): UcList.Schema {
     return ucList(schema, { id: 'listOf' + ucSchemaTypeSymbol(schema) });
   }
 
-  static mapSchemaFor(schema: UcSchema): UcMap.Schema.Spec<UcMap.Schema.Entries.Spec, UcSchema> {
+  static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Spec, UcSchema> {
     return ucMap<UcMap.Schema.Entries.Spec, UcSchema>(
       {},
       { id: 'mapOf' + ucSchemaTypeSymbol(schema), extra: schema },

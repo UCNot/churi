@@ -1,7 +1,7 @@
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { ucSchemaName } from '../uc-schema-name.js';
-import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
+import { UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
  * URI charge list represented as JavaScript array.
@@ -32,26 +32,6 @@ export namespace UcList {
 
   export namespace Schema {
     /**
-     * Schema specifier of URI charge list.
-     *
-     * @typeParam TItemSpec - Type of list item schema specifier.
-     */
-    export type Spec<
-      TItem = unknown,
-      TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
-    > = Schema<TItem, TItemSpec> | Ref<TItem, TItemSpec>;
-
-    /**
-     * Reference to schema of URI charge list.
-     *
-     * @typeParam TItemSpec - Type of list item schema specifier.
-     */
-    export type Ref<
-      TItem = unknown,
-      TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
-    > = UcSchema.Ref<TItem[], Schema<TItem, TItemSpec>>;
-
-    /**
      * Additional options for URI charge list schema.
      */
     export interface Options {
@@ -76,25 +56,21 @@ export namespace UcList {
 export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
   options?: UcList.Schema.Options,
-): UcList.Schema.Ref<TItem, TItemSpec>;
+): UcList.Schema<TItem, TItemSpec>;
 
 export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
   itemSpec: TItemSpec,
   { id }: UcList.Schema.Options = {},
-): UcList.Schema.Ref<TItem, TItemSpec> {
-  return {
-    [UcSchema__symbol]: resolver => {
-      const item = resolver.schemaOf(itemSpec) as UcSchema.Of<TItemSpec>;
+): UcList.Schema<TItem, TItemSpec> {
+  const item = ucSchema(itemSpec) as UcSchema.Of<TItemSpec>;
 
-      return {
-        type: 'list',
-        id: id ?? `list_${++UcList$idSeq}`,
-        with: UcList$instructions,
-        item,
-        toString() {
-          return `${ucSchemaName(item)}[]`;
-        },
-      };
+  return {
+    type: 'list',
+    id: id ?? `list_${++UcList$idSeq}`,
+    with: UcList$instructions,
+    item,
+    toString() {
+      return `${ucSchemaName(item)}[]`;
     },
   };
 }
