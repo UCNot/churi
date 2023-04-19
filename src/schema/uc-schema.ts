@@ -60,7 +60,7 @@ export interface UcSchema<out T = unknown> {
   /**
    * Custom schema name.
    *
-   * Used by {@link ucSchemaName} when defined.
+   * Used by {@link ucModelName} when defined.
    */
   toString?(): string;
 }
