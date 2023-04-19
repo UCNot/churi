@@ -6,14 +6,14 @@ import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucMap } from '../map/uc-map.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucOptional } from '../uc-optional.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 import { UcList, ucList } from './uc-list.js';
 
 describe('UcList serializer', () => {
   it('serializes list', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeList: ucList(Number),
       },
     }).bootstrap();
@@ -26,7 +26,7 @@ describe('UcList serializer', () => {
   });
   it('serializes empty list', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeList: ucList(Number),
       },
     }).bootstrap();
@@ -37,7 +37,7 @@ describe('UcList serializer', () => {
   });
   it('serializes nulls', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeList: ucList(ucNullable(Number)),
       },
     }).bootstrap();
@@ -50,7 +50,7 @@ describe('UcList serializer', () => {
   });
   it('serializes missing items as nulls', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeList: ucList(ucOptional(Number)),
       },
     }).bootstrap();
@@ -67,10 +67,8 @@ describe('UcList serializer', () => {
 
     beforeEach(async () => {
       const lib = await new UcsSetup({
-        schemae: {
-          writeList: ucList<{ foo: string }>(
-            ucMap<{ foo: UcSchema.Spec<string> }>({ foo: String }),
-          ),
+        models: {
+          writeList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
         },
       }).bootstrap();
 
@@ -85,11 +83,11 @@ describe('UcList serializer', () => {
   });
 
   describe('nested list', () => {
-    let lib: UcsLib<{ writeList: UcList.Schema.Spec<number[]> }>;
+    let lib: UcsLib<{ writeList: UcList.Schema<number[]> }>;
 
     beforeEach(async () => {
       lib = await new UcsSetup({
-        schemae: {
+        models: {
           writeList: ucList<number[]>(ucList<number>(Number)),
         },
       }).bootstrap();
@@ -123,7 +121,7 @@ describe('UcList serializer', () => {
 
   it('does not serialize unrecognized schema', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeList: ucList<number>({ type: 'test-type' }),
       },
     }).bootstrap();

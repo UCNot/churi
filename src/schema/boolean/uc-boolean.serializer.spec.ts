@@ -4,16 +4,16 @@ import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucOptional } from '../uc-optional.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcBoolean serializer', () => {
-  let lib: UcsLib<{ writeValue: UcSchema.Spec<boolean> }>;
+  let lib: UcsLib<{ writeValue: UcModel<boolean> }>;
   let writeValue: UcSerializer<boolean>;
 
   beforeEach(async () => {
     lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: Boolean,
       },
     }).bootstrap();
@@ -26,7 +26,7 @@ describe('UcBoolean serializer', () => {
   });
   it('serializes optional boolean', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: ucOptional(Boolean),
       },
     }).bootstrap();
@@ -38,7 +38,7 @@ describe('UcBoolean serializer', () => {
   });
   it('serializes nullable boolean', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: ucNullable(Boolean),
       },
     }).bootstrap();
@@ -50,7 +50,7 @@ describe('UcBoolean serializer', () => {
   });
   it('serializes optional nullable boolean', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: ucOptional(ucNullable(Boolean)),
       },
     }).bootstrap();

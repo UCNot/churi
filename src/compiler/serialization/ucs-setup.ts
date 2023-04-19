@@ -1,8 +1,7 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
@@ -17,35 +16,23 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
  *
  * Passed to {@link UcsFeature serializer feature} when the latter enabled.
  *
- * @typeParam TSchemae - Compiled schemae type.
+ * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
+export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
 
-  readonly #options: UcsSetup.Options<TSchemae>;
-  readonly #resolver: UcSchemaResolver;
+  readonly #options: UcsSetup.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
   readonly #uses = new Map<UcSchema['type'], UcsSetup$FeatureUse>();
   #hasPendingInstructions = false;
-  readonly #generators = new Map<string | UcSchema.Class, UcsGenerator>();
+  readonly #generators = new Map<string | UcDataType, UcsGenerator>();
 
   /**
    * Starts serializer setup.
    *
    * @param options - Setup options.
    */
-  constructor(options: UcsSetup.Options<TSchemae>) {
+  constructor(options: UcsSetup.Options<TModels>) {
     this.#options = options;
-
-    const { resolver = new UcSchemaResolver() } = options;
-
-    this.#resolver = resolver;
-  }
-
-  /**
-   * Configured schema resolver.
-   */
-  get resolver(): UcSchemaResolver {
-    return this.#resolver;
   }
 
   /**
@@ -69,14 +56,15 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   /**
-   * Applies schema serialization instructions.
+   * Applies model serialization instructions.
    *
-   * @param spec - Target schema specifier.
+   * @param T - Implied data type.
+   * @param model - Target model.
    *
    * @returns `this` instance.
    */
-  processSchema<T>(spec: UcSchema.Spec<T>): this {
-    const schema = this.resolver.schemaOf(spec);
+  processModel<T>(model: UcModel<T>): this {
+    const schema = ucSchema(model);
     const use = asArray(schema.with?.serializer?.use);
 
     use.forEach(useFeature => this.#useFeature(schema, useFeature));
@@ -127,7 +115,7 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
    *
    * @returns Promise resolved to configured serializer library.
    */
-  async bootstrap(): Promise<UcsLib<TSchemae>> {
+  async bootstrap(): Promise<UcsLib<TModels>> {
     return new UcsLib(await this.bootstrapOptions());
   }
 
@@ -138,12 +126,11 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
    *
    * @returns Promise resolved to serializer library options.
    */
-  async bootstrapOptions(): Promise<UcsLib.Options<TSchemae>> {
+  async bootstrapOptions(): Promise<UcsLib.Options<TModels>> {
     await this.#init();
 
     return {
       ...this.#options,
-      resolver: this.#resolver,
       generatorFor: this.#generatorFor.bind(this),
     };
   }
@@ -165,10 +152,10 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
   }
 
   #collectInstructions(): void {
-    const { schemae } = this.#options;
+    const { models } = this.#options;
 
-    Object.values(schemae).forEach(spec => {
-      this.processSchema(this.resolver.schemaOf(spec));
+    Object.values(models).forEach(model => {
+      this.processModel(model);
     });
   }
 
@@ -196,9 +183,8 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 }
 
 export namespace UcsSetup {
-  export interface Options<TSchemae extends UcsLib.Schemae> extends UccLib.Options {
-    readonly schemae: TSchemae;
-    readonly resolver?: UcSchemaResolver | undefined;
+  export interface Options<TModels extends UcsLib.Models> extends UccLib.Options {
+    readonly models: TModels;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
 
     createSerializer?<T, TSchema extends UcSchema<T>>(

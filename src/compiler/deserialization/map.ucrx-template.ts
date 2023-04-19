@@ -2,8 +2,8 @@ import { lazyValue } from '@proc7ts/primitives';
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { escapeJsString, jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
@@ -17,20 +17,20 @@ import { UcdLib } from './ucd-lib.js';
 import { UcdSetup } from './ucd-setup.js';
 
 export class MapUcrxTemplate<
-  TEntriesSpec extends UcMap.Schema.Entries.Spec = UcMap.Schema.Entries.Spec,
-  TExtraSpec extends UcSchema.Spec | false = false,
+  TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
+  TExtraModel extends UcModel | false = false,
 > extends CustomUcrxTemplate<
-  UcMap.ObjectType<TEntriesSpec, TExtraSpec>,
-  UcMap.Schema<TEntriesSpec, TExtraSpec>
+  UcMap.Infer<TEntriesModel, TExtraModel>,
+  UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
   static configureSchemaDeserializer(setup: UcdSetup, { entries, extra }: UcMap.Schema): void {
     setup.useUcrxTemplate('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
     for (const entrySchema of Object.values(entries)) {
-      setup.processSchema(entrySchema);
+      setup.processModel(entrySchema);
     }
     if (extra) {
-      setup.processSchema(extra);
+      setup.processModel(extra);
     }
   }
 
@@ -40,7 +40,7 @@ export class MapUcrxTemplate<
   readonly #varRx = lazyValue(() => this.#ns.name('rx'));
   #allocation?: MapUcrxTemplate.Allocation;
 
-  constructor(lib: UcdLib, schema: UcMap.Schema<TEntriesSpec, TExtraSpec>) {
+  constructor(lib: UcdLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>) {
     super({
       lib,
       schema,
@@ -177,7 +177,7 @@ export class MapUcrxTemplate<
 
       throw new UnsupportedUcSchemaError(
         schema,
-        `${ucSchemaName(this.schema)}: Can not deserialize ${entryName} of type "${ucSchemaName(
+        `${ucModelName(this.schema)}: Can not deserialize ${entryName} of type "${ucModelName(
           schema,
         )}"`,
         { cause },

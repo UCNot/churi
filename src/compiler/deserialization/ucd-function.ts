@@ -1,7 +1,7 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
@@ -81,7 +81,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       if (!template) {
         throw new UnsupportedUcSchemaError(
           this.schema,
-          `${ucSchemaName(this.schema)}: Can not deserialize type "${ucSchemaName(this.schema)}"`,
+          `${ucModelName(this.schema)}: Can not deserialize type "${ucModelName(this.schema)}"`,
         );
       }
 

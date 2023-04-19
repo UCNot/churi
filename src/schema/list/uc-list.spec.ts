@@ -1,23 +1,17 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ucSchemaName } from '../uc-schema-name.js';
-import { UcSchemaResolver } from '../uc-schema-resolver.js';
-import { ucSchemaRef } from '../uc-schema.js';
+import { ucModelName } from '../uc-model-name.js';
 import { UcList, ucList } from './uc-list.js';
 
 describe('UcList', () => {
-  const spec = ucList<string>(ucSchemaRef<string>(() => String));
-
-  let resolver: UcSchemaResolver;
   let schema: UcList.Schema<string>;
 
   beforeEach(() => {
-    resolver = new UcSchemaResolver();
-    schema = resolver.schemaOf(spec);
+    schema = ucList<string>(String);
   });
 
   describe('item', () => {
     it('contains item schema', () => {
-      expect(resolver.schemaOf(spec).item).toEqual({
+      expect(schema.item).toEqual({
         optional: false,
         nullable: false,
         type: String,
@@ -33,7 +27,7 @@ describe('UcList', () => {
 
   describe('name', () => {
     it('reflects item type', () => {
-      expect(ucSchemaName(schema)).toBe('String[]');
+      expect(ucModelName(schema)).toBe('String[]');
     });
   });
 });

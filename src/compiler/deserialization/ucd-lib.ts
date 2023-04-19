@@ -1,7 +1,7 @@
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
@@ -13,44 +13,41 @@ import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdFunction } from './ucd-function.js';
 
 /**
- * Deserializer library that {@link UcdLib#compile compiles schemae} into deserialization functions.
+ * Deserializer library that {@link UcdLib#compile compiles data models} into their deserialization functions.
  *
  * An {@link UcdSetup deserializer setup} expected to be used to configure and {@link UcdSetup#bootstrap bootstrap}
  * the library instance.
  *
- * @typeParam TSchemae - Compiled schemae type.
+ * @typeParam TModels - Compiled models record type.
  */
-export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends UcrxLib {
+export class UcdLib<TModels extends UcdLib.Models = UcdLib.Models> extends UcrxLib {
 
-  readonly #schemae: {
-    readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+  readonly #models: {
+    readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
   };
 
-  readonly #options: UcdLib.Options<TSchemae>;
+  readonly #options: UcdLib.Options<TModels>;
   readonly #entities: UcdLib.EntityConfig[] | undefined;
-  readonly #createDeserializer: Exclude<UcdLib.Options<TSchemae>['createDeserializer'], undefined>;
-  readonly #deserializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcdFunction>>();
+  readonly #createDeserializer: Exclude<UcdLib.Options<TModels>['createDeserializer'], undefined>;
+  readonly #deserializers = new Map<string | UcDataType, Map<UcSchema$Variant, UcdFunction>>();
   #entityHandler?: string;
 
-  constructor(options: UcdLib.Options<TSchemae>) {
-    const { schemae, entities, createDeserializer = options => new UcdFunction(options) } = options;
+  constructor(options: UcdLib.Options<TModels>) {
+    const { models, entities, createDeserializer = options => new UcdFunction(options) } = options;
 
     super({ ...options });
 
     this.#options = options;
     this.#entities = entities;
-    this.#schemae = Object.fromEntries(
-      Object.entries(schemae).map(([externalName, schemaSpec]) => [
-        externalName,
-        this.resolver.schemaOf(schemaSpec),
-      ]),
+    this.#models = Object.fromEntries(
+      Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
     ) as {
-      readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+      readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
     };
 
     this.#createDeserializer = createDeserializer;
 
-    for (const schema of Object.values(this.#schemae)) {
+    for (const schema of Object.values(this.#models)) {
       this.deserializerFor(schema);
     }
   }
@@ -153,11 +150,11 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     return this.#options.ucrxTemplateFactoryFor?.(schema);
   }
 
-  compile(mode: 'async'): UcdLib.AsyncCompiled<TSchemae>;
-  compile(mode: 'sync'): UcdLib.SyncCompiled<TSchemae>;
-  compile(mode?: UcDeserializer.Mode): UcdLib.Compiled<TSchemae>;
+  compile(mode: 'async'): UcdLib.AsyncCompiled<TModels>;
+  compile(mode: 'sync'): UcdLib.SyncCompiled<TModels>;
+  compile(mode?: UcDeserializer.Mode): UcdLib.Compiled<TModels>;
 
-  compile(mode: UcDeserializer.Mode = 'all'): UcdLib.Compiled<TSchemae> {
+  compile(mode: UcDeserializer.Mode = 'all'): UcdLib.Compiled<TModels> {
     return {
       lib: this,
       toCode: () => this.#toFactoryCode(mode),
@@ -189,16 +186,16 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     };
   }
 
-  async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TSchemae>> {
+  async #toDeserializers(mode: UcDeserializer.Mode): Promise<UcdLib.Exports<TModels>> {
     const text = await new UccCode().write(this.#toFactoryCode(mode)).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(text) as () => Promise<UcdLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcdLib.Exports<TModels>>;
 
     return await factory();
   }
 
-  compileModule(mode: UcDeserializer.Mode = 'all'): UcdLib.Module<TSchemae> {
+  compileModule(mode: UcDeserializer.Mode = 'all'): UcdLib.Module<TModels> {
     return {
       lib: this,
       toCode: () => this.#toModuleCode(mode),
@@ -230,7 +227,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     return code => {
       const { opaqueUcrx } = this;
 
-      for (const [externalName, schema] of Object.entries(this.#schemae)) {
+      for (const [externalName, schema] of Object.entries(this.#models)) {
         const fn = this.deserializerFor(schema);
         const input = mode === 'async' ? fn.vars.stream : fn.vars.input;
         const options = fn.vars.options;
@@ -273,8 +270,8 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
 }
 
 export namespace UcdLib {
-  export interface Options<TSchemae extends Schemae> extends UcrxLib.Options {
-    readonly schemae: TSchemae;
+  export interface Options<TModels extends Models> extends UcrxLib.Options {
+    readonly models: TModels;
     readonly entities?: EntityConfig[] | undefined;
 
     ucrxTemplateFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -294,39 +291,39 @@ export namespace UcdLib {
     readonly prefix?: boolean;
   }
 
-  export interface Schemae {
-    readonly [reader: string]: UcSchema.Spec;
+  export interface Models {
+    readonly [reader: string]: UcModel;
   }
 
-  export type Exports<TSchemae extends Schemae> = {
-    readonly [reader in keyof TSchemae]: UcDeserializer<UcSchema.DataType<TSchemae[reader]>>;
+  export type Exports<TModels extends Models> = {
+    readonly [reader in keyof TModels]: UcDeserializer<UcInfer<TModels[reader]>>;
   };
 
-  export type AsyncExports<TSchemae extends Schemae> = {
-    readonly [reader in keyof TSchemae]: UcDeserializer.Async<UcSchema.DataType<TSchemae[reader]>>;
+  export type AsyncExports<TModels extends Models> = {
+    readonly [reader in keyof TModels]: UcDeserializer.Async<UcInfer<TModels[reader]>>;
   };
 
-  export type SyncExports<TSchemae extends Schemae> = {
-    readonly [reader in keyof TSchemae]: UcDeserializer.Sync<UcSchema.DataType<TSchemae[reader]>>;
+  export type SyncExports<TModels extends Models> = {
+    readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
   };
 
-  export interface Compiled<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcdLib<TSchemae>;
-    toDeserializers(): Promise<Exports<TSchemae>>;
+  export interface Compiled<TModels extends Models> extends UccFragment {
+    readonly lib: UcdLib<TModels>;
+    toDeserializers(): Promise<Exports<TModels>>;
   }
 
-  export interface AsyncCompiled<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcdLib<TSchemae>;
-    toDeserializers(): Promise<AsyncExports<TSchemae>>;
+  export interface AsyncCompiled<TModels extends Models> extends UccFragment {
+    readonly lib: UcdLib<TModels>;
+    toDeserializers(): Promise<AsyncExports<TModels>>;
   }
 
-  export interface SyncCompiled<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcdLib<TSchemae>;
-    toDeserializers(): Promise<SyncExports<TSchemae>>;
+  export interface SyncCompiled<TModels extends Models> extends UccFragment {
+    readonly lib: UcdLib<TModels>;
+    toDeserializers(): Promise<SyncExports<TModels>>;
   }
 
-  export interface Module<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcdLib<TSchemae>;
+  export interface Module<TModels extends Models> extends UccFragment {
+    readonly lib: UcdLib<TModels>;
     toText(): Promise<string>;
   }
 }

@@ -24,7 +24,7 @@ describe('UcUnknown deserializer', () => {
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = await new UcdSetup({ schemae: { readValue: ucUnknown() } }).bootstrap();
+      lib = await new UcdSetup({ models: { readValue: ucUnknown() } }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
 
@@ -92,12 +92,12 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let lib: UcdLib<{ readValue: UcNonNullable.Spec<UcUnknown, UcUnknown.Schema> }>;
+    let lib: UcdLib<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: { readValue: ucNullable(ucUnknown(), false) },
+        models: { readValue: ucNullable(ucUnknown(), false) },
       }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());
     });
@@ -123,7 +123,7 @@ describe('UcUnknown deserializer', () => {
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: { readValue: ucUnknown() },
+        models: { readValue: ucUnknown() },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
       }).bootstrap();
       ({ readValue } = await lib.compile().toDeserializers());

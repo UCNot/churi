@@ -8,7 +8,7 @@ import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';
 import { UcNullable, ucNullable } from '../uc-nullable.js';
 import { UcOptional, ucOptional } from '../uc-optional.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcDataType, UcModel } from '../uc-schema.js';
 import { UcMap, ucMap } from './uc-map.js';
 
 describe('UcMap deserializer', () => {
@@ -22,13 +22,13 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let lib: UcdLib<{ readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string> }> }>;
+    let lib: UcdLib<{ readMap: UcMap.Schema<{ foo: UcModel<string> }> }>;
     let readMap: UcDeserializer<{ foo: string }>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
-          readMap: ucMap<{ foo: UcSchema.Spec<string> }>({
+        models: {
+          readMap: ucMap<{ foo: UcModel<string> }>({
             foo: String,
           }),
         },
@@ -112,7 +112,7 @@ describe('UcMap deserializer', () => {
     });
     it('does not deserialize unrecognized entity schema', async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucMap({
             test: { type: 'test-type' },
           }),
@@ -139,14 +139,14 @@ describe('UcMap deserializer', () => {
 
   describe('multiple entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>;
+      readMap: UcMap.Schema<{ foo: UcModel<string>; bar: UcModel<string> }>;
     }>;
     let readMap: UcDeserializer<{ foo: string; bar: string }>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
-          readMap: ucMap<{ foo: UcSchema.Spec<string>; bar: UcSchema.Spec<string> }>({
+        models: {
+          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
             foo: String,
             bar: String,
           }),
@@ -267,19 +267,19 @@ describe('UcMap deserializer', () => {
 
   describe('extra entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ length: UcSchema.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema<{ length: UcModel<number> }, UcModel<string>>;
     }>;
     let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucMap(
             {
-              length: Number as UcSchema.Class<number>,
+              length: Number as UcDataType<number>,
             },
             {
-              extra: String as UcSchema.Class<string>,
+              extra: String as UcDataType<string>,
             },
           ),
         },
@@ -296,7 +296,7 @@ describe('UcMap deserializer', () => {
     });
     it('does not deserialize unrecognized extra schema', async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucMap(
             {
               test: String,
@@ -328,7 +328,7 @@ describe('UcMap deserializer', () => {
 
   describe('optional entries', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{ length: UcOptional.Spec<number> }, UcSchema.Spec<string>>;
+      readMap: UcMap.Schema<{ length: UcOptional<number> }, UcModel<string>>;
     }>;
     let readMap: UcDeserializer<
       { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
@@ -336,13 +336,13 @@ describe('UcMap deserializer', () => {
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucMap(
             {
               length: ucOptional<number>(Number),
             },
             {
-              extra: String as UcSchema.Class<string>,
+              extra: String as UcDataType<string>,
             },
           ),
         },
@@ -369,16 +369,16 @@ describe('UcMap deserializer', () => {
 
   describe('list entry', () => {
     let lib: UcdLib<{
-      readMap: UcMap.Schema.Spec<{
-        foo: UcList.Schema.Spec<string>;
-        bar: UcList.Schema.Spec<number>;
+      readMap: UcMap.Schema<{
+        foo: UcList.Schema<string>;
+        bar: UcList.Schema<number>;
       }>;
     }>;
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucMap({
             foo: ucList<string>(String),
             bar: ucList<number>(Number),
@@ -443,14 +443,14 @@ describe('UcMap deserializer', () => {
   });
 
   describe('nullable', () => {
-    let lib: UcdLib<{ readMap: UcNullable.Spec<{ foo: string }> }>;
+    let lib: UcdLib<{ readMap: UcNullable<{ foo: string }> }>;
     let readMap: UcDeserializer<{ foo: string } | null>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMap: ucNullable(
-            ucMap<{ foo: UcSchema.Spec<string> }>({
+            ucMap<{ foo: UcModel<string> }>({
               foo: String,
             }),
           ),

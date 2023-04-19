@@ -3,16 +3,16 @@ import { UcsFunction } from '../../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
 import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel, UcSchema } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcString serializer', () => {
-  let lib: UcsLib<{ writeValue: UcSchema.Spec<string> }>;
+  let lib: UcsLib<{ writeValue: UcModel<string> }>;
   let writeValue: UcSerializer<string>;
 
   beforeEach(async () => {
     lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: String,
       },
     }).bootstrap();
@@ -43,7 +43,7 @@ describe('UcString serializer', () => {
   });
   it('writes multiple chunks', async () => {
     lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeValue: String,
       },
       createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {

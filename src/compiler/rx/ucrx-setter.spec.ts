@@ -11,7 +11,7 @@ describe('UcrxSetter', () => {
   let template: BaseUcrxTemplate;
 
   beforeEach(async () => {
-    lib = await new UcdSetup({ schemae: {} }).bootstrap();
+    lib = await new UcdSetup({ models: {} }).bootstrap();
     template = lib.voidUcrx;
   });
 

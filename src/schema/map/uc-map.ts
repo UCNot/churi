@@ -1,8 +1,8 @@
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../uc-instructions.js';
-import { ucSchemaName } from '../uc-schema-name.js';
-import { UcSchema, UcSchema__symbol } from '../uc-schema.js';
+import { ucModelName } from '../uc-model-name.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
  * URI charge map represented as JavaScript object.
@@ -17,104 +17,78 @@ export namespace UcMap {
    *
    * Such schema can be built with {@link ucMap} function.
    *
-   * @typeParam TEntriesSpec - Per-entry schema specifier type.
-   * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
+   * @typeParam TEntriesModel - Per-entry model type.
+   * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
   export interface Schema<
-    TEntriesSpec extends Schema.Entries.Spec = Schema.Entries.Spec,
-    TExtraSpec extends UcSchema.Spec | false = false,
-  > extends UcSchema<ObjectType<TEntriesSpec, TExtraSpec>> {
+    TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
+    TExtraModel extends UcModel | false = false,
+  > extends UcSchema<Infer<TEntriesModel, TExtraModel>> {
     readonly type: 'map';
-    readonly entries: Schema.Entries<TEntriesSpec>;
-    readonly extra: TExtraSpec extends UcSchema.Spec ? UcSchema.Of<TExtraSpec> : false;
+    readonly entries: Schema.Entries<TEntriesModel>;
+    readonly extra: TExtraModel extends UcModel ? UcSchema.Of<TExtraModel> : false;
   }
 
   /**
-   * Type of object compatible with schema of URI charge map.
+   * Type of object inferred from the map model.
    *
-   * @typeParam TEntriesSpec - Per-entry schema specifier type.
-   * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
+   * @typeParam TEntriesModel - Per-entry model type.
+   * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
-  export type ObjectType<
-    TEntriesSpec extends Schema.Entries.Spec,
-    TExtraSpec extends UcSchema.Spec | false = false,
+  export type Infer<
+    TEntriesModel extends Schema.Entries.Model,
+    TExtraModel extends UcModel | false = false,
   > = {
-    -readonly [key in RequiredKeys<TEntriesSpec>]: UcSchema.DataType<TEntriesSpec[key]>;
+    -readonly [key in RequiredKeys<TEntriesModel>]: UcInfer<TEntriesModel[key]>;
   } & {
-    -readonly [key in OptionalKeys<TEntriesSpec>]?: UcSchema.DataType<TEntriesSpec[key]>;
-  } & (TExtraSpec extends UcSchema.Spec<any>
-      ? { [key in Exclude<string, keyof TEntriesSpec>]: UcSchema.DataType<TExtraSpec> }
+    -readonly [key in OptionalKeys<TEntriesModel>]?: UcInfer<TEntriesModel[key]>;
+  } & (TExtraModel extends UcModel<any>
+      ? { [key in Exclude<string, keyof TEntriesModel>]: UcInfer<TExtraModel> }
       : { [key in never]: never });
 
   export type Required<
-    TEntriesSpec extends Schema.Entries.Spec,
-    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
-  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
+    TEntriesModel extends Schema.Entries.Model,
+    TKey extends keyof TEntriesModel = keyof TEntriesModel,
+  > = undefined extends UcInfer<TEntriesModel[TKey]> ? TKey : never;
 
   export type RequiredKeys<
-    TEntriesSpec extends Schema.Entries.Spec,
-    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
-  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? never : TKey;
+    TEntriesModel extends Schema.Entries.Model,
+    TKey extends keyof TEntriesModel = keyof TEntriesModel,
+  > = undefined extends UcInfer<TEntriesModel[TKey]> ? never : TKey;
 
   export type OptionalKeys<
-    TEntriesSpec extends Schema.Entries.Spec,
-    TKey extends keyof TEntriesSpec = keyof TEntriesSpec,
-  > = undefined extends UcSchema.DataType<TEntriesSpec[TKey]> ? TKey : never;
+    TEntriesModel extends Schema.Entries.Model,
+    TKey extends keyof TEntriesModel = keyof TEntriesModel,
+  > = undefined extends UcInfer<TEntriesModel[TKey]> ? TKey : never;
 
-  export type ExtraKeys<TEntriesSpec extends Schema.Entries.Spec> = Exclude<
+  export type ExtraKeys<TEntriesModel extends Schema.Entries.Model> = Exclude<
     string,
-    keyof TEntriesSpec
+    keyof TEntriesModel
   >;
 
   export namespace Schema {
     /**
-     * Schema specifier of URI charge map.
-     *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
-     */
-    export type Spec<
-      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
-      TExtraSpec extends UcSchema.Spec | false = false,
-    > = Schema<TEntriesSpec, TExtraSpec> | Ref<TEntriesSpec, TExtraSpec>;
-
-    /**
-     * Reference to schema of URI charge map.
-     *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
-     */
-    export type Ref<
-      TEntriesSpec extends Entries.Spec = Schema.Entries.Spec,
-      TExtraSpec extends UcSchema.Spec | false = false,
-    > = UcSchema.Ref<ObjectType<TEntriesSpec, TExtraSpec>, Schema<TEntriesSpec, TExtraSpec>>;
-
-    /**
      * Per-entry schema of URI charge map.
      *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
+     * @typeParam TEntriesModel - Per-entry model type.
      */
-    export type Entries<TEntriesSpec extends Entries.Spec> = {
-      readonly [key in keyof TEntriesSpec]: UcSchema.Of<TEntriesSpec[key]>;
+    export type Entries<TEntriesModel extends Entries.Model> = {
+      readonly [key in keyof TEntriesModel]: UcSchema.Of<TEntriesModel[key]>;
     };
 
     export namespace Entries {
       /**
-       * Per-entry schema specifier of the map.
+       * Per-entry model of the map.
        *
-       * Each property corresponds to a map entry with data type implied by corresponding schema specifier.
+       * Each property corresponds to a map entry with data type implied by corresponding model.
        */
-      export type Spec = {
-        readonly [key in string]: UcSchema.Spec;
+      export type Model = {
+        readonly [key in string]: UcModel;
       };
     }
 
     /**
-     * Additional options for URI charge map schema.
-     *
-     * @typeParam TEntriesSpec - Per-entry schema specifier type.
-     * @typeParam TExtraSpec - Schema specifier for extra entries, or `false` to prohibit extra entries.
+     * Additional options for the {@link ucMap map schema}.
      */
     export interface BaseOptions {
       /**
@@ -122,17 +96,17 @@ export namespace UcMap {
        *
        * @defaultValue Autogenerated string.
        */
-      readonly id?: string | UcSchema.Class | undefined;
+      readonly id?: string | UcDataType | undefined;
     }
 
-    export type Options<TExtraSpec extends UcSchema.Spec> = ExactOptions | ExtraOptions<TExtraSpec>;
+    export type Options<TExtraModel extends UcModel> = ExactOptions | ExtraOptions<TExtraModel>;
 
     export interface ExactOptions extends BaseOptions {
       readonly extra?: false | undefined;
     }
 
-    export interface ExtraOptions<TExtraSpec extends UcSchema.Spec> extends BaseOptions {
-      readonly extra: TExtraSpec;
+    export interface ExtraOptions<TExtraModel extends UcModel> extends BaseOptions {
+      readonly extra: TExtraModel;
     }
   }
 }
@@ -140,72 +114,62 @@ export namespace UcMap {
 /**
  * Creates a reference to URI charge schema for JavaScript {@link UcMap object} serialized as map.
  *
- * @typeParam TEntriesSpec - Per-entry schema specifier type.
- * @param entries - Per-entry schema entries spec.
+ * @typeParam TEntriesModel - Per-entry model type.
+ * @param entries - Per-entry model.
  * @param options - Schema options.
  *
- * @returns Reference to schema of URI charge map.
+ * @returns New map schema.
  */
-export function ucMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
-  spec: TEntriesSpec,
+export function ucMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
+  entries: TEntriesModel,
   options?: UcMap.Schema.ExactOptions,
-): UcMap.Schema.Ref<TEntriesSpec>;
+): UcMap.Schema<TEntriesModel>;
 
 export function ucMap<
-  TEntriesSpec extends UcMap.Schema.Entries.Spec,
-  TExtraSpec extends UcSchema.Spec,
+  TEntriesModel extends UcMap.Schema.Entries.Model,
+  TExtraModel extends UcModel,
 >(
-  spec: TEntriesSpec,
-  options: UcMap.Schema.ExtraOptions<TExtraSpec>,
-): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec>;
+  entries: TEntriesModel,
+  options: UcMap.Schema.ExtraOptions<TExtraModel>,
+): UcMap.Schema<TEntriesModel, TExtraModel>;
 
 export function ucMap<
-  TEntriesSpec extends UcMap.Schema.Entries.Spec,
-  TExtraSpec extends UcSchema.Spec,
+  TEntriesModel extends UcMap.Schema.Entries.Model,
+  TExtraModel extends UcModel,
 >(
-  spec: TEntriesSpec,
-  { id, extra }: UcMap.Schema.Options<TExtraSpec> = {},
-): UcMap.Schema.Ref<TEntriesSpec, TExtraSpec> {
+  entriesModel: TEntriesModel,
+  { id, extra }: UcMap.Schema.Options<TExtraModel> = {},
+): UcMap.Schema<TEntriesModel, TExtraModel> {
+  const entries: [string, UcSchema][] = Object.entries(entriesModel).map(([key, model]) => [
+    key,
+    ucSchema(model),
+  ]);
+
   return {
-    [UcSchema__symbol]: resolver => {
-      const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(
-        ([key, spec]) => {
-          const schema = resolver.schemaOf(spec);
+    type: 'map',
+    id: id ?? `map_${++UcMap$idSeq}`,
+    with: UcMap$instructions,
+    entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesModel>,
+    extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
+    toString() {
+      let out = '{';
 
-          return [key, schema];
-        },
-      );
+      entries.every(([key, entry], i) => {
+        if (i) {
+          out += ', ';
+        }
+        out += jsPropertyKey(key) + ': ' + ucModelName(entry);
 
-      return {
-        type: 'map',
-        id: id ?? `map_${++UcMap$idSeq}`,
-        with: UcMap$instructions,
-        entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesSpec>,
-        extra: (extra ? resolver.schemaOf(extra) : false) as UcMap.Schema<
-          TEntriesSpec,
-          TExtraSpec
-        >['extra'],
-        toString() {
-          let out = '{';
+        if (i < 2) {
+          return true;
+        }
 
-          entries.every(([key, entry], i) => {
-            if (i) {
-              out += ', ';
-            }
-            out += jsPropertyKey(key) + ': ' + ucSchemaName(entry);
+        out += ', ...';
 
-            if (i < 2) {
-              return true;
-            }
+        return false;
+      });
 
-            out += ', ...';
-
-            return false;
-          });
-
-          return out + '}';
-        },
-      };
+      return out + '}';
     },
   };
 }

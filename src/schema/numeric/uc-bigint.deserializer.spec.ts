@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
+import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcSchema } from '../uc-schema.js';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcModel } from '../uc-schema.js';
 
 describe('UcBigInt deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -16,12 +16,12 @@ describe('UcBigInt deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcSchema.Spec<bigint> }>;
+  let lib: UcdLib<{ readValue: UcModel<bigint> }>;
   let readValue: UcDeserializer<bigint>;
 
   beforeEach(async () => {
     lib = await new UcdSetup({
-      schemae: {
+      models: {
         readValue: BigInt,
       },
     }).bootstrap();

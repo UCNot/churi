@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
 
 describe('UcsLib', () => {
   describe('serializerFor', () => {
-    let lib: UcsLib<{ writeValue: UcSchema.Spec<number> }>;
+    let lib: UcsLib<{ writeValue: UcModel<number> }>;
 
     beforeEach(async () => {
-      lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-        schemae: { writeValue: Number },
+      lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: Number },
       }).bootstrap();
     });
 
@@ -26,16 +26,10 @@ describe('UcsLib', () => {
     });
   });
 
-  describe('resolver', () => {
-    it('has default value', () => {
-      expect(new UcsLib({ schemae: {} }).resolver).toBeDefined();
-    });
-  });
-
   describe('compileModule', () => {
     it('compiles module', async () => {
-      const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-        schemae: { writeValue: Number },
+      const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: Number },
       }).bootstrap();
       const module = lib.compileModule();
 

@@ -22,7 +22,7 @@ describe('UcEntity deserializer', () => {
 
   it('(async) does not recognize unknown entity', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readNumber: Number,
       },
       features: ucdSupportPrimitives,
@@ -43,7 +43,7 @@ describe('UcEntity deserializer', () => {
   });
   it('(sync) does not recognize unknown entity', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readNumber: Number,
       },
       features: ucdSupportPrimitives,
@@ -65,7 +65,7 @@ describe('UcEntity deserializer', () => {
 
   it('recognizes by custom prefix', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readString: String,
       },
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
@@ -76,7 +76,7 @@ describe('UcEntity deserializer', () => {
   });
   it('closes hanging parentheses', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readString: String,
       },
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
@@ -89,7 +89,7 @@ describe('UcEntity deserializer', () => {
   });
   it('extends base ucrx', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readTimestamp: Number,
       },
       features: [ucdSupportPrimitives, ucdSupportTimestampEntity],
@@ -101,7 +101,7 @@ describe('UcEntity deserializer', () => {
   });
   it('fails without required ucrx method', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readTimestamp: Number,
       },
       features: [ucdSupportPrimitives, ucdSupportTimestampEntityOnly],

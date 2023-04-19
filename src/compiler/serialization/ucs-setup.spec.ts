@@ -1,13 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcsSupportNumberAsHex } from '../../spec/write-uc-hex-number.js';
 import { UcsSetup } from './ucs-setup.js';
 
 describe('UcsSetup', () => {
   it('respects custom serializer', async () => {
-    const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-      schemae: { writeValue: Number },
+    const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+      models: { writeValue: Number },
       features: UcsSupportNumberAsHex,
     }).bootstrap();
 
@@ -27,8 +27,8 @@ describe('UcsSetup', () => {
         },
       };
 
-      const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-        schemae: { writeValue: schema },
+      const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: schema },
       }).bootstrap();
       const { writeValue } = await lib.compile().toSerializers();
 
@@ -44,8 +44,8 @@ describe('UcsSetup', () => {
         },
       };
 
-      const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-        schemae: { writeValue: schema },
+      const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: schema },
       }).bootstrap();
       const { writeValue } = await lib.compile().toSerializers();
 
@@ -62,8 +62,8 @@ describe('UcsSetup', () => {
       };
 
       await expect(
-        new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-          schemae: { writeValue: schema },
+        new UcsSetup<{ writeValue: UcModel<number> }>({
+          models: { writeValue: schema },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(`No such serializer feature: import('churi/spec').MissingFeature`),
@@ -80,8 +80,8 @@ describe('UcsSetup', () => {
       };
 
       await expect(
-        new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({
-          schemae: { writeValue: schema },
+        new UcsSetup<{ writeValue: UcModel<number> }>({
+          models: { writeValue: schema },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(`Not a serializer feature: import('churi/spec').WrongFeature`),

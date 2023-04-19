@@ -1,9 +1,8 @@
 import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
-import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchemaResolver } from './uc-schema-resolver.js';
-import { UcSchema } from './uc-schema.js';
+import { ucModelName } from './uc-model-name.js';
+import { UcModel } from './uc-schema.js';
 
 /**
  * Data deserializer signature.
@@ -107,7 +106,7 @@ export namespace UcDeserializer {
 }
 
 /**
- * Creates deserializer for the given data `schema`.
+ * Creates deserializer for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
  * [ts-transformer-churi] enabled.
@@ -115,16 +114,14 @@ export namespace UcDeserializer {
  * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
  *
  * @typeParam T - Deserialized data type.
- * @param schema - Specifier of deserialized data schema.
+ * @param model - Deserialized data model.
  *
  * @returns Deserializer instance.
  */
-export function createUcDeserializer<T>(schema: UcSchema.Spec<T>): UcDeserializer<T>;
-
-export function createUcDeserializer<T>(schema: UcSchema.Spec<T>): UcDeserializer<T> {
+export function createUcDeserializer<T>(model: UcModel<T>): UcDeserializer<T> {
   throw new TypeError(
-    `Can not create deserializer for ${ucSchemaName(
-      new UcSchemaResolver().schemaOf(schema),
+    `Can not create deserializer for ${ucModelName(
+      model,
     )}. Is "ts-transform-churi" transformer applied?`,
   );
 }

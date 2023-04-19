@@ -1,20 +1,20 @@
 import { UcInstructions } from './uc-instructions.js';
-import { UcSchemaResolver } from './uc-schema-resolver.js';
 
 /**
- * A key of URI charge schema {@link UcSchema.Ref reference} method that resolves to schema instance.
- */
-export const UcSchema__symbol = /*#__PURE__*/ Symbol.for('UcSchema');
-
-/**
- * URI charge schema definition.
+ * Data schema definition.
  *
- * Describes data type along with its serialization format within URI charge.
+ * Describes data type along with its serialization format.
  *
  * @typeParam T - Implied data type.
  */
 export interface UcSchema<out T = unknown> {
-  readonly [UcSchema__symbol]?: undefined;
+  /**
+   * Marker method needed for correct type inference.
+   *
+   * Not supposed to be defined.
+   */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  __UcSchema__?(value: T): T;
 
   /**
    * Whether the data is optional.
@@ -39,7 +39,7 @@ export interface UcSchema<out T = unknown> {
    *
    * Code generation is based on this name.
    */
-  readonly type: UcSchema.Class<T> | string;
+  readonly type: UcDataType<T> | string;
 
   /**
    * Unique schema identifier.
@@ -50,19 +50,12 @@ export interface UcSchema<out T = unknown> {
    *
    * @defaultValue Equal to {@link type}.
    */
-  readonly id?: string | UcSchema.Class | undefined;
+  readonly id?: string | UcDataType | undefined;
 
   /**
    * Per-tool schema processing instructions.
    */
   readonly with?: UcInstructions | undefined;
-
-  /**
-   * Returns the passed-in value.
-   *
-   * A marker method needed for correct type inference.
-   */
-  asis?(value: T): T;
 
   /**
    * Custom schema name.
@@ -73,109 +66,109 @@ export interface UcSchema<out T = unknown> {
 }
 
 /**
- * Creates URI charge schema {@link UcSchema.Ref reference}.
+ * Data model that can be described by {@link UcSchema schema}.
+ *
+ * Either a {@link UcSchema schema instance}, or {@link UcDataType data class}.
  *
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Schema type.
- * @param resolve - Schema instance resolver.
- *
- * @returns Resolved schema instance or data class.
  */
-export function ucSchemaRef<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-  resolve: (resolver: UcSchemaResolver) => TSchema | UcSchema.Class<T>,
-): UcSchema.Ref<T, TSchema> {
-  return {
-    [UcSchema__symbol]: resolve,
-  };
+export type UcModel<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> =
+  | TSchema
+  | (UcSchema<T> extends TSchema ? UcDataType<T> : never);
+
+/**
+ * Data type useable as a {@link UcModel data model}.
+ *
+ * Either class {@link UcConstructor constructor}, or {@link UcDataFactory data factory}.
+ *
+ * @typeParam T - Implied instance type.
+ */
+export type UcDataType<T = unknown> = UcConstructor<T> | UcDataFactory<T>;
+
+/**
+ * Class constructor useable as a {@link UcModel data model}.
+ *
+ * @typeParam T - Implied instance type.
+ */
+export type UcConstructor<out T = unknown> = new (...args: never[]) => T;
+
+/**
+ * Data factory signature useable as a {@link UcModel data model}.
+ *
+ * @typeParam T - Implied instance type.
+ */
+export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
+
+/**
+ * Creates a {@link UcSchema schema} of the given data `type`.
+ *
+ * @typeParam T - Implied data type.
+ * @param type - Modelled data type.
+ *
+ * @returns Schema instance.
+ */
+export function ucSchema<T>(type: UcDataType<T>): UcSchema<T>;
+
+/**
+ * Obtains a {@link UcSchema schema} of the given data `model`.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ * @param model - Data model to obtain a schema of.
+ *
+ * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
+ * type otherwise.
+ */
+export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  model: UcModel<T, TSchema>,
+): TSchema;
+
+export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  model: UcModel<T, TSchema>,
+): TSchema {
+  if (typeof model === 'function') {
+    return {
+      optional: false,
+      nullable: false,
+      type: model,
+    } as TSchema;
+  }
+
+  return model;
 }
+
+/**
+ * Data type inferred from the given model, including possible {@link UcSchema#nullable null}
+ * and {@link UcSchema#optional undefined} values.
+ *
+ * @typeParam TModel - Model type.
+ */
+export type UcInfer<TModel extends UcModel> =
+  | UcSchema.ImpliedType<TModel>
+  | UcSchema.NullableType<UcSchema.Of<TModel>>
+  | UcSchema.OptionalType<UcSchema.Of<TModel>>;
 
 export namespace UcSchema {
   /**
-   * Specifier of URI charge schema.
+   * Schema type corresponding to the given model type.
    *
-   * Either a {@link UcSchema schema instance}, {@link Ref schema reference}, or supported class constructor.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
+   * @typeParam TModel - Source model type.
    */
-  export type Spec<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> =
-    | TSchema
-    | (UcSchema<T> extends TSchema ? Class<T> : never)
-    | Ref<T, TSchema>;
-
-  /**
-   * Class constructor useable as URI charge schema.
-   *
-   * @typeParam T - Implied instance type.
-   */
-  export type Class<T = unknown> = Constructor<T> | Factory<T>;
-
-  export interface Constructor<out T = unknown> {
-    readonly [UcSchema__symbol]?: undefined;
-    new (...args: never[]): T;
-  }
-
-  export interface Factory<out T = unknown> {
-    readonly [UcSchema__symbol]?: undefined;
-    (...args: never[]): T;
-  }
-
-  /**
-   * Reference to URI charge schema.
-   *
-   * Can be used as schema {@link Spec specifier}. Supposed to be {@link UcSchemaResolver#schemaOf resolved} to schema
-   * instance.
-   *
-   * Can be created by {@link ucSchemaRef} function.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   */
-  export interface Ref<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-    /**
-     * Resolves schema instance.
-     *
-     * @param resolver - Resolver of nested schemae.
-     *
-     * @returns Resolved schema instance or data class.
-     */
-    [UcSchema__symbol](this: void, resolver: UcSchemaResolver): TSchema | UcSchema.Class<T>;
-  }
-
-  /**
-   * URI charge schema type of the given specifier.
-   *
-   * @typeParam TSpec - Schema specifier type.
-   */
-  export type Of<TSpec extends Spec> = TSpec extends Ref<unknown, infer TSchema>
-    ? TSchema
-    : TSpec extends Class<infer T>
+  export type Of<TModel extends UcModel> = TModel extends UcDataType<infer T>
     ? UcSchema<T>
-    : TSpec;
+    : TModel;
 
   /**
-   * Data type compatible with particular URI charge schema, including possible {@link UcSchema#nullable null} and
-   * {@link UcSchema#optional undefined} values.
-   *
-   * @typeParam TSpec - Schema specifier type.
-   */
-  export type DataType<TSpec extends Spec> =
-    | ImpliedType<TSpec>
-    | NullableType<Of<TSpec>>
-    | OptionalType<Of<TSpec>>;
-
-  /**
-   * Data type implied by particular URI charge schema.
+   * Data type implied by the given model.
    *
    * Does not include possible {@link UcSchema#nullable null} and {@link UcSchema#optional undefined} values.
    *
-   * @typeParam TSpec - Schema specifier type.
+   * @typeParam TModel - Model type.
    */
-  export type ImpliedType<TSpec extends Spec> = TSpec extends UcSchema<infer T>
+  export type ImpliedType<TModel extends UcModel> = TModel extends UcSchema<infer T>
     ? T
-    : TSpec extends Ref<infer T>
-    ? T
-    : TSpec extends Class<infer T>
+    : TModel extends UcDataType<infer T>
     ? T
     : never;
 
