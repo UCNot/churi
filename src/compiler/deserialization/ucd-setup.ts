@@ -1,7 +1,7 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -18,15 +18,15 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  *
  * Passed to {@link UcdFeature deserializer feature} when the latter enabled.
  *
- * @typeParam TSchemae - Compiled schemae type.
+ * @typeParam TModels - Compiled models record type.
  */
-export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
+export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
 
-  readonly #options: UcdSetup.Options<TSchemae>;
+  readonly #options: UcdSetup.Options<TModels>;
   readonly #enabled = new Set<UcdFeature>();
   readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
   #hasPendingInstructions = false;
-  readonly #types = new Map<string | UcSchema.Class, UcrxTemplate.Factory>();
+  readonly #types = new Map<string | UcDataType, UcrxTemplate.Factory>();
   #defaultEntities: UcdLib.EntityConfig[] | undefined;
   #entities: UcdLib.EntityConfig[] | undefined = [];
   readonly #methods = new Set<UcrxMethod<any>>();
@@ -36,7 +36,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    *
    * @param options - Setup options.
    */
-  constructor(options: UcdSetup.Options<TSchemae>) {
+  constructor(options: UcdSetup.Options<TModels>) {
     this.#options = options;
   }
 
@@ -79,14 +79,15 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   /**
-   * Applies schema deserialization instructions.
+   * Applies model deserialization instructions.
    *
-   * @param spec - Target schema specifier.
+   * @typeParam T - Implied data type.
+   * @param model - Target model.
    *
    * @returns `this` instance.
    */
-  processSchema<T>(spec: UcSchema.Spec<T>): this {
-    const schema = ucSchema(spec);
+  processModel<T>(model: UcModel<T>): this {
+    const schema = ucSchema(model);
     const use = asArray(schema.with?.deserializer?.use);
 
     use.forEach(useFeature => this.#useFeature(schema, useFeature));
@@ -176,7 +177,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    *
    * @returns Promise resolved to configured deserializer library.
    */
-  async bootstrap(): Promise<UcdLib<TSchemae>> {
+  async bootstrap(): Promise<UcdLib<TModels>> {
     return new UcdLib(await this.bootstrapOptions());
   }
 
@@ -187,7 +188,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    *
    * @returns Promise resolved to deserializer library options.
    */
-  async bootstrapOptions(): Promise<UcdLib.Options<TSchemae>> {
+  async bootstrapOptions(): Promise<UcdLib.Options<TModels>> {
     await this.#init();
 
     return {
@@ -215,10 +216,10 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
   }
 
   #collectInstructions(): void {
-    const { schemae } = this.#options;
+    const { models } = this.#options;
 
-    Object.values(schemae).forEach(spec => {
-      this.processSchema(spec);
+    Object.values(models).forEach(model => {
+      this.processModel(model);
     });
   }
 
@@ -246,9 +247,8 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 }
 
 export namespace UcdSetup {
-  export interface Options<TSchemae extends UcdLib.Schemae>
-    extends Omit<UcrxLib.Options, 'methods'> {
-    readonly schemae: TSchemae;
+  export interface Options<TModels extends UcdLib.Models> extends Omit<UcrxLib.Options, 'methods'> {
+    readonly models: TModels;
     readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(

@@ -1,7 +1,7 @@
 import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/list/uc-list.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
+import { UcModel } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
@@ -18,19 +18,19 @@ import { UcdSetup } from './ucd-setup.js';
 
 export class ListUcrxTemplate<
   TItem = unknown,
-  TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>,
-> extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemSpec>> {
+  TItemModel extends UcModel<TItem> = UcModel<TItem>,
+> extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemModel>> {
 
   static configureSchemaDeserializer(setup: UcdSetup, { item }: UcList.Schema): void {
     setup.useUcrxTemplate('list', (lib, schema: UcList.Schema) => new this(lib, schema));
-    setup.processSchema(item);
+    setup.processModel(item);
   }
 
   #typeName?: string;
   #itemTemplate?: UcrxTemplate;
   #allocation?: ListUcrxTemplate.Allocation;
 
-  constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemSpec>) {
+  constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemModel>) {
     super({
       lib,
       schema,
@@ -177,9 +177,7 @@ export class ListUcrxTemplate<
     } catch (cause) {
       throw new UnsupportedUcSchemaError(
         item,
-        `${ucSchemaName(this.schema)}: Can not deserialize list item of type "${ucSchemaName(
-          item,
-        )}"`,
+        `${ucModelName(this.schema)}: Can not deserialize list item of type "${ucModelName(item)}"`,
         { cause },
       );
     }

@@ -3,9 +3,9 @@ import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccBuilder, UccSource } from '../codegen/ucc-code.js';
 import { uccPropertyAccessExpr } from '../codegen/ucc-expr.js';
@@ -17,17 +17,17 @@ import { UcsSetup } from './ucs-setup.js';
 export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): void;
 export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): void {
   setup.useUcsGenerator('map', ucsWriteMap);
-  Object.values(entries).forEach(entrySchema => setup.processSchema(entrySchema));
+  Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
   // istanbul ignore next
   if (extra) {
     // TODO Implement extra entries serialization.
-    setup.processSchema(extra);
+    setup.processModel(extra);
   }
 }
 
-function ucsWriteMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
   fn: UcsFunction,
-  schema: UcMap.Schema<TEntriesSpec>,
+  schema: UcMap.Schema<TEntriesModel>,
   value: string,
 ): UccSource {
   const { lib, ns, args } = fn;
@@ -96,7 +96,7 @@ function ucsWriteMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
                 entrySchema,
                 `${fn.name}: Can not serialize entry "${escapeJsString(
                   key,
-                )}" of type "${ucSchemaName(entrySchema)}"`,
+                )}" of type "${ucModelName(entrySchema)}"`,
                 { cause },
               );
             }
@@ -118,7 +118,7 @@ function ucsWriteMap<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
   };
 }
 
-function ucsMapMayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Spec>(
+function ucsMapMayBeEmpty<TEntriesSpec extends UcMap.Schema.Entries.Model>(
   schema: UcMap.Schema<TEntriesSpec>,
 ): boolean {
   return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);

@@ -20,7 +20,7 @@ await Promise.all([
 
 async function emitDefaultEntities() {
   const lib = await new UcdSetup({
-    schemae: {},
+    models: {},
     features(setup) {
       // Call explicitly rather enable to force entity handler generation.
       ucdSupportDefaults(setup);
@@ -39,7 +39,7 @@ async function emitDefaultEntities() {
 }
 
 async function emitUcValueDeserializer() {
-  const lib = await new UcdSetup({ schemae: { parseUcValue: ucUnknown() } }).bootstrap();
+  const lib = await new UcdSetup({ models: { parseUcValue: ucUnknown() } }).bootstrap();
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ucSchemaName } from '../uc-schema-name.js';
+import { ucModelName } from '../uc-model-name.js';
 import { UcList, ucList } from './uc-list.js';
 
 describe('UcList', () => {
@@ -27,7 +27,7 @@ describe('UcList', () => {
 
   describe('name', () => {
     it('reflects item type', () => {
-      expect(ucSchemaName(schema)).toBe('String[]');
+      expect(ucModelName(schema)).toBe('String[]');
     });
   });
 });

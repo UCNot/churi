@@ -1,9 +1,9 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcList } from '../../schema/list/uc-list.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel } from '../../schema/uc-schema.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsFunction } from './ucs-function.js';
@@ -11,12 +11,12 @@ import { UcsSetup } from './ucs-setup.js';
 
 export function ucsSupportList(setup: UcsSetup, schema: UcList.Schema): void;
 export function ucsSupportList(setup: UcsSetup, { item }: UcList.Schema): void {
-  setup.useUcsGenerator('list', ucsWriteList).processSchema(item);
+  setup.useUcsGenerator('list', ucsWriteList).processModel(item);
 }
 
-function ucsWriteList<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
+function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
   fn: UcsFunction,
-  schema: UcList.Schema<TItem, TItemSpec>,
+  schema: UcList.Schema<TItem, TItemModel>,
   value: string,
   asItem: string,
 ): UccSource {
@@ -46,7 +46,7 @@ function ucsWriteList<TItem, TItemSpec extends UcSchema.Spec<TItem>>(
         } catch (cause) {
           throw new UnsupportedUcSchemaError(
             itemSchema,
-            `${fn.name}: Can not serialize list item of type "${ucSchemaName(itemSchema)}"`,
+            `${fn.name}: Can not serialize list item of type "${ucModelName(itemSchema)}"`,
             { cause },
           );
         }

@@ -1,5 +1,5 @@
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
-import { ucSchemaName } from '../../schema/uc-schema-name.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
@@ -60,7 +60,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     if (serializer == null) {
       throw new UnsupportedUcSchemaError(
         schema,
-        `${this.name}: Can not serialize type "${ucSchemaName(schema)}"`,
+        `${this.name}: Can not serialize type "${ucModelName(schema)}"`,
       );
     }
 

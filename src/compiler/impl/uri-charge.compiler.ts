@@ -22,7 +22,7 @@ export async function createURIChargeUcdLib(): Promise<
   UcdLib<{ parseURICharge: UcSchema<URICharge> }>
 > {
   return await new UcdSetup({
-    schemae: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
+    models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
     features(setup) {
       setup
         .enable(ucdSupportDefaults)

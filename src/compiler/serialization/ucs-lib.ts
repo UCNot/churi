@@ -1,4 +1,4 @@
-import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
 import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
 import { UccLib } from '../codegen/ucc-lib.js';
@@ -8,41 +8,38 @@ import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
 
 /**
- * Serializer library that {@link UcsLib#compile compiles schemae} into serialization functions.
+ * Serializer library that {@link UcsLib#compile compiles data models} into serialization functions.
  *
  * An {@link UcsSetup serializer setup} expected to be used to configure and {@link UcsSetup#bootstrap bootstrap}
  * the library instance.
  *
- * @typeParam TSchemae - Compiled schemae type.
+ * @typeParam TModels - Compiled models record type.
  */
-export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends UccLib {
+export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLib {
 
-  readonly #schemae: {
-    readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+  readonly #models: {
+    readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
   };
 
-  readonly #options: UcsLib.Options<TSchemae>;
-  readonly #createSerializer: Exclude<UcsLib.Options<TSchemae>['createSerializer'], undefined>;
-  readonly #serializers = new Map<string | UcSchema.Class, Map<UcSchema$Variant, UcsFunction>>();
+  readonly #options: UcsLib.Options<TModels>;
+  readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
+  readonly #serializers = new Map<string | UcDataType, Map<UcSchema$Variant, UcsFunction>>();
 
-  constructor(options: UcsLib.Options<TSchemae>) {
+  constructor(options: UcsLib.Options<TModels>) {
     super(options);
 
     this.#options = options;
 
-    const { schemae, createSerializer = options => new UcsFunction(options) } = options;
+    const { models, createSerializer = options => new UcsFunction(options) } = options;
 
-    this.#schemae = Object.fromEntries(
-      Object.entries(schemae).map(([externalName, schemaSpec]) => [
-        externalName,
-        ucSchema(schemaSpec),
-      ]),
+    this.#models = Object.fromEntries(
+      Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
     ) as {
-      readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
+      readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
     };
     this.#createSerializer = createSerializer;
 
-    for (const [externalName, schema] of Object.entries(this.#schemae)) {
+    for (const [externalName, schema] of Object.entries(this.#models)) {
       this.serializerFor(schema, externalName);
     }
   }
@@ -84,7 +81,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     return this.#options.generatorFor?.(type);
   }
 
-  compile(): UcsLib.Compiled<TSchemae> {
+  compile(): UcsLib.Compiled<TModels> {
     return {
       lib: this,
       toCode: this.#toFactoryCode.bind(this),
@@ -114,7 +111,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
       code
         .write('return {')
         .indent(code => {
-          for (const [externalName, schema] of Object.entries(this.#schemae)) {
+          for (const [externalName, schema] of Object.entries(this.#models)) {
             code
               .write(`async ${externalName}(stream, value) {`)
               .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
@@ -125,16 +122,16 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
     };
   }
 
-  async #toSerializers(): Promise<UcsLib.Exports<TSchemae>> {
+  async #toSerializers(): Promise<UcsLib.Exports<TModels>> {
     const text = await new UccCode().write(this.#toFactoryCode()).toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(text) as () => Promise<UcsLib.Exports<TSchemae>>;
+    const factory = Function(text) as () => Promise<UcsLib.Exports<TModels>>;
 
     return await factory();
   }
 
-  compileModule(): UcsLib.Module<TSchemae> {
+  compileModule(): UcsLib.Module<TModels> {
     return {
       lib: this,
       toCode: this.#toModuleCode.bind(this),
@@ -158,7 +155,7 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
 
   #exportSerializers(): UccBuilder {
     return code => {
-      for (const [externalName, schema] of Object.entries(this.#schemae)) {
+      for (const [externalName, schema] of Object.entries(this.#models)) {
         code
           .write(`export async function ${externalName}(stream, value) {`)
           .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
@@ -186,8 +183,8 @@ export class UcsLib<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> extends Uc
 }
 
 export namespace UcsLib {
-  export interface Options<TSchemae extends Schemae> extends UccLib.Options {
-    readonly schemae: TSchemae;
+  export interface Options<TModels extends Models> extends UccLib.Options {
+    readonly models: TModels;
 
     generatorFor?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -200,21 +197,21 @@ export namespace UcsLib {
     ): UcsFunction<T, TSchema>;
   }
 
-  export interface Schemae {
-    readonly [writer: string]: UcSchema.Spec;
+  export interface Models {
+    readonly [writer: string]: UcModel;
   }
 
-  export type Exports<TSchemae extends Schemae> = {
-    readonly [writer in keyof TSchemae]: UcSerializer<UcSchema.DataType<TSchemae[writer]>>;
+  export type Exports<TModels extends Models> = {
+    readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
   };
 
-  export interface Compiled<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcsLib<TSchemae>;
-    toSerializers(): Promise<Exports<TSchemae>>;
+  export interface Compiled<TModels extends Models> extends UccFragment {
+    readonly lib: UcsLib<TModels>;
+    toSerializers(): Promise<Exports<TModels>>;
   }
 
-  export interface Module<TSchemae extends Schemae> extends UccFragment {
-    readonly lib: UcsLib<TSchemae>;
+  export interface Module<TModels extends Models> extends UccFragment {
+    readonly lib: UcsLib<TModels>;
     toText(): Promise<string>;
   }
 }

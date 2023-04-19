@@ -6,7 +6,7 @@ import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 
 describe('UcNumber deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -18,12 +18,12 @@ describe('UcNumber deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcSchema.Spec<number> }>;
+  let lib: UcdLib<{ readValue: UcModel<number> }>;
   let readValue: UcDeserializer<number>;
 
   beforeEach(async () => {
     lib = await new UcdSetup({
-      schemae: {
+      models: {
         readValue: Number,
       },
       features: [ucdSupportPrimitives, ucdSupportNonFinite],
@@ -37,7 +37,7 @@ describe('UcNumber deserializer', () => {
   });
   it('deserializes number synchronously', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         parseValue: Number,
       },
     }).bootstrap();
@@ -49,7 +49,7 @@ describe('UcNumber deserializer', () => {
   });
   it('deserializes number from string', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         parseValue: Number,
       },
     }).bootstrap();

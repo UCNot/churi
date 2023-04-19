@@ -1,5 +1,5 @@
-import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchema } from './uc-schema.js';
+import { ucModelName } from './uc-model-name.js';
+import { UcModel } from './uc-schema.js';
 
 /**
  * Data serializer signature.
@@ -17,7 +17,7 @@ import { UcSchema } from './uc-schema.js';
 export type UcSerializer<in T> = (stream: WritableStream<Uint8Array>, value: T) => Promise<void>;
 
 /**
- * Creates serializer for the given data `schema`.
+ * Creates serializer for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual serializer when TypeScript compiled with
  * [ts-transformer-churi] enabled.
@@ -25,16 +25,14 @@ export type UcSerializer<in T> = (stream: WritableStream<Uint8Array>, value: T) 
  * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
  *
  * @typeParam T - Serialized data type.
- * @param schema - Specifier of serialized data schema.
+ * @param model - Serialized data model.
  *
  * @returns Serializer instance.
  */
-export function createUcSerializer<T>(schema: UcSchema.Spec<T>): UcSerializer<T>;
-
-export function createUcSerializer<T>(schema: UcSchema.Spec<T>): UcSerializer<T> {
+export function createUcSerializer<T>(model: UcModel<T>): UcSerializer<T> {
   throw new TypeError(
-    `Can not create serializer for ${ucSchemaName(
-      schema,
+    `Can not create serializer for ${ucModelName(
+      model,
     )}. Is "ts-transform-churi" transformer applied?`,
   );
 }

@@ -10,7 +10,7 @@ import { ucMap } from './uc-map.js';
 describe('UcMap serializer', () => {
   it('serializes map', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           foo: String,
           bar: Number,
@@ -26,7 +26,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes nested map', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           foo: ucMap({
             test1: Number,
@@ -48,7 +48,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes list entry', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           foo: ucList(Number),
           bar: ucList<number[]>(ucList(Number)),
@@ -64,7 +64,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes entry with empty key', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           '': String,
         }),
@@ -80,7 +80,7 @@ describe('UcMap serializer', () => {
   it('serializes entry with special keys', async () => {
     const specialKey = '(%)\r\n\t\uD83D\uDFB1 ' as const;
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           "'": String,
           '!': String,
@@ -109,7 +109,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes nullable entry', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           test: ucNullable(String),
         }),
@@ -127,7 +127,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes optional nullable entry', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           test: ucOptional(ucNullable(String)),
         }),
@@ -146,7 +146,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes second entry with empty key', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           first: Number,
           '': String,
@@ -162,7 +162,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes second entry with empty key when first one is optional', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           first: ucOptional(Number),
           '': String,
@@ -181,7 +181,7 @@ describe('UcMap serializer', () => {
   });
   it('does not serialize unrecognized schema', async () => {
     const lib = await new UcsSetup({
-      schemae: {
+      models: {
         writeMap: ucMap({
           test: { type: 'test-type' },
         }),

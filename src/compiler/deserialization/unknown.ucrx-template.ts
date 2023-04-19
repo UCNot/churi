@@ -19,16 +19,16 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
   static configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void {
     setup
       .useUcrxTemplate('unknown', (lib, schema) => new this(lib, schema))
-      .processSchema(this.listSchemaFor(schema))
-      .processSchema(this.mapSchemaFor(schema));
+      .processModel(this.listSchemaFor(schema))
+      .processModel(this.mapSchemaFor(schema));
   }
 
   static listSchemaFor(schema: UcSchema): UcList.Schema {
     return ucList(schema, { id: 'listOf' + ucSchemaTypeSymbol(schema) });
   }
 
-  static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Spec, UcSchema> {
-    return ucMap<UcMap.Schema.Entries.Spec, UcSchema>(
+  static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Model, UcSchema> {
+    return ucMap<UcMap.Schema.Entries.Model, UcSchema>(
       {},
       { id: 'mapOf' + ucSchemaTypeSymbol(schema), extra: schema },
     );
@@ -245,7 +245,7 @@ export namespace UnknownUcrxTemplate {
     readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;
     readonly mapTemplate: UcrxTemplate<
       Record<string, unknown>,
-      UcMap.Schema<UcMap.Schema.Entries.Spec, UcSchema>
+      UcMap.Schema<UcMap.Schema.Entries.Model, UcSchema>
     >;
   }
 }

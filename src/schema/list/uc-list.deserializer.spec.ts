@@ -7,7 +7,7 @@ import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';
 import { UcNullable, ucNullable } from '../uc-nullable.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 import { ucList } from './uc-list.js';
 
 describe('UcList deserializer', () => {
@@ -24,7 +24,7 @@ describe('UcList deserializer', () => {
 
   beforeEach(async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readList: ucList<number>(Number),
       },
     }).bootstrap();
@@ -71,7 +71,7 @@ describe('UcList deserializer', () => {
   });
   it('does not deserialize unrecognized schema', async () => {
     const lib = await new UcdSetup({
-      schemae: {
+      models: {
         readList: ucList<number>({ type: 'test-type' }),
       },
     }).bootstrap();
@@ -96,7 +96,7 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readList: ucList<boolean>(Boolean),
         },
       }).bootstrap();
@@ -114,7 +114,7 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readList: ucList<string>(String),
         },
       }).bootstrap();
@@ -137,9 +137,9 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readList: ucList<{ foo: string }>(
-            ucMap<{ foo: UcSchema.Spec<string> }>(
+            ucMap<{ foo: UcModel<string> }>(
               { foo: String },
               {
                 id: function NestedMap() {
@@ -225,7 +225,7 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const nullableNumber = ucNullable<number>(Number);
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readList: ucList<number | null>(nullableNumber),
         },
       }).bootstrap();
@@ -260,7 +260,7 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const lib = await new UcdSetup<{ readList: UcNullable<number[]> }>({
-        schemae: {
+        models: {
           readList: ucNullable(ucList<number>(Number)),
         },
       }).bootstrap();
@@ -305,7 +305,7 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const nullableNumber = ucNullable<number>(Number);
       const lib = await new UcdSetup<{ readList: UcNullable<(number | null)[]> }>({
-        schemae: {
+        models: {
           readList: ucNullable(ucList<number | null>(nullableNumber)),
         },
       }).bootstrap();
@@ -335,7 +335,7 @@ describe('UcList deserializer', () => {
       errors = [];
 
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMatrix: ucList<number[]>(ucList<number>(Number)),
         },
       }).bootstrap();
@@ -378,7 +378,7 @@ describe('UcList deserializer', () => {
     });
     it('deserializes deeply nested lists', async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readCube: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))),
         },
       }).bootstrap();
@@ -389,7 +389,7 @@ describe('UcList deserializer', () => {
     });
     it('recognized empty item of nested list', async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMatrix: ucList<string[]>(ucList<string>(String)),
         },
       }).bootstrap();
@@ -408,7 +408,7 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const list = ucList<number>(Number);
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMatrix: ucList<number[] | null>(ucNullable(list)),
         },
       }).bootstrap();
@@ -446,7 +446,7 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMatrix: ucNullable(matrix),
         },
       }).bootstrap();
@@ -485,7 +485,7 @@ describe('UcList deserializer', () => {
       const list = ucList<number>(Number);
       const matrix = ucList<number[] | null>(ucNullable(list));
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readMatrix: ucNullable(matrix),
         },
       }).bootstrap();

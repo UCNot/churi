@@ -4,7 +4,7 @@ import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 
 describe('UcString deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -16,12 +16,12 @@ describe('UcString deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcSchema.Spec<string> }>;
+  let lib: UcdLib<{ readValue: UcModel<string> }>;
   let readValue: UcDeserializer<string>;
 
   beforeEach(async () => {
     lib = await new UcdSetup({
-      schemae: {
+      models: {
         readValue: String,
       },
     }).bootstrap();

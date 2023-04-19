@@ -5,7 +5,7 @@ import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { ucNullable } from '../uc-nullable.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 
 describe('UcBoolean deserializer', () => {
   const onError = (error: UcErrorInfo): void => {
@@ -17,12 +17,12 @@ describe('UcBoolean deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcSchema.Spec<boolean> }>;
+  let lib: UcdLib<{ readValue: UcModel<boolean> }>;
   let readValue: UcDeserializer<boolean>;
 
   beforeEach(async () => {
     lib = await new UcdSetup({
-      schemae: {
+      models: {
         readValue: Boolean,
       },
     }).bootstrap();
@@ -85,12 +85,12 @@ describe('UcBoolean deserializer', () => {
   });
 
   describe('nullable', () => {
-    let lib: UcdLib<{ readValue: UcSchema.Spec<boolean | null> }>;
+    let lib: UcdLib<{ readValue: UcModel<boolean | null> }>;
     let readValue: UcDeserializer<boolean | null>;
 
     beforeEach(async () => {
       lib = await new UcdSetup({
-        schemae: {
+        models: {
           readValue: ucNullable<boolean>(Boolean),
         },
       }).bootstrap();

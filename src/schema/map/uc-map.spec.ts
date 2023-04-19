@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { ucSchemaName } from '../uc-schema-name.js';
+import { ucModelName } from '../uc-model-name.js';
 import { UcSchema } from '../uc-schema.js';
 import { UcMap, ucMap } from './uc-map.js';
 
@@ -26,10 +26,10 @@ describe('UcMap', () => {
   });
 
   describe('name', () => {
-    it('reflects entry schemae', () => {
-      expect(ucSchemaName(schema)).toBe('{foo: test-string, bar: test-number}');
+    it('reflects entry models', () => {
+      expect(ucModelName(schema)).toBe('{foo: test-string, bar: test-number}');
     });
-    it('reflects only a few entry schemae', () => {
+    it('reflects only a few entry models', () => {
       const schema = ucMap({
         foo: { type: 'test-string' },
         '0abc': { type: 'test-string' },
@@ -37,7 +37,7 @@ describe('UcMap', () => {
         bar: { type: 'test-string' },
       });
 
-      expect(ucSchemaName(schema)).toBe(
+      expect(ucModelName(schema)).toBe(
         `{foo: test-string, '0abc': test-string, '%abc': test-string, ...}`,
       );
     });

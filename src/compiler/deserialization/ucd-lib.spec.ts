@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdSetup } from './ucd-setup.js';
 
 describe('UcdLib', () => {
-  let lib: UcdLib<{ readValue: UcSchema.Spec<number> }>;
+  let lib: UcdLib<{ readValue: UcModel<number> }>;
 
   beforeEach(async () => {
-    lib = await new UcdSetup<{ readValue: UcSchema.Spec<number> }>({
-      schemae: { readValue: Number },
+    lib = await new UcdSetup<{ readValue: UcModel<number> }>({
+      models: { readValue: Number },
     }).bootstrap();
   });
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 import { ucUnknown } from './uc-unknown.js';
 
@@ -9,8 +9,8 @@ describe('UcUnknown serializer', () => {
   let writeValue: UcSerializer<unknown>;
 
   beforeEach(async () => {
-    const lib = await new UcsSetup<{ writeValue: UcSchema.Spec }>({
-      schemae: { writeValue: ucUnknown() },
+    const lib = await new UcsSetup<{ writeValue: UcModel }>({
+      models: { writeValue: ucUnknown() },
     }).bootstrap();
 
     ({ writeValue } = await lib.compile().toSerializers());

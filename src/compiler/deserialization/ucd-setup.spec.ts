@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
 import { UcdSetup } from './ucd-setup.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
@@ -8,7 +8,7 @@ describe('UcdSetup', () => {
   describe('enables', () => {
     it('enables feature in object form', async () => {
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readTimestamp: Number,
         },
         features: [
@@ -39,7 +39,7 @@ describe('UcdSetup', () => {
         },
       };
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readTimestamp: schema,
         },
       }).bootstrap();
@@ -59,7 +59,7 @@ describe('UcdSetup', () => {
         },
       };
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readTimestamp: schema,
         },
       }).bootstrap();
@@ -79,7 +79,7 @@ describe('UcdSetup', () => {
         },
       };
       const lib = await new UcdSetup({
-        schemae: {
+        models: {
           readTimestamp: schema,
         },
       }).bootstrap();
@@ -100,8 +100,8 @@ describe('UcdSetup', () => {
       };
 
       await expect(
-        new UcdSetup<{ readTimestamp: UcSchema.Spec<number> }>({
-          schemae: { readTimestamp: schema },
+        new UcdSetup<{ readTimestamp: UcModel<number> }>({
+          models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(`No such deserializer feature: import('churi/spec').MissingFeature`),
@@ -118,8 +118,8 @@ describe('UcdSetup', () => {
       };
 
       await expect(
-        new UcdSetup<{ readTimestamp: UcSchema.Spec<number> }>({
-          schemae: { readTimestamp: schema },
+        new UcdSetup<{ readTimestamp: UcModel<number> }>({
+          models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(`Not a deserializer feature: import('churi/spec').WrongFeature`),

@@ -1,6 +1,6 @@
 # `application/uri-charge`
 
-This MIME type is based on [URI charge] format. It has less limitations though, as encoded messages are not meant to be
+This MIME type is based on [URI charge] format. It has fewer limitations though, as encoded messages are not meant to be
 part of URIs:
 
 - Any Unicode character allowed within `application/uri-charge`
@@ -36,23 +36,23 @@ parses `application/uri-charge` message and reconstructs the original data value
 argument for element schema:
 
 ```typescript
-import { ucList, UcSchema } from 'churi';
+import { ucList, type UcInfer, type UcSchema } from 'churi';
 
 const listOfNumbersSchema = ucList(Number); // Define schema.
-const listOfNumbers: UcSchema.DataType<typeof listOfNumbersSchema> = [1, 2, 3]; // Infer data type.
+const listOfNumbers: UcInfer<typeof listOfNumbersSchema> = [1, 2, 3]; // Infer data type.
 ```
 
-`ucMap` function creates a schema for JavaScript object literal represented as [map] within URI charge. Requires
-argument for property schemae:
+The `ucMap` function creates a schema for JavaScript object literal represented as [map] within URI charge. Requires
+argument for property models:
 
 ```typescript
-import { ucMap, UcSchema } from 'churi';
+import { ucMap, type UcInfer, type UcSchema } from 'churi';
 
-const rangeSchema = usMap({
+const rangeSchema = ucMap({
   from: Number,
   to: Number,
 });
-const range: UcSchema.DataType<typeof rangeSchema> = {
+const range: UcInfer<typeof rangeSchema> = {
   from: 0,
   to: 10,
 };
