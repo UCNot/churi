@@ -1,8 +1,7 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -23,7 +22,6 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  */
 export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
-  readonly #resolver: UcSchemaResolver;
   readonly #options: UcdSetup.Options<TSchemae>;
   readonly #enabled = new Set<UcdFeature>();
   readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
@@ -40,17 +38,6 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    */
   constructor(options: UcdSetup.Options<TSchemae>) {
     this.#options = options;
-
-    const { resolver = new UcSchemaResolver() } = options;
-
-    this.#resolver = resolver;
-  }
-
-  /**
-   * Configured schema resolver.
-   */
-  get resolver(): UcSchemaResolver {
-    return this.#resolver;
   }
 
   /**
@@ -99,7 +86,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
    * @returns `this` instance.
    */
   processSchema<T>(spec: UcSchema.Spec<T>): this {
-    const schema = this.resolver.schemaOf(spec);
+    const schema = ucSchema(spec);
     const use = asArray(schema.with?.deserializer?.use);
 
     use.forEach(useFeature => this.#useFeature(schema, useFeature));
@@ -205,7 +192,6 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
 
     return {
       ...this.#options,
-      resolver: this.resolver,
       entities: this.#entities,
       methods: this.#methods,
       ucrxTemplateFactoryFor: this.#ucrxTemplateFactoryFor.bind(this),
@@ -232,7 +218,7 @@ export class UcdSetup<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> {
     const { schemae } = this.#options;
 
     Object.values(schemae).forEach(spec => {
-      this.processSchema(this.resolver.schemaOf(spec));
+      this.processSchema(spec);
     });
   }
 

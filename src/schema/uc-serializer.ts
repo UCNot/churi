@@ -1,5 +1,4 @@
 import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { UcSchema } from './uc-schema.js';
 
 /**
@@ -35,7 +34,7 @@ export function createUcSerializer<T>(schema: UcSchema.Spec<T>): UcSerializer<T>
 export function createUcSerializer<T>(schema: UcSchema.Spec<T>): UcSerializer<T> {
   throw new TypeError(
     `Can not create serializer for ${ucSchemaName(
-      new UcSchemaResolver().schemaOf(schema),
+      schema,
     )}. Is "ts-transform-churi" transformer applied?`,
   );
 }

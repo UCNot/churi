@@ -64,16 +64,14 @@ export interface UcSchema<out T = unknown> {
   toString?(): string;
 }
 
-export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): TSchema;
-
 export function ucSchema<T>(type: UcSchema.Class<T>): UcSchema<T>;
 
-export function ucSchema<T, TSchema extends UcSchema.Spec<T> = UcSchema.Spec<T>>(
-  spec: TSchema,
+export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  spec: UcSchema.Spec<T, TSchema>,
 ): TSchema;
 
-export function ucSchema<T, TSchema extends UcSchema.Spec<T> = UcSchema.Spec<T>>(
-  spec: TSchema,
+export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  spec: UcSchema.Spec<T, TSchema>,
 ): TSchema {
   if (typeof spec === 'function') {
     return {

@@ -58,9 +58,8 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 
   #allocate(): UnknownUcrxTemplate.Allocation {
     const { lib } = this;
-    const { resolver } = lib;
-    const listSpec = (this.constructor as typeof UnknownUcrxTemplate).listSchemaFor(this.schema);
-    const mapSpec = (this.constructor as typeof UnknownUcrxTemplate).mapSchemaFor(this.schema);
+    const listSchema = (this.constructor as typeof UnknownUcrxTemplate).listSchemaFor(this.schema);
+    const mapSchema = (this.constructor as typeof UnknownUcrxTemplate).mapSchemaFor(this.schema);
 
     const listRx = this.declarePrivate('listRx');
     const mapRx = this.declarePrivate('mapRx');
@@ -90,8 +89,8 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
           })
           .write('}');
       }),
-      listTemplate: lib.ucrxTemplateFor(resolver.schemaOf(listSpec)),
-      mapTemplate: lib.ucrxTemplateFor(resolver.schemaOf(mapSpec)),
+      listTemplate: lib.ucrxTemplateFor(listSchema),
+      mapTemplate: lib.ucrxTemplateFor(mapSchema),
     };
   }
 

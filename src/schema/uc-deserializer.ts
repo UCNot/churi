@@ -2,7 +2,6 @@ import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucSchemaName } from './uc-schema-name.js';
-import { UcSchemaResolver } from './uc-schema-resolver.js';
 import { UcSchema } from './uc-schema.js';
 
 /**
@@ -124,7 +123,7 @@ export function createUcDeserializer<T>(schema: UcSchema.Spec<T>): UcDeserialize
 export function createUcDeserializer<T>(schema: UcSchema.Spec<T>): UcDeserializer<T> {
   throw new TypeError(
     `Can not create deserializer for ${ucSchemaName(
-      new UcSchemaResolver().schemaOf(schema),
+      schema,
     )}. Is "ts-transform-churi" transformer applied?`,
   );
 }

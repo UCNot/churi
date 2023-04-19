@@ -10,7 +10,6 @@ export * from './uc-instructions.js';
 export * from './uc-nullable.js';
 export * from './uc-optional.js';
 export * from './uc-schema-name.js';
-export * from './uc-schema-resolver.js';
 export * from './uc-schema.js';
 export * from './uc-serializer.js';
 export * from './unknown/mod.js';

@@ -26,12 +26,6 @@ describe('UcsLib', () => {
     });
   });
 
-  describe('resolver', () => {
-    it('has default value', () => {
-      expect(new UcsLib({ schemae: {} }).resolver).toBeDefined();
-    });
-  });
-
   describe('compileModule', () => {
     it('compiles module', async () => {
       const lib = await new UcsSetup<{ writeValue: UcSchema.Spec<number> }>({

@@ -58,11 +58,11 @@ export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.
   options?: UcList.Schema.Options,
 ): UcList.Schema<TItem, TItemSpec>;
 
-export function ucList<TItem, TItemSpec extends UcSchema.Spec<TItem> = UcSchema.Spec<TItem>>(
-  itemSpec: TItemSpec,
+export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TItem>>(
+  itemSpec: UcSchema.Spec<TItem, TItemSchema>,
   { id }: UcList.Schema.Options = {},
-): UcList.Schema<TItem, TItemSpec> {
-  const item = ucSchema(itemSpec) as UcSchema.Of<TItemSpec>;
+): UcList.Schema<TItem, TItemSchema> {
+  const item = ucSchema<TItem, TItemSchema>(itemSpec) as UcSchema.Of<TItemSchema>;
 
   return {
     type: 'list',

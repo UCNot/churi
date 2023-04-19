@@ -1,4 +1,4 @@
-import { UcSchema } from './uc-schema.js';
+import { UcSchema, ucSchema } from './uc-schema.js';
 
 /**
  * Builds human-readable schema name.
@@ -7,7 +7,11 @@ import { UcSchema } from './uc-schema.js';
  *
  * @returns String containing schema name.
  */
-export function ucSchemaName(schema: UcSchema): string {
+export function ucSchemaName(schema: UcSchema.Spec): string;
+
+export function ucSchemaName(dataType: UcSchema.Spec): string {
+  const schema = ucSchema(dataType);
+
   if (typeof schema.toString === 'function' && schema.toString !== Object.prototype.toString) {
     return schema.toString();
   }

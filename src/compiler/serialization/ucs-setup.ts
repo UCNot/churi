@@ -1,8 +1,7 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcSchemaResolver } from '../../schema/uc-schema-resolver.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
@@ -22,7 +21,6 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
 export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 
   readonly #options: UcsSetup.Options<TSchemae>;
-  readonly #resolver: UcSchemaResolver;
   readonly #enabled = new Set<UcsFeature>();
   readonly #uses = new Map<UcSchema['type'], UcsSetup$FeatureUse>();
   #hasPendingInstructions = false;
@@ -35,17 +33,6 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
    */
   constructor(options: UcsSetup.Options<TSchemae>) {
     this.#options = options;
-
-    const { resolver = new UcSchemaResolver() } = options;
-
-    this.#resolver = resolver;
-  }
-
-  /**
-   * Configured schema resolver.
-   */
-  get resolver(): UcSchemaResolver {
-    return this.#resolver;
   }
 
   /**
@@ -76,7 +63,7 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
    * @returns `this` instance.
    */
   processSchema<T>(spec: UcSchema.Spec<T>): this {
-    const schema = this.resolver.schemaOf(spec);
+    const schema = ucSchema(spec);
     const use = asArray(schema.with?.serializer?.use);
 
     use.forEach(useFeature => this.#useFeature(schema, useFeature));
@@ -143,7 +130,6 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 
     return {
       ...this.#options,
-      resolver: this.#resolver,
       generatorFor: this.#generatorFor.bind(this),
     };
   }
@@ -168,7 +154,7 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
     const { schemae } = this.#options;
 
     Object.values(schemae).forEach(spec => {
-      this.processSchema(this.resolver.schemaOf(spec));
+      this.processSchema(spec);
     });
   }
 
@@ -198,7 +184,6 @@ export class UcsSetup<TSchemae extends UcsLib.Schemae = UcsLib.Schemae> {
 export namespace UcsSetup {
   export interface Options<TSchemae extends UcsLib.Schemae> extends UccLib.Options {
     readonly schemae: TSchemae;
-    readonly resolver?: UcSchemaResolver | undefined;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
 
     createSerializer?<T, TSchema extends UcSchema<T>>(

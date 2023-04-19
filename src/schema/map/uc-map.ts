@@ -144,11 +144,7 @@ export function ucMap<
   spec: TEntriesSpec,
   { id, extra }: UcMap.Schema.Options<TExtraSpec> = {},
 ): UcMap.Schema<TEntriesSpec, TExtraSpec> {
-  const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => {
-    const schema = ucSchema(spec) as UcSchema;
-
-    return [key, schema];
-  });
+  const entries: [string, UcSchema][] = Object.entries<UcSchema.Spec>(spec).map(([key, spec]) => [key, ucSchema(spec)]);
 
   return {
     type: 'map',

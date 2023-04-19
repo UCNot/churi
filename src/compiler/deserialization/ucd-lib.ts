@@ -1,7 +1,7 @@
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
@@ -42,7 +42,7 @@ export class UcdLib<TSchemae extends UcdLib.Schemae = UcdLib.Schemae> extends Uc
     this.#schemae = Object.fromEntries(
       Object.entries(schemae).map(([externalName, schemaSpec]) => [
         externalName,
-        this.resolver.schemaOf(schemaSpec),
+        ucSchema(schemaSpec),
       ]),
     ) as {
       readonly [externalName in keyof TSchemae]: UcSchema.Of<TSchemae[externalName]>;
