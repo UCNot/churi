@@ -7,9 +7,9 @@ describe('UcMap', () => {
   let schema: UcMap.Schema<{ foo: UcSchema<string>; bar: UcSchema<number> }>;
 
   beforeEach(() => {
-    schema = ucMap({
-      foo: new EntrySchema<string>('test-string'),
-      bar: new EntrySchema<number>('test-number'),
+    schema = ucMap<{ foo: UcSchema<string>; bar: UcSchema<number> }>({
+      foo: { type: 'test-string' },
+      bar: { type: 'test-number' },
     });
   });
 
@@ -31,10 +31,10 @@ describe('UcMap', () => {
     });
     it('reflects only a few entry schemae', () => {
       const schema = ucMap({
-        foo: new EntrySchema<string>('test-string'),
-        '0abc': new EntrySchema<string>('test-string'),
-        '%abc': new EntrySchema<string>('test-string'),
-        bar: new EntrySchema<string>('test-string'),
+        foo: { type: 'test-string' },
+        '0abc': { type: 'test-string' },
+        '%abc': { type: 'test-string' },
+        bar: { type: 'test-string' },
       });
 
       expect(ucSchemaName(schema)).toBe(
@@ -43,21 +43,3 @@ describe('UcMap', () => {
     });
   });
 });
-
-class EntrySchema<T> implements UcSchema<T> {
-
-  readonly #type: string;
-
-  constructor(type: string) {
-    this.#type = type;
-  }
-
-  get type(): string {
-    return this.#type;
-  }
-
-  asis(value: T): T {
-    return value;
-  }
-
-}

@@ -72,7 +72,7 @@ describe('UcList deserializer', () => {
   it('does not deserialize unrecognized schema', async () => {
     const lib = await new UcdSetup({
       schemae: {
-        readList: ucList<number>({ type: 'test-type', asis }),
+        readList: ucList<number>({ type: 'test-type' }),
       },
     }).bootstrap();
 

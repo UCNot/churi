@@ -9,6 +9,14 @@ import { UcInstructions } from './uc-instructions.js';
  */
 export interface UcSchema<out T = unknown> {
   /**
+   * Marker method needed for correct type inference.
+   *
+   * Not supposed to be defined.
+   */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  __UcSchema__?(value: T): T;
+
+  /**
    * Whether the data is optional.
    *
    * When `true` the data value may be `undefined`.
@@ -48,13 +56,6 @@ export interface UcSchema<out T = unknown> {
    * Per-tool schema processing instructions.
    */
   readonly with?: UcInstructions | undefined;
-
-  /**
-   * Returns the passed-in value.
-   *
-   * A marker method needed for correct type inference.
-   */
-  asis?(value: T): T;
 
   /**
    * Custom schema name.
