@@ -14,7 +14,7 @@ export abstract class UccLib {
     ns = new UccNamespace(),
     imports = new UccImports(ns),
     declarations = new UccDeclarations(ns),
-  }: UccLib.Options) {
+  }: UccLib.Options = {}) {
     this.#ns = ns;
     this.#imports = imports;
     this.#declarations = declarations;
