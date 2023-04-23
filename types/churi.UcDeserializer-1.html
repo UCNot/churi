@@ -17,9 +17,9 @@
 <li><a href="churi.UcDeserializer-1.html">UcDeserializer</a></li></ul>
 <h1>Type alias UcDeserializer&lt;T&gt;</h1></div>
 <div class="tsd-signature"><span class="tsd-kind-type-alias">Uc<wbr/>Deserializer</span><span class="tsd-signature-symbol">&lt;</span>out <span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">input</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stream</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></div>
-<section class="tsd-panel tsd-type-parameters">
+<section class="tsd-panel">
 <h4>Type Parameters</h4>
-<ul class="tsd-type-parameters">
+<ul class="tsd-type-parameter-list">
 <li>
 <h4>out <span class="tsd-kind-type-parameter">T</span></h4>
 <div class="tsd-comment tsd-typography"><p>Deserialized data type.</p>
@@ -32,8 +32,6 @@
 <li class="tsd-signature" id="__type.__type-1"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">input</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Reads the data <em>synchronously</em> from the given string or array of <a href="churi.UcToken.html" class="tsd-kind-type-alias">tokens</a>.</p>
-
-<h3>Returns</h3><p>Deserialized data value.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -46,12 +44,11 @@
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <a href="../modules/churi.UcDeserializer.html" class="tsd-signature-type tsd-kind-namespace">UcDeserializer</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi.UcDeserializer.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a></h5>
 <div class="tsd-comment tsd-typography"><p>Deserialization options.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h4></li>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h4><p>Deserialized data value.</p>
+</li>
 <li class="tsd-signature" id="__type.__type-2"><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">stream</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Reads the data <em>asynchronously</em> from the given readable <code>stream</code>.</p>
-
-<h3>Returns</h3><p>Promise resolved to deserialized data value.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -64,10 +61,11 @@
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <a href="../modules/churi.UcDeserializer.html" class="tsd-signature-type tsd-kind-namespace">UcDeserializer</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi.UcDeserializer.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a></h5>
 <div class="tsd-comment tsd-typography"><p>Deserialization options.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></li></ul></div><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise resolved to deserialized data value.</p>
+</li></ul></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/schema/uc-deserializer.ts#L17">hatsy/churi/src/schema/uc-deserializer.ts:17</a></li>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/schema/uc-deserializer.ts#L39">hatsy/churi/src/schema/uc-deserializer.ts:39</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/schema/uc-deserializer.ts#L17">hatsy/churi/src/schema/uc-deserializer.ts:17</a></li>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/schema/uc-deserializer.ts#L39">hatsy/churi/src/schema/uc-deserializer.ts:39</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

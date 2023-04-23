@@ -31,7 +31,7 @@ to be at least four characters long.</p>
 <ul class="tsd-hierarchy">
 <li><a href="../interfaces/churi.Ucrx.html" class="tsd-signature-type tsd-kind-interface">Ucrx</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L17">hatsy/churi/src/rx/token.ucrx.ts:17</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L17">hatsy/churi/src/rx/token.ucrx.ts:17</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -86,7 +86,7 @@ to be at least four characters long.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="churi.TokenUcrx.html" class="tsd-signature-type tsd-kind-class">TokenUcrx</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L50">hatsy/churi/src/rx/token.ucrx.ts:50</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L50">hatsy/churi/src/rx/token.ucrx.ts:50</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member"><a id="types" class="tsd-anchor"></a>
@@ -100,7 +100,7 @@ to be at least four characters long.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Implementation of Ucrx.types</p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L54">hatsy/churi/src/rx/token.ucrx.ts:54</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L54">hatsy/churi/src/rx/token.ucrx.ts:54</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="and" class="tsd-anchor"></a>
@@ -110,21 +110,18 @@ to be at least four characters long.</p>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Starts charging of list.</p>
 <p>Always called <em>before</em> the first item charge. In case of map item, always called <em>before</em> <a href="../interfaces/churi.Ucrx.html#map" class="tsd-kind-method">map charge</a>, but not necessarily before <a href="../interfaces/churi.Ucrx.html#for" class="tsd-kind-method">entries charged</a>.</p>
-
-<h3>Returns</h3><p><code>1</code> if charge succeed, or <code>0</code> for unexpected list.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p><code>1</code> if charge succeed, or <code>0</code> for unexpected list.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#and">and</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L149">hatsy/churi/src/rx/token.ucrx.ts:149</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L149">hatsy/churi/src/rx/token.ucrx.ts:149</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="big" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>big</span><a href="#big" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="big.big-1"><span class="tsd-kind-call-signature">big</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span><a href="#big.big-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges big integer value.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected big integer.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -133,18 +130,17 @@ to be at least four characters long.</p>
 <h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">bigint</span></h5>
 <div class="tsd-comment tsd-typography"><p>Charged value.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected big integer.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#big">big</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L65">hatsy/churi/src/rx/token.ucrx.ts:65</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L65">hatsy/churi/src/rx/token.ucrx.ts:65</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="bol" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>bol</span><a href="#bol" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="bol.bol-1"><span class="tsd-kind-call-signature">bol</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span><a href="#bol.bol-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges boolean value.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected boolean.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -153,10 +149,11 @@ to be at least four characters long.</p>
 <h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">boolean</span></h5>
 <div class="tsd-comment tsd-typography"><p>Charged value.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected boolean.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#bol">bol</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L58">hatsy/churi/src/rx/token.ucrx.ts:58</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L58">hatsy/churi/src/rx/token.ucrx.ts:58</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="end" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>end</span><a href="#end" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -169,7 +166,7 @@ to be at least four characters long.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#end">end</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L155">hatsy/churi/src/rx/token.ucrx.ts:155</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L155">hatsy/churi/src/rx/token.ucrx.ts:155</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="ent" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>ent</span><a href="#ent" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -177,8 +174,6 @@ to be at least four characters long.</p>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges opaque (unrecognized) entity.</p>
 <p>Called for unhandled entities.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected entity.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -187,18 +182,17 @@ to be at least four characters long.</p>
 <h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-symbol">readonly </span><a href="../types/churi.UcToken.html" class="tsd-signature-type tsd-kind-type-alias">UcToken</a><span class="tsd-signature-symbol">[]</span></h5>
 <div class="tsd-comment tsd-typography"><p>Charged entity tokens.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected entity.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#ent">ent</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L72">hatsy/churi/src/rx/token.ucrx.ts:72</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L72">hatsy/churi/src/rx/token.ucrx.ts:72</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="for" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>for</span><a href="#for" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="for.for-1"><span class="tsd-kind-call-signature">for</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">key</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/churi.Ucrx.html" class="tsd-signature-type tsd-kind-interface">Ucrx</a><a href="#for.for-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Starts charging of map entry.</p>
-
-<h3>Returns</h3><p>Either entry receiver, <code>0</code> for unexpected map, or <code>undefined</code> for unexpected entry.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -207,10 +201,11 @@ to be at least four characters long.</p>
 <h5><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type ">PropertyKey</span></h5>
 <div class="tsd-comment tsd-typography"><p>Target entry key.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="../interfaces/churi.Ucrx.html" class="tsd-signature-type tsd-kind-interface">Ucrx</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/churi.Ucrx.html" class="tsd-signature-type tsd-kind-interface">Ucrx</a></h4><p>Either entry receiver, <code>0</code> for unexpected map, or <code>undefined</code> for unexpected entry.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#for">for</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L124">hatsy/churi/src/rx/token.ucrx.ts:124</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L124">hatsy/churi/src/rx/token.ucrx.ts:124</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="map" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>map</span><a href="#map" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -220,47 +215,42 @@ to be at least four characters long.</p>
 <p>Called after all map entries <a href="../interfaces/churi.Ucrx.html#for" class="tsd-kind-method">charged</a>, unless the map is empty.</p>
 <p>The returned <code>0</code> makes sense for empty maps only. Otherwise, a preceding call to <a href="../interfaces/churi.Ucrx.html#for" class="tsd-kind-method">for</a> has to return 0,
 which prevents the map charge.</p>
-
-<h3>Returns</h3><p><code>1</code> if charge succeed, or <code>0</code> for unexpected map.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p><code>1</code> if charge succeed, or <code>0</code> for unexpected map.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#map">map</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L143">hatsy/churi/src/rx/token.ucrx.ts:143</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L143">hatsy/churi/src/rx/token.ucrx.ts:143</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="nls" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>nls</span><a href="#nls" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="nls.nls-1"><span class="tsd-kind-call-signature">nls</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi.TokenUcrx.html" class="tsd-signature-type tsd-kind-class">TokenUcrx</a><a href="#nls.nls-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges nested list.</p>
-
-<h3>Returns</h3><p>Either nested list charge receiver, or <code>undefined</code> for unexpected nested list.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <a href="churi.TokenUcrx.html" class="tsd-signature-type tsd-kind-class">TokenUcrx</a></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <a href="churi.TokenUcrx.html" class="tsd-signature-type tsd-kind-class">TokenUcrx</a></h4><p>Either nested list charge receiver, or <code>undefined</code> for unexpected nested list.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#nls">nls</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L79">hatsy/churi/src/rx/token.ucrx.ts:79</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L79">hatsy/churi/src/rx/token.ucrx.ts:79</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="nul" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>nul</span><a href="#nul" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="nul.nul-1"><span class="tsd-kind-call-signature">nul</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span><a href="#nul.nul-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges <code>null</code> value.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or ``0<code>for unexpected</code>null`.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or ``0<code>for unexpected</code>null`.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#nul">nul</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L85">hatsy/churi/src/rx/token.ucrx.ts:85</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L85">hatsy/churi/src/rx/token.ucrx.ts:85</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="num" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>num</span><a href="#num" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="num.num-1"><span class="tsd-kind-call-signature">num</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span><a href="#num.num-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges number value.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected number.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -269,18 +259,17 @@ which prevents the map charge.</p>
 <h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">number</span></h5>
 <div class="tsd-comment tsd-typography"><p>Charged value.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected number.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#num">num</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L92">hatsy/churi/src/rx/token.ucrx.ts:92</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L92">hatsy/churi/src/rx/token.ucrx.ts:92</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="str" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>str</span><a href="#str" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
 <li class="tsd-signature tsd-anchor-link" id="str.str-1"><span class="tsd-kind-call-signature">str</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">value</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span><a href="#str.str-1" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Charges string value.</p>
-
-<h3>Returns</h3><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected number.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -289,10 +278,11 @@ which prevents the map charge.</p>
 <h5><span class="tsd-kind-parameter">value</span>: <span class="tsd-signature-type">string</span></h5>
 <div class="tsd-comment tsd-typography"><p>Charged value.</p>
 </div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">1</span></h4><p>Either <code>1</code> if charge succeed, or <code>0</code> for unexpected number.</p>
+<aside class="tsd-sources">
 <p>Implementation of <a href="../interfaces/churi.Ucrx.html">Ucrx</a>.<a href="../interfaces/churi.Ucrx.html#str">str</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L108">hatsy/churi/src/rx/token.ucrx.ts:108</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L108">hatsy/churi/src/rx/token.ucrx.ts:108</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="charge" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>charge</span><a href="#charge" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -307,7 +297,7 @@ which prevents the map charge.</p>
 <h5><span class="tsd-kind-parameter">mode</span>: <a href="../interfaces/churi.UctxMode.html" class="tsd-signature-type tsd-kind-interface">UctxMode</a><span class="tsd-signature-symbol"> = UctxMode$Default</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/churi.UcToken.html" class="tsd-signature-type tsd-kind-type-alias">UcToken</a><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L19">hatsy/churi/src/rx/token.ucrx.ts:19</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L19">hatsy/churi/src/rx/token.ucrx.ts:19</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="print" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>print</span><a href="#print" aria-label="Permalink" class="tsd-anchor-icon"><svg class="icon icon-tabler icon-tabler-link" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-anchor-a"></use><use href="#icon-anchor-b"></use><use href="#icon-anchor-c"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -335,7 +325,7 @@ which prevents the map charge.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4></li></ul></li></ul></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/9d2b714/src/rx/token.ucrx.ts#L31">hatsy/churi/src/rx/token.ucrx.ts:31</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/hatsyjs/churi/blob/c3214b5/src/rx/token.ucrx.ts#L31">hatsy/churi/src/rx/token.ucrx.ts:31</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
