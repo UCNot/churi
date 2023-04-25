@@ -30,9 +30,9 @@ export type UcSerializer<in T> = (stream: WritableStream<Uint8Array>, value: T) 
  * @returns Serializer instance.
  */
 export function createUcSerializer<T>(model: UcModel<T>): UcSerializer<T> {
-  throw new TypeError(
-    `Can not create serializer for ${ucModelName(
-      model,
-    )}. Is "ts-transform-churi" transformer applied?`,
-  );
+  return () => {
+    throw new TypeError(
+      `Can not serialize ${ucModelName(model)}. Is "ts-transform-churi" transformer applied?`,
+    );
+  };
 }
