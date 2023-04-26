@@ -1,5 +1,5 @@
 import { isIterable } from '@proc7ts/primitives';
-import { decodeSearchParam, encodeSearchParam } from '../impl/search-param-codec.js';
+import { decodeURISearchPart, encodeURISearchPart } from 'httongue';
 import { ChURIParamSplitter } from './churi-param-splitter.js';
 
 export class ChURIParamValue {
@@ -66,7 +66,7 @@ export function parseChURIParams(
       }
     }
 
-    const key = decodeSearchParam(rawKey);
+    const key = decodeURISearchPart(rawKey);
     const value = optionalValue ?? '';
     const prev = entries.get(key);
 
@@ -131,7 +131,7 @@ class ChURIParam$Parsed implements ChURIParam {
   }
 
   get values(): string[] {
-    return (this.#values ??= this.#rawValues.map(decodeSearchParam));
+    return (this.#values ??= this.#rawValues.map(decodeURISearchPart));
   }
 
   get rawValues(): string[] {
@@ -166,7 +166,7 @@ class ChURIParam$Provided implements ChURIParam {
   }
 
   get rawKey(): string {
-    return (this.#rawKey ??= decodeSearchParam(this.#key));
+    return (this.#rawKey ??= decodeURISearchPart(this.#key));
   }
 
   get values(): string[] {
@@ -174,7 +174,7 @@ class ChURIParam$Provided implements ChURIParam {
   }
 
   get rawValues(): string[] {
-    return (this.#rawValues ??= this.#values.map(encodeSearchParam));
+    return (this.#rawValues ??= this.#values.map(encodeURISearchPart));
   }
 
   add(value: string): ChURIParamValue {

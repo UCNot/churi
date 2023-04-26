@@ -1,8 +1,9 @@
+import { encodeURIPart } from 'httongue';
 import { chargeURI } from '../../rx/charge-uri.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
-import { encodeUcToken, printUcTokens } from '../../syntax/print-uc-token.js';
+import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 
@@ -37,7 +38,7 @@ export class UcEntity implements Uctx {
    * The entity as is.
    */
   get raw(): string {
-    return (this.#raw ??= printUcTokens(this.tokens, encodeUcToken));
+    return (this.#raw ??= printUcTokens(this.tokens, encodeURIPart));
   }
 
   get [Symbol.toStringTag](): string {

@@ -5,12 +5,12 @@ describe('churi tag', () => {
   it('charges string', () => {
     const string = 'Hello, World!';
 
-    expect(churi`${string}`).toBe('Hello%2C%20World!');
+    expect(churi`${string}`).toBe('Hello%2C%20World%21');
   });
   it('trims leading an trailing whitespace', () => {
     const string = 'Hello, World!';
 
-    expect(churi`  ${string}  `).toBe('Hello%2C%20World!');
+    expect(churi`  ${string}  `).toBe('Hello%2C%20World%21');
   });
   it('removes new lines', () => {
     expect(churi`

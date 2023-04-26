@@ -1,5 +1,6 @@
+import { encodeURIPart } from 'httongue';
 import { UC_ESCAPED, UC_KEY_ESCAPED } from '../impl/uc-string-escapes.js';
-import { encodeUcToken, printUcToken } from '../syntax/print-uc-token.js';
+import { printUcToken } from '../syntax/print-uc-token.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -31,7 +32,7 @@ export class TokenUcrx implements Ucrx {
   static print(
     value: unknown,
     mode: UctxMode = UctxMode$Default,
-    encodeString: (token: string) => string = encodeUcToken,
+    encodeString: (token: string) => string = encodeURIPart,
   ): string | undefined {
     const chunks: string[] = [];
     const rx = new this(token => chunks.push(printUcToken(token, encodeString)));

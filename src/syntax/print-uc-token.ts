@@ -1,5 +1,4 @@
 import { asis } from '@proc7ts/primitives';
-import { escapeUcSpecials } from '../impl/uc-string-escapes.js';
 import {
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
@@ -30,8 +29,4 @@ export function printUcToken(token: UcToken, encodeString?: (token: string) => s
   }
 
   return String.fromCharCode(token);
-}
-
-export function encodeUcToken(token: string): string {
-  return escapeUcSpecials(encodeURIComponent(token));
 }
