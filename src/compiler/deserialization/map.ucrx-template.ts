@@ -1,6 +1,6 @@
 import { lazyValue } from '@proc7ts/primitives';
+import { escapeJsString, quoteJsKey } from 'httongue';
 import { CHURI_MODULE } from '../../impl/module-names.js';
-import { escapeJsString, jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
@@ -147,7 +147,7 @@ export class MapUcrxTemplate<
 
               code.write(
                 entry.declare(init => code => {
-                  code.inline(jsPropertyKey(key), ': ', init, ',');
+                  code.inline(quoteJsKey(key), ': ', init, ',');
                 }),
               );
             }

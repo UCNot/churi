@@ -1,4 +1,4 @@
-import { jsStringLiteral } from '../../impl/quote-property-key.js';
+import { jsStringLiteral } from 'httongue';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';

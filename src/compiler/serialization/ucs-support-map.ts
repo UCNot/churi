@@ -1,14 +1,13 @@
 import { noop } from '@proc7ts/primitives';
+import { escapeJsString, jsPropertyAccessor } from 'httongue';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { SERIALIZER_MODULE } from '../../impl/module-names.js';
-import { escapeJsString } from '../../impl/quote-property-key.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccBuilder, UccSource } from '../codegen/ucc-code.js';
-import { uccPropertyAccessExpr } from '../codegen/ucc-expr.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsFunction } from './ucs-function.js';
@@ -80,7 +79,7 @@ function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
 
     for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
       code.write(
-        `${entryValue} = ${uccPropertyAccessExpr(value, key)};`,
+        `${entryValue} = ${value}${jsPropertyAccessor(key)};`,
         ucsCheckConstraints(
           fn,
           entrySchema,
