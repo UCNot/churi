@@ -1,4 +1,4 @@
-import { capitalize } from '../../impl/capitalize.js';
+import { capitalize } from 'httongue';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { safeJsId } from './safe-js-id.js';
 import { ucUcSchemaVariant } from './uc-schema.variant.js';

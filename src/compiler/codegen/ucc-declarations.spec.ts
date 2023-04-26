@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { jsStringLiteral } from '../../impl/quote-property-key.js';
+import { jsStringLiteral } from 'httongue';
 import { UccCode } from './ucc-code.js';
 import { UccDeclarations } from './ucc-declarations.js';
 import { UccNamespace } from './ucc-namespace.js';

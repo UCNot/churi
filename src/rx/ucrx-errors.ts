@@ -1,4 +1,4 @@
-import { escapeJsString, jsPropertyKey } from '../impl/quote-property-key.js';
+import { escapeJsString, quoteJsKey } from 'httongue';
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
@@ -75,7 +75,7 @@ export function ucrxUnexpectedEntryError(key: string): UcErrorInfo {
     details: {
       key,
     },
-    message: `Unexpected entry: ${jsPropertyKey(key, '"')}`,
+    message: `Unexpected entry: ${quoteJsKey(key, '"')}`,
   };
 }
 

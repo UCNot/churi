@@ -78,21 +78,21 @@ describe('chargeURI', () => {
 
   describe('string value', () => {
     it('encoded as top-level value', () => {
-      expect(chargeURI('Hello, (World)!')).toBe('Hello%2C%20%28World%29!');
+      expect(chargeURI('Hello, (World)!')).toBe('Hello%2C%20%28World%29%21');
       expect(chargeURI('-test')).toBe("'-test");
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29!)');
+      expect(chargeURI({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29%21)');
       expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
     });
     it('encoded as list item value', () => {
-      expect(chargeURI(['Hello, (World)!'])).toBe('Hello%2C%20%28World%29!,');
+      expect(chargeURI(['Hello, (World)!'])).toBe('Hello%2C%20%28World%29%21,');
       expect(chargeURI(['-test'])).toBe("'-test,");
     });
     it('escapes special prefixes', () => {
-      expect(chargeURI('!foo')).toBe("'!foo");
+      expect(chargeURI('!foo')).toBe("'%21foo");
       expect(chargeURI('$foo')).toBe("'%24foo");
-      expect(chargeURI("'foo")).toBe("''foo");
+      expect(chargeURI("'foo")).toBe("'%27foo");
       expect(chargeURI('-foo')).toBe("'-foo");
       expect(chargeURI('0foo')).toBe("'0foo");
       expect(chargeURI('1foo')).toBe("'1foo");
@@ -209,7 +209,7 @@ describe('chargeURI', () => {
 
   describe('object entry key', () => {
     it('escaped', () => {
-      expect(chargeURI({ '!foo(baz)': 1, '!bar': 2 })).toBe('$!foo%28baz%29(1)$!bar(2)');
+      expect(chargeURI({ '!foo(baz)': 1, '!bar': 2 })).toBe('$%21foo%28baz%29(1)$%21bar(2)');
     });
     it('escaped when empty', () => {
       expect(chargeURI({ '': 1 })).toBe('$(1)');
@@ -231,7 +231,7 @@ describe('chargeURI', () => {
     });
     it('escaped and appended as list item value', () => {
       expect(chargeURI(['', { foo: '' }])).toBe(',,foo()');
-      expect(chargeURI(['', { '!foo': '' }])).toBe(',,$!foo()');
+      expect(chargeURI(['', { '!foo': '' }])).toBe(',,$%21foo()');
     });
   });
 

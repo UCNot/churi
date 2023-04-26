@@ -1,5 +1,5 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
-import { jsPropertyKey, jsStringLiteral } from '../../impl/quote-property-key.js';
+import { jsStringLiteral, quoteJsKey } from 'httongue';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
@@ -312,7 +312,7 @@ class UcdSetup$FeatureUse {
   }
 
   toString(): string {
-    return `import(${jsStringLiteral(this.#from)}).${jsPropertyKey(this.#name)}`;
+    return `import(${jsStringLiteral(this.#from)}).${quoteJsKey(this.#name)}`;
   }
 
 }

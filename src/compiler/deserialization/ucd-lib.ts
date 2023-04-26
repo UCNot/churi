@@ -1,5 +1,5 @@
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
-import { escapeJsString } from '../../impl/quote-property-key.js';
+import { escapeJsString } from 'httongue';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';

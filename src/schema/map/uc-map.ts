@@ -1,5 +1,5 @@
+import { quoteJsKey } from 'httongue';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { jsPropertyKey } from '../../impl/quote-property-key.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { ucModelName } from '../uc-model-name.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../uc-schema.js';
@@ -158,7 +158,7 @@ export function ucMap<
         if (i) {
           out += ', ';
         }
-        out += jsPropertyKey(key) + ': ' + ucModelName(entry);
+        out += quoteJsKey(key) + ': ' + ucModelName(entry);
 
         if (i < 2) {
           return true;

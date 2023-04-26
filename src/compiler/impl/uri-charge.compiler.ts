@@ -1,5 +1,5 @@
+import { jsStringLiteral } from 'httongue';
 import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
-import { jsStringLiteral } from '../../impl/quote-property-key.js';
 import { UcList } from '../../schema/list/uc-list.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
