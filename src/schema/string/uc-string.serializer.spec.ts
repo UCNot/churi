@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsFunction } from '../../compiler/serialization/ucs-function.js';
 import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
 import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
+import { SPEC_MODULE } from '../../impl/module-names.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel, UcSchema } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
@@ -50,7 +51,7 @@ describe('UcString serializer', () => {
         return new UcsFunction<T, TSchema>({
           ...options,
           createWriter(serializer, writer, stream) {
-            const UcsWriter = serializer.lib.import('churi/spec', 'SmallChunkUcsWriter');
+            const UcsWriter = serializer.lib.import(SPEC_MODULE, 'SmallChunkUcsWriter');
 
             return `const ${writer} = new ${UcsWriter}(${stream}, 4);`;
           },

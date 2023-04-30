@@ -1,4 +1,5 @@
 import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
+import { SPEC_MODULE } from '../impl/module-names.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { ucrxString } from '../rx/ucrx-item.js';
 import { Ucrx } from '../rx/ucrx.js';
@@ -16,6 +17,6 @@ export function readPlainEntity(
 
 export function ucdSupportPlainEntity(setup: UcdSetup): void {
   setup.handleEntityPrefix('!plain', ({ lib, register }) => code => {
-    code.write(register(lib.import('churi/spec', 'readPlainEntity')));
+    code.write(register(lib.import(SPEC_MODULE, 'readPlainEntity')));
   });
 }

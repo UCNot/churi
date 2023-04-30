@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcsSupportNumberAsHex } from '../../spec/write-uc-hex-number.js';
@@ -22,7 +23,7 @@ describe('UcsSetup', () => {
         type: 'hexNumber',
         with: {
           serializer: {
-            use: { from: 'churi/spec', feature: 'UcsSupportHexNumber' },
+            use: { from: SPEC_MODULE, feature: 'UcsSupportHexNumber' },
           },
         },
       };
@@ -39,7 +40,7 @@ describe('UcsSetup', () => {
         type: 'hexNumber',
         with: {
           serializer: {
-            use: { from: 'churi/spec', feature: 'UcsSupportHexNumberSchema' },
+            use: { from: SPEC_MODULE, feature: 'UcsSupportHexNumberSchema' },
           },
         },
       };
@@ -56,7 +57,7 @@ describe('UcsSetup', () => {
         type: 'hexNumber',
         with: {
           serializer: {
-            use: { from: 'churi/spec', feature: 'MissingFeature' },
+            use: { from: SPEC_MODULE, feature: 'MissingFeature' },
           },
         },
       };
@@ -66,7 +67,7 @@ describe('UcsSetup', () => {
           models: { writeValue: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`No such serializer feature: import('churi/spec').MissingFeature`),
+        new ReferenceError(`No such serializer feature: import('${SPEC_MODULE}').MissingFeature`),
       );
     });
     it('fails to enable wrong feature', async () => {
@@ -74,7 +75,7 @@ describe('UcsSetup', () => {
         type: 'hexNumber',
         with: {
           serializer: {
-            use: { from: 'churi/spec', feature: 'WrongFeature' },
+            use: { from: SPEC_MODULE, feature: 'WrongFeature' },
           },
         },
       };
@@ -84,7 +85,7 @@ describe('UcsSetup', () => {
           models: { writeValue: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`Not a serializer feature: import('churi/spec').WrongFeature`),
+        new ReferenceError(`Not a serializer feature: import('${SPEC_MODULE}').WrongFeature`),
       );
     });
   });

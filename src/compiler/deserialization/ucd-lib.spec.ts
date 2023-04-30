@@ -21,7 +21,7 @@ describe('UcdLib', () => {
 
       const text = await new UccCode().write(compiled).toText();
 
-      expect(text).toContain("import('churi/deserializer')");
+      expect(text).toContain("import('churi/deserializer.js')");
       expect(text).toContain(
         'async readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -35,7 +35,7 @@ describe('UcdLib', () => {
 
       const text = await new UccCode().write(compiled).toText();
 
-      expect(text).toContain("import('churi/deserializer')");
+      expect(text).toContain("import('churi/deserializer.js')");
       expect(text).toContain(
         'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -49,7 +49,7 @@ describe('UcdLib', () => {
 
       const text = await new UccCode().write(compiled).toText();
 
-      expect(text).toContain("import('churi/deserializer')");
+      expect(text).toContain("import('churi/deserializer.js')");
       expect(text).toContain(
         'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -67,7 +67,7 @@ describe('UcdLib', () => {
       const text = await module.toText();
 
       await expect(new UccCode().write(module).toText()).resolves.toBe(text);
-      expect(text).toContain(`} from 'churi/deserializer';\n`);
+      expect(text).toContain(`} from 'churi/deserializer.js';\n`);
       expect(text).toContain(
         'export async function readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -82,7 +82,7 @@ describe('UcdLib', () => {
       const text = await module.toText();
 
       await expect(new UccCode().write(module).toText()).resolves.toBe(text);
-      expect(text).toContain(`} from 'churi/deserializer';\n`);
+      expect(text).toContain(`} from 'churi/deserializer.js';\n`);
       expect(text).toContain(
         'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );
@@ -97,7 +97,7 @@ describe('UcdLib', () => {
       const text = await module.toText();
 
       await expect(new UccCode().write(module).toText()).resolves.toBe(text);
-      expect(text).toContain(`} from 'churi/deserializer';\n`);
+      expect(text).toContain(`} from 'churi/deserializer.js';\n`);
       expect(text).toContain(
         'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
       );

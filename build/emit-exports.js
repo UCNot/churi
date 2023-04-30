@@ -1,6 +1,6 @@
-import { ucUnknown } from '#churi/core';
-import { createURIChargeUcdLib } from '#churi/uri-charge/compiler';
-import { UccCode, UcdSetup, ucdSupportDefaults } from 'churi/compiler';
+import { ucUnknown } from '#churi/core.js';
+import { createURIChargeUcdLib } from '#churi/uri-charge/compiler.js';
+import { UccCode, UcdSetup, ucdSupportDefaults } from 'churi/compiler.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -6,7 +6,7 @@
     "outDir": "target/js",
     "exactOptionalPropertyTypes": true,
     "paths": {
-      "#churi/uri-charge/deserializer": ["./src/compiler/impl/uri-charge.deserializer.stub.ts"]
+      "#churi/uri-charge/deserializer.js": ["./src/compiler/impl/uri-charge.deserializer.stub.ts"]
     }
   },
   "include": ["src/**/*.ts"]
