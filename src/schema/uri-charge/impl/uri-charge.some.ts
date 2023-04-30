@@ -1,9 +1,9 @@
-import { TokenUcrx } from '../../rx/token.ucrx.js';
-import { Ucrx } from '../../rx/ucrx.js';
-import { UctxMode } from '../../rx/uctx-mode.js';
-import { uctxArray, uctxMap, uctxValue } from '../../rx/uctx-value.js';
-import { UcUnknown } from '../unknown/uc-unknown.js';
-import { URICharge } from './uri-charge.js';
+import { TokenUcrx } from '../../../rx/token.ucrx.js';
+import { Ucrx } from '../../../rx/ucrx.js';
+import { UctxMode } from '../../../rx/uctx-mode.js';
+import { uctxArray, uctxMap, uctxValue } from '../../../rx/uctx-value.js';
+import { UcUnknown } from '../../unknown/uc-unknown.js';
+import { URICharge } from '../uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
 

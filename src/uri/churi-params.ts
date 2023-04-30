@@ -1,5 +1,5 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer';
-import { URICharge$List } from '../schema/uri-charge/uri-charge.impl.js';
+import { URICharge$List } from '../schema/uri-charge/impl/uri-charge.some.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
 import {
   ChURIAnchor$splitter,

@@ -10,7 +10,7 @@ export default new ProjectConfig({
           default: './dist/churi.core.js',
         },
         './churi.uri-charge': {
-          source: './src/schema/uri-charge/uri-charge.impl.ts',
+          source: './src/schema/uri-charge/impl/uri-charge.some.ts',
           default: './dist/churi.uri-charge.js',
         },
         './churi.uri-charge.compiler': {
