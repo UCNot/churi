@@ -7,6 +7,6 @@ export default await configureJest({
     '^churi/deserializer$': '<rootDir>/src/deserializer/mod.ts',
     '^churi/serializer$': '<rootDir>/src/serializer/mod.ts',
     '^churi/spec$': '<rootDir>/src/spec/mod.ts',
-    '^#churi/uri-charge$': '<rootDir>/src/schema/uri-charge/uri-charge.impl.ts',
+    '^#churi/uri-charge$': '<rootDir>/src/schema/uri-charge/impl/uri-charge.some.ts',
   },
 });
