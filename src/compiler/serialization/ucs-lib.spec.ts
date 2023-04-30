@@ -35,7 +35,7 @@ describe('UcsLib', () => {
 
       expect(module.lib).toBe(lib);
       await expect(new UccCode().write(module).toText()).resolves.toBe(await module.toText());
-      await expect(module.toText()).resolves.toContain(`} from 'churi/serializer';\n`);
+      await expect(module.toText()).resolves.toContain(`} from 'churi/serializer.js';\n`);
       await expect(module.toText()).resolves.toContain(
         'export async function writeValue(stream, value) {\n',
       );

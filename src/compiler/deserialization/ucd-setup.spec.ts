@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
 import { UcdSetup } from './ucd-setup.js';
@@ -34,7 +35,7 @@ describe('UcdSetup', () => {
         type: 'timestamp',
         with: {
           deserializer: {
-            use: { from: 'churi/spec', feature: 'UcdSupportTimestamp' },
+            use: { from: SPEC_MODULE, feature: 'UcdSupportTimestamp' },
           },
         },
       };
@@ -54,7 +55,7 @@ describe('UcdSetup', () => {
         type: 'timestamp',
         with: {
           deserializer: {
-            use: { from: 'churi/spec', feature: 'UcdSupportTimestampSchema' },
+            use: { from: SPEC_MODULE, feature: 'UcdSupportTimestampSchema' },
           },
         },
       };
@@ -74,7 +75,7 @@ describe('UcdSetup', () => {
         type: 'timestamp',
         with: {
           deserializer: {
-            use: { from: 'churi/spec', feature: 'ucdSupportTimestampSchema' },
+            use: { from: SPEC_MODULE, feature: 'ucdSupportTimestampSchema' },
           },
         },
       };
@@ -94,7 +95,7 @@ describe('UcdSetup', () => {
         type: 'timestamp',
         with: {
           deserializer: {
-            use: { from: 'churi/spec', feature: 'MissingFeature' },
+            use: { from: SPEC_MODULE, feature: 'MissingFeature' },
           },
         },
       };
@@ -104,7 +105,7 @@ describe('UcdSetup', () => {
           models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`No such deserializer feature: import('churi/spec').MissingFeature`),
+        new ReferenceError(`No such deserializer feature: import('${SPEC_MODULE}').MissingFeature`),
       );
     });
     it('fails to enable wrong feature', async () => {
@@ -112,7 +113,7 @@ describe('UcdSetup', () => {
         type: 'timestamp',
         with: {
           deserializer: {
-            use: { from: 'churi/spec', feature: 'WrongFeature' },
+            use: { from: SPEC_MODULE, feature: 'WrongFeature' },
           },
         },
       };
@@ -122,7 +123,7 @@ describe('UcdSetup', () => {
           models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`Not a deserializer feature: import('churi/spec').WrongFeature`),
+        new ReferenceError(`Not a deserializer feature: import('${SPEC_MODULE}').WrongFeature`),
       );
     });
   });

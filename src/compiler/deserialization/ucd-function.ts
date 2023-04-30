@@ -222,7 +222,7 @@ export namespace UcdFunction {
      * Generated {@link churi!Ucrx receiver} expression expected to be placed right after this
      * prefix.
      *
-     * This may be e.g. a {@link churi/deserializer!UcdReader#read function call}.
+     * This may be e.g. a {@link churi/deserializer.js!UcdReader#read function call}.
      */
     readonly prefix: string;
 

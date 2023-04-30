@@ -1,4 +1,4 @@
-import { parseURICharge } from '#churi/uri-charge/deserializer';
+import { parseURICharge } from '#churi/uri-charge/deserializer.js';
 import { describe, expect, it } from '@jest/globals';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';

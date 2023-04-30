@@ -1,7 +1,7 @@
 /**
  * Schema compiler API.
  *
- * @module churi/compiler
+ * @module churi/compiler.js
  */
 export * from './codegen/mod.js';
 export * from './codegen/ucc-args.js';
