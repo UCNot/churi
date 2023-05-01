@@ -82,6 +82,12 @@ export class UccCode implements UccEmitter {
     return this;
   }
 
+  block(...fragments: UccSource[]): this {
+    this.#addPart(new UccCode$Indented(new UccCode(this).write(...fragments), ''));
+
+    return this;
+  }
+
   async emit(): Promise<UccPrintable> {
     const extraRecords: (string | UccPrintable)[] = [];
     let whenEmitted: Promise<unknown> = Promise.resolve();
@@ -208,9 +214,11 @@ class UccCode$Inline implements UccEmitter {
 class UccCode$Indented implements UccEmitter {
 
   readonly #code: UccCode;
+  readonly #indent: string | undefined;
 
-  constructor(code: UccCode) {
+  constructor(code: UccCode, indent?: string) {
     this.#code = code;
+    this.#indent = indent;
   }
 
   async emit(): Promise<UccPrintable> {
@@ -218,7 +226,7 @@ class UccCode$Indented implements UccEmitter {
 
     return {
       printTo: span => {
-        span.indent(span => span.print(record));
+        span.indent(span => span.print(record), this.#indent);
       },
     };
   }

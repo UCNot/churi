@@ -99,5 +99,18 @@ describe('UccDeclarations', () => {
           + `class TestClass$0 {\n  static className = 'TestClass$0';\n}\n`,
       );
     });
+    it('declares exported class', async () => {
+      declarations.declareClass(
+        'TestClass',
+        ({ name }) => code => {
+            code.write(`static className = ${jsStringLiteral(name)};`);
+          },
+        { exported: true },
+      );
+
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
+        `export class TestClass {\n  static className = 'TestClass';\n}\n`,
+      );
+    });
   });
 });
