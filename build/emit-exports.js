@@ -1,6 +1,6 @@
 import { ucUnknown } from '#churi/core.js';
 import { createURIChargeUcdLib } from '#churi/uri-charge/compiler.js';
-import { UccCode, UcdSetup, ucdSupportDefaults } from 'churi/compiler.js';
+import { UcdSetup, ucdSupportDefaults } from 'churi/compiler.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,13 +31,9 @@ async function emitDefaultEntities() {
     exported: true,
   });
 
-  const declarations = lib.declarations.compile();
-
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    await new UccCode()
-      .write(lib.imports.asStatic(), '', declarations.body, '', declarations.exports)
-      .toText(),
+    await lib.compile().toText(),
     'utf-8',
   );
 }
@@ -50,7 +46,7 @@ async function emitUcValueDeserializer() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
-    await lib.compileModule().toText(),
+    await lib.compile().toText(),
     'utf-8',
   );
 }
@@ -73,7 +69,7 @@ async function emitURIChargeDeserializer() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.uri-charge.deserializer.js'),
-    await lib.compileModule('sync').toText(),
+    await lib.compile().toText(),
     'utf-8',
   );
 }

@@ -10,16 +10,14 @@ describe('UcdLib', () => {
         models: { readValue: Number },
         mode: 'async',
       }).bootstrap();
-      const compiled = lib.compile();
+      const compiled = lib.compileFactory();
 
       expect(compiled.lib).toBe(lib);
 
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
-      expect(text).toContain(
-        'async readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('async function readValue(stream, options) {\n');
       expect(text).toMatch(/\bAsyncUcdReader\b/);
       expect(text).not.toMatch(/\bcreateSyncUcdReader\b/);
     });
@@ -28,16 +26,14 @@ describe('UcdLib', () => {
         models: { readValue: Number },
         mode: 'sync',
       }).bootstrap();
-      const compiled = lib.compile();
+      const compiled = lib.compileFactory();
 
       expect(compiled.lib).toBe(lib);
 
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
-      expect(text).toContain(
-        'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('function readValue(input, options) {\n');
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).not.toMatch(/\bAsyncUcdReader\b/);
     });
@@ -45,16 +41,14 @@ describe('UcdLib', () => {
       const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
         models: { readValue: Number },
       }).bootstrap();
-      const compiled = lib.compile();
+      const compiled = lib.compileFactory();
 
       expect(compiled.lib).toBe(lib);
 
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
-      expect(text).toContain(
-        'readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('function readValue(input, options) {\n');
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).toMatch(/\bAsyncUcdReader\b/);
     });
@@ -66,17 +60,14 @@ describe('UcdLib', () => {
         models: { readValue: Number },
         mode: 'async',
       }).bootstrap();
-      const module = lib.compileModule();
+      const module = lib.compile();
 
       expect(module.lib).toBe(lib);
 
       const text = await module.toText();
 
-      await expect(new UccCode().write(module).toText()).resolves.toBe(text);
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);
-      expect(text).toContain(
-        'export async function readValue(stream, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('export async function readValue(stream, options) {\n');
       expect(text).toMatch(/\bAsyncUcdReader\b/);
       expect(text).not.toMatch(/\bSyncUcdReader\b/);
     });
@@ -85,17 +76,14 @@ describe('UcdLib', () => {
         models: { readValue: Number },
         mode: 'sync',
       }).bootstrap();
-      const module = lib.compileModule();
+      const module = lib.compile();
 
       expect(module.lib).toBe(lib);
 
       const text = await module.toText();
 
-      await expect(new UccCode().write(module).toText()).resolves.toBe(text);
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);
-      expect(text).toContain(
-        'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('export function readValue(input, options) {\n');
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).not.toMatch(/\bAsyncUcdReader\b/);
     });
@@ -103,17 +91,14 @@ describe('UcdLib', () => {
       const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
         models: { readValue: Number },
       }).bootstrap();
-      const module = lib.compileModule();
+      const module = lib.compile();
 
       expect(module.lib).toBe(lib);
 
       const text = await module.toText();
 
-      await expect(new UccCode().write(module).toText()).resolves.toBe(text);
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);
-      expect(text).toContain(
-        'export function readValue(input, { onError, onEntity = onEntity$byDefault } = {}) {\n',
-      );
+      expect(text).toContain('export function readValue(input, options) {\n');
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).toMatch(/\bAsyncUcdReader\b/);
     });

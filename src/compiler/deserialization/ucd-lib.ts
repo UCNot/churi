@@ -15,7 +15,7 @@ import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdFunction } from './ucd-function.js';
 
 /**
- * Deserializer library that {@link UcdLib#compile compiles data models} into their deserialization functions.
+ * Deserializer library that {@link UcdLib#compileFactory compiles data models} into their deserialization functions.
  *
  * An {@link UcdSetup deserializer setup} expected to be used to configure and {@link UcdSetup#bootstrap bootstrap}
  * the library instance.
@@ -56,8 +56,10 @@ export class UcdLib<
 
     this.#createDeserializer = createDeserializer;
 
-    for (const schema of Object.values(this.#models)) {
-      this.deserializerFor(schema);
+    for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
+      const fn = this.deserializerFor(schema);
+
+      this.#declareDeserializer(fn, externalName);
     }
   }
 
@@ -151,6 +153,55 @@ export class UcdLib<
     return deserializer;
   }
 
+  #declareDeserializer(fn: UcdFunction, externalName: string): void {
+    const { opaqueUcrx } = this;
+
+    const input = this.mode === 'async' ? fn.vars.stream : fn.vars.input;
+    const options = fn.vars.options;
+
+    this.declarations.declareFunction(
+      externalName,
+      [this.mode === 'async' ? fn.vars.stream : fn.vars.input, options],
+      () => code => {
+        code.write(`const { onError, onEntity = ${this.entityHandler} } = ${options} ?? {};`);
+        if (opaqueUcrx) {
+          code
+            .write(`${options} = {`)
+            .indent(code => {
+              code.write(
+                'onError,',
+                'onEntity,',
+                `opaqueRx: `
+                  + opaqueUcrx.newInstance({
+                    set: 'undefined',
+                    context: 'undefined',
+                  })
+                  + ',',
+              );
+            })
+            .write('};');
+        } else {
+          code.write(`${options} = { onError, onEntity };`);
+        }
+        code.write(fn.toUcDeserializer(input, options));
+      },
+      {
+        async: this.mode === 'async',
+        exported: true,
+        bindArgs:
+          this.mode === 'async'
+            ? {
+                [fn.vars.stream]: fn.vars.stream,
+                [options]: options,
+              }
+            : {
+                [fn.vars.input]: fn.vars.input,
+                [options]: options,
+              },
+      },
+    );
+  }
+
   override ucrxTemplateFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcrxTemplate<T, TSchema> {
@@ -163,43 +214,20 @@ export class UcdLib<
     return this.#options.ucrxTemplateFactoryFor?.(schema);
   }
 
-  compile(): UcdLib.Compiled<TModels, TMode> {
+  compileFactory(): UcdLib.Factory<TModels, TMode> {
+    const module = this.compile('factory');
+
     return {
       lib: this,
-      toCode: () => this.#toFactoryCode(),
-      toDeserializers: () => this.#toDeserializers(),
+      toCode: module.toCode,
+      toExports: () => this.#toDeserializers(module),
     };
   }
 
-  #toFactoryCode(): UccSource {
-    return code => {
-      const declarations = this.declarations.compile('factory');
-
-      code
-        .write('return (async () => {')
-        .indent(
-          this.imports.asDynamic(),
-          '',
-          declarations.body,
-          '',
-          this.#returnDeserializers(),
-          declarations.exports,
-        )
-        .write('})();');
-    };
-  }
-
-  #returnDeserializers(): UccSource {
-    return code => {
-      code
-        .write('return {')
-        .indent(this.#declareDeserializers(this.mode === 'async' ? 'async ' : '', ','))
-        .write('};');
-    };
-  }
-
-  async #toDeserializers(): Promise<UcdLib.Exports<TModels, TMode>> {
-    const text = await new UccCode().write(this.#toFactoryCode()).toText();
+  async #toDeserializers(
+    module: UcdLib.Compiled<TModels>,
+  ): Promise<UcdLib.Exports<TModels, TMode>> {
+    const text = await module.toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(text) as () => Promise<UcdLib.Exports<TModels, TMode>>;
@@ -207,7 +235,7 @@ export class UcdLib<
     return await factory();
   }
 
-  compileModule(format: UccLib.Format = 'mjs'): UcdLib.Module<TModels> {
+  compile(format: UccLib.Format = 'mjs'): UcdLib.Compiled<TModels> {
     const toCode = lazyValue(() => this.#toCode(format));
 
     return {
@@ -220,64 +248,20 @@ export class UcdLib<
   }
 
   #toCode(format: UccLib.Format): UccSource {
+    if (format === 'factory') {
+      return code => {
+        code.write('return (async () => {').indent(this.#toBody(format)).write('})();');
+      };
+    }
+
+    return this.#toBody(format);
+  }
+
+  #toBody(format: UccLib.Format): UccSource {
     return code => {
       const declarations = this.declarations.compile(format);
 
-      code.write(
-        this.imports.asStatic(),
-        '',
-        declarations.body,
-        '',
-        this.#exportDeserializers(),
-        declarations.exports,
-      );
-    };
-  }
-
-  #exportDeserializers(): UccSource {
-    return this.#declareDeserializers(
-      this.mode === 'async' ? 'export async function ' : 'export function ',
-      '',
-    );
-  }
-
-  #declareDeserializers(fnPrefix: string, fnSuffix: string): UccSource {
-    return code => {
-      const { opaqueUcrx } = this;
-
-      for (const [externalName, schema] of Object.entries(this.#models)) {
-        const fn = this.deserializerFor(schema);
-        const input = this.mode === 'async' ? fn.vars.stream : fn.vars.input;
-        const options = fn.vars.options;
-
-        code
-          .write(
-            `${fnPrefix}${externalName}(${input}, { onError, onEntity = ${this.entityHandler} } = {}) {`,
-          )
-          .indent(code => {
-            if (opaqueUcrx) {
-              code
-                .write(`const ${options} = {`)
-                .indent(code => {
-                  code.write(
-                    'onError,',
-                    'onEntity,',
-                    `opaqueRx: `
-                      + opaqueUcrx.newInstance({
-                        set: 'undefined',
-                        context: 'undefined',
-                      })
-                      + ',',
-                  );
-                })
-                .write('};');
-            } else {
-              code.write(`const ${options} = { onError, onEntity };`);
-            }
-            code.write(fn.toUcDeserializer(input, options));
-          })
-          .write(`}${fnSuffix}`);
-      }
+      code.write(this.imports.compile(format), '', declarations.body, '', declarations.exports);
     };
   }
 
@@ -334,13 +318,13 @@ export namespace UcdLib {
     readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
   };
 
-  export interface Compiled<out TModels extends Models, out TMode extends UcDeserializer.Mode>
+  export interface Factory<out TModels extends Models, out TMode extends UcDeserializer.Mode>
     extends UccFragment {
     readonly lib: UcdLib<TModels, TMode>;
-    toDeserializers(): Promise<Exports<TModels, TMode>>;
+    toExports(): Promise<Exports<TModels, TMode>>;
   }
 
-  export interface Module<out TModels extends Models> extends UccFragment {
+  export interface Compiled<out TModels extends Models> extends UccFragment {
     readonly lib: UcdLib.Any<TModels>;
     toText(): Promise<string>;
   }

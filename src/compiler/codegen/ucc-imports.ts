@@ -1,5 +1,6 @@
 import { escapeJsString } from 'httongue';
 import { UccSource } from './ucc-code.js';
+import { UccLib } from './ucc-lib.js';
 import { UccNamespace } from './ucc-namespace.js';
 
 export class UccImports {
@@ -32,7 +33,11 @@ export class UccImports {
     return alias;
   }
 
-  asStatic(): UccSource {
+  compile(format: UccLib.Format): UccSource {
+    return format === 'factory' ? this.#asDynamic() : this.#asStatic();
+  }
+
+  #asStatic(): UccSource {
     return {
       printTo: span => {
         for (const [from, moduleImports] of this.#imports) {
@@ -59,7 +64,7 @@ export class UccImports {
     return name === alias ? name : `${name} as ${alias}`;
   }
 
-  asDynamic(): UccSource {
+  #asDynamic(): UccSource {
     return {
       printTo: span => {
         for (const [from, moduleImports] of this.#imports) {

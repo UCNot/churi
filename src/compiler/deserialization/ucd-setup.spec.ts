@@ -24,7 +24,7 @@ describe('UcdSetup', () => {
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile().toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -48,7 +48,7 @@ describe('UcdSetup', () => {
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile().toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -69,7 +69,7 @@ describe('UcdSetup', () => {
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile().toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -90,7 +90,7 @@ describe('UcdSetup', () => {
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile().toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });

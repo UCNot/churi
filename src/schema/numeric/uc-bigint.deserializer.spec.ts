@@ -25,7 +25,7 @@ describe('UcBigInt deserializer', () => {
         readValue: BigInt,
       },
     }).bootstrap();
-    ({ readValue } = await lib.compile().toDeserializers());
+    ({ readValue } = await lib.compileFactory().toExports());
   });
 
   it('deserializes number', async () => {

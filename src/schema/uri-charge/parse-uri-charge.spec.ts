@@ -10,7 +10,7 @@ describe('parseURICharge', () => {
   beforeEach(async () => {
     const lib = await createURIChargeUcdLib();
 
-    ({ parseURICharge: parse } = await lib.compile().toDeserializers());
+    ({ parseURICharge: parse } = await lib.compileFactory().toExports());
   });
 
   describe('string value', () => {

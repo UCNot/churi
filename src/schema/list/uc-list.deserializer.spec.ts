@@ -29,7 +29,7 @@ describe('UcList deserializer', () => {
       },
     }).bootstrap();
 
-    ({ readList } = await lib.compile().toDeserializers());
+    ({ readList } = await lib.compileFactory().toExports());
   });
 
   it('deserializes list', async () => {
@@ -79,7 +79,7 @@ describe('UcList deserializer', () => {
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await lib.compile().toDeserializers();
+      await lib.compileFactory().toExports();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }
@@ -101,7 +101,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes items', async () => {
@@ -119,7 +119,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes quoted strings', async () => {
@@ -151,7 +151,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes items', async () => {
@@ -230,7 +230,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes null item', async () => {
@@ -265,7 +265,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes null', async () => {
@@ -310,7 +310,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readList } = await lib.compile().toDeserializers());
+      ({ readList } = await lib.compileFactory().toExports());
     });
 
     it('deserializes null', async () => {
@@ -340,7 +340,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readMatrix } = await lib.compile().toDeserializers());
+      ({ readMatrix } = await lib.compileFactory().toExports());
     });
 
     it('deserializes nested list', async () => {
@@ -383,7 +383,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      const { readCube } = await lib.compile().toDeserializers();
+      const { readCube } = await lib.compileFactory().toExports();
 
       await expect(readCube(readTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
     });
@@ -394,7 +394,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      const { readMatrix } = await lib.compile().toDeserializers();
+      const { readMatrix } = await lib.compileFactory().toExports();
 
       await expect(readMatrix(readTokens('(,,)'))).resolves.toEqual([['']]);
       await expect(readMatrix(readTokens('(, ,)'))).resolves.toEqual([['']]);
@@ -413,7 +413,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readMatrix } = await lib.compile().toDeserializers());
+      ({ readMatrix } = await lib.compileFactory().toExports());
     });
 
     it('deserializes nested list', async () => {
@@ -451,7 +451,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readMatrix } = await lib.compile().toDeserializers());
+      ({ readMatrix } = await lib.compileFactory().toExports());
     });
 
     it('deserializes null', async () => {
@@ -490,7 +490,7 @@ describe('UcList deserializer', () => {
         },
       }).bootstrap();
 
-      ({ readMatrix } = await lib.compile().toDeserializers());
+      ({ readMatrix } = await lib.compileFactory().toExports());
     });
 
     it('deserializes null', async () => {

@@ -97,7 +97,7 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
       code
         .write('return (async () => {')
         .indent(
-          this.imports.asDynamic(),
+          this.imports.compile('factory'),
           '',
           declarations.body,
           '',
@@ -152,7 +152,7 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
       const declarations = this.declarations.compile(format);
 
       code.write(
-        this.imports.asStatic(),
+        this.imports.compile(format),
         '',
         declarations.body,
         '',

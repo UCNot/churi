@@ -29,7 +29,7 @@ describe('UcEntity deserializer', () => {
       features: ucdSupportPrimitives,
     }).bootstrap();
 
-    const { readNumber } = await lib.compile().toDeserializers();
+    const { readNumber } = await lib.compileFactory().toExports();
 
     await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
     expect(errors).toEqual([
@@ -51,7 +51,7 @@ describe('UcEntity deserializer', () => {
       features: ucdSupportPrimitives,
     }).bootstrap();
 
-    const { readNumber } = await lib.compile().toDeserializers();
+    const { readNumber } = await lib.compileFactory().toExports();
 
     expect(readNumber('!Infinity', { onError })).toBeUndefined();
     expect(errors).toEqual([
@@ -73,7 +73,7 @@ describe('UcEntity deserializer', () => {
       mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     }).bootstrap();
-    const { readString } = await lib.compile().toDeserializers();
+    const { readString } = await lib.compileFactory().toExports();
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
@@ -85,7 +85,7 @@ describe('UcEntity deserializer', () => {
       mode: 'async',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     }).bootstrap();
-    const { readString } = await lib.compile().toDeserializers();
+    const { readString } = await lib.compileFactory().toExports();
 
     await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
       '!plain(bar(item1,item2)baz())',
@@ -100,7 +100,7 @@ describe('UcEntity deserializer', () => {
       features: [ucdSupportPrimitives, ucdSupportTimestampEntity],
     }).bootstrap();
     const now = new Date();
-    const { readTimestamp } = await lib.compile().toDeserializers();
+    const { readTimestamp } = await lib.compileFactory().toExports();
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
@@ -113,7 +113,7 @@ describe('UcEntity deserializer', () => {
       features: [ucdSupportPrimitives, ucdSupportTimestampEntityOnly],
     }).bootstrap();
 
-    await expect(lib.compile().toDeserializers()).rejects.toThrow(
+    await expect(lib.compileFactory().toExports()).rejects.toThrow(
       new ReferenceError(`Unknown charge receiver method: Ucrx.date(value)`),
     );
   });

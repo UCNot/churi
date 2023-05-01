@@ -10,11 +10,11 @@ describe('UccImports', () => {
     imports = new UccImports(new UccNamespace());
   });
 
-  describe('asStatic', () => {
+  describe('mjs', () => {
     it('declares import', async () => {
       expect(imports.import('test-module', 'test')).toBe('test');
 
-      await expect(new UccCode().write(imports.asStatic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('mjs')).toText()).resolves.toBe(
         `import { test } from 'test-module';\n`,
       );
     });
@@ -22,7 +22,7 @@ describe('UccImports', () => {
       expect(imports.import('test-module', 'test')).toBe('test');
       expect(imports.import('test-module', 'test')).toBe('test');
 
-      await expect(new UccCode().write(imports.asStatic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('mjs')).toText()).resolves.toBe(
         `import { test } from 'test-module';\n`,
       );
     });
@@ -30,7 +30,7 @@ describe('UccImports', () => {
       expect(imports.import('test-module1', 'test')).toBe('test');
       expect(imports.import('test-module2', 'test')).toBe('test$0');
 
-      await expect(new UccCode().write(imports.asStatic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('mjs')).toText()).resolves.toBe(
         `import { test } from 'test-module1';\nimport { test as test$0 } from 'test-module2';\n`,
       );
     });
@@ -38,17 +38,17 @@ describe('UccImports', () => {
       expect(imports.import('test-module', 'test1')).toBe('test1');
       expect(imports.import('test-module', 'test2')).toBe('test2');
 
-      await expect(new UccCode().write(imports.asStatic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('mjs')).toText()).resolves.toBe(
         `import {\n  test1,\n  test2,\n} from 'test-module';\n`,
       );
     });
   });
 
-  describe('asDynamic', () => {
+  describe('factory', () => {
     it('declares import', async () => {
       expect(imports.import('test-module', 'test')).toBe('test');
 
-      await expect(new UccCode().write(imports.asDynamic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('factory')).toText()).resolves.toBe(
         `const { test } = await import('test-module');\n`,
       );
     });
@@ -56,7 +56,7 @@ describe('UccImports', () => {
       expect(imports.import('test-module', 'test')).toBe('test');
       expect(imports.import('test-module', 'test')).toBe('test');
 
-      await expect(new UccCode().write(imports.asDynamic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('factory')).toText()).resolves.toBe(
         `const { test } = await import('test-module');\n`,
       );
     });
@@ -64,7 +64,7 @@ describe('UccImports', () => {
       expect(imports.import('test-module1', 'test')).toBe('test');
       expect(imports.import('test-module2', 'test')).toBe('test$0');
 
-      await expect(new UccCode().write(imports.asDynamic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('factory')).toText()).resolves.toBe(
         `const { test } = await import('test-module1');\nconst { test: test$0 } = await import('test-module2');\n`,
       );
     });
@@ -72,7 +72,7 @@ describe('UccImports', () => {
       expect(imports.import('test-module', 'test1')).toBe('test1');
       expect(imports.import('test-module', 'test2')).toBe('test2');
 
-      await expect(new UccCode().write(imports.asDynamic()).toText()).resolves.toBe(
+      await expect(new UccCode().write(imports.compile('factory')).toText()).resolves.toBe(
         `const {\n  test1,\n  test2,\n} = await import('test-module');\n`,
       );
     });

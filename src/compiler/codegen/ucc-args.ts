@@ -42,6 +42,24 @@ export class UccArgs<in out TArg extends string = ''> {
     };
   }
 
+  bind(byName: UccArgs.ByName<TArg>): UccArgs.Binding<TArg> {
+    const args: Record<string, string> = {};
+    const list: string[] = [];
+
+    for (const arg of this.list) {
+      const alias = byName[arg];
+
+      args[arg] = alias;
+      list.push(arg);
+    }
+
+    return {
+      args: args as UccArgs.ByName<TArg>,
+      list,
+      toString: () => list.join(', '),
+    };
+  }
+
   call<TCallArg extends string>(args: UccArgs.ByName<TCallArg>): UccArgs.Binding<TArg> {
     const list: string[] = [];
     const byName: Partial<Record<TArg, string>> = {};

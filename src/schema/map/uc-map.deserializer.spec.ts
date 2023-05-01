@@ -33,7 +33,7 @@ describe('UcMap deserializer', () => {
           }),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entry', async () => {
@@ -122,7 +122,7 @@ describe('UcMap deserializer', () => {
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await lib.compile().toDeserializers();
+        await lib.compileFactory().toExports();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
@@ -152,7 +152,7 @@ describe('UcMap deserializer', () => {
           }),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entries', async () => {
@@ -284,7 +284,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes extra entries', () => {
@@ -311,7 +311,7 @@ describe('UcMap deserializer', () => {
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await lib.compile().toDeserializers();
+        await lib.compileFactory().toExports();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
@@ -347,7 +347,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes extra entries', () => {
@@ -389,7 +389,7 @@ describe('UcMap deserializer', () => {
         },
         mode: 'sync',
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes comma-separated items', () => {
@@ -460,7 +460,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entry', async () => {

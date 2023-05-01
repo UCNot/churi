@@ -26,7 +26,7 @@ describe('UcBoolean deserializer', () => {
         readValue: Boolean,
       },
     }).bootstrap();
-    ({ readValue } = await lib.compile().toDeserializers());
+    ({ readValue } = await lib.compileFactory().toExports());
   });
 
   it('deserializes boolean', async () => {
@@ -94,7 +94,7 @@ describe('UcBoolean deserializer', () => {
           readValue: ucNullable<boolean>(Boolean),
         },
       }).bootstrap();
-      ({ readValue } = await lib.compile().toDeserializers());
+      ({ readValue } = await lib.compileFactory().toExports());
     });
 
     it('deserializes boolean', async () => {

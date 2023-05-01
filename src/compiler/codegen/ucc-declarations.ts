@@ -1,5 +1,6 @@
 import { asArray, lazyValue } from '@proc7ts/primitives';
 import { safeJsId } from '../impl/safe-js-id.js';
+import { UccArgs } from './ucc-args.js';
 import { UccCode, UccSource } from './ucc-code.js';
 import { UccLib } from './ucc-lib.js';
 import { UccNamespace } from './ucc-namespace.js';
@@ -92,6 +93,50 @@ export class UccDeclarations {
     );
   }
 
+  declareFunction<TArg extends string>(
+    name: string,
+    args: UccArgs.Spec<TArg>,
+    body: (location: UccFunctionLocation<TArg>) => UccSource,
+    {
+      async,
+      generator,
+      exported,
+      bindArgs: bind,
+      key = null,
+      refs,
+    }: {
+      readonly async?: boolean | undefined;
+      readonly generator?: boolean;
+      readonly exported?: boolean | undefined;
+      readonly bindArgs?: UccArgs.ByName<TArg> | undefined;
+      readonly key?: string | null | undefined;
+      readonly refs?: readonly string[] | undefined;
+    } = {},
+  ): string {
+    const fnArgs = UccArgs.by(args);
+    const modifier = async ? 'async ' : '';
+    const nameModifier = generator ? `*` : '';
+    const ns = this.#ns.nest();
+    const binding = bind ? fnArgs.bind(bind) : fnArgs.declare(ns);
+
+    return this.#declare(
+      name,
+      location => code => {
+        const fnLocation: UccFunctionLocation<TArg> = {
+          ...location,
+          ns,
+          args: binding.args,
+        };
+
+        code
+          .write(`${modifier}function ${nameModifier}${location.name}(${binding}) {`)
+          .indent(body(fnLocation))
+          .write(`}`);
+      },
+      { exported, key, refs },
+    );
+  }
+
   #declare(
     id: string,
     snippet: (location: UccDeclLocation) => UccSource,
@@ -141,7 +186,7 @@ export class UccDeclarations {
       },
       exports: {
         emit: async () => {
-          const { exports = '' } = await emit();
+          const { exports } = await emit();
 
           return exports;
         },
@@ -149,7 +194,10 @@ export class UccDeclarations {
     };
   }
 
-  async #emit(format: UccLib.Format): Promise<UccEmittedDecl> {
+  async #emit(format: UccLib.Format): Promise<{
+    readonly body: UccPrintable;
+    readonly exports: UccPrintable;
+  }> {
     const promises = this.#emitAll(format);
     const resolutions = [...promises].map(
       async ([snippet, record]) => [snippet, await record] as const,
@@ -174,38 +222,46 @@ export class UccDeclarations {
       records.set(snippet, record);
     }
 
-    const bodySpan = new UccPrinter();
-    const exportsSpan = new UccPrinter();
+    const body = new UccPrinter();
+    const exports: string[] = [];
 
     let print = async (): Promise<void> => {
       this.#addDecl = () => {
         throw new TypeError('Declarations already printed');
       };
-      print = () => Promise.resolve();
+      print = async () => {
+        await whenAllEmitted;
+      };
 
       await whenAllEmitted;
 
-      this.#printAll(bodySpan, exportsSpan, records);
+      this.#printAll(body, exports, records);
     };
 
     return {
       body: {
         printTo: async span => {
           await print();
-          span.print(bodySpan);
+          span.print(body);
         },
       },
       exports: {
         printTo: async span => {
           await print();
-
-          if (format === 'factory') {
-            span
-              .print('return {')
-              .indent(span => span.print(exportsSpan))
-              .print('};');
-          } else {
-            span.print(`export {`).indent(span => span.print(exportsSpan).print('}'));
+          if (exports?.length) {
+            if (format === 'factory') {
+              span
+                .print('return {')
+                .indent(span => {
+                  span.print(...exports);
+                })
+                .print('};');
+            } else {
+              span
+                .print(`export {`)
+                .indent(span => span.print(...exports))
+                .print('};');
+            }
           }
         },
       },
@@ -239,7 +295,7 @@ export class UccDeclarations {
 
   #printAll(
     body: UccPrinter,
-    exports: UccPrinter,
+    exports: string[],
     records: Map<UccDeclSnippet, UccEmittedDecl>,
   ): void {
     const printed = new Set<UccDeclSnippet>();
@@ -255,7 +311,7 @@ export class UccDeclarations {
     records: Map<UccDeclSnippet, UccEmittedDecl>,
     printed: Set<UccDeclSnippet>,
     body: UccPrinter,
-    exports: UccPrinter,
+    exports: string[],
   ): void {
     if (!printed.has(snippet)) {
       // Prevent infinite recursion.
@@ -273,7 +329,7 @@ export class UccDeclarations {
       // Then, print the snippet itself.
       body.print(record.body);
       if (record.exports) {
-        exports.print(record.exports);
+        exports.push(...record.exports);
       }
     }
   }
@@ -290,6 +346,11 @@ export namespace UccDeclarations {
 export interface UccDeclLocation {
   readonly name: string;
   refer(this: void, ref: string): void;
+}
+
+export interface UccFunctionLocation<in TArgs extends string> extends UccDeclLocation {
+  readonly ns: UccNamespace;
+  readonly args: UccArgs.ByName<TArgs>;
 }
 
 export interface UccInitLocation extends UccDeclLocation {
@@ -328,17 +389,18 @@ class UccDeclSnippet {
   }
 
   async emit(format: UccLib.Format): Promise<UccEmittedDecl> {
-    let exports: string | undefined;
+    let exports: string[] | undefined;
     let prefix: string | undefined;
 
     if (this.#exportAs != null) {
       if (format === 'factory') {
-        exports =
-          this.#exportAs === this.#name ? `${this.#name},` : `${this.#exportAs}: ${this.#name},`;
+        exports = [
+          this.#exportAs === this.#name ? `${this.#name},` : `${this.#exportAs}: ${this.#name},`,
+        ];
       } else if (this.#exportAs === this.#name) {
         prefix = 'export ';
       } else {
-        exports = `${this.#name} as ${this.#exportAs},`;
+        exports = [`${this.#name} as ${this.#exportAs},`];
       }
     }
 
@@ -366,5 +428,5 @@ class UccDeclSnippet {
 
 interface UccEmittedDecl {
   readonly body: UccPrintable | string;
-  readonly exports?: UccPrintable | string | undefined;
+  readonly exports?: string[] | undefined;
 }
