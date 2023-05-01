@@ -9,11 +9,11 @@ import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { UcdLib } from './ucd-lib.js';
 import { UcdSetup } from './ucd-setup.js';
 
 export class ListUcrxTemplate<
@@ -21,7 +21,7 @@ export class ListUcrxTemplate<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends CustomUcrxTemplate<TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static configureSchemaDeserializer(setup: UcdSetup, { item }: UcList.Schema): void {
+  static configureSchemaDeserializer(setup: UcdSetup.Any, { item }: UcList.Schema): void {
     setup.useUcrxTemplate('list', (lib, schema: UcList.Schema) => new this(lib, schema));
     setup.processModel(item);
   }
@@ -30,7 +30,7 @@ export class ListUcrxTemplate<
   #itemTemplate?: UcrxTemplate;
   #allocation?: ListUcrxTemplate.Allocation;
 
-  constructor(lib: UcdLib, schema: UcList.Schema<TItem, TItemModel>) {
+  constructor(lib: UcrxLib, schema: UcList.Schema<TItem, TItemModel>) {
     super({
       lib,
       schema,

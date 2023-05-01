@@ -1,5 +1,6 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import { jsStringLiteral, quoteJsKey } from 'httongue';
+import { UcDeserializer } from '../../mod.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
@@ -20,9 +21,12 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
+export class UcdSetup<
+  out TModels extends UcdLib.Models = UcdLib.Models,
+  out TMode extends UcDeserializer.Mode = 'universal',
+> {
 
-  readonly #options: UcdSetup.Options<TModels>;
+  readonly #options: UcdSetup.Options<TModels, TMode>;
   readonly #enabled = new Set<UcdFeature>();
   readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
   #hasPendingInstructions = false;
@@ -36,7 +40,13 @@ export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
    *
    * @param options - Setup options.
    */
-  constructor(options: UcdSetup.Options<TModels>) {
+  constructor(
+    ...options: TMode extends 'sync' | 'async'
+      ? [UcdSetup.Options<TModels, TMode>]
+      : [UcdSetup.DefaultOptions<TModels>]
+  );
+
+  constructor(options: UcdSetup.Options<TModels, TMode>) {
     this.#options = options;
   }
 
@@ -177,7 +187,7 @@ export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
    *
    * @returns Promise resolved to configured deserializer library.
    */
-  async bootstrap(): Promise<UcdLib<TModels>> {
+  async bootstrap(): Promise<UcdLib<TModels, TMode>> {
     return new UcdLib(await this.bootstrapOptions());
   }
 
@@ -188,11 +198,14 @@ export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
    *
    * @returns Promise resolved to deserializer library options.
    */
-  async bootstrapOptions(): Promise<UcdLib.Options<TModels>> {
+  async bootstrapOptions(): Promise<UcdLib.Options<TModels, TMode>> {
     await this.#init();
+
+    const { mode = 'universal' as TMode } = this.#options;
 
     return {
       ...this.#options,
+      mode,
       entities: this.#entities,
       methods: this.#methods,
       ucrxTemplateFactoryFor: this.#ucrxTemplateFactoryFor.bind(this),
@@ -247,14 +260,27 @@ export class UcdSetup<TModels extends UcdLib.Models = UcdLib.Models> {
 }
 
 export namespace UcdSetup {
-  export interface Options<TModels extends UcdLib.Models> extends Omit<UcrxLib.Options, 'methods'> {
+  export type Any = UcdSetup<UcdLib.Models, UcDeserializer.Mode>;
+
+  export interface BaseOptions<
+    out TModels extends UcdLib.Models,
+    out TMode extends UcDeserializer.Mode,
+  > extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
+    readonly mode?: TMode | undefined;
     readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
       options: UcdFunction.Options<T, TSchema>,
     ): UcdFunction<T, TSchema>;
+  }
+
+  export type DefaultOptions<TModels extends UcdLib.Models> = BaseOptions<TModels, 'universal'>;
+
+  export interface Options<out TModels extends UcdLib.Models, out TMode extends UcDeserializer.Mode>
+    extends BaseOptions<TModels, TMode> {
+    readonly mode: TMode;
   }
 }
 
@@ -271,7 +297,7 @@ class UcdSetup$FeatureUse {
     this.#name = name;
   }
 
-  async enable(setup: UcdSetup): Promise<void> {
+  async enable(setup: UcdSetup.Any): Promise<void> {
     if (this.#enabled) {
       return;
     }

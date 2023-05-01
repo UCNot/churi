@@ -19,10 +19,11 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
 
 export async function createURIChargeUcdLib(): Promise<
-  UcdLib<{ parseURICharge: UcSchema<URICharge> }>
+  UcdLib<{ parseURICharge: UcSchema<URICharge> }, 'sync'>
 > {
   return await new UcdSetup({
     models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
+    mode: 'sync',
     features(setup) {
       setup
         .enable(ucdSupportDefaults)

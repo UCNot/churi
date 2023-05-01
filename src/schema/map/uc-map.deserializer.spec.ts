@@ -368,12 +368,15 @@ describe('UcMap deserializer', () => {
   });
 
   describe('list entry', () => {
-    let lib: UcdLib<{
-      readMap: UcMap.Schema<{
-        foo: UcList.Schema<string>;
-        bar: UcList.Schema<number>;
-      }>;
-    }>;
+    let lib: UcdLib<
+      {
+        readMap: UcMap.Schema<{
+          foo: UcList.Schema<string>;
+          bar: UcList.Schema<number>;
+        }>;
+      },
+      'sync'
+    >;
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
 
     beforeEach(async () => {
@@ -384,8 +387,9 @@ describe('UcMap deserializer', () => {
             bar: ucList<number>(Number),
           }),
         },
+        mode: 'sync',
       }).bootstrap();
-      ({ readMap } = await lib.compile('sync').toDeserializers());
+      ({ readMap } = await lib.compile().toDeserializers());
     });
 
     it('deserializes comma-separated items', () => {

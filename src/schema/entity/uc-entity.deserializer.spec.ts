@@ -25,10 +25,11 @@ describe('UcEntity deserializer', () => {
       models: {
         readNumber: Number,
       },
+      mode: 'async',
       features: ucdSupportPrimitives,
     }).bootstrap();
 
-    const { readNumber } = await lib.compile('async').toDeserializers();
+    const { readNumber } = await lib.compile().toDeserializers();
 
     await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
     expect(errors).toEqual([
@@ -46,10 +47,11 @@ describe('UcEntity deserializer', () => {
       models: {
         readNumber: Number,
       },
+      mode: 'sync',
       features: ucdSupportPrimitives,
     }).bootstrap();
 
-    const { readNumber } = await lib.compile('sync').toDeserializers();
+    const { readNumber } = await lib.compile().toDeserializers();
 
     expect(readNumber('!Infinity', { onError })).toBeUndefined();
     expect(errors).toEqual([
@@ -68,9 +70,10 @@ describe('UcEntity deserializer', () => {
       models: {
         readString: String,
       },
+      mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     }).bootstrap();
-    const { readString } = await lib.compile('sync').toDeserializers();
+    const { readString } = await lib.compile().toDeserializers();
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
@@ -79,9 +82,10 @@ describe('UcEntity deserializer', () => {
       models: {
         readString: String,
       },
+      mode: 'async',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     }).bootstrap();
-    const { readString } = await lib.compile('async').toDeserializers();
+    const { readString } = await lib.compile().toDeserializers();
 
     await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
       '!plain(bar(item1,item2)baz())',
@@ -92,10 +96,11 @@ describe('UcEntity deserializer', () => {
       models: {
         readTimestamp: Number,
       },
+      mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportTimestampEntity],
     }).bootstrap();
     const now = new Date();
-    const { readTimestamp } = await lib.compile('sync').toDeserializers();
+    const { readTimestamp } = await lib.compile().toDeserializers();
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
@@ -104,10 +109,11 @@ describe('UcEntity deserializer', () => {
       models: {
         readTimestamp: Number,
       },
+      mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportTimestampEntityOnly],
     }).bootstrap();
 
-    await expect(lib.compile('sync').toDeserializers()).rejects.toThrow(
+    await expect(lib.compile().toDeserializers()).rejects.toThrow(
       new ReferenceError(`Unknown charge receiver method: Ucrx.date(value)`),
     );
   });

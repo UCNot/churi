@@ -1,6 +1,5 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSource } from '../codegen/ucc-code.js';
@@ -11,7 +10,7 @@ import { UcdLib } from './ucd-lib.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
-  readonly #lib: UcdLib;
+  readonly #lib: UcdLib.Any;
   readonly #ns: UccNamespace;
   readonly #schema: TSchema;
   #template?: UcrxTemplate<T, TSchema>;
@@ -43,7 +42,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     this.#createSyncReader = createSyncReader;
   }
 
-  get lib(): UcdLib {
+  get lib(): UcdLib.Any {
     return this.#lib;
   }
 
@@ -73,7 +72,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   get template(): UcrxTemplate<T, TSchema> {
     if (!this.#template) {
-      const template = this.#lib.ucrxTemplateFactoryFor<T, TSchema>(this.schema)?.(
+      const template = this.lib.ucrxTemplateFactoryFor<T, TSchema>(this.schema)?.(
         this.lib,
         this.schema,
       );
@@ -91,10 +90,11 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#template;
   }
 
-  toUcDeserializer(mode: UcDeserializer.Mode, input: string, options: string): UccSource {
+  toUcDeserializer(input: string, options: string): UccSource {
+    const { mode } = this.lib;
     const { result } = this.vars;
 
-    if (mode !== 'all') {
+    if (mode !== 'universal') {
       return code => {
         code
           .write(`let ${result};`)
@@ -166,7 +166,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
 export namespace UcdFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
-    readonly lib: UcdLib;
+    readonly lib: UcdLib.Any;
     readonly schema: TSchema;
 
     createAsyncReader?(

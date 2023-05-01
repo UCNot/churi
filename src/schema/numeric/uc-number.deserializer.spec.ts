@@ -40,9 +40,10 @@ describe('UcNumber deserializer', () => {
       models: {
         parseValue: Number,
       },
+      mode: 'sync',
     }).bootstrap();
 
-    const { parseValue } = await lib.compile('sync').toDeserializers();
+    const { parseValue } = await lib.compile().toDeserializers();
 
     expect(parseValue(parseTokens('123'))).toBe(123);
     expect(parseValue(parseTokens('-123'))).toBe(-123);
@@ -52,9 +53,10 @@ describe('UcNumber deserializer', () => {
       models: {
         parseValue: Number,
       },
+      mode: 'sync',
     }).bootstrap();
 
-    const { parseValue } = await lib.compile('sync').toDeserializers();
+    const { parseValue } = await lib.compile().toDeserializers();
 
     expect(parseValue('123')).toBe(123);
     expect(parseValue('-123')).toBe(-123);

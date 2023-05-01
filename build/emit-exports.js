@@ -39,11 +39,14 @@ async function emitDefaultEntities() {
 }
 
 async function emitUcValueDeserializer() {
-  const lib = await new UcdSetup({ models: { parseUcValue: ucUnknown() } }).bootstrap();
+  const lib = await new UcdSetup({
+    models: { parseUcValue: ucUnknown() },
+    mode: 'sync',
+  }).bootstrap();
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
-    await lib.compileModule('sync').toText(),
+    await lib.compileModule().toText(),
     'utf-8',
   );
 }

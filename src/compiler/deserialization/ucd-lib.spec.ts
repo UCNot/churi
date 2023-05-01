@@ -1,21 +1,16 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 import { UcModel } from '../../schema/uc-schema.js';
 import { UccCode } from '../codegen/ucc-code.js';
-import { UcdLib } from './ucd-lib.js';
 import { UcdSetup } from './ucd-setup.js';
 
 describe('UcdLib', () => {
-  let lib: UcdLib<{ readValue: UcModel<number> }>;
-
-  beforeEach(async () => {
-    lib = await new UcdSetup<{ readValue: UcModel<number> }>({
-      models: { readValue: Number },
-    }).bootstrap();
-  });
-
   describe('compile', () => {
     it('creates async factory', async () => {
-      const compiled = lib.compile('async');
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'async'>({
+        models: { readValue: Number },
+        mode: 'async',
+      }).bootstrap();
+      const compiled = lib.compile();
 
       expect(compiled.lib).toBe(lib);
 
@@ -29,7 +24,11 @@ describe('UcdLib', () => {
       expect(text).not.toMatch(/\bcreateSyncUcdReader\b/);
     });
     it('creates sync factory', async () => {
-      const compiled = lib.compile('sync');
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'sync'>({
+        models: { readValue: Number },
+        mode: 'sync',
+      }).bootstrap();
+      const compiled = lib.compile();
 
       expect(compiled.lib).toBe(lib);
 
@@ -42,7 +41,10 @@ describe('UcdLib', () => {
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).not.toMatch(/\bAsyncUcdReader\b/);
     });
-    it('creates hybrid factory', async () => {
+    it('creates universal factory', async () => {
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
+        models: { readValue: Number },
+      }).bootstrap();
       const compiled = lib.compile();
 
       expect(compiled.lib).toBe(lib);
@@ -60,7 +62,11 @@ describe('UcdLib', () => {
 
   describe('compileModule', () => {
     it('compiles async module', async () => {
-      const module = lib.compileModule('async');
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'async'>({
+        models: { readValue: Number },
+        mode: 'async',
+      }).bootstrap();
+      const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);
 
@@ -75,7 +81,11 @@ describe('UcdLib', () => {
       expect(text).not.toMatch(/\bSyncUcdReader\b/);
     });
     it('compiles sync module', async () => {
-      const module = lib.compileModule('sync');
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'sync'>({
+        models: { readValue: Number },
+        mode: 'sync',
+      }).bootstrap();
+      const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);
 
@@ -89,7 +99,10 @@ describe('UcdLib', () => {
       expect(text).toMatch(/\bcreateSyncUcdReader\b/);
       expect(text).not.toMatch(/\bAsyncUcdReader\b/);
     });
-    it('compiles hybrid module', async () => {
+    it('compiles universal module', async () => {
+      const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
+        models: { readValue: Number },
+      }).bootstrap();
       const module = lib.compileModule();
 
       expect(module.lib).toBe(lib);

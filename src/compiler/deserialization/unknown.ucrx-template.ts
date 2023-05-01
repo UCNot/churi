@@ -16,7 +16,7 @@ import { UcdSetup } from './ucd-setup.js';
 
 export class UnknownUcrxTemplate extends CustomUcrxTemplate {
 
-  static configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void {
+  static configureSchemaDeserializer(setup: UcdSetup.Any, schema: UcSchema): void {
     setup
       .useUcrxTemplate('unknown', (lib, schema) => new this(lib, schema))
       .processModel(this.listSchemaFor(schema))

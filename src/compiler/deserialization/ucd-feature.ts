@@ -21,7 +21,7 @@ export namespace UcdFeature {
      *
      * @param setup - Deserializer setup.
      */
-    configureDeserializer(setup: UcdSetup): void;
+    configureDeserializer(setup: UcdSetup.Any): void;
   }
 
   /**
@@ -48,7 +48,7 @@ export namespace UcdSchemaFeature {
      * @param setup - Deserializer setup.
      * @param schema - Configured schema instance.
      */
-    configureSchemaDeserializer(setup: UcdSetup, schema: UcSchema): void;
+    configureSchemaDeserializer(setup: UcdSetup.Any, schema: UcSchema): void;
   }
 
   /**
