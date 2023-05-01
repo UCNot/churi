@@ -1,3 +1,4 @@
+import { lazyValue } from '@proc7ts/primitives';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
 import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
@@ -91,16 +92,19 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
 
   #toFactoryCode(): UccBuilder {
     return code => {
+      const declarations = this.declarations.compile('factory');
+
       code
         .write('return (async () => {')
         .indent(
           this.imports.asDynamic(),
           '',
-          this.declarations,
+          declarations.body,
           '',
           this.#compileSerializers(),
           '',
           this.#returnSerializers(),
+          declarations.exports,
         )
         .write('})();');
     };
@@ -131,24 +135,31 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     return await factory();
   }
 
-  compileModule(): UcsLib.Module<TModels> {
+  compileModule(format: UccLib.Format = 'mjs'): UcsLib.Module<TModels> {
+    const toCode = lazyValue(() => this.#toCode(format));
+
     return {
       lib: this,
-      toCode: this.#toModuleCode.bind(this),
-      toText: this.#toModuleText.bind(this),
+      toCode,
+      async toText() {
+        return await new UccCode().write(toCode()).toText();
+      },
     };
   }
 
-  #toModuleCode(): UccBuilder {
+  #toCode(format: UccLib.Format): UccBuilder {
     return code => {
+      const declarations = this.declarations.compile(format);
+
       code.write(
         this.imports.asStatic(),
         '',
-        this.declarations,
+        declarations.body,
         '',
         this.#compileSerializers(),
         '',
         this.#exportSerializers(),
+        declarations.exports,
       );
     };
   }
@@ -162,10 +173,6 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
           .write('}');
       }
     };
-  }
-
-  async #toModuleText(): Promise<string> {
-    return await new UccCode().write(this.#toModuleCode()).toText();
   }
 
   #compileSerializers(): UccBuilder {

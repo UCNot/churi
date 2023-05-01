@@ -1,3 +1,4 @@
+import { lazyValue } from '@proc7ts/primitives';
 import { escapeJsString } from 'httongue';
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
@@ -7,6 +8,7 @@ import { UcToken } from '../../syntax/uc-token.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccInitLocation } from '../codegen/ucc-declarations.js';
 import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { UccLib } from '../mod.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
@@ -171,9 +173,18 @@ export class UcdLib<
 
   #toFactoryCode(): UccSource {
     return code => {
+      const declarations = this.declarations.compile('factory');
+
       code
         .write('return (async () => {')
-        .indent(this.imports.asDynamic(), '', this.declarations, '', this.#returnDeserializers())
+        .indent(
+          this.imports.asDynamic(),
+          '',
+          declarations.body,
+          '',
+          this.#returnDeserializers(),
+          declarations.exports,
+        )
         .write('})();');
     };
   }
@@ -196,17 +207,30 @@ export class UcdLib<
     return await factory();
   }
 
-  compileModule(): UcdLib.Module<TModels> {
+  compileModule(format: UccLib.Format = 'mjs'): UcdLib.Module<TModels> {
+    const toCode = lazyValue(() => this.#toCode(format));
+
     return {
       lib: this,
-      toCode: () => this.#toModuleCode(),
-      toText: async () => await this.#toModuleText(),
+      toCode,
+      async toText() {
+        return await new UccCode().write(toCode()).toText();
+      },
     };
   }
 
-  #toModuleCode(): UccSource {
+  #toCode(format: UccLib.Format): UccSource {
     return code => {
-      code.write(this.imports.asStatic(), '', this.declarations, '', this.#exportDeserializers());
+      const declarations = this.declarations.compile(format);
+
+      code.write(
+        this.imports.asStatic(),
+        '',
+        declarations.body,
+        '',
+        this.#exportDeserializers(),
+        declarations.exports,
+      );
     };
   }
 
@@ -255,10 +279,6 @@ export class UcdLib<
           .write(`}${fnSuffix}`);
       }
     };
-  }
-
-  async #toModuleText(): Promise<string> {
-    return await new UccCode().write(this.#toModuleCode()).toText();
   }
 
 }

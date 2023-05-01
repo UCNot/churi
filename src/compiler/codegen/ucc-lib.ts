@@ -39,6 +39,7 @@ export abstract class UccLib {
 }
 
 export namespace UccLib {
+  export type Format = 'mjs' | 'factory';
   export interface Options {
     readonly ns?: UccNamespace | undefined;
     readonly imports?: UccImports | undefined;

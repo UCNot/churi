@@ -31,9 +31,13 @@ async function emitDefaultEntities() {
     exported: true,
   });
 
+  const declarations = lib.declarations.compile();
+
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    await new UccCode().write(lib.imports.asStatic(), '', lib.declarations).toText(),
+    await new UccCode()
+      .write(lib.imports.asStatic(), '', declarations.body, '', declarations.exports)
+      .toText(),
     'utf-8',
   );
 }

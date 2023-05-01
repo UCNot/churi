@@ -1,10 +1,11 @@
 import { asArray } from '@proc7ts/primitives';
 import { safeJsId } from '../impl/safe-js-id.js';
-import { UccCode, UccFragment, UccSource } from './ucc-code.js';
+import { UccCode, UccSource } from './ucc-code.js';
+import { UccLib } from './ucc-lib.js';
 import { UccNamespace } from './ucc-namespace.js';
 import { UccPrintable, UccPrinter } from './ucc-printer.js';
 
-export class UccDeclarations implements UccFragment {
+export class UccDeclarations {
 
   readonly #ns: UccNamespace;
   readonly #byKey = new Map<string, UccDeclSnippet>();
@@ -125,9 +126,12 @@ export class UccDeclarations implements UccFragment {
     return name;
   }
 
-  toCode(): UccSource {
+  compile(_format: UccLib.Format = 'mjs'): UccDeclarations.Compiled {
     return {
-      emit: async () => await this.#emit(),
+      body: {
+        emit: async () => await this.#emit(),
+      },
+      exports: UccCode.none,
     };
   }
 
@@ -226,6 +230,13 @@ export class UccDeclarations implements UccFragment {
     }
   }
 
+}
+
+export namespace UccDeclarations {
+  export interface Compiled {
+    readonly body: UccSource;
+    readonly exports: UccSource;
+  }
 }
 
 export interface UccDeclLocation {

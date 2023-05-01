@@ -16,7 +16,7 @@ describe('UccDeclarations', () => {
     it('declares constant', async () => {
       expect(declarations.declare('name', 'test')).toBe('name');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         'const name = test;\n',
       );
     });
@@ -24,7 +24,7 @@ describe('UccDeclarations', () => {
       expect(declarations.declare('name', 'test1')).toBe('name');
       expect(declarations.declare('name', 'test2')).toBe('name');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         'const name = test1;\n',
       );
     });
@@ -32,14 +32,14 @@ describe('UccDeclarations', () => {
       expect(declarations.declare('name', 'test1')).toBe('name');
       expect(declarations.declare('name', 'test2', { key: 'other' })).toBe('name$0');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         'const name = test1;\nconst name$0 = test2;\n',
       );
     });
     it('allows declaration when emitted', async () => {
       expect(declarations.declare('name', 'test1')).toBe('name');
 
-      const record = await new UccCode().write(declarations).emit();
+      const record = await new UccCode().write(declarations.compile().body).emit();
 
       declarations.declare('name2', 'test2');
 
@@ -50,7 +50,7 @@ describe('UccDeclarations', () => {
     it('prohibits declaration when already printed', async () => {
       expect(declarations.declare('name', 'test1')).toBe('name');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         'const name = test1;\n',
       );
 
@@ -66,7 +66,7 @@ describe('UccDeclarations', () => {
         }),
       ).toBe('name2');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         'export const name = test1;\nexport const name2 = test2;\n',
       );
     });
@@ -78,7 +78,7 @@ describe('UccDeclarations', () => {
         code.write(`static className = ${jsStringLiteral(name)};`);
       });
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         `class TestClass {\n  static className = 'TestClass';\n}\n`,
       );
     });
@@ -94,7 +94,7 @@ describe('UccDeclarations', () => {
         }),
       ).toBe('TestClass$0');
 
-      await expect(new UccCode().write(declarations).toText()).resolves.toBe(
+      await expect(new UccCode().write(declarations.compile().body).toText()).resolves.toBe(
         `class TestClass {\n  static className = 'TestClass';\n}\n`
           + `class TestClass$0 {\n  static className = 'TestClass$0';\n}\n`,
       );
