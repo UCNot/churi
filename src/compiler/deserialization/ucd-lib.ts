@@ -215,7 +215,7 @@ export class UcdLib<
   }
 
   compileFactory(): UcdLib.Factory<TModels, TMode> {
-    const module = this.compile('factory');
+    const module = this.compile('iife');
 
     return {
       lib: this,
@@ -248,7 +248,7 @@ export class UcdLib<
   }
 
   #toCode(format: UccLib.Format): UccSource {
-    if (format === 'factory') {
+    if (format === 'iife') {
       return code => {
         code.write('return (async () => {').indent(this.#toBody(format)).write('})();');
       };

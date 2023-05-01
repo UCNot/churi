@@ -92,12 +92,12 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
 
   #toFactoryCode(): UccBuilder {
     return code => {
-      const declarations = this.declarations.compile('factory');
+      const declarations = this.declarations.compile('iife');
 
       code
         .write('return (async () => {')
         .indent(
-          this.imports.compile('factory'),
+          this.imports.compile('iife'),
           '',
           declarations.body,
           '',

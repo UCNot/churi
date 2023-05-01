@@ -34,7 +34,7 @@ export class UccImports {
   }
 
   compile(format: UccLib.Format): UccSource {
-    return format === 'factory' ? this.#asDynamic() : this.#asStatic();
+    return format === 'iife' ? this.#asDynamic() : this.#asStatic();
   }
 
   #asStatic(): UccSource {
