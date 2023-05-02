@@ -26,14 +26,13 @@ describe('UcsLib', () => {
     });
   });
 
-  describe('compileModule', () => {
+  describe('bundle.compile', () => {
     it('compiles module', async () => {
       const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
         models: { writeValue: Number },
       }).bootstrap();
-      const module = lib.compileModule();
+      const module = lib.bundle.compile();
 
-      expect(module.lib).toBe(lib);
       await expect(new UccCode().write(module).toText()).resolves.toBe(await module.toText());
       await expect(module.toText()).resolves.toContain(`} from 'churi/serializer.js';\n`);
       await expect(module.toText()).resolves.toContain(

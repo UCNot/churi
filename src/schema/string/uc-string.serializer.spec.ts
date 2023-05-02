@@ -17,7 +17,7 @@ describe('UcString serializer', () => {
         writeValue: String,
       },
     }).bootstrap();
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
   });
 
   it('percent-encodes special symbols', async () => {
@@ -58,7 +58,7 @@ describe('UcString serializer', () => {
         });
       },
     }).bootstrap();
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
 
     await expect(
       TextOutStream.read(

@@ -45,6 +45,7 @@
       "types": "./dist/churi.compiler.d.ts",
       "default": "./dist/churi.compiler.js"
     },
+    "./default-entities.js": "./dist/churi.default-entities.js",
     "./deserializer.js": {
       "types": "./dist/churi.deserializer.d.ts",
       "default": "./dist/churi.deserializer.js"
@@ -91,7 +92,6 @@
       "types": "./dist/churi.core.d.ts",
       "default": "./dist/churi.core.js"
     },
-    "#churi/default-entities.js": "./dist/churi.default-entities.js",
     "#churi/uc-value/deserializer.js": {
       "types": "./dist/churi.uc-value.deserializer.d.ts",
       "default": "./dist/churi.uc-value.deserializer.js"

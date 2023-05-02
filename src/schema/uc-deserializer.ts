@@ -46,10 +46,10 @@ export namespace UcDeserializer {
    *
    * - `sync` - to generate only {@link Sync synchronous} deserializers.
    * - `async` - to generate only {@link Async asynchronous} deserializers.
-   * - `all` (the default) - to generate {@link UcDeserializer universal} deserializers that support any kind of
+   * - `universal` (the default) - to generate {@link UcDeserializer universal} deserializers that support any kind of
    *   input.
    */
-  export type Mode = 'sync' | 'async' | 'all';
+  export type Mode = 'sync' | 'async' | 'universal';
 
   /**
    * Asynchronous data deserializer signature.

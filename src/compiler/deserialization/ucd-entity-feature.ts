@@ -21,7 +21,7 @@ export interface UcdEntitySetup {
   /**
    * Configured deserializer library.
    */
-  readonly lib: UcdLib;
+  readonly lib: UcdLib.Any;
 
   /**
    * Builds code that registers created entity receiver.

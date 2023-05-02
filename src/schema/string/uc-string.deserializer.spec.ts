@@ -25,7 +25,7 @@ describe('UcString deserializer', () => {
         readValue: String,
       },
     }).bootstrap();
-    ({ readValue } = await lib.compile().toDeserializers());
+    ({ readValue } = await lib.compileFactory().toExports());
   });
 
   it('deserializes string', async () => {

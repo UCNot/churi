@@ -18,7 +18,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: 13 })),
@@ -38,7 +38,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(
@@ -56,7 +56,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { foo: [11], bar: [[22, 333]] })),
@@ -71,7 +71,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeMap(to, { '': 'test' }))).resolves.toBe(
       "$('test)",
@@ -91,7 +91,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(
@@ -116,7 +116,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
@@ -134,7 +134,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
@@ -154,7 +154,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
@@ -170,7 +170,7 @@ describe('UcMap serializer', () => {
       },
     }).bootstrap();
 
-    const { writeMap } = await lib.compile().toSerializers();
+    const { writeMap } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
@@ -182,16 +182,21 @@ describe('UcMap serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const lib = await new UcsSetup({
       models: {
-        writeMap: ucMap({
-          test: { type: 'test-type' },
-        }),
+        writeMap: ucMap(
+          {
+            test: { type: 'test-type' },
+          },
+          {
+            id: 'testMap',
+          },
+        ),
       },
     }).bootstrap();
 
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await lib.compile().toSerializers();
+      await lib.compileFactory().toExports();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }
@@ -199,7 +204,7 @@ describe('UcMap serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'writeMap$serialize: Can not serialize entry "test" of type "test-type"',
+      'testMap$serialize: Can not serialize entry "test" of type "test-type"',
     );
     expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
     expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');

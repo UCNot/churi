@@ -28,7 +28,7 @@ describe('UcNumber deserializer', () => {
       },
       features: [ucdSupportPrimitives, ucdSupportNonFinite],
     }).bootstrap();
-    ({ readValue } = await lib.compile().toDeserializers());
+    ({ readValue } = await lib.compileFactory().toExports());
   });
 
   it('deserializes number', async () => {
@@ -40,9 +40,10 @@ describe('UcNumber deserializer', () => {
       models: {
         parseValue: Number,
       },
+      mode: 'sync',
     }).bootstrap();
 
-    const { parseValue } = await lib.compile('sync').toDeserializers();
+    const { parseValue } = await lib.compileFactory().toExports();
 
     expect(parseValue(parseTokens('123'))).toBe(123);
     expect(parseValue(parseTokens('-123'))).toBe(-123);
@@ -52,9 +53,10 @@ describe('UcNumber deserializer', () => {
       models: {
         parseValue: Number,
       },
+      mode: 'sync',
     }).bootstrap();
 
-    const { parseValue } = await lib.compile('sync').toDeserializers();
+    const { parseValue } = await lib.compileFactory().toExports();
 
     expect(parseValue('123')).toBe(123);
     expect(parseValue('-123')).toBe(-123);

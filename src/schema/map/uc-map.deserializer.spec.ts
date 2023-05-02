@@ -33,7 +33,7 @@ describe('UcMap deserializer', () => {
           }),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entry', async () => {
@@ -113,25 +113,28 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized entity schema', async () => {
       const lib = await new UcdSetup({
         models: {
-          readMap: ucMap({
-            test: { type: 'test-type' },
-          }),
+          readMap: ucMap(
+            {
+              test: { type: 'test-type' },
+            },
+            {
+              id: 'testMap',
+            },
+          ),
         },
       }).bootstrap();
 
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await lib.compile().toDeserializers();
+        await lib.compileFactory().toExports();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
 
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
-      expect(error?.message).toBe(
-        '{test: test-type}: Can not deserialize entry "test" of type "test-type"',
-      );
+      expect(error?.message).toBe('TestMap: Can not deserialize entry "test" of type "test-type"');
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });
@@ -152,7 +155,7 @@ describe('UcMap deserializer', () => {
           }),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entries', async () => {
@@ -284,7 +287,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes extra entries', () => {
@@ -302,6 +305,7 @@ describe('UcMap deserializer', () => {
               test: String,
             },
             {
+              id: 'testMap',
               extra: { type: 'test-type' },
             },
           ),
@@ -311,16 +315,14 @@ describe('UcMap deserializer', () => {
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await lib.compile().toDeserializers();
+        await lib.compileFactory().toExports();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
 
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
-      expect(error?.message).toBe(
-        '{test: String}: Can not deserialize extra entry of type "test-type"',
-      );
+      expect(error?.message).toBe('TestMap: Can not deserialize extra entry of type "test-type"');
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });
@@ -347,7 +349,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes extra entries', () => {
@@ -368,12 +370,15 @@ describe('UcMap deserializer', () => {
   });
 
   describe('list entry', () => {
-    let lib: UcdLib<{
-      readMap: UcMap.Schema<{
-        foo: UcList.Schema<string>;
-        bar: UcList.Schema<number>;
-      }>;
-    }>;
+    let lib: UcdLib<
+      {
+        readMap: UcMap.Schema<{
+          foo: UcList.Schema<string>;
+          bar: UcList.Schema<number>;
+        }>;
+      },
+      'sync'
+    >;
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
 
     beforeEach(async () => {
@@ -384,8 +389,9 @@ describe('UcMap deserializer', () => {
             bar: ucList<number>(Number),
           }),
         },
+        mode: 'sync',
       }).bootstrap();
-      ({ readMap } = await lib.compile('sync').toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes comma-separated items', () => {
@@ -456,7 +462,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       }).bootstrap();
-      ({ readMap } = await lib.compile().toDeserializers());
+      ({ readMap } = await lib.compileFactory().toExports());
     });
 
     it('deserializes entry', async () => {

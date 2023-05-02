@@ -21,18 +21,19 @@ export function ucdSupportTimestampEntity(setup: UcdSetup): void {
 
 export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
   setup.handleEntityPrefix("!timestamp'", ({ lib, register, refer }) => code => {
-    const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
-    const readTimestamp = lib.declarations.declare('readTimestampEntity', ({ init }) => init(code => {
-        code
-          .write(`(reader, rx, _prefix, args) => {`)
-          .indent(code => {
-            code.write(
-              `const date = new Date(${printTokens}(args));`,
-              'return ' + TimestampUcrxMethod.toMethod(lib).call('rx', { value: 'date' }) + ';',
-            );
-          })
-          .write(`}`);
-      }));
+    const readTimestamp = lib.declarations.declareFunction(
+      'readTimestampEntity',
+      ['_reader', 'rx', '_prefix', 'args'],
+      ({ args: { rx, args }, ns }) => code => {
+          const date = ns.name('date');
+          const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
+
+          code.write(
+            `const ${date} = new Date(${printTokens}(${args}));`,
+            'return ' + TimestampUcrxMethod.toMethod(lib).call(rx, { value: date }) + ';',
+          );
+        },
+    );
 
     refer(readTimestamp);
 

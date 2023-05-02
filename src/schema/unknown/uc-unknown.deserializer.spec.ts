@@ -25,7 +25,7 @@ describe('UcUnknown deserializer', () => {
 
     beforeEach(async () => {
       lib = await new UcdSetup({ models: { readValue: ucUnknown() } }).bootstrap();
-      ({ readValue } = await lib.compile().toDeserializers());
+      ({ readValue } = await lib.compileFactory().toExports());
     });
 
     it('recognizes boolean', () => {
@@ -99,7 +99,7 @@ describe('UcUnknown deserializer', () => {
       lib = await new UcdSetup({
         models: { readValue: ucNullable(ucUnknown(), false) },
       }).bootstrap();
-      ({ readValue } = await lib.compile().toDeserializers());
+      ({ readValue } = await lib.compileFactory().toExports());
     });
 
     it('rejects null', () => {
@@ -126,7 +126,7 @@ describe('UcUnknown deserializer', () => {
         models: { readValue: ucUnknown() },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
       }).bootstrap();
-      ({ readValue } = await lib.compile().toDeserializers());
+      ({ readValue } = await lib.compileFactory().toExports());
     });
 
     it('recognizes custom entity', () => {

@@ -12,7 +12,7 @@ describe('UcsSetup', () => {
       features: UcsSupportNumberAsHex,
     }).bootstrap();
 
-    const { writeValue } = await lib.compile().toSerializers();
+    const { writeValue } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
   });
@@ -31,7 +31,7 @@ describe('UcsSetup', () => {
       const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
         models: { writeValue: schema },
       }).bootstrap();
-      const { writeValue } = await lib.compile().toSerializers();
+      const { writeValue } = await lib.compileFactory().toExports();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
     });
@@ -48,7 +48,7 @@ describe('UcsSetup', () => {
       const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
         models: { writeValue: schema },
       }).bootstrap();
-      const { writeValue } = await lib.compile().toSerializers();
+      const { writeValue } = await lib.compileFactory().toExports();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
     });

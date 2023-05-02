@@ -6,7 +6,7 @@ import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdSetup } from './ucd-setup.js';
 
-export function ucdSupportPrimitives(setup: UcdSetup): void {
+export function ucdSupportPrimitives(setup: UcdSetup.Any): void {
   setup
     .useUcrxTemplate<boolean>(
       Boolean,

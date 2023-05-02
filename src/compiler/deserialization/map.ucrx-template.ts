@@ -7,13 +7,14 @@ import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
-import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
-import { UcdLib } from './ucd-lib.js';
 import { UcdSetup } from './ucd-setup.js';
 
 export class MapUcrxTemplate<
@@ -24,7 +25,7 @@ export class MapUcrxTemplate<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static configureSchemaDeserializer(setup: UcdSetup, { entries, extra }: UcMap.Schema): void {
+  static configureSchemaDeserializer(setup: UcdSetup.Any, { entries, extra }: UcMap.Schema): void {
     setup.useUcrxTemplate('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
     for (const entrySchema of Object.values(entries)) {
       setup.processModel(entrySchema);
@@ -40,7 +41,7 @@ export class MapUcrxTemplate<
   readonly #varRx = lazyValue(() => this.#ns.name('rx'));
   #allocation?: MapUcrxTemplate.Allocation;
 
-  constructor(lib: UcdLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>) {
+  constructor(lib: UcrxLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>) {
     super({
       lib,
       schema,
@@ -67,7 +68,7 @@ export class MapUcrxTemplate<
         addEntry(null, extra);
       }
 
-      this.#typeName = `Map${ucUcSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
+      this.#typeName = `Map${ucSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
     }
 
     return this.#typeName;
@@ -177,9 +178,9 @@ export class MapUcrxTemplate<
 
       throw new UnsupportedUcSchemaError(
         schema,
-        `${ucModelName(this.schema)}: Can not deserialize ${entryName} of type "${ucModelName(
-          schema,
-        )}"`,
+        `${ucSchemaTypeSymbol(
+          this.schema,
+        )}: Can not deserialize ${entryName} of type "${ucModelName(schema)}"`,
         { cause },
       );
     }

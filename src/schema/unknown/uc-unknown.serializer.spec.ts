@@ -13,7 +13,7 @@ describe('UcUnknown serializer', () => {
       models: { writeValue: ucUnknown() },
     }).bootstrap();
 
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
   });
 
   it('serializes primitive values', async () => {

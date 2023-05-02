@@ -12,6 +12,7 @@ describe('UcdSetup', () => {
         models: {
           readTimestamp: Number,
         },
+        mode: 'sync',
         features: [
           {
             configureDeserializer(setup) {
@@ -23,7 +24,7 @@ describe('UcdSetup', () => {
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile('sync').toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -43,10 +44,11 @@ describe('UcdSetup', () => {
         models: {
           readTimestamp: schema,
         },
+        mode: 'sync',
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile('sync').toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -63,10 +65,11 @@ describe('UcdSetup', () => {
         models: {
           readTimestamp: schema,
         },
+        mode: 'sync',
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile('sync').toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -83,10 +86,11 @@ describe('UcdSetup', () => {
         models: {
           readTimestamp: schema,
         },
+        mode: 'sync',
       }).bootstrap();
 
       const now = new Date();
-      const { readTimestamp } = await lib.compile('sync').toDeserializers();
+      const { readTimestamp } = await lib.compileFactory().toExports();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
