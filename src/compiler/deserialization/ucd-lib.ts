@@ -220,13 +220,11 @@ export class UcdLib<
     return {
       lib: this,
       toCode: module.toCode,
-      toExports: () => this.#toDeserializers(module),
+      toExports: () => this.#toExports(module),
     };
   }
 
-  async #toDeserializers(
-    module: UcdLib.Compiled<TModels>,
-  ): Promise<UcdLib.Exports<TModels, TMode>> {
+  async #toExports(module: UcdLib.Compiled<TModels>): Promise<UcdLib.Exports<TModels, TMode>> {
     const text = await module.toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
