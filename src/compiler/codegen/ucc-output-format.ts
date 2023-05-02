@@ -1,5 +1,5 @@
 export enum UccOutputFormat {
-  Mjs = 'mjs',
-  IIFE = 'iife',
-  Default = Mjs,
+  ESM = 'ESM',
+  IIFE = 'IIFE',
+  Default = ESM,
 }

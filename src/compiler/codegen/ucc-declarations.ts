@@ -249,7 +249,7 @@ export class UccDeclarations {
         printTo: async span => {
           await print();
           if (exports?.length) {
-            if (format === 'iife') {
+            if (format === UccOutputFormat.IIFE) {
               span
                 .print('return {')
                 .indent(span => {
@@ -393,7 +393,7 @@ class UccDeclSnippet {
     let prefix: string | undefined;
 
     if (this.#exportAs != null) {
-      if (format === 'iife') {
+      if (format === UccOutputFormat.IIFE) {
         exports = [
           this.#exportAs === this.#name ? `${this.#name},` : `${this.#exportAs}: ${this.#name},`,
         ];
