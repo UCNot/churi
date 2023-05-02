@@ -9,31 +9,23 @@ export function ucsCheckConstraints(
   value: string,
   onValue: UccSource,
   {
-    onNull,
+    onNull = code => {
+      const { lib, args } = fn;
+      const ucsNull = lib.import(SERIALIZER_MODULE, 'UCS_NULL');
+
+      code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
+    },
   }: {
     readonly onNull?: UccSource;
   } = {},
 ): UccBuilder {
-  const { lib, args } = fn;
-  const ucsNull = lib.import(SERIALIZER_MODULE, 'UCS_NULL');
-
   return function checkConstraints(code: UccCode) {
     if (schema.nullable) {
       code.write(`if (${value} != null) {`).indent(onValue);
       if (schema.optional) {
-        code.write(`} else if (${value} === null) {`).indent(
-          onNull
-            ?? (code => {
-              code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
-            }),
-        );
+        code.write(`} else if (${value} === null) {`).indent(onNull);
       } else {
-        code.write(`} else {`).indent(
-          onNull
-            ?? (code => {
-              code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${ucsNull})`);
-            }),
-        );
+        code.write(`} else {`).indent(onNull);
       }
       code.write('}');
     } else if (schema.optional) {
