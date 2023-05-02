@@ -4,6 +4,7 @@ import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdLib } from './ucd-lib.js';
@@ -80,7 +81,9 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       if (!template) {
         throw new UnsupportedUcSchemaError(
           this.schema,
-          `${ucModelName(this.schema)}: Can not deserialize type "${ucModelName(this.schema)}"`,
+          `${ucSchemaTypeSymbol(this.schema)}: Can not deserialize type "${ucModelName(
+            this.schema,
+          )}"`,
         );
       }
 

@@ -18,7 +18,7 @@ describe('UcList serializer', () => {
       },
     }).bootstrap();
 
-    const { writeList } = await lib.compile().toSerializers();
+    const { writeList } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeList(to, [1, 22, 333]))).resolves.toBe(
       ',1,22,333',
@@ -31,7 +31,7 @@ describe('UcList serializer', () => {
       },
     }).bootstrap();
 
-    const { writeList } = await lib.compile().toSerializers();
+    const { writeList } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeList(to, []))).resolves.toBe(',');
   });
@@ -42,7 +42,7 @@ describe('UcList serializer', () => {
       },
     }).bootstrap();
 
-    const { writeList } = await lib.compile().toSerializers();
+    const { writeList } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeList(to, [1, null, 333]))).resolves.toBe(
       ',1,--,333',
@@ -55,7 +55,7 @@ describe('UcList serializer', () => {
       },
     }).bootstrap();
 
-    const { writeList } = await lib.compile().toSerializers();
+    const { writeList } = await lib.compileFactory().toExports();
 
     await expect(
       TextOutStream.read(async to => await writeList(to, [1, undefined, 333])),
@@ -72,7 +72,7 @@ describe('UcList serializer', () => {
         },
       }).bootstrap();
 
-      ({ writeList } = await lib.compile().toSerializers());
+      ({ writeList } = await lib.compileFactory().toExports());
     });
 
     it('serializes list', async () => {
@@ -94,14 +94,14 @@ describe('UcList serializer', () => {
     });
 
     it('serialized with one item', async () => {
-      const { writeList } = await lib.compile().toSerializers();
+      const { writeList } = await lib.compileFactory().toExports();
 
       await expect(
         TextOutStream.read(async to => await writeList(to, [[1, 22, 333]])),
       ).resolves.toBe(',(1,22,333)');
     });
     it('serialized with multiple items', async () => {
-      const { writeList } = await lib.compile().toSerializers();
+      const { writeList } = await lib.compileFactory().toExports();
 
       await expect(
         TextOutStream.read(
@@ -113,7 +113,7 @@ describe('UcList serializer', () => {
       ).resolves.toBe(',(1,22,333),(1,2,3)');
     });
     it('serialized with empty item', async () => {
-      const { writeList } = await lib.compile().toSerializers();
+      const { writeList } = await lib.compileFactory().toExports();
 
       await expect(TextOutStream.read(async to => await writeList(to, [[]]))).resolves.toBe(',()');
     });
@@ -122,14 +122,14 @@ describe('UcList serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const lib = await new UcsSetup({
       models: {
-        writeList: ucList<number>({ type: 'test-type' }),
+        writeList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
       },
     }).bootstrap();
 
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await lib.compile().toSerializers();
+      await lib.compileFactory().toExports();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }
@@ -137,7 +137,7 @@ describe('UcList serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'writeList$serialize: Can not serialize list item of type "test-type"',
+      'testList$serialize: Can not serialize list item of type "test-type"',
     );
     expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
     expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');

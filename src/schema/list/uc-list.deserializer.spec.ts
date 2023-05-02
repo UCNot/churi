@@ -72,7 +72,7 @@ describe('UcList deserializer', () => {
   it('does not deserialize unrecognized schema', async () => {
     const lib = await new UcdSetup({
       models: {
-        readList: ucList<number>({ type: 'test-type' }),
+        readList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
       },
     }).bootstrap();
 
@@ -86,7 +86,7 @@ describe('UcList deserializer', () => {
 
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
-    expect(error?.message).toBe('test-type[]: Can not deserialize list item of type "test-type"');
+    expect(error?.message).toBe('TestList: Can not deserialize list item of type "test-type"');
     expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
     expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
   });

@@ -15,7 +15,7 @@ describe('UcNumber serializer', () => {
         writeValue: Number,
       },
     }).bootstrap();
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
   });
 
   it('serializes number', async () => {

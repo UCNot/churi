@@ -7,7 +7,8 @@ import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccNamespace } from '../codegen/ucc-namespace.js';
-import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -67,7 +68,7 @@ export class MapUcrxTemplate<
         addEntry(null, extra);
       }
 
-      this.#typeName = `Map${ucUcSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
+      this.#typeName = `Map${ucSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
     }
 
     return this.#typeName;
@@ -177,9 +178,9 @@ export class MapUcrxTemplate<
 
       throw new UnsupportedUcSchemaError(
         schema,
-        `${ucModelName(this.schema)}: Can not deserialize ${entryName} of type "${ucModelName(
-          schema,
-        )}"`,
+        `${ucSchemaTypeSymbol(
+          this.schema,
+        )}: Can not deserialize ${entryName} of type "${ucModelName(schema)}"`,
         { cause },
       );
     }

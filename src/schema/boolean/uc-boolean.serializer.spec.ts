@@ -17,7 +17,7 @@ describe('UcBoolean serializer', () => {
         writeValue: Boolean,
       },
     }).bootstrap();
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
   });
 
   it('serializes boolean', async () => {
@@ -30,7 +30,7 @@ describe('UcBoolean serializer', () => {
         writeValue: ucOptional(Boolean),
       },
     }).bootstrap();
-    const { writeValue } = await lib.compile().toSerializers();
+    const { writeValue } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
     await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
@@ -42,7 +42,7 @@ describe('UcBoolean serializer', () => {
         writeValue: ucNullable(Boolean),
       },
     }).bootstrap();
-    const { writeValue } = await lib.compile().toSerializers();
+    const { writeValue } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
     await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');
@@ -54,7 +54,7 @@ describe('UcBoolean serializer', () => {
         writeValue: ucOptional(ucNullable(Boolean)),
       },
     }).bootstrap();
-    const { writeValue } = await lib.compile().toSerializers();
+    const { writeValue } = await lib.compileFactory().toExports();
 
     await expect(TextOutStream.read(async to => await writeValue(to, true))).resolves.toBe('!');
     await expect(TextOutStream.read(async to => await writeValue(to, false))).resolves.toBe('-');

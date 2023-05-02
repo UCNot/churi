@@ -5,7 +5,8 @@ import { UcModel } from '../../schema/uc-schema.js';
 import { UccArgs } from '../codegen/ucc-args.js';
 import { UccSource } from '../codegen/ucc-code.js';
 import { UccMethod } from '../codegen/ucc-method.js';
-import { ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { BaseUcrxTemplate } from '../rx/base.ucrx-template.js';
 import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -44,7 +45,7 @@ export class ListUcrxTemplate<
 
   override get typeName(): string {
     return (this.#typeName ??=
-      'List' + ucUcSchemaVariant(this.schema) + 'Of' + this.#getItemTemplate().typeName);
+      'List' + ucSchemaVariant(this.schema) + 'Of' + this.#getItemTemplate().typeName);
   }
 
   override get permitsSingle(): boolean {
@@ -177,7 +178,9 @@ export class ListUcrxTemplate<
     } catch (cause) {
       throw new UnsupportedUcSchemaError(
         item,
-        `${ucModelName(this.schema)}: Can not deserialize list item of type "${ucModelName(item)}"`,
+        `${ucSchemaTypeSymbol(this.schema)}: Can not deserialize list item of type "${ucModelName(
+          item,
+        )}"`,
         { cause },
       );
     }

@@ -1,15 +1,14 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
-import { UccBuilder, UccCode, UccFragment } from '../codegen/ucc-code.js';
+import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccLib } from '../codegen/ucc-lib.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
-import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
 
 /**
- * Serializer library that {@link UcsLib#compile compiles data models} into serialization functions.
+ * Serializer library that {@link UcsLib#compileFactory compiles data models} into serialization functions.
  *
  * An {@link UcsSetup serializer setup} expected to be used to configure and {@link UcsSetup#bootstrap bootstrap}
  * the library instance.
@@ -24,7 +23,7 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
 
   readonly #options: UcsLib.Options<TModels>;
   readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
-  readonly #serializers = new Map<string | UcDataType, Map<UcSchema$Variant, UcsFunction>>();
+  readonly #serializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcsFunction>>();
 
   constructor(options: UcsLib.Options<TModels>) {
     super(options);
@@ -41,16 +40,15 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     this.#createSerializer = createSerializer;
 
     for (const [externalName, schema] of Object.entries(this.#models)) {
-      this.serializerFor(schema, externalName);
+      const fn = this.serializerFor(schema);
+
+      this.#declareSerializer(fn, externalName);
     }
   }
 
-  serializerFor<T, TSchema extends UcSchema<T>>(
-    schema: TSchema,
-    externalName?: string,
-  ): UcsFunction<T, TSchema> {
+  serializerFor<T, TSchema extends UcSchema<T>>(schema: TSchema): UcsFunction<T, TSchema> {
     const { id = schema.type } = schema;
-    const variant = ucUcSchemaVariant(schema);
+    const variant = ucSchemaVariant(schema);
 
     let variants = this.#serializers.get(id);
 
@@ -65,12 +63,25 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
       serializer = this.#createSerializer({
         lib: this as UcsLib,
         schema,
-        name: this.ns.name(`${externalName ?? ucSchemaSymbol(schema)}$serialize${variant}`),
       });
       variants.set(variant, serializer);
     }
 
     return serializer;
+  }
+
+  #declareSerializer(fn: UcsFunction<unknown, any>, externalName: string): void {
+    this.declarations.declareFunction(
+      externalName,
+      ['stream', 'value'],
+      ({ args: { stream, value } }) => code => {
+          code.write(fn.toUcSerializer(stream, value));
+        },
+      {
+        async: true,
+        exported: true,
+      },
+    );
   }
 
   generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -82,52 +93,18 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     return this.#options.generatorFor?.(type);
   }
 
-  compile(): UcsLib.Compiled<TModels> {
+  compileFactory(): UcsLib.Factory<TModels> {
+    const compiled = this.compile('iife');
+
     return {
       lib: this,
-      toCode: this.#toFactoryCode.bind(this),
-      toSerializers: this.#toSerializers.bind(this),
+      toCode: compiled.toCode,
+      toExports: () => this.#toExports(compiled),
     };
   }
 
-  #toFactoryCode(): UccBuilder {
-    return code => {
-      const declarations = this.declarations.compile('iife');
-
-      code
-        .write('return (async () => {')
-        .indent(
-          this.imports.compile('iife'),
-          '',
-          declarations.body,
-          '',
-          this.#compileSerializers(),
-          '',
-          this.#returnSerializers(),
-          declarations.exports,
-        )
-        .write('})();');
-    };
-  }
-
-  #returnSerializers(): UccBuilder {
-    return code => {
-      code
-        .write('return {')
-        .indent(code => {
-          for (const [externalName, schema] of Object.entries(this.#models)) {
-            code
-              .write(`async ${externalName}(stream, value) {`)
-              .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
-              .write('},');
-          }
-        })
-        .write('};');
-    };
-  }
-
-  async #toSerializers(): Promise<UcsLib.Exports<TModels>> {
-    const text = await new UccCode().write(this.#toFactoryCode()).toText();
+  async #toExports(compiled: UcsLib.Compiled<TModels>): Promise<UcsLib.Exports<TModels>> {
+    const text = await compiled.toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(text) as () => Promise<UcsLib.Exports<TModels>>;
@@ -135,7 +112,7 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     return await factory();
   }
 
-  compileModule(format: UccLib.Format = 'mjs'): UcsLib.Module<TModels> {
+  compile(format: UccLib.Format = 'mjs'): UcsLib.Compiled<TModels> {
     const toCode = lazyValue(() => this.#toCode(format));
 
     return {
@@ -147,44 +124,22 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     };
   }
 
-  #toCode(format: UccLib.Format): UccBuilder {
+  #toCode(format: UccLib.Format): UccSource {
+    if (format === 'iife') {
+      return code => {
+        code.write('return (async () => {').indent(this.#toBody(format)).write(`})();`);
+      };
+    }
+
+    return this.#toBody(format);
+  }
+
+  #toBody(format: UccLib.Format): UccSource {
     return code => {
       const declarations = this.declarations.compile(format);
 
-      code.write(
-        this.imports.compile(format),
-        '',
-        declarations.body,
-        '',
-        this.#compileSerializers(),
-        '',
-        this.#exportSerializers(),
-        declarations.exports,
-      );
+      code.write(this.imports.compile(format), '', declarations.body, '', declarations.exports);
     };
-  }
-
-  #exportSerializers(): UccBuilder {
-    return code => {
-      for (const [externalName, schema] of Object.entries(this.#models)) {
-        code
-          .write(`export async function ${externalName}(stream, value) {`)
-          .indent(this.serializerFor(schema).toUcSerializer('stream', 'value'))
-          .write('}');
-      }
-    };
-  }
-
-  #compileSerializers(): UccBuilder {
-    return code => {
-      code.write(...this.#allSerializers());
-    };
-  }
-
-  *#allSerializers(): Iterable<UcsFunction> {
-    for (const variants of this.#serializers.values()) {
-      yield* variants.values();
-    }
   }
 
 }
@@ -212,12 +167,12 @@ export namespace UcsLib {
     readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
   };
 
-  export interface Compiled<TModels extends Models> extends UccFragment {
+  export interface Factory<TModels extends Models> extends UccFragment {
     readonly lib: UcsLib<TModels>;
-    toSerializers(): Promise<Exports<TModels>>;
+    toExports(): Promise<Exports<TModels>>;
   }
 
-  export interface Module<TModels extends Models> extends UccFragment {
+  export interface Compiled<TModels extends Models> extends UccFragment {
     readonly lib: UcsLib<TModels>;
     toText(): Promise<string>;
   }

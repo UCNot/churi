@@ -7,7 +7,7 @@ import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccInitLocation } from '../codegen/ucc-declarations.js';
-import { UcSchema$Variant, ucUcSchemaVariant } from '../impl/uc-schema.variant.js';
+import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UccLib } from '../mod.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
@@ -38,7 +38,7 @@ export class UcdLib<
     undefined
   >;
 
-  readonly #deserializers = new Map<string | UcDataType, Map<UcSchema$Variant, UcdFunction>>();
+  readonly #deserializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcdFunction>>();
   #entityHandler?: string;
 
   constructor(options: UcdLib.Options<TModels, TMode>) {
@@ -131,7 +131,7 @@ export class UcdLib<
     schema: TSchema,
   ): UcdFunction<T, TSchema> {
     const { id = schema.type } = schema;
-    const variant = ucUcSchemaVariant(schema);
+    const variant = ucSchemaVariant(schema);
 
     let variants = this.#deserializers.get(id);
 

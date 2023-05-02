@@ -15,7 +15,7 @@ describe('UcBigInt serializer', () => {
         writeValue: BigInt,
       },
     }).bootstrap();
-    ({ writeValue } = await lib.compile().toSerializers());
+    ({ writeValue } = await lib.compileFactory().toExports());
   });
 
   it('serializes value', async () => {
