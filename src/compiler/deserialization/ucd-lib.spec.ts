@@ -11,9 +11,6 @@ describe('UcdLib', () => {
         mode: 'async',
       }).bootstrap();
       const compiled = lib.compileFactory();
-
-      expect(compiled.lib).toBe(lib);
-
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
@@ -27,9 +24,6 @@ describe('UcdLib', () => {
         mode: 'sync',
       }).bootstrap();
       const compiled = lib.compileFactory();
-
-      expect(compiled.lib).toBe(lib);
-
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
@@ -42,9 +36,6 @@ describe('UcdLib', () => {
         models: { readValue: Number },
       }).bootstrap();
       const compiled = lib.compileFactory();
-
-      expect(compiled.lib).toBe(lib);
-
       const text = await new UccCode().write(compiled).toText();
 
       expect(text).toContain("import('churi/deserializer.js')");
@@ -54,16 +45,13 @@ describe('UcdLib', () => {
     });
   });
 
-  describe('compileModule', () => {
+  describe('bundle.compile', () => {
     it('compiles async module', async () => {
       const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'async'>({
         models: { readValue: Number },
         mode: 'async',
       }).bootstrap();
-      const module = lib.compile();
-
-      expect(module.lib).toBe(lib);
-
+      const module = lib.bundle.compile();
       const text = await module.toText();
 
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);
@@ -76,10 +64,7 @@ describe('UcdLib', () => {
         models: { readValue: Number },
         mode: 'sync',
       }).bootstrap();
-      const module = lib.compile();
-
-      expect(module.lib).toBe(lib);
-
+      const module = lib.bundle.compile();
       const text = await module.toText();
 
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);
@@ -91,10 +76,7 @@ describe('UcdLib', () => {
       const lib = await new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
         models: { readValue: Number },
       }).bootstrap();
-      const module = lib.compile();
-
-      expect(module.lib).toBe(lib);
-
+      const module = lib.bundle.compile();
       const text = await module.toText();
 
       expect(text).toContain(`} from 'churi/deserializer.js';\n`);

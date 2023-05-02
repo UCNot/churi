@@ -33,7 +33,7 @@ async function emitDefaultEntities() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.default-entities.js'),
-    await lib.compile().toText(),
+    await lib.bundle.compile().toText(),
     'utf-8',
   );
 }
@@ -46,7 +46,7 @@ async function emitUcValueDeserializer() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.uc-value.deserializer.js'),
-    await lib.compile().toText(),
+    await lib.bundle.compile().toText(),
     'utf-8',
   );
 }
@@ -69,7 +69,7 @@ async function emitURIChargeDeserializer() {
 
   await fs.writeFile(
     path.join(distDir, 'churi.uri-charge.deserializer.js'),
-    await lib.compile().toText(),
+    await lib.bundle.compile().toText(),
     'utf-8',
   );
 }

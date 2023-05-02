@@ -1,14 +1,14 @@
-import { lazyValue } from '@proc7ts/primitives';
 import { escapeJsString } from 'httongue';
 import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
+import { UccBundle } from '../codegen/ucc-bundle.js';
+import { UccFragment, UccSource } from '../codegen/ucc-code.js';
 import { UccInitLocation } from '../codegen/ucc-declarations.js';
+import { UccOutputFormat } from '../codegen/ucc-output-format.js';
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UccLib } from '../mod.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
@@ -215,52 +215,21 @@ export class UcdLib<
   }
 
   compileFactory(): UcdLib.Factory<TModels, TMode> {
-    const module = this.compile('iife');
+    const module = this.bundle.compile(UccOutputFormat.IIFE);
 
     return {
-      lib: this,
       toCode: module.toCode,
       toExports: () => this.#toExports(module),
     };
   }
 
-  async #toExports(module: UcdLib.Compiled<TModels>): Promise<UcdLib.Exports<TModels, TMode>> {
+  async #toExports(module: UccBundle.Compiled): Promise<UcdLib.Exports<TModels, TMode>> {
     const text = await module.toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const factory = Function(text) as () => Promise<UcdLib.Exports<TModels, TMode>>;
 
     return await factory();
-  }
-
-  compile(format: UccLib.Format = 'mjs'): UcdLib.Compiled<TModels> {
-    const toCode = lazyValue(() => this.#toCode(format));
-
-    return {
-      lib: this,
-      toCode,
-      async toText() {
-        return await new UccCode().write(toCode()).toText();
-      },
-    };
-  }
-
-  #toCode(format: UccLib.Format): UccSource {
-    if (format === 'iife') {
-      return code => {
-        code.write('return (async () => {').indent(this.#toBody(format)).write('})();');
-      };
-    }
-
-    return this.#toBody(format);
-  }
-
-  #toBody(format: UccLib.Format): UccSource {
-    return code => {
-      const declarations = this.declarations.compile(format);
-
-      code.write(this.imports.compile(format), '', declarations.body, '', declarations.exports);
-    };
   }
 
 }
@@ -318,12 +287,6 @@ export namespace UcdLib {
 
   export interface Factory<out TModels extends Models, out TMode extends UcDeserializer.Mode>
     extends UccFragment {
-    readonly lib: UcdLib<TModels, TMode>;
     toExports(): Promise<Exports<TModels, TMode>>;
-  }
-
-  export interface Compiled<out TModels extends Models> extends UccFragment {
-    readonly lib: UcdLib.Any<TModels>;
-    toText(): Promise<string>;
   }
 }

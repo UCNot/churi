@@ -1,8 +1,9 @@
-import { lazyValue } from '@proc7ts/primitives';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
-import { UccCode, UccFragment, UccSource } from '../codegen/ucc-code.js';
+import { UccBundle } from '../codegen/ucc-bundle.js';
+import { UccFragment } from '../codegen/ucc-code.js';
 import { UccLib } from '../codegen/ucc-lib.js';
+import { UccOutputFormat } from '../codegen/ucc-output-format.js';
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
@@ -15,7 +16,7 @@ import { UcsGenerator } from './ucs-generator.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLib {
+export class UcsLib<out TModels extends UcsLib.Models = UcsLib.Models> extends UccLib {
 
   readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
@@ -94,16 +95,15 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
   }
 
   compileFactory(): UcsLib.Factory<TModels> {
-    const compiled = this.compile('iife');
+    const compiled = this.bundle.compile(UccOutputFormat.IIFE);
 
     return {
-      lib: this,
       toCode: compiled.toCode,
       toExports: () => this.#toExports(compiled),
     };
   }
 
-  async #toExports(compiled: UcsLib.Compiled<TModels>): Promise<UcsLib.Exports<TModels>> {
+  async #toExports(compiled: UccBundle.Compiled): Promise<UcsLib.Exports<TModels>> {
     const text = await compiled.toText();
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
@@ -112,40 +112,10 @@ export class UcsLib<TModels extends UcsLib.Models = UcsLib.Models> extends UccLi
     return await factory();
   }
 
-  compile(format: UccLib.Format = 'mjs'): UcsLib.Compiled<TModels> {
-    const toCode = lazyValue(() => this.#toCode(format));
-
-    return {
-      lib: this,
-      toCode,
-      async toText() {
-        return await new UccCode().write(toCode()).toText();
-      },
-    };
-  }
-
-  #toCode(format: UccLib.Format): UccSource {
-    if (format === 'iife') {
-      return code => {
-        code.write('return (async () => {').indent(this.#toBody(format)).write(`})();`);
-      };
-    }
-
-    return this.#toBody(format);
-  }
-
-  #toBody(format: UccLib.Format): UccSource {
-    return code => {
-      const declarations = this.declarations.compile(format);
-
-      code.write(this.imports.compile(format), '', declarations.body, '', declarations.exports);
-    };
-  }
-
 }
 
 export namespace UcsLib {
-  export interface Options<TModels extends Models> extends UccLib.Options {
+  export interface Options<out TModels extends Models> extends UccLib.Options {
     readonly models: TModels;
 
     generatorFor?<T, TSchema extends UcSchema<T>>(
@@ -163,17 +133,11 @@ export namespace UcsLib {
     readonly [writer: string]: UcModel;
   }
 
-  export type Exports<TModels extends Models> = {
+  export type Exports<out TModels extends Models> = {
     readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
   };
 
   export interface Factory<TModels extends Models> extends UccFragment {
-    readonly lib: UcsLib<TModels>;
     toExports(): Promise<Exports<TModels>>;
-  }
-
-  export interface Compiled<TModels extends Models> extends UccFragment {
-    readonly lib: UcsLib<TModels>;
-    toText(): Promise<string>;
   }
 }

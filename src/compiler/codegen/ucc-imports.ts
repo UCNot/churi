@@ -1,7 +1,7 @@
 import { escapeJsString } from 'httongue';
 import { UccSource } from './ucc-code.js';
-import { UccLib } from './ucc-lib.js';
 import { UccNamespace } from './ucc-namespace.js';
+import { UccOutputFormat } from './ucc-output-format.js';
 
 export class UccImports {
 
@@ -33,8 +33,8 @@ export class UccImports {
     return alias;
   }
 
-  compile(format: UccLib.Format): UccSource {
-    return format === 'iife' ? this.#asDynamic() : this.#asStatic();
+  compile(format: UccOutputFormat = UccOutputFormat.Default): UccSource {
+    return format === UccOutputFormat.IIFE ? this.#asDynamic() : this.#asStatic();
   }
 
   #asStatic(): UccSource {

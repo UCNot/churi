@@ -3,6 +3,7 @@ import { jsStringLiteral } from 'httongue';
 import { UccCode } from './ucc-code.js';
 import { UccDeclarations } from './ucc-declarations.js';
 import { UccNamespace } from './ucc-namespace.js';
+import { UccOutputFormat } from './ucc-output-format.js';
 import { UccPrinter } from './ucc-printer.js';
 
 describe('UccDeclarations', () => {
@@ -82,7 +83,7 @@ describe('UccDeclarations', () => {
         'export const name = test1;\nexport const name2 = test2;\n',
       );
     });
-    it('(iife) declares exported symbol', async () => {
+    it('(IIFE) declares exported symbol', async () => {
       expect(declarations.declare('name', 'test1', { exported: true })).toBe('name');
       expect(
         declarations.declare('name2', ({ init }) => init('test2'), {
@@ -90,7 +91,7 @@ describe('UccDeclarations', () => {
         }),
       ).toBe('name2');
 
-      const { body, exports } = declarations.compile('iife');
+      const { body, exports } = declarations.compile(UccOutputFormat.IIFE);
 
       await expect(new UccCode().write(body, exports).toText()).resolves.toBe(
         'const name = test1;\nconst name2 = test2;\nreturn {\n  name,\n  name2,\n};\n',
@@ -106,11 +107,11 @@ describe('UccDeclarations', () => {
         'const name = test1;\nconst name$0 = test2;\nexport {\n  name$0 as name,\n};\n',
       );
     });
-    it('(iife) renames exported symbol', async () => {
+    it('(IIFE) renames exported symbol', async () => {
       expect(declarations.declare('name', 'test1', { key: null })).toBe('name');
       expect(declarations.declare('name', 'test2', { exported: true, key: null })).toBe('name$0');
 
-      const { body, exports } = declarations.compile('iife');
+      const { body, exports } = declarations.compile(UccOutputFormat.IIFE);
 
       await expect(new UccCode().write(body, exports).toText()).resolves.toBe(
         'const name = test1;\nconst name$0 = test2;\nreturn {\n  name: name$0,\n};\n',

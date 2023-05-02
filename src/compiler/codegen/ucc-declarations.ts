@@ -2,8 +2,8 @@ import { asArray, lazyValue } from '@proc7ts/primitives';
 import { safeJsId } from '../impl/safe-js-id.js';
 import { UccArgs } from './ucc-args.js';
 import { UccCode, UccSource } from './ucc-code.js';
-import { UccLib } from './ucc-lib.js';
 import { UccNamespace } from './ucc-namespace.js';
+import { UccOutputFormat } from './ucc-output-format.js';
 import { UccPrintable, UccPrinter } from './ucc-printer.js';
 
 export class UccDeclarations {
@@ -173,7 +173,7 @@ export class UccDeclarations {
     return name;
   }
 
-  compile(format: UccLib.Format = 'mjs'): UccDeclarations.Compiled {
+  compile(format: UccOutputFormat = UccOutputFormat.Default): UccDeclarations.Compiled {
     const emit = lazyValue(async () => await this.#emit(format));
 
     return {
@@ -194,7 +194,7 @@ export class UccDeclarations {
     };
   }
 
-  async #emit(format: UccLib.Format): Promise<{
+  async #emit(format: UccOutputFormat): Promise<{
     readonly body: UccPrintable;
     readonly exports: UccPrintable;
   }> {
@@ -268,7 +268,7 @@ export class UccDeclarations {
     };
   }
 
-  #emitAll(format: UccLib.Format): Map<UccDeclSnippet, Promise<UccEmittedDecl>> {
+  #emitAll(format: UccOutputFormat): Map<UccDeclSnippet, Promise<UccEmittedDecl>> {
     const promises = new Map<UccDeclSnippet, Promise<UccEmittedDecl>>();
 
     for (const snippet of this.#all) {
@@ -280,7 +280,7 @@ export class UccDeclarations {
   }
 
   #emitSnippet(
-    format: UccLib.Format,
+    format: UccOutputFormat,
     snippet: UccDeclSnippet,
     promises: Map<UccDeclSnippet, Promise<UccEmittedDecl>>,
   ): Promise<UccEmittedDecl> {
@@ -388,7 +388,7 @@ class UccDeclSnippet {
     return this.#name;
   }
 
-  async emit(format: UccLib.Format): Promise<UccEmittedDecl> {
+  async emit(format: UccOutputFormat): Promise<UccEmittedDecl> {
     let exports: string[] | undefined;
     let prefix: string | undefined;
 
