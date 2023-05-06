@@ -149,7 +149,7 @@ export class UcrxHandle {
       this.#isList = this.#rx.and(rejection => {
         if (rejection.code === 'unexpectedType' && rejection.details?.type === 'list') {
           // Replace "unexpected list" with "unexpected nested list".
-          return this.#reject(ucrxRejectType('nested list', this.#rx));
+          rejection = ucrxRejectType('nested list', this.#rx);
         }
 
         return this.#reject(rejection);

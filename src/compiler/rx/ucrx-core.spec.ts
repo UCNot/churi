@@ -97,4 +97,14 @@ describe('UcrxCore', () => {
       ).resolves.toBe('');
     });
   });
+
+  describe('any', () => {
+    it('has stub returning 0', async () => {
+      await expect(
+        new UccCode()
+          .write(UcrxCore.any.stub({ value: 'value' }, UcrxCore.any.toMethod(lib), template))
+          .toText(),
+      ).resolves.toBe(`return 0;\n`);
+    });
+  });
 });
