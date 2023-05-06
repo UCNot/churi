@@ -131,7 +131,7 @@ export class MapUcrxTemplate<
     return {
       nul: this.schema.nullable ? () => this.#declareNul() : undefined,
       for: args => this.#declareFor(args),
-      map: () => this.#declareMap(),
+      map: args => this.#declareMap(args),
     };
   }
 
@@ -217,33 +217,39 @@ export class MapUcrxTemplate<
     return requiredCount;
   }
 
-  #declareFor({ key }: UccArgs.ByName<'key'>): UccSource {
+  #declareFor({ key, reject }: UccArgs.ByName<'key' | 'reject'>): UccSource {
     const {
       decls: { entries, extra },
       context,
       map,
-      assigned = 'null',
+      assigned,
       missingCount,
     } = this.#getAllocation();
     const rx = this.#varRx();
     const entry = this.#varEntry();
+    const ucrxRejectEntry = this.lib.import(CHURI_MODULE, 'ucrxRejectEntry');
 
     return code => {
       code
         .write(`const ${entry} = ${entries}[${key}]` + (extra ? ` || ${extra};` : ';'))
-        .write(`const ${rx} = ${entry}?.rx(${context}, ${map}, ${key});`)
-        .write(`if (${entry}?.use && !${assigned}[${key}]) {`)
-        .indent(`--${missingCount};`, `${assigned}[${key}] = 1;`)
+        .write(`if (!${entry}) {`)
+        .indent(`${reject}(${ucrxRejectEntry}(${key}));`, 'return;')
         .write('}')
-        .write(`return ${rx};`);
+        .write(`const ${rx} = ${entry}.rx(${context}, ${map}, ${key});`);
+      if (missingCount) {
+        code
+          .write(`if (${entry}.use && !${assigned}[${key}]) {`)
+          .indent(`--${missingCount};`, `${assigned}[${key}] = 1;`)
+          .write('}');
+      }
+      code.write(`return ${rx};`);
     };
   }
 
-  #declareMap(): UccSource {
+  #declareMap({ reject }: UccArgs.ByName<'reject'>): UccSource {
     const allocation = this.#getAllocation();
     const {
       decls: { entries, requiredCount },
-      context,
       missingCount,
       assigned,
     } = allocation;
@@ -254,12 +260,12 @@ export class MapUcrxTemplate<
       };
     }
 
-    const entriesMissing = this.lib.import(CHURI_MODULE, 'ucrxMissingEntriesError');
+    const ucrxRejectMissingEntries = this.lib.import(CHURI_MODULE, 'ucrxRejectMissingEntries');
 
     return code => {
       code
         .write(`if (${missingCount}) {`)
-        .indent(`${context}.error(${entriesMissing}(${assigned}, ${entries}));`)
+        .indent(`${reject}(${ucrxRejectMissingEntries}(${assigned}, ${entries}));`, 'return 0;')
         .write(`} else {`)
         .indent(this.storeMap(`this.set`, allocation))
         .write(`}`)

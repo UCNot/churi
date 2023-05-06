@@ -1,4 +1,4 @@
-import { Ucrx } from './ucrx.js';
+import { AllUcrx } from './all.ucrx.js';
 import {
   UctxMode$AsItem,
   UctxMode$Default,
@@ -16,31 +16,31 @@ import { Uctx } from './uctx.js';
  * @param value - Value to charge with.
  * @param mode - Transfer mode. Top-level by default.
  */
-export function uctxValue(rx: Ucrx, value: unknown, mode: UctxMode = UctxMode$TopLevel): void {
+export function uctxValue(rx: AllUcrx, value: unknown, mode: UctxMode = UctxMode$TopLevel): void {
   UCTX_CHARGERS[typeof value](rx, value, mode);
 }
 
 const UCTX_CHARGERS: {
-  readonly [type in string]: { toUC(rx: Ucrx, value: any, mode: UctxMode): void }['toUC'];
+  readonly [type in string]: { toUC(rx: AllUcrx, value: any, mode: UctxMode): void }['toUC'];
 } = {
-  bigint(rx: Ucrx, value: bigint) {
+  bigint(rx: AllUcrx, value: bigint) {
     rx.big(value);
   },
-  boolean(rx: Ucrx, value: boolean) {
+  boolean(rx: AllUcrx, value: boolean) {
     rx.bol(value);
   },
   function: uctxFunction,
-  number(rx: Ucrx, value: number) {
+  number(rx: AllUcrx, value: number) {
     rx.num(value);
   },
   object: uctxObject,
-  string(rx: Ucrx, value: string) {
+  string(rx: AllUcrx, value: string) {
     rx.str(value);
   },
   undefined: () => undefined,
 };
 
-function uctxFunction(rx: Ucrx, value: Uctx, mode: UctxMode): void {
+function uctxFunction(rx: AllUcrx, value: Uctx, mode: UctxMode): void {
   if (typeof value.toUC === 'function') {
     value.toUC(rx, mode);
   } else if (typeof value.toJSON === 'function') {
@@ -48,9 +48,8 @@ function uctxFunction(rx: Ucrx, value: Uctx, mode: UctxMode): void {
   }
 }
 
-function uctxObject(rx: Ucrx, value: Uctx, mode: UctxMode): void {
+function uctxObject(rx: AllUcrx, value: Uctx, mode: UctxMode): void {
   if (!value) {
-    // null
     rx.nul();
 
     return;
@@ -67,15 +66,9 @@ function uctxObject(rx: Ucrx, value: Uctx, mode: UctxMode): void {
 }
 
 /** @internal */
-export function uctxArray(rx: Ucrx, list: unknown[], { asItem }: UctxMode): 0 | 1 {
+export function uctxArray(rx: AllUcrx, list: unknown[], { asItem }: UctxMode): void {
   if (asItem) {
-    const listRx = rx.nls();
-
-    if (!listRx) {
-      return 0;
-    }
-
-    rx = listRx;
+    rx = rx.nls();
   }
   rx.and();
 
@@ -84,23 +77,15 @@ export function uctxArray(rx: Ucrx, list: unknown[], { asItem }: UctxMode): 0 | 
   }
 
   rx.end();
-
-  return 1;
 }
 
 /** @internal */
-export function uctxMap(rx: Ucrx, entries: Iterable<[PropertyKey, unknown]>): 0 | 1 {
+export function uctxMap(rx: AllUcrx, entries: Iterable<[PropertyKey, unknown]>): void {
   for (const [key, value] of entries) {
     if (value !== undefined) {
-      const entryRx = rx.for(key);
-
-      if (entryRx) {
-        uctxValue(entryRx, value, UctxMode$Default);
-      } else if (entryRx != null) {
-        return 0; // Unexpected map.
-      }
+      uctxValue(rx.for(key), value, UctxMode$Default);
     }
   }
 
-  return rx.map();
+  rx.map();
 }

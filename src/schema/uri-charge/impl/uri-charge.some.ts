@@ -1,5 +1,5 @@
+import { AllUcrx } from '../../../rx/all.ucrx.js';
 import { TokenUcrx } from '../../../rx/token.ucrx.js';
-import { Ucrx } from '../../../rx/ucrx.js';
 import { UctxMode } from '../../../rx/uctx-mode.js';
 import { uctxArray, uctxMap, uctxValue } from '../../../rx/uctx-value.js';
 import { UcUnknown } from '../../unknown/uc-unknown.js';
@@ -82,7 +82,7 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
     // No entries
   }
 
-  override toUC(rx: Ucrx, mode: UctxMode): void {
+  override toUC(rx: AllUcrx, mode: UctxMode): void {
     uctxValue(rx, this.#value, mode);
   }
 
@@ -147,7 +147,7 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
     return this.#map.keys();
   }
 
-  override toUC(rx: Ucrx, _mode: UctxMode): void {
+  override toUC(rx: AllUcrx, _mode: UctxMode): void {
     uctxMap(rx, this.#map);
   }
 
@@ -217,7 +217,7 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
     // Not a map
   }
 
-  override toUC(rx: Ucrx, mode: UctxMode): void {
+  override toUC(rx: AllUcrx, mode: UctxMode): void {
     uctxArray(rx, this.#list, mode);
   }
 

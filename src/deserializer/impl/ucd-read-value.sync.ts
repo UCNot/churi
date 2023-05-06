@@ -6,14 +6,6 @@
  *
  * !!! DO NOT MODIFY !!!
  */
-import {
-  ucrxBoolean,
-  ucrxEmptyMap,
-  ucrxEntity,
-  ucrxEntry,
-  ucrxString,
-  ucrxSuffix,
-} from '../../rx/ucrx-item.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
@@ -36,14 +28,13 @@ import {
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
-import { ucdDecodeValue } from './ucd-decode-value.js';
 import { UcrxHandle } from './ucrx-handle.js';
 
 export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
+  single = false, // Never set for the first item of the list, unless it is non-empty.
 ): void {
   ucdSkipWhitespaceSync(reader);
 
@@ -53,7 +44,7 @@ export function ucdReadValueSync(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    ucrxString(reader, rx.rx, '');
+    rx.str('');
 
     return;
   }
@@ -68,7 +59,7 @@ export function ucdReadValueSync(
   } else if (firstToken === UC_TOKEN_APOSTROPHE) {
     reader.skip(); // Skip apostrophe.
 
-    ucrxString(reader, rx.rx, printUcTokens(ucdReadTokensSync(reader, rx)));
+    rx.str(printUcTokens(ucdReadTokensSync(reader, rx)));
 
     if (single) {
       return;
@@ -86,11 +77,11 @@ export function ucdReadValueSync(
     } else if (!key) {
       // End of input and no key.
       // Empty map.
-      ucrxEmptyMap(reader, rx.rx);
+      rx.emptyMap();
     } else {
       // End of input.
       // Map containing single key with empty value.
-      ucrxSuffix(reader, rx.rx, key);
+      rx.onlySuffix(key);
     }
 
     if (single) {
@@ -101,7 +92,7 @@ export function ucdReadValueSync(
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
-    ucdReadNestedListSync(reader, rx);
+    ucdReadNestedListSync(reader, rx, hasValue || single);
 
     if (single) {
       return;
@@ -118,15 +109,11 @@ export function ucdReadValueSync(
     return ucdReadItemsSync(reader, rx);
   }
 
-  if (!(ucdFindStrictBoundSync(reader, rx))) {
+  if (!(ucdFindStrictBoundSync(reader, rx, hasValue || single))) {
     // No bound found at all.
     // Treat as single value.
     if (!hasValue) {
-      ucdDecodeValue(
-        reader,
-        rx.rx,
-        printUcTokens(trimUcTokensTail(ucdReadTokensSync(reader, rx))),
-      );
+      rx.decode(printUcTokens(trimUcTokensTail(ucdReadTokensSync(reader, rx))));
 
       if (single) {
         return;
@@ -144,7 +131,7 @@ export function ucdReadValueSync(
     // Unbalanced closing parenthesis.
     // Consume up to its position.
     if (!hasValue) {
-      ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
+      rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
     return end?.(rx);
@@ -152,12 +139,12 @@ export function ucdReadValueSync(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (!rx.and(reader)) {
-      rx.makeOpaque(reader);
-    }
-    if (reader.hasPrev()) {
+    const hasPrev = reader.hasPrev();
+
+    rx.and(hasPrev);
+    if (hasPrev) {
       // Decode leading item, if any.
-      ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
+      rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
 
       if (single) {
         // Do not parse the rest of items.
@@ -165,7 +152,7 @@ export function ucdReadValueSync(
       }
     } else if (single) {
       // Decode empty item, unless it is a first one.
-      ucrxString(reader, rx.rx, '');
+      rx.str('');
 
       return;
     }
@@ -194,10 +181,10 @@ function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
 
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
-    ucrxBoolean(reader, rx.rx, true);
-  } else if (!reader.entity(rx.rx, tokens)) {
+    rx.bol(true);
+  } else {
     // Process entity.
-    ucrxEntity(reader, rx.rx, tokens);
+    rx.ent(tokens);
   }
 }
 
@@ -248,7 +235,7 @@ function ucdReadTokensSync(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and(true);
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -258,8 +245,12 @@ function ucdReadTokensSync(
   }
 }
 
-function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcrxHandle): void {
-  const itemsRx = rx.nls(reader);
+function ucdReadNestedListSync(
+  reader: SyncUcdReader,
+  rx: UcrxHandle,
+  beforeComma: boolean,
+): void {
+  const itemsRx = rx.nls(beforeComma);
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -271,7 +262,7 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcrxHandle): void {
     ucdSkipWhitespaceSync(reader);
   }
 
-  ucdReadItemsSync(reader, itemsRx);
+  ucdReadItemsSync(reader, itemsRx, true);
 
   if (reader.current() === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Skip closing parenthesis.
@@ -281,7 +272,11 @@ function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcrxHandle): void {
   ucdSkipWhitespaceSync(reader);
 }
 
-function ucdReadItemsSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+function ucdReadItemsSync(
+  reader: SyncUcdReader,
+  rx: UcrxHandle,
+  firstItem = false,
+): void {
   for (;;) {
     const current = reader.current();
 
@@ -290,6 +285,11 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: UcrxHandle): void {
       break;
     }
 
+    if (firstItem) {
+      firstItem = false;
+    } else {
+      rx.nextItem();
+    }
     ucdReadValueSync(reader, rx, undefined, true);
 
     if (reader.current() === UC_TOKEN_COMMA) {
@@ -299,21 +299,13 @@ function ucdReadItemsSync(reader: SyncUcdReader, rx: UcrxHandle): void {
     }
   }
 
-  rx.rx.end();
+  rx.end();
 }
 
 function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string): void {
   reader.skip(); // Skip opening parentheses.
 
-  const entryUcrx = ucrxEntry(reader, rx.rx, firstKey);
-  let entryRx: UcrxHandle;
-
-  if (entryUcrx) {
-    entryRx = new UcrxHandle(entryUcrx);
-  } else {
-    rx.makeOpaque(reader);
-    entryRx = new UcrxHandle(reader.opaqueRx);
-  }
+  const entryRx = rx.firstEntry(firstKey);
 
   ucdReadValueSync(reader, entryRx, rx => rx.end());
 
@@ -327,7 +319,7 @@ function ucdReadMapSync(reader: SyncUcdReader, rx: UcrxHandle, firstKey: string)
     ucdReadEntriesSync(reader, rx);
   }
 
-  rx.rx.map();
+  rx.endMap();
 
   if (!bound) {
     // End of input.
@@ -348,7 +340,7 @@ function ucdReadEntriesSync(reader: SyncUcdReader, rx: UcrxHandle): void {
       if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
         // Nested list ends the map and starts enclosing list charge.
         // But enclosing list charge should start _before_ the map charge completed.
-        rx.andNls(reader);
+        rx.andBeforeNls(true);
       }
 
       break;
@@ -362,10 +354,7 @@ function ucdReadEntriesSync(reader: SyncUcdReader, rx: UcrxHandle): void {
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = new UcrxHandle(
-        // For subsequent entries should never return `undefined`.
-        ucrxEntry(reader, rx.rx, key)!,
-      );
+      const entryRx = rx.nextEntry(key);
 
       ucdReadValueSync(reader, entryRx, rx => rx.end());
 
@@ -377,9 +366,7 @@ function ucdReadEntriesSync(reader: SyncUcdReader, rx: UcrxHandle): void {
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = ucrxEntry(reader, rx.rx, key)!; // Should not return `undefined`.
-
-      ucrxString(reader, entryRx, '');
+      rx.suffix(key);
 
       break;
     }
@@ -399,7 +386,7 @@ function ucdFindAnyBoundSync(
   return reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and(true);
       }
 
       return true;
@@ -412,6 +399,7 @@ function ucdFindAnyBoundSync(
 function ucdFindStrictBoundSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
+  beforeComma: boolean,
 ): UcToken | undefined {
   let newLine = false;
   let allowArgs = true;
@@ -421,7 +409,7 @@ function ucdFindStrictBoundSync(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and(beforeComma || reader.hasPrev());
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;

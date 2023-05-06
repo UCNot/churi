@@ -187,51 +187,53 @@ export class ListUcrxTemplate<
   }
 
   #declareListMethods(allocation: ListUcrxTemplate.ListAllocation): UcrxTemplate.MethodDecls {
-    const { context, listCreated, isNull } = allocation;
+    const { listCreated, isNull } = allocation;
     const { lib } = this;
-    const ucrxUnexpectedSingleItemError = lib.import(CHURI_MODULE, 'ucrxUnexpectedSingleItemError');
-    const ucrxUnexpectedNullError = lib.import(CHURI_MODULE, 'ucrxUnexpectedNullError');
+    const ucrxRejectSingleItem = lib.import(CHURI_MODULE, 'ucrxRejectSingleItem');
+    const ucrxRejectNull = lib.import(CHURI_MODULE, 'ucrxRejectNull');
 
     return {
       and: () => code => {
         code.write(`return ${listCreated} = 1;`);
       },
       nul: isNull
-        ? () => code => {
-            code
-              .write(`if (${listCreated}) {`)
-              .indent(code => {
-                code.write(`${isNull} = 0;`);
-                if (this.#isNullableItem) {
-                  code.write(`return super.nul();`);
-                } else {
-                  code.write(`${context}.error(${ucrxUnexpectedNullError}(this));`);
-                }
-              })
-              .write(`}`)
-              .write(`return ${isNull} = 1;`);
-          }
+        ? ({ reject }) => code => {
+              code
+                .write(`if (${listCreated}) {`)
+                .indent(code => {
+                  code.write(`${isNull} = 0;`);
+                  if (this.#isNullableItem) {
+                    code.write(`return super.nul(${reject});`);
+                  } else {
+                    code.write(`return ${reject}(${ucrxRejectNull}(this));`);
+                  }
+                })
+                .write(`}`)
+                .write(`return ${isNull} = 1;`);
+            }
         : undefined,
-      end: () => code => {
-        if (isNull) {
-          code
-            .write(`if (${isNull}) {`)
-            .indent(this.storeNull(allocation))
-            .write(`} else if (${listCreated}) {`);
-        } else {
-          code.write(`if (${listCreated}) {`);
-        }
+      end:
+        ({ reject }) => code => {
+          if (isNull) {
+            code
+              .write(`if (${isNull}) {`)
+              .indent(this.storeNull(allocation))
+              .write(`} else if (${listCreated}) {`);
+          } else {
+            code.write(`if (${listCreated}) {`);
+          }
 
-        code
-          .indent(this.storeItems(allocation))
-          .write(`} else {`)
-          .indent(`${context}.error(${ucrxUnexpectedSingleItemError}(this));`)
-          .write(`}`);
-      },
+          code
+            .indent(this.storeItems(allocation))
+            .write(`} else {`)
+            .indent(`${reject}(${ucrxRejectSingleItem}(this));`)
+            .write(`}`);
+        },
     };
   }
 
   #declareMatrixMethods(allocation: ListUcrxTemplate.MatrixAllocation): UcrxTemplate.MethodDecls {
+    const { lib } = this;
     const { context, addItem, itemRx, listCreated, isNull } = allocation;
     const itemTemplate = this.#getItemTemplate();
 
@@ -281,25 +283,29 @@ export class ListUcrxTemplate<
         code.indent(this.storeItems(allocation)).write(`}`);
       },
       nul: this.#isNullable
-        ? () => code => {
-            code
-              .write(`if (${listCreated}) {`)
-              .indent(code => {
-                if (this.#isNullableItem) {
-                  code.write(this.addNull(allocation), `return 1;`);
-                } else {
-                  code.write(`return 0;`);
-                }
-              })
-              .write(`}`)
-              .write(code => {
-                if (isNull) {
-                  code.write(`return ${isNull} = 1;`);
-                } else {
-                  code.write(`return 0;`);
-                }
-              });
-          }
+        ? ({ reject }) => code => {
+              code
+                .write(`if (${listCreated}) {`)
+                .indent(code => {
+                  if (this.#isNullableItem) {
+                    code.write(this.addNull(allocation), `return 1;`);
+                  } else {
+                    const ucrxRejectNull = lib.import(CHURI_MODULE, 'ucrxRejectNull');
+
+                    code.write(`return ${reject}(${ucrxRejectNull}(this));`);
+                  }
+                })
+                .write(`}`)
+                .write(code => {
+                  if (isNull) {
+                    code.write(`return ${isNull} = 1;`);
+                  } else {
+                    const ucrxRejectNull = lib.import(CHURI_MODULE, 'ucrxRejectNull');
+
+                    code.write(`return ${reject}(${ucrxRejectNull}(this));`);
+                  }
+                });
+            }
         : undefined,
       custom,
     };

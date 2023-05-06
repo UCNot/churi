@@ -1,6 +1,7 @@
 import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { OpaqueUcrx } from '../rx/opaque.ucrx.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
+import { UcrxReject } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
@@ -42,8 +43,8 @@ export abstract class UcdReader implements UcrxContext {
 
   abstract read(rx: Ucrx): Promise<void> | void;
 
-  entity(rx: Ucrx, entity: readonly UcToken[]): 0 | 1 {
-    return this.#onEntity(this, rx, entity);
+  entity(rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1 {
+    return this.#onEntity(this, rx, entity, reject);
   }
 
   abstract next(): Promise<UcToken | undefined> | UcToken | undefined;

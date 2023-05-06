@@ -107,6 +107,7 @@ describe('UcUnknown deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{}],
           details: {
             type: 'null',
             expected: { types: ['non-null'] },

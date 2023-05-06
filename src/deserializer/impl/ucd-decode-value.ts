@@ -1,25 +1,24 @@
 import { asis } from '@proc7ts/primitives';
 import { negate } from '../../impl/numeric.js';
-import { ucrxBigInt, ucrxBoolean, ucrxNull, ucrxNumber, ucrxString } from '../../rx/ucrx-item.js';
+import { UcrxReject } from '../../rx/ucrx-rejection.js';
 import { Ucrx } from '../../rx/ucrx.js';
-import { UcdReader } from '../ucd-reader.js';
 
-export function ucdDecodeValue(reader: UcdReader, rx: Ucrx, input: string): void {
+export function ucdDecodeValue(rx: Ucrx, input: string, reject: UcrxReject): void {
   if (!input) {
     // Empty string treated as is.
-    ucrxString(reader, rx, '');
+    rx.str('', reject);
   } else {
     const decoder = UCD_VALUE_DECODERS[input[0]];
 
     if (decoder) {
-      decoder(reader, rx, input);
+      decoder(rx, input, reject);
     } else {
-      ucrxString(reader, rx, input);
+      rx.str(input, reject);
     }
   }
 }
 
-type UcdValueDecoder = (reader: UcdReader, rx: Ucrx, input: string) => void;
+type UcdValueDecoder = (rx: Ucrx, input: string, reject: UcrxReject) => void;
 
 const UCD_VALUE_DECODERS: {
   readonly [prefix: string]: UcdValueDecoder;
@@ -37,34 +36,34 @@ const UCD_VALUE_DECODERS: {
   9: ucdDecodeNumber,
 };
 
-function ucdDecodeMinusSigned(reader: UcdReader, rx: Ucrx, input: string): void {
+function ucdDecodeMinusSigned(rx: Ucrx, input: string, reject: UcrxReject): void {
   if (input.length === 1) {
-    ucrxBoolean(reader, rx, false);
+    rx.bol(false, reject);
   } else if (input === '--') {
-    ucrxNull(reader, rx);
+    rx.nul(reject);
   } else {
     const secondChar = input[1];
 
     if (secondChar >= '0' && secondChar <= '9') {
-      ucdDecodeNumeric(reader, rx, input, 1, negate);
+      ucdDecodeNumeric(rx, input, reject, 1, negate);
     } else {
-      ucrxString(reader, rx, input);
+      rx.str(input, reject);
     }
   }
 }
 
-function ucdDecodeNumber(reader: UcdReader, rx: Ucrx, input: string): void {
-  ucrxNumber(reader, rx, Number(input));
+function ucdDecodeNumber(rx: Ucrx, input: string, reject: UcrxReject): void {
+  rx.num(Number(input), reject);
 }
 
-function ucdDecodeUnsigned(reader: UcdReader, rx: Ucrx, input: string): void {
-  ucdDecodeNumeric(reader, rx, input, 0, asis);
+function ucdDecodeUnsigned(rx: Ucrx, input: string, reject: UcrxReject): void {
+  ucdDecodeNumeric(rx, input, reject, 0, asis);
 }
 
 function ucdDecodeNumeric(
-  reader: UcdReader,
   rx: Ucrx,
   input: string,
+  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): void {
@@ -74,7 +73,7 @@ function ucdDecodeNumeric(
     try {
       value = input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2));
     } catch (cause) {
-      reader.error({
+      reject({
         code: 'invalidSyntax',
         details: { type: 'bigint' },
         message: (cause as Error).message,
@@ -84,14 +83,14 @@ function ucdDecodeNumeric(
       return;
     }
 
-    ucrxBigInt(reader, rx, sign(value));
+    rx.big(sign(value), reject);
   } else {
     const value = input.length < offset + 3 ? 0 : Number(input.slice(offset));
 
     if (Number.isFinite(value)) {
-      ucrxNumber(reader, rx, sign(value));
+      rx.num(sign(value), reject);
     } else {
-      reader.error({
+      reject({
         code: 'invalidSyntax',
         details: { type: 'number' },
         message: 'Not a number',

@@ -5,6 +5,7 @@ import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UC_TOKEN_COLON } from '../syntax/uc-token.js';
 import { EntityUcrxHandler } from './entity.ucrx-handler.js';
+import { UcrxReject, UcrxRejection } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
 
@@ -13,9 +14,17 @@ describe('EntityUcrxHandler', () => {
   let handler: EntityUcrxHandler;
   let rx: Ucrx;
   let value: unknown;
+  let reject: UcrxReject;
+  let rejections: UcrxRejection[];
 
   beforeEach(() => {
     reader = new SyncUcdReader([]);
+    rejections = [];
+    reject = rejection => {
+      rejections.push(rejection);
+
+      return 0;
+    };
 
     handler = new EntityUcrxHandler();
     value = undefined;
@@ -37,44 +46,44 @@ describe('EntityUcrxHandler', () => {
     it('handles exact match', () => {
       const entity = UcLexer.scan("!foo'bar");
 
-      handler.addEntity(entity, (_reader, _rx, entity) => rx.ent(entity));
+      handler.addEntity(entity, (_reader, _rx, entity) => rx.ent(entity, reject));
 
-      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(1);
       expect((value as UcEntity).raw).toEqual(printUcTokens(entity));
     });
     it('ignores whitespace after exact match', () => {
       const entity = UcLexer.scan("!foo'bar");
 
-      handler.addEntity(entity, (_reader, _rx, entity) => rx.ent(entity));
+      handler.addEntity(entity, (_reader, _rx, entity) => rx.ent(entity, reject));
 
-      expect(handler.rx(reader, rx, UcLexer.scan("!foo'bar\t \n\t"))).toBe(1);
+      expect(handler.rx(reader, rx, UcLexer.scan("!foo'bar\t \n\t"), reject)).toBe(1);
       expect((value as UcEntity).raw).toEqual(printUcTokens(entity));
     });
     it('does not handle different entity', () => {
       const expectedEntity = UcLexer.scan("!foo'bar");
       const entity = UcLexer.scan("!foo'baz");
 
-      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity, reject));
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
     it('does not handle longer entity', () => {
       const expectedEntity = UcLexer.scan("!foo'bar");
       const entity = UcLexer.scan("!foo'bar'baz");
 
-      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity, reject));
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
     it('does not handle longer text entity', () => {
       const expectedEntity = UcLexer.scan("!foo'bar");
       const entity = UcLexer.scan("!foo'barbaz");
 
-      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity));
+      handler.addEntity(expectedEntity, (_reader, rx, entity) => rx.ent(entity, reject));
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
   });
@@ -88,7 +97,7 @@ describe('EntityUcrxHandler', () => {
 
         return 1;
       });
-      handler.rx(reader, rx, entity);
+      handler.rx(reader, rx, entity, reject);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -101,7 +110,7 @@ describe('EntityUcrxHandler', () => {
 
         return 1;
       });
-      handler.rx(reader, rx, entity);
+      handler.rx(reader, rx, entity, reject);
 
       expect(value).toEqual({ prefix, args: entity.slice(prefix.length) });
     });
@@ -113,7 +122,7 @@ describe('EntityUcrxHandler', () => {
 
         return 1;
       });
-      handler.rx(reader, rx, entity);
+      handler.rx(reader, rx, entity, reject);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -125,7 +134,7 @@ describe('EntityUcrxHandler', () => {
 
         return 1;
       });
-      handler.rx(reader, rx, entity);
+      handler.rx(reader, rx, entity, reject);
 
       expect(value).toEqual({ prefix: entity, args: [] });
     });
@@ -139,7 +148,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
     it('does not handle unmatched prefix', () => {
@@ -152,7 +161,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
     it('does not handle unmatched text prefix', () => {
@@ -165,7 +174,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(0);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(0);
       expect(value).toBeUndefined();
     });
     it('handles prefix text match', () => {
@@ -178,7 +187,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(1);
       expect(value).toEqual({ prefix, args: ['-baz'] });
     });
     it('prefers longer prefix', () => {
@@ -197,7 +206,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
     it('prefers longer prefix for suffix starting with delimiter', () => {
@@ -216,7 +225,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: [UC_TOKEN_COLON] });
     });
     it('prefers longer text prefix', () => {
@@ -235,7 +244,7 @@ describe('EntityUcrxHandler', () => {
         return 1;
       });
 
-      expect(handler.rx(reader, rx, entity)).toBe(1);
+      expect(handler.rx(reader, rx, entity, reject)).toBe(1);
       expect(value).toEqual({ prefix: prefix2, args: ['baz'] });
     });
   });

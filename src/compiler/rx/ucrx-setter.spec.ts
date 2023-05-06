@@ -17,13 +17,19 @@ describe('UcrxSetter', () => {
 
   describe('stub', () => {
     it('sets value', async () => {
-      const setter = new UcrxSetter({ key: 'test' });
+      const setter = new UcrxSetter({ key: 'test', typeName: 'test-type' });
 
       await expect(
         new UccCode()
-          .write(setter.stub({ value: 'value' }, new UccMethod('test', setter.args), template))
+          .write(
+            setter.stub(
+              { value: 'value', reject: 'reject' },
+              new UccMethod('test', setter.args),
+              template,
+            ),
+          )
           .toText(),
-      ).resolves.toBe('return this.set(value);\n');
+      ).resolves.toBe(`return this.any(value) || reject(ucrxRejectType('test-type', this));\n`);
     });
   });
 });

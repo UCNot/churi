@@ -104,12 +104,13 @@ class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
     }
   }
 
-  #setValue(method: UcrxSetter, { value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
+  #setValue(method: UcrxSetter, { value, reject }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
     const type = jsStringLiteral(method.typeName!);
     const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
 
     return `return ${method.toMethod(this.lib).call('super', {
       value: `new ${URICharge$Single}(${value}, ${type})`,
+      reject,
     })};`;
   }
 
@@ -133,7 +134,7 @@ class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
     args: UccArgs.ByName<TArg>,
   ): UccSource {
     if ((method as UcrxMethod<any>) === UcrxCore.nul) {
-      return this.#addNull(allocation);
+      return this.#addNull(allocation, args);
     }
     if (isUcrxSetter(method)) {
       return this.#addValue(allocation, method, args as UccArgs.ByName<UcrxSetter.Arg>);
@@ -151,8 +152,16 @@ class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
     return `return ${method.toMethod(this.lib).call(listRx, args)};`;
   }
 
-  #addNull({ listRx }: UnknownUcrxTemplate.Allocation): UccSource {
-    return `return ${listRx}.nul();`;
+  #addNull<TArg extends string>(
+    { listRx }: UnknownUcrxTemplate.Allocation,
+    args: UccArgs.ByName<TArg>,
+  ): UccSource;
+
+  #addNull(
+    { listRx }: UnknownUcrxTemplate.Allocation,
+    { reject }: UccArgs.ByName<string>,
+  ): UccSource {
+    return `return ${listRx}.nul(${reject});`;
   }
 
 }

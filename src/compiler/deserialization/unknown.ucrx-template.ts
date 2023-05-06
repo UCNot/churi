@@ -1,3 +1,4 @@
+import { CHURI_MODULE } from '../../impl/module-names.js';
 import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
@@ -9,7 +10,7 @@ import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
+import { isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxTemplate } from '../rx/ucrx-template.js';
 import { UcrxArgs } from '../rx/ucrx.args.js';
 import { UcdSetup } from './ucd-setup.js';
@@ -68,14 +69,14 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
       context: this.declarePrivate('context'),
       listRx,
       mapRx,
-      setMap: this.declarePrivateMethod('setMap', ['map'], ({ map }) => code => {
+      setMap: this.declarePrivateMethod('setMap', ['map', 'reject'], ({ map, reject }) => code => {
         code
           .write(`if (${listRx}) {`)
           .indent(code => {
             code
               .write(`if (${mapRx} === ${listRx}) {`)
               // Existing list receiver used as map receiver.
-              .indent(`${listRx}.map();`)
+              .indent(`${listRx}.map(${reject});`)
               .write(`} else {`)
               // List charge started _after_ the map charge start.
               // Add created map to list.
@@ -114,7 +115,13 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
           .map(([key, setter]) => [key, this.#declareMethod(setter)]),
       ),
       nls: this.#declareNls.bind(this),
-      nul: this.schema.nullable ? this.#declareMethod(UcrxCore.nul) : () => `return 0;`,
+      nul: this.schema.nullable
+        ? this.#declareMethod(UcrxCore.nul)
+        : ({ reject }) => code => {
+              const ucrxRejectNull = this.lib.import(CHURI_MODULE, 'ucrxRejectNull');
+
+              code.write(`return ${reject}(${ucrxRejectNull}(this));`);
+            },
       for: this.#declareFor.bind(this),
       map: this.#declareMap.bind(this),
       and: this.#declareAnd.bind(this),
@@ -127,13 +134,13 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
     };
   }
 
-  #declareNls(): UccSource {
+  #declareNls({ reject }: UccArgs.ByName<'reject'>): UccSource {
     const { listRx } = this.#getAllocation();
 
-    return `return ${listRx}.nls()`;
+    return `return ${listRx}.nls(${reject})`;
   }
 
-  #declareFor({ key }: UccArgs.ByName<'key'>): UccSource {
+  #declareFor({ key, reject }: UccArgs.ByName<'key' | 'reject'>): UccSource {
     const { context, listRx, mapRx, setMap, mapTemplate } = this.#getAllocation();
 
     return code => {
@@ -141,29 +148,31 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
         `${mapRx} ??= ${listRx} ?? `
           + mapTemplate.newInstance({ set: setMap.bind('this'), context })
           + ';',
-        `return ${mapRx}.for(${key});`,
+        `return ${mapRx}.for(${key}, ${reject});`,
       );
     };
   }
 
-  #declareMap(): UccSource {
+  #declareMap({ reject }: UccArgs.ByName<'reject'>): UccSource {
     const { context, listRx, mapRx, mapTemplate } = this.#getAllocation();
 
     return code => {
       code
         .write(`if (${mapRx}) {`)
-        .indent(`const res = ${mapRx}?.map();`, `${mapRx} = undefined;`, `return res;`)
+        .indent(`const res = ${mapRx}.map(${reject});`, `${mapRx} = undefined;`, `return res;`)
         .write(`}`)
         .write(`if (${listRx}) {`)
-        .indent(`return ${listRx}.map();`)
+        .indent(`return ${listRx}.map(${reject});`)
         .write(`}`)
         .write(
-          `return ` + mapTemplate.newInstance({ set: `this.set.bind(this)`, context }) + '.map();',
+          `return `
+            + mapTemplate.newInstance({ set: `this.set.bind(this)`, context })
+            + `.map(${reject});`,
         );
     };
   }
 
-  #declareAnd(): UccSource {
+  #declareAnd({ reject }: UccArgs.ByName<'reject'>): UccSource {
     return code => {
       const { context, listRx, listTemplate } = this.#getAllocation();
 
@@ -176,20 +185,20 @@ export class UnknownUcrxTemplate extends CustomUcrxTemplate {
                 + listTemplate.newInstance({ set: `this.set.bind(this)`, context })
                 + ';',
             )
-            .write(`${listRx}.and();`);
+            .write(`${listRx}.and(${reject});`);
         })
         .write(`}`)
         .write('return 1;');
     };
   }
 
-  #declareEnd(): UccSource {
+  #declareEnd({ reject }: UccArgs.ByName<'reject'>): UccSource {
     const { listRx } = this.#getAllocation();
 
-    return `${listRx}?.end();`;
+    return `${listRx}?.end(${reject});`;
   }
 
-  #declareAny({ value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
+  #declareAny({ value }: UccArgs.ByName<'value'>): UccSource {
     return `return this.set(${value})`;
   }
 
@@ -241,7 +250,7 @@ export namespace UnknownUcrxTemplate {
     readonly context: string;
     readonly listRx: string;
     readonly mapRx: string;
-    readonly setMap: UccMethod<'map'>;
+    readonly setMap: UccMethod<'map' | 'reject'>;
     readonly listTemplate: UcrxTemplate<unknown[], UcList.Schema>;
     readonly mapTemplate: UcrxTemplate<
       Record<string, unknown>,

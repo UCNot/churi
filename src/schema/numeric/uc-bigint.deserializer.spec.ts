@@ -48,6 +48,7 @@ describe('UcBigInt deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'invalidSyntax',
+        path: [{}],
         details: { type: 'bigint' },
         message: 'Cannot convert z to a BigInt',
         cause: new SyntaxError('Cannot convert z to a BigInt'),
@@ -60,6 +61,7 @@ describe('UcBigInt deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: { type: 'number', expected: { types: ['bigint'] } },
         message: 'Unexpected number instead of bigint',
       },

@@ -16,7 +16,7 @@ describe('UcdReader', () => {
     it('throws by default', () => {
       reader = readChunks('abc', 'def');
 
-      const error = new UcError({ code: 'test', message: 'Test!' });
+      const error = new UcError({ code: 'test', path: [{}, { key: 'foo' }], message: 'Test!' });
 
       expect(() => reader.error(error)).toThrow(error);
     });
@@ -32,7 +32,7 @@ describe('UcdReader', () => {
         },
       );
 
-      const error = new UcError({ code: 'test', message: 'Test!' });
+      const error = new UcError({ code: 'test', path: [{}, { key: 'foo' }], message: 'Test!' });
 
       reader.error(error);
 

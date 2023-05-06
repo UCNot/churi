@@ -4,11 +4,26 @@ import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
 
-export function ucrxUnexpectedTypeError(
-  type: string,
-  rx: Ucrx,
-  expectedTypes = rx.types,
-): UcErrorInfo {
+/**
+ * Charge rejection reason.
+ *
+ * Contains rejection {@link UcErrorInfo error info} except its {@link UcErrorInfo#path path}. The latter added
+ * automatically.
+ */
+export type UcrxRejection = Omit<UcErrorInfo, 'path'>;
+
+/**
+ * Signature of function to call when received value rejected.
+ *
+ * Passed to {@link Ucrx charge receiver} for the latter to report rejections.
+ *
+ * @param rejection - Rejection reason.
+ *
+ * @returns Always `0` to be able to return it from receiver's method.
+ */
+export type UcrxReject = (rejection: UcrxRejection) => 0;
+
+export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcrxRejection {
   return {
     code: 'unexpectedType',
     details: {
@@ -21,18 +36,18 @@ export function ucrxUnexpectedTypeError(
   };
 }
 
-export function ucrxUnexpectedNullError(rx: Ucrx): UcErrorInfo {
-  return ucrxUnexpectedTypeError(
+export function ucrxRejectNull(rx: Ucrx): UcrxRejection {
+  return ucrxRejectType(
     'null',
     rx,
     rx.types.filter(type => type !== 'null'),
   );
 }
 
-export function ucrxMissingEntriesError(
+export function ucrxRejectMissingEntries(
   assigned: { readonly [key: string]: 1 | undefined },
   entries: { readonly [key: string]: { use: 1 | 0 } },
-): UcErrorInfo {
+): UcrxRejection {
   const requiredKeys = new Set(
     Object.entries(entries)
       .filter(([, { use }]) => use)
@@ -54,7 +69,7 @@ export function ucrxMissingEntriesError(
   };
 }
 
-export function ucrxUnexpectedSingleItemError(rx: Ucrx): UcErrorInfo {
+export function ucrxRejectSingleItem(rx: Ucrx): UcrxRejection {
   const { types } = rx;
 
   return {
@@ -69,7 +84,7 @@ export function ucrxUnexpectedSingleItemError(rx: Ucrx): UcErrorInfo {
   };
 }
 
-export function ucrxUnexpectedEntryError(key: string): UcErrorInfo {
+export function ucrxRejectEntry(key: string): UcrxRejection {
   return {
     code: 'unexpectedEntry',
     details: {
@@ -79,7 +94,7 @@ export function ucrxUnexpectedEntryError(key: string): UcErrorInfo {
   };
 }
 
-export function ucrxUnrecognizedEntityError(entity: readonly UcToken[]): UcErrorInfo {
+export function ucrxRejectEntity(entity: readonly UcToken[]): UcrxRejection {
   return {
     code: 'unrecognizedEntity',
     details: {
