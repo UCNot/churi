@@ -59,6 +59,7 @@ describe('UcList deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: {
           types: ['number'],
           expected: {
@@ -189,6 +190,7 @@ describe('UcList deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'nested list',
             expected: {
@@ -207,6 +209,7 @@ describe('UcList deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'nested list',
             expected: {
@@ -244,6 +247,7 @@ describe('UcList deserializer', () => {
 
       expect((error as UcError).toJSON()).toEqual({
         code: 'unexpectedType',
+        path: [{}],
         details: {
           types: ['number', 'null'],
           expected: {
@@ -272,8 +276,13 @@ describe('UcList deserializer', () => {
       await expect(readList(readTokens('--'))).resolves.toBeNull();
     });
     it('rejects null items', async () => {
-      const error = {
+      await expect(
+        readList(readTokens('--,'))
+          .catch(asis)
+          .then(error => (error as UcError).toJSON()),
+      ).resolves.toEqual({
         code: 'unexpectedType',
+        path: [{ index: 0 }],
         details: {
           type: 'null',
           expected: {
@@ -281,18 +290,22 @@ describe('UcList deserializer', () => {
           },
         },
         message: 'Unexpected null instead of number',
-      };
-
-      await expect(
-        readList(readTokens('--,'))
-          .catch(asis)
-          .then(error => (error as UcError).toJSON()),
-      ).resolves.toEqual(error);
+      });
       await expect(
         readList(readTokens(',--'))
           .catch(asis)
           .then(error => (error as UcError).toJSON()),
-      ).resolves.toEqual(error);
+      ).resolves.toEqual({
+        code: 'unexpectedType',
+        path: [{ index: 1 }],
+        details: {
+          type: 'null',
+          expected: {
+            types: ['number'],
+          },
+        },
+        message: 'Unexpected null instead of number',
+      });
     });
     it('deserializes list', async () => {
       await expect(readList(readTokens('1, 2'))).resolves.toEqual([1, 2]);
@@ -354,6 +367,7 @@ describe('UcList deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{}],
           details: {
             type: 'string',
             expected: {
@@ -429,6 +443,7 @@ describe('UcList deserializer', () => {
 
       expect(error).toEqual({
         code: 'unexpectedType',
+        path: [{}],
         details: {
           type: 'null',
           expected: {
@@ -458,8 +473,11 @@ describe('UcList deserializer', () => {
       await expect(readMatrix(readTokens('--'))).resolves.toBeNull();
     });
     it('rejects null items', async () => {
-      const error = {
+      await expect(
+        readMatrix(readTokens('--,')).catch(error => (error as UcError)?.toJSON?.()),
+      ).resolves.toEqual({
         code: 'unexpectedType',
+        path: [{ index: 0 }],
         details: {
           type: 'null',
           expected: {
@@ -467,14 +485,20 @@ describe('UcList deserializer', () => {
           },
         },
         message: 'Unexpected null instead of nested list',
-      };
-
-      await expect(
-        readMatrix(readTokens('--,')).catch(error => (error as UcError)?.toJSON?.()),
-      ).resolves.toEqual(error);
+      });
       await expect(
         readMatrix(readTokens(',--')).catch(error => (error as UcError)?.toJSON?.()),
-      ).resolves.toEqual(error);
+      ).resolves.toEqual({
+        code: 'unexpectedType',
+        path: [{ index: 1 }],
+        details: {
+          type: 'null',
+          expected: {
+            types: ['nested list'],
+          },
+        },
+        message: 'Unexpected null instead of nested list',
+      });
     });
   });
 

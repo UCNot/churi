@@ -79,6 +79,7 @@ describe('UcNumber deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'invalidSyntax',
+        path: [{}],
         details: { type: 'number' },
         message: 'Not a number',
       },
@@ -90,6 +91,7 @@ describe('UcNumber deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: { type: 'bigint', expected: { types: ['number'] } },
         message: 'Unexpected bigint instead of number',
       },
@@ -101,6 +103,7 @@ describe('UcNumber deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: { type: 'boolean', expected: { types: ['number'] } },
         message: 'Unexpected boolean instead of number',
       },
@@ -112,6 +115,7 @@ describe('UcNumber deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: { type: 'string', expected: { types: ['number'] } },
         message: 'Unexpected string instead of number',
       },

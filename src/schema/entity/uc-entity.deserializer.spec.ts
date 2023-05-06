@@ -35,6 +35,7 @@ describe('UcEntity deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unrecognizedEntity',
+        path: [{}],
         details: {
           entity: [UC_TOKEN_EXCLAMATION_MARK, 'Infinity'],
         },
@@ -57,6 +58,7 @@ describe('UcEntity deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unrecognizedEntity',
+        path: [{}],
         details: {
           entity: [UC_TOKEN_EXCLAMATION_MARK, 'Infinity'],
         },
@@ -114,7 +116,7 @@ describe('UcEntity deserializer', () => {
     }).bootstrap();
 
     await expect(lib.compileFactory().toExports()).rejects.toThrow(
-      new ReferenceError(`Unknown charge receiver method: Ucrx.date(value)`),
+      new ReferenceError(`Unknown charge receiver method: Ucrx.date(value, reject)`),
     );
   });
 });

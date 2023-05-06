@@ -1,3 +1,5 @@
+import type { URIChargePath } from './uri-charge/uri-charge-path.js';
+
 /**
  * Charge error.
  *
@@ -25,19 +27,20 @@ export class UcError extends Error implements UcErrorInfo {
       return cause;
     }
     if (cause instanceof Error) {
-      return new UcError({ code: 'error', message: cause.message, cause });
+      return new UcError({ code: 'error', path: [{}], message: cause.message, cause });
     }
     if (isUcErrorInfo(cause)) {
       return new UcError(cause);
     }
     if (typeof cause === 'string') {
-      return new UcError({ code: 'error', message: cause });
+      return new UcError({ code: 'error', path: [{}], message: cause });
     }
 
-    return new UcError({ code: 'error', cause });
+    return new UcError({ code: 'error', path: [{}], cause });
   }
 
   readonly #code: string;
+  readonly #path: URIChargePath;
   readonly #details: Exclude<UcErrorInfo['details'], undefined>;
 
   /**
@@ -46,17 +49,22 @@ export class UcError extends Error implements UcErrorInfo {
    * @param info - Error info.
    */
   constructor(info: UcErrorInfo) {
-    const { code, details = {}, message = 'Unexpected error', cause } = info;
+    const { code, path, details = {}, message = 'Unexpected error', cause } = info;
 
     super(message, { cause });
 
     this.name = 'UcError';
     this.#code = code;
+    this.#path = path;
     this.#details = details;
   }
 
   get code(): string {
     return this.#code;
+  }
+
+  get path(): URIChargePath {
+    return this.#path;
   }
 
   get details(): Exclude<UcErrorInfo['details'], undefined> {
@@ -66,6 +74,7 @@ export class UcError extends Error implements UcErrorInfo {
   toJSON(): UcErrorInfo {
     return {
       code: this.code,
+      path: this.path,
       details: this.details,
       message: this.message,
       cause: this.cause,
@@ -82,6 +91,11 @@ export interface UcErrorInfo {
    * Error code.
    */
   readonly code: string;
+
+  /**
+   * Path to the value containing the error.
+   */
+  readonly path: URIChargePath;
 
   /**
    * Error details that can be used e.g. to build localized error {@link message}.

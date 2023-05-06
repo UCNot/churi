@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { AllUcrx } from './all.ucrx.js';
 import { TokenUcrx } from './token.ucrx.js';
-import { Ucrx } from './ucrx.js';
 
 describe('uctxValue', () => {
   it('handles unsupported list', () => {
@@ -18,7 +18,7 @@ describe('uctxValue', () => {
   it('handles unsupported map', () => {
     class TestUcrx extends TokenUcrx {
 
-      override for(_key: PropertyKey): Ucrx {
+      override for(_key: PropertyKey): AllUcrx {
         return 0 as any;
       }
 

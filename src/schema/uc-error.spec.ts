@@ -4,7 +4,7 @@ import { UcError, UcErrorInfo } from './uc-error.js';
 describe('UcError', () => {
   describe('create', () => {
     it('returns UcError as is', () => {
-      const error = new UcError({ code: 'some' });
+      const error = new UcError({ code: 'some', path: [{}, { key: 'foo' }] });
 
       expect(UcError.create(error)).toBe(error);
     });
@@ -22,6 +22,7 @@ describe('UcError', () => {
     it('wraps error info', () => {
       const info: UcErrorInfo = {
         code: 'test',
+        path: [{}, { key: 'foo' }],
         details: {
           some: 'value',
         },
@@ -35,6 +36,7 @@ describe('UcError', () => {
     it('wraps partial error info', () => {
       const info: UcErrorInfo = {
         code: 'test',
+        path: [{}, { key: 'foo' }],
       };
       const error = UcError.create(info);
 
@@ -90,6 +92,7 @@ describe('UcError', () => {
     it('returns error info', () => {
       const info: UcErrorInfo = {
         code: 'test',
+        path: [{}, { key: 'foo' }],
         details: {
           foo: 'bar',
         },

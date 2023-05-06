@@ -1,6 +1,6 @@
 import { encodeURIPart } from 'httongue';
+import { AllUcrx } from '../../rx/all.ucrx.js';
 import { chargeURI } from '../../rx/charge-uri.js';
-import { Ucrx } from '../../rx/ucrx.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
@@ -59,8 +59,8 @@ export class UcEntity implements Uctx {
    * @param rx - Charge receiver.
    * @param mode - Transfer mode.
    */
-  toUC(rx: Ucrx, mode: UctxMode): void;
-  toUC(rx: Ucrx, _mode: UctxMode): void {
+  toUC(rx: AllUcrx, mode: UctxMode): void;
+  toUC(rx: AllUcrx, _mode: UctxMode): void {
     rx.ent(this.tokens);
   }
 

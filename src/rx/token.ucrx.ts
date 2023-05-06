@@ -10,12 +10,12 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../syntax/uc-token.js';
-import { Ucrx } from './ucrx.js';
+import { AllUcrx } from './all.ucrx.js';
 import { UctxMode$Default } from './uctx-mode.impl.js';
 import { UctxMode } from './uctx-mode.js';
 import { uctxValue } from './uctx-value.js';
 
-export class TokenUcrx implements Ucrx {
+export class TokenUcrx implements AllUcrx {
 
   static charge(value: unknown, mode: UctxMode = UctxMode$Default): UcToken[] {
     const tokens: UcToken[] = [];
@@ -122,7 +122,7 @@ export class TokenUcrx implements Ucrx {
     return 1;
   }
 
-  for(key: PropertyKey): Ucrx {
+  for(key: PropertyKey): AllUcrx {
     this.#mode = this.#mode.entry(this.#add);
 
     const keyString = key.toString();

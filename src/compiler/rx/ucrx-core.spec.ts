@@ -15,22 +15,30 @@ describe('UcrxCore', () => {
   });
 
   describe('ent', () => {
-    it('constructs UcEntity instance', async () => {
+    it('has stub creating UcEntity instance', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.ent.stub({ value: 'value' }, UcrxCore.ent.toMethod(lib), template))
+          .write(
+            UcrxCore.ent.stub(
+              { value: 'value', reject: 'reject' },
+              UcrxCore.ent.toMethod(lib),
+              template,
+            ),
+          )
           .toText(),
-      ).resolves.toBe('return this.any(new UcEntity(value));\n');
+      ).resolves.toBe(
+        `return this.any(new UcEntity(value)) || reject(ucrxRejectType('entity', this));\n`,
+      );
     });
   });
 
   describe('nls', () => {
-    it('has empty stub', async () => {
+    it('has stub raising error', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.nls.stub({ '': '' }, UcrxCore.nls.toMethod(lib), template))
+          .write(UcrxCore.nls.stub({ reject: 'reject' }, UcrxCore.nls.toMethod(lib), template))
           .toText(),
-      ).resolves.toBe('');
+      ).resolves.toBe(`return reject(ucrxRejectType('nested list', this));\n`);
     });
   });
 
@@ -38,39 +46,45 @@ describe('UcrxCore', () => {
     it('has stub assigning null', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.nul.stub({ '': '' }, UcrxCore.nul.toMethod(lib), template))
+          .write(UcrxCore.nul.stub({ reject: 'reject' }, UcrxCore.nul.toMethod(lib), template))
           .toText(),
-      ).resolves.toBe('return this.any(null);\n');
+      ).resolves.toBe(`return this.any(null) || reject(ucrxRejectNull(this));\n`);
     });
   });
 
   describe('for', () => {
-    it('has empty stub', async () => {
+    it('has stub raising error', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.for.stub({ key: 'key' }, UcrxCore.for.toMethod(lib), template))
+          .write(
+            UcrxCore.for.stub(
+              { key: 'key', reject: 'reject' },
+              UcrxCore.for.toMethod(lib),
+              template,
+            ),
+          )
           .toText(),
-      ).resolves.toBe('');
+      ).resolves.toBe(`return reject(ucrxRejectType('map', this));\n`);
     });
   });
 
   describe('map', () => {
-    it('has stub returning 0', async () => {
+    it('has stub raising error', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.map.stub({ '': '' }, UcrxCore.map.toMethod(lib), template))
+          .write(UcrxCore.map.stub({ reject: 'reject' }, UcrxCore.map.toMethod(lib), template))
           .toText(),
-      ).resolves.toBe('return 0;\n');
+      ).resolves.toBe(`return reject(ucrxRejectType('map', this));\n`);
     });
   });
 
   describe('and', () => {
-    it('has stub returning 0', async () => {
+    it('has stub raising error', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.and.stub({ '': '' }, UcrxCore.and.toMethod(lib), template))
+          .write(UcrxCore.and.stub({ reject: 'reject' }, UcrxCore.and.toMethod(lib), template))
           .toText(),
-      ).resolves.toBe('return 0;\n');
+      ).resolves.toBe(`return reject(ucrxRejectType('list', this));\n`);
     });
   });
 
@@ -78,7 +92,7 @@ describe('UcrxCore', () => {
     it('has empty stub', async () => {
       await expect(
         new UccCode()
-          .write(UcrxCore.end.stub({ '': '' }, UcrxCore.end.toMethod(lib), template))
+          .write(UcrxCore.end.stub({ reject: 'reject' }, UcrxCore.end.toMethod(lib), template))
           .toText(),
       ).resolves.toBe('');
     });

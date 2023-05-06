@@ -1,4 +1,5 @@
 import { UcToken } from '../syntax/uc-token.js';
+import { UcrxReject } from './ucrx-rejection.js';
 
 /**
  * Charge receiver interface.
@@ -20,19 +21,21 @@ export interface Ucrx {
    * Charges boolean value.
    *
    * @param value - Charged value.
+   * @param reject - Rejection callback.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected boolean.
    */
-  bol(value: boolean): 0 | 1;
+  bol(value: boolean, reject: UcrxReject): 0 | 1;
 
   /**
    * Charges big integer value.
    *
    * @param value - Charged value.
+   * @param reject - Rejection callback.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected big integer.
    */
-  big(value: bigint): 0 | 1;
+  big(value: bigint, reject: UcrxReject): 0 | 1;
 
   /**
    * Charges opaque (unrecognized) entity.
@@ -40,51 +43,57 @@ export interface Ucrx {
    * Called for unhandled entities.
    *
    * @param value - Charged entity tokens.
+   * @param reject - Rejection callback.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected entity.
    */
-  ent(value: readonly UcToken[]): 0 | 1;
+  ent(value: readonly UcToken[], reject: UcrxReject): 0 | 1;
 
   /**
    * Charges nested list.
    *
+   * @param reject - Rejection callback.
+   *
    * @returns Either nested list charge receiver, or `undefined` for unexpected nested list.
    */
-  nls(): Ucrx | undefined;
+  nls(reject: UcrxReject): Ucrx | undefined;
 
   /**
    * Charges `null` value.
    *
    * @returns Either `1` if charge succeed, or ``0` for unexpected `null`.
    */
-  nul(): 0 | 1;
+  nul(reject: UcrxReject): 0 | 1;
 
   /**
    * Charges number value.
    *
    * @param value - Charged value.
+   * @param reject - Rejection callback.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected number.
    */
-  num(value: number): 0 | 1;
+  num(value: number, reject: UcrxReject): 0 | 1;
 
   /**
    * Charges string value.
    *
    * @param value - Charged value.
+   * @param reject - Rejection callback.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected number.
    */
-  str(value: string): 0 | 1;
+  str(value: string, reject: UcrxReject): 0 | 1;
 
   /**
    * Starts charging of map entry.
    *
    * @param key - Target entry key.
+   * @param reject - Rejection callback.
    *
    * @returns Either entry receiver, `0` for unexpected map, or `undefined` for unexpected entry.
    */
-  for(key: PropertyKey): Ucrx | 0 | undefined;
+  for(key: PropertyKey, reject: UcrxReject): Ucrx | 0 | undefined;
 
   /**
    * Finishes map charge.
@@ -94,9 +103,11 @@ export interface Ucrx {
    * The returned `0` makes sense for empty maps only. Otherwise, a preceding call to {@link for} has to return 0,
    * which prevents the map charge.
    *
+   * @param reject - Rejection callback.
+   *
    * @returns `1` if charge succeed, or `0` for unexpected map.
    */
-  map(): 0 | 1;
+  map(reject: UcrxReject): 0 | 1;
 
   /**
    * Starts charging of list.
@@ -104,9 +115,11 @@ export interface Ucrx {
    * Always called _before_ the first item charge. In case of map item, always called _before_ {@link map map charge
    * finished}, but not necessarily before {@link for entries charged}.
    *
+   * @param reject - Rejection callback.
+   *
    * @returns `1` if charge succeed, or `0` for unexpected list.
    */
-  and(): 0 | 1;
+  and(reject: UcrxReject): 0 | 1;
 
   /**
    * Finishes list charge.
@@ -114,6 +127,8 @@ export interface Ucrx {
    * Always called _after_ {@link and} call(s).
    *
    * May also be called for single values. I.e. without preceding call to {@link and}. This is not guaranteed though.
+   *
+   * @param reject - Rejection callback.
    */
-  end(): void;
+  end(reject: UcrxReject): void;
 }

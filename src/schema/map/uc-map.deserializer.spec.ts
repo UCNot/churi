@@ -69,6 +69,7 @@ describe('UcMap deserializer', () => {
         readMap(readTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
       ).resolves.toEqual({
         code: 'unexpectedType',
+        path: [{}],
         details: {
           type: 'null',
           expected: {
@@ -79,11 +80,12 @@ describe('UcMap deserializer', () => {
       });
     });
     it('rejects second item', async () => {
-      await expect(readMap(readTokens('foo(),'), { onError })).resolves.toEqual({ foo: '' });
+      await expect(readMap(readTokens('foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'list',
             expected: {
@@ -95,11 +97,12 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('rejects second item after $-prefixes map', async () => {
-      await expect(readMap(readTokens('$foo(),'), { onError })).resolves.toEqual({ foo: '' });
+      await expect(readMap(readTokens('$foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'list',
             expected: {
@@ -204,6 +207,7 @@ describe('UcMap deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'missingEntries',
+          path: [{}],
           details: {
             keys: ['bar'],
           },
@@ -222,6 +226,7 @@ describe('UcMap deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedEntry',
+          path: [{}, { key: 'wrong' }],
           details: {
             key: 'wrong',
           },
@@ -230,13 +235,14 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('rejects nested list', async () => {
-      await expect(readMap(readTokens('foo(first) bar(second) () '), { onError })).resolves.toEqual(
-        { foo: 'first', bar: 'second' },
-      );
+      await expect(
+        readMap(readTokens('foo(first) bar(second) () '), { onError }),
+      ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'nested list',
             expected: {
@@ -248,14 +254,14 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('rejects second item', async () => {
-      await expect(readMap(readTokens('foo(first) bar(second) , '), { onError })).resolves.toEqual({
-        foo: 'first',
-        bar: 'second',
-      });
+      await expect(
+        readMap(readTokens('foo(first) bar(second) , '), { onError }),
+      ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{ index: 0 }],
           details: {
             type: 'list',
             expected: {
@@ -406,6 +412,7 @@ describe('UcMap deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{}, { key: 'foo' }],
           details: {
             expected: {
               types: ['list'],
@@ -416,6 +423,7 @@ describe('UcMap deserializer', () => {
         },
         {
           code: 'unexpectedType',
+          path: [{}, { key: 'bar' }],
           details: {
             expected: {
               types: ['list'],
@@ -426,6 +434,7 @@ describe('UcMap deserializer', () => {
         },
         {
           code: 'unexpectedType',
+          path: [{}, { key: 'foo' }],
           details: {
             expected: {
               types: ['list'],
@@ -436,6 +445,7 @@ describe('UcMap deserializer', () => {
         },
         {
           code: 'unexpectedType',
+          path: [{}, { key: 'bar' }],
           details: {
             expected: {
               types: ['list'],

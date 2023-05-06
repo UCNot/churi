@@ -1,7 +1,9 @@
+import { UcToken } from '../syntax/uc-token.js';
+import { AllUcrx } from './all.ucrx.js';
 import { Ucrx } from './ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
 
-export class OpaqueUcrx extends VoidUcrx {
+export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
 
   constructor() {
     super(OpaqueUcrx$set);
@@ -31,6 +33,20 @@ export class OpaqueUcrx extends VoidUcrx {
     return 1;
   }
 
+}
+
+export interface OpaqueUcrx extends AllUcrx {
+  bol(value: boolean): 1;
+  big(value: bigint): 1;
+  ent(value: readonly UcToken[]): 1;
+  nls(): AllUcrx;
+  nul(): 1;
+  num(value: number): 1;
+  str(value: string): 1;
+  for(key: PropertyKey): AllUcrx;
+  map(): 1;
+  and(): 1;
+  end(): void;
 }
 
 function OpaqueUcrx$set(_value: unknown): void {

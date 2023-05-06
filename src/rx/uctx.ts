@@ -1,4 +1,4 @@
-import { Ucrx } from './ucrx.js';
+import { AllUcrx } from './all.ucrx.js';
 import { UctxMode } from './uctx-mode.js';
 
 /**
@@ -16,7 +16,7 @@ export interface Uctx {
    * @param rx - Charge receiver.
    * @param mode - Transfer mode.
    */
-  toUC?(rx: Ucrx, mode: UctxMode): void;
+  toUC?(rx: AllUcrx, mode: UctxMode): void;
 
   /**
    * Represents the object as JSON.

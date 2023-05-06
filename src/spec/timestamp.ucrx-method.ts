@@ -11,7 +11,10 @@ import { UcSchema } from '../schema/uc-schema.js';
 
 export const TimestampUcrxMethod = new UcrxSetter({
   key: 'date',
-  stub: ({ value }) => `return this.num(${value}.getTime());`,
+  stub:
+    ({ value, reject }) => code => {
+      code.write(`return this.num(${value}.getTime(), ${reject});`);
+    },
   typeName: 'date',
 });
 
@@ -23,14 +26,14 @@ export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
   setup.handleEntityPrefix("!timestamp'", ({ lib, register, refer }) => code => {
     const readTimestamp = lib.declarations.declareFunction(
       'readTimestampEntity',
-      ['_reader', 'rx', '_prefix', 'args'],
-      ({ args: { rx, args }, ns }) => code => {
+      ['_reader', 'rx', '_prefix', 'args', 'reject'],
+      ({ args: { rx, args, reject }, ns }) => code => {
           const date = ns.name('date');
           const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
 
           code.write(
             `const ${date} = new Date(${printTokens}(${args}));`,
-            'return ' + TimestampUcrxMethod.toMethod(lib).call(rx, { value: date }) + ';',
+            'return ' + TimestampUcrxMethod.toMethod(lib).call(rx, { value: date, reject }) + ';',
           );
         },
     );

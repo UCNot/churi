@@ -2,16 +2,17 @@ import { trimUcTokensTail } from '../syntax/trim-uc-tokens-tail.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { EntityPrefixUcrx, EntityUcrx } from './entity.ucrx.js';
 import { UcrxContext } from './ucrx-context.js';
+import { UcrxReject } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 
 export class EntityUcrxHandler {
 
   readonly #root = new UcdTokenTree();
 
-  rx(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[]): 0 | 1 {
+  rx(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1 {
     const trimmed = trimUcTokensTail(entity);
 
-    return this.#root.rx(context, rx, entity, trimmed, 0);
+    return this.#root.rx(context, rx, entity, trimmed, 0, reject);
   }
 
   addEntity(entity: readonly UcToken[], rx: EntityUcrx): this {
@@ -48,12 +49,16 @@ class UcdTokenTree {
     entity: readonly UcToken[],
     trimmed: readonly UcToken[] | undefined,
     from: number,
+    reject: UcrxReject,
   ): 0 | 1 {
     if (from >= entity.length) {
-      return this.#onEntity(context, rx, entity) || this.#onPrefix(context, rx, entity, []);
+      return (
+        this.#onEntity(context, rx, entity, reject)
+        || this.#onPrefix(context, rx, entity, [], reject)
+      );
     }
     if (trimmed && from >= trimmed.length) {
-      if (this.#onEntity(context, rx, trimmed)) {
+      if (this.#onEntity(context, rx, trimmed, reject)) {
         return 1;
       }
 
@@ -64,20 +69,20 @@ class UcdTokenTree {
 
     if (typeof token === 'number') {
       return (
-        this.#byNumber[token]?.rx(context, rx, entity, trimmed, from + 1)
-        || this.#onPrefix(context, rx, entity.slice(0, from), entity.slice(from))
+        this.#byNumber[token]?.rx(context, rx, entity, trimmed, from + 1, reject)
+        || this.#onPrefix(context, rx, entity.slice(0, from), entity.slice(from), reject)
       );
     }
 
     return (
-      this.#byString[token]?.rx(context, rx, entity, trimmed, from + 1)
-      || this.#onStringPrefix(context, rx, entity, from, token)
+      this.#byString[token]?.rx(context, rx, entity, trimmed, from + 1, reject)
+      || this.#onStringPrefix(context, rx, entity, from, token, reject)
     );
   }
 
-  #onEntity(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[]): 0 | 1 {
+  #onEntity(context: UcrxContext, rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1 {
     for (const entityRx of this.#entityRxs) {
-      if (entityRx(context, rx, entity)) {
+      if (entityRx(context, rx, entity, reject)) {
         return 1;
       }
     }
@@ -90,9 +95,10 @@ class UcdTokenTree {
     rx: Ucrx,
     prefix: readonly UcToken[],
     args: readonly UcToken[],
+    reject: UcrxReject,
   ): 0 | 1 {
     for (const prefixRx of this.#prefixRxs) {
-      if (prefixRx(context, rx, prefix, args)) {
+      if (prefixRx(context, rx, prefix, args, reject)) {
         return 1;
       }
     }
@@ -106,18 +112,19 @@ class UcdTokenTree {
     entity: readonly UcToken[],
     from: number,
     token: string,
+    reject: UcrxReject,
   ): 0 | 1 {
     if (!this.#prefixes) {
       this.#prefixes = [...this.#byPrefixLen.values()].sort((first, second) => first.compareTo(second));
     }
 
     for (let i = Math.min(this.#prefixes.length - 1, token.length); i >= 0; --i) {
-      if (this.#prefixes[i].rx(context, rx, entity, from, token)) {
+      if (this.#prefixes[i].rx(context, rx, entity, from, token, reject)) {
         return 1;
       }
     }
 
-    return this.#onPrefix(context, rx, entity.slice(0, from), entity.slice(from));
+    return this.#onPrefix(context, rx, entity.slice(0, from), entity.slice(from), reject);
   }
 
   add(
@@ -128,7 +135,7 @@ class UcdTokenTree {
   ): void {
     if (from >= tokens.length) {
       if (prefix) {
-        this.#prefixRxs.unshift(entityRx);
+        this.#prefixRxs.unshift(entityRx as EntityPrefixUcrx);
       } else {
         this.#entityRxs.unshift(entityRx as EntityUcrx);
       }
@@ -149,7 +156,7 @@ class UcdTokenTree {
       }
     } else {
       if (prefix && from === tokens.length - 1) {
-        return this.#addPrefix(token, entityRx);
+        return this.#addPrefix(token, entityRx as EntityPrefixUcrx);
       }
 
       const found = this.#byString[token];
@@ -198,6 +205,7 @@ class UcdEntityPrefix {
     entity: readonly UcToken[],
     from: number,
     token: string,
+    reject: UcrxReject,
   ): 0 | 1 {
     const prefix = token.slice(0, this.#length);
     const prefixRxs = this.#prefixRxs[prefix];
@@ -212,6 +220,7 @@ class UcdEntityPrefix {
             token.length > this.#length
               ? [token.slice(this.#length), ...entity.slice(from + 1)]
               : entity.slice(from + 1),
+            reject,
           )
         ) {
           return 1;

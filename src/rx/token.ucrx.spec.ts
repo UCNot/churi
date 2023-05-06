@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { noop } from '@proc7ts/primitives';
 import { UC_TOKEN_APOSTROPHE } from '../syntax/uc-token.js';
+import { AllUcrx } from './all.ucrx.js';
 import { TokenUcrx } from './token.ucrx.js';
-import { Ucrx } from './ucrx.js';
 
 describe('TokenUcrx', () => {
-  let ucrx: Ucrx;
+  let ucrx: AllUcrx;
 
   beforeEach(() => {
     ucrx = new TokenUcrx(noop);

@@ -71,6 +71,7 @@ describe('UcString deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}, { key: 'foo' }],
         details: {
           type: 'map',
           expected: {
@@ -87,13 +88,14 @@ describe('UcString deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: {
-          type: 'empty map',
+          type: 'map',
           expected: {
             types: ['string'],
           },
         },
-        message: 'Unexpected empty map instead of string',
+        message: 'Unexpected map instead of string',
       },
     ]);
   });
@@ -103,6 +105,7 @@ describe('UcString deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}, { key: 'foo' }],
         details: {
           type: 'map',
           expected: {

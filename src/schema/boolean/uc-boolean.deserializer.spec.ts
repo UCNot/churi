@@ -41,6 +41,7 @@ describe('UcBoolean deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{}],
         details: {
           type: 'null',
           expected: {
@@ -57,6 +58,11 @@ describe('UcBoolean deserializer', () => {
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [
+          {
+            index: 0,
+          },
+        ],
         details: {
           type: 'nested list',
           expected: {
@@ -68,11 +74,12 @@ describe('UcBoolean deserializer', () => {
     ]);
   });
   it('rejects second item', async () => {
-    await expect(readValue(readTokens('!,-'), { onError })).resolves.toBe(true);
+    await expect(readValue(readTokens('!,-'), { onError })).resolves.toBeUndefined();
 
     expect(errors).toEqual([
       {
         code: 'unexpectedType',
+        path: [{ index: 0 }],
         details: {
           type: 'list',
           expected: {
@@ -114,6 +121,7 @@ describe('UcBoolean deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
+          path: [{}],
           details: {
             type: 'number',
             expected: {

@@ -1,11 +1,3 @@
-import {
-  ucrxBoolean,
-  ucrxEmptyMap,
-  ucrxEntity,
-  ucrxEntry,
-  ucrxString,
-  ucrxSuffix,
-} from '../../rx/ucrx-item.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
@@ -28,7 +20,6 @@ import {
 } from '../../syntax/uc-token.js';
 import { AsyncUcdReader } from '../async-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
-import { ucdDecodeValue } from './ucd-decode-value.js';
 import { UcrxHandle } from './ucrx-handle.js';
 
 export async function ucdReadValue(
@@ -45,7 +36,7 @@ export async function ucdReadValue(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    ucrxString(reader, rx.rx, '');
+    rx.str('');
 
     return;
   }
@@ -60,7 +51,7 @@ export async function ucdReadValue(
   } else if (firstToken === UC_TOKEN_APOSTROPHE) {
     reader.skip(); // Skip apostrophe.
 
-    ucrxString(reader, rx.rx, printUcTokens(await ucdReadTokens(reader, rx)));
+    rx.str(printUcTokens(await ucdReadTokens(reader, rx)));
 
     if (single) {
       return;
@@ -78,11 +69,11 @@ export async function ucdReadValue(
     } else if (!key) {
       // End of input and no key.
       // Empty map.
-      ucrxEmptyMap(reader, rx.rx);
+      rx.emptyMap();
     } else {
       // End of input.
       // Map containing single key with empty value.
-      ucrxSuffix(reader, rx.rx, key);
+      rx.onlySuffix(key);
     }
 
     if (single) {
@@ -114,11 +105,7 @@ export async function ucdReadValue(
     // No bound found at all.
     // Treat as single value.
     if (!hasValue) {
-      ucdDecodeValue(
-        reader,
-        rx.rx,
-        printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx))),
-      );
+      rx.decode(printUcTokens(trimUcTokensTail(await ucdReadTokens(reader, rx))));
 
       if (single) {
         return;
@@ -136,7 +123,7 @@ export async function ucdReadValue(
     // Unbalanced closing parenthesis.
     // Consume up to its position.
     if (!hasValue) {
-      ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
+      rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
 
     return end?.(rx);
@@ -144,12 +131,10 @@ export async function ucdReadValue(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    if (!rx.and(reader)) {
-      rx.makeOpaque(reader);
-    }
+    rx.and();
     if (reader.hasPrev()) {
       // Decode leading item, if any.
-      ucdDecodeValue(reader, rx.rx, printUcTokens(trimUcTokensTail(reader.consumePrev())));
+      rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
 
       if (single) {
         // Do not parse the rest of items.
@@ -157,7 +142,7 @@ export async function ucdReadValue(
       }
     } else if (single) {
       // Decode empty item, unless it is a first one.
-      ucrxString(reader, rx.rx, '');
+      rx.str('');
 
       return;
     }
@@ -186,10 +171,10 @@ async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Prom
 
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
-    ucrxBoolean(reader, rx.rx, true);
-  } else if (!reader.entity(rx.rx, tokens)) {
+    rx.bol(true);
+  } else {
     // Process entity.
-    ucrxEntity(reader, rx.rx, tokens);
+    rx.ent(tokens);
   }
 }
 
@@ -240,7 +225,7 @@ async function ucdReadTokens(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and();
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -251,7 +236,7 @@ async function ucdReadTokens(
 }
 
 async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
-  const itemsRx = rx.nls(reader);
+  const itemsRx = rx.nls();
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -263,7 +248,7 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promis
     await ucdSkipWhitespace(reader);
   }
 
-  await ucdReadItems(reader, itemsRx);
+  await ucdReadItems(reader, itemsRx, true);
 
   if (reader.current() === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Skip closing parenthesis.
@@ -273,7 +258,11 @@ async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promis
   await ucdSkipWhitespace(reader);
 }
 
-async function ucdReadItems(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+async function ucdReadItems(
+  reader: AsyncUcdReader,
+  rx: UcrxHandle,
+  firstItem = false,
+): Promise<void> {
   for (;;) {
     const current = reader.current();
 
@@ -282,6 +271,11 @@ async function ucdReadItems(reader: AsyncUcdReader, rx: UcrxHandle): Promise<voi
       break;
     }
 
+    if (firstItem) {
+      firstItem = false;
+    } else {
+      rx.nextItem();
+    }
     await ucdReadValue(reader, rx, undefined, true);
 
     if (reader.current() === UC_TOKEN_COMMA) {
@@ -291,21 +285,13 @@ async function ucdReadItems(reader: AsyncUcdReader, rx: UcrxHandle): Promise<voi
     }
   }
 
-  rx.rx.end();
+  rx.end();
 }
 
 async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: string): Promise<void> {
   reader.skip(); // Skip opening parentheses.
 
-  const entryUcrx = ucrxEntry(reader, rx.rx, firstKey);
-  let entryRx: UcrxHandle;
-
-  if (entryUcrx) {
-    entryRx = new UcrxHandle(entryUcrx);
-  } else {
-    rx.makeOpaque(reader);
-    entryRx = new UcrxHandle(reader.opaqueRx);
-  }
+  const entryRx = rx.firstEntry(firstKey);
 
   await ucdReadValue(reader, entryRx, rx => rx.end());
 
@@ -319,7 +305,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
     await ucdReadEntries(reader, rx);
   }
 
-  rx.rx.map();
+  rx.endMap();
 
   if (!bound) {
     // End of input.
@@ -340,7 +326,7 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
       if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
         // Nested list ends the map and starts enclosing list charge.
         // But enclosing list charge should start _before_ the map charge completed.
-        rx.andNls(reader);
+        rx.andBeforeNls();
       }
 
       break;
@@ -354,10 +340,7 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
       // Next entry.
       reader.skip(); // Skip opening parenthesis.
 
-      const entryRx = new UcrxHandle(
-        // For subsequent entries should never return `undefined`.
-        ucrxEntry(reader, rx.rx, key)!,
-      );
+      const entryRx = rx.nextEntry(key);
 
       await ucdReadValue(reader, entryRx, rx => rx.end());
 
@@ -369,9 +352,7 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
       reader.skip(); // Skip closing parenthesis.
     } else {
       // Suffix.
-      const entryRx = ucrxEntry(reader, rx.rx, key)!; // Should not return `undefined`.
-
-      ucrxString(reader, entryRx, '');
+      rx.suffix(key);
 
       break;
     }
@@ -391,7 +372,7 @@ async function ucdFindAnyBound(
   return await reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and();
       }
 
       return true;
@@ -413,7 +394,7 @@ async function ucdFindStrictBound(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and(reader);
+        rx.and();
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;
