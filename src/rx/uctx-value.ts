@@ -50,7 +50,6 @@ function uctxFunction(rx: AllUcrx, value: Uctx, mode: UctxMode): void {
 
 function uctxObject(rx: AllUcrx, value: Uctx, mode: UctxMode): void {
   if (!value) {
-    // null
     rx.nul();
 
     return;
@@ -67,15 +66,9 @@ function uctxObject(rx: AllUcrx, value: Uctx, mode: UctxMode): void {
 }
 
 /** @internal */
-export function uctxArray(rx: AllUcrx, list: unknown[], { asItem }: UctxMode): 0 | 1 {
+export function uctxArray(rx: AllUcrx, list: unknown[], { asItem }: UctxMode): void {
   if (asItem) {
-    const listRx = rx.nls();
-
-    if (!listRx) {
-      return 0;
-    }
-
-    rx = listRx;
+    rx = rx.nls();
   }
   rx.and();
 
@@ -84,23 +77,15 @@ export function uctxArray(rx: AllUcrx, list: unknown[], { asItem }: UctxMode): 0
   }
 
   rx.end();
-
-  return 1;
 }
 
 /** @internal */
-export function uctxMap(rx: AllUcrx, entries: Iterable<[PropertyKey, unknown]>): 0 | 1 {
+export function uctxMap(rx: AllUcrx, entries: Iterable<[PropertyKey, unknown]>): void {
   for (const [key, value] of entries) {
     if (value !== undefined) {
-      const entryRx = rx.for(key);
-
-      if (entryRx) {
-        uctxValue(entryRx, value, UctxMode$Default);
-      } else if (entryRx != null) {
-        return 0; // Unexpected map.
-      }
+      uctxValue(rx.for(key), value, UctxMode$Default);
     }
   }
 
-  return rx.map();
+  rx.map();
 }
