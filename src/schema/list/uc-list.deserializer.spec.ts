@@ -190,7 +190,7 @@ describe('UcList deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
-          path: [{ index: 0 }],
+          path: [{ index: 1 }],
           details: {
             type: 'nested list',
             expected: {
@@ -209,7 +209,7 @@ describe('UcList deserializer', () => {
       expect(errors).toEqual([
         {
           code: 'unexpectedType',
-          path: [{ index: 0 }],
+          path: [{ index: 1 }],
           details: {
             type: 'nested list',
             expected: {

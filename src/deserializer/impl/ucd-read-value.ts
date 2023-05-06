@@ -26,7 +26,7 @@ export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
+  single = false, // Never set for the first item of the list, unless it is non-empty.
 ): Promise<void> {
   await ucdSkipWhitespace(reader);
 
@@ -84,7 +84,7 @@ export async function ucdReadValue(
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
-    await ucdReadNestedList(reader, rx);
+    await ucdReadNestedList(reader, rx, hasValue || single);
 
     if (single) {
       return;
@@ -101,7 +101,7 @@ export async function ucdReadValue(
     return await ucdReadItems(reader, rx);
   }
 
-  if (!(await ucdFindStrictBound(reader, rx))) {
+  if (!(await ucdFindStrictBound(reader, rx, hasValue || single))) {
     // No bound found at all.
     // Treat as single value.
     if (!hasValue) {
@@ -131,8 +131,10 @@ export async function ucdReadValue(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    rx.and();
-    if (reader.hasPrev()) {
+    const hasPrev = reader.hasPrev();
+
+    rx.and(hasPrev);
+    if (hasPrev) {
       // Decode leading item, if any.
       rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
 
@@ -225,7 +227,7 @@ async function ucdReadTokens(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(true);
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -235,8 +237,12 @@ async function ucdReadTokens(
   }
 }
 
-async function ucdReadNestedList(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
-  const itemsRx = rx.nls();
+async function ucdReadNestedList(
+  reader: AsyncUcdReader,
+  rx: UcrxHandle,
+  beforeComma: boolean,
+): Promise<void> {
+  const itemsRx = rx.nls(beforeComma);
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -326,7 +332,7 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
       if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
         // Nested list ends the map and starts enclosing list charge.
         // But enclosing list charge should start _before_ the map charge completed.
-        rx.andBeforeNls();
+        rx.andBeforeNls(true);
       }
 
       break;
@@ -372,7 +378,7 @@ async function ucdFindAnyBound(
   return await reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(true);
       }
 
       return true;
@@ -385,6 +391,7 @@ async function ucdFindAnyBound(
 async function ucdFindStrictBound(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
+  beforeComma: boolean,
 ): Promise<UcToken | undefined> {
   let newLine = false;
   let allowArgs = true;
@@ -394,7 +401,7 @@ async function ucdFindStrictBound(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(beforeComma || reader.hasPrev());
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;

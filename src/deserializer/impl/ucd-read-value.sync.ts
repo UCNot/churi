@@ -34,7 +34,7 @@ export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
   end?: (rx: UcrxHandle) => void,
-  single?: boolean, // Never set for the first item of the list, unless it is non-empty.
+  single = false, // Never set for the first item of the list, unless it is non-empty.
 ): void {
   ucdSkipWhitespaceSync(reader);
 
@@ -92,7 +92,7 @@ export function ucdReadValueSync(
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
-    ucdReadNestedListSync(reader, rx);
+    ucdReadNestedListSync(reader, rx, hasValue || single);
 
     if (single) {
       return;
@@ -109,7 +109,7 @@ export function ucdReadValueSync(
     return ucdReadItemsSync(reader, rx);
   }
 
-  if (!(ucdFindStrictBoundSync(reader, rx))) {
+  if (!(ucdFindStrictBoundSync(reader, rx, hasValue || single))) {
     // No bound found at all.
     // Treat as single value.
     if (!hasValue) {
@@ -139,8 +139,10 @@ export function ucdReadValueSync(
 
   if (bound === UC_TOKEN_COMMA) {
     // List.
-    rx.and();
-    if (reader.hasPrev()) {
+    const hasPrev = reader.hasPrev();
+
+    rx.and(hasPrev);
+    if (hasPrev) {
       // Decode leading item, if any.
       rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
 
@@ -233,7 +235,7 @@ function ucdReadTokensSync(
       // In either case, this is the end of input.
 
       if (bound === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(true);
       }
 
       appendUcTokens(tokens, reader.consumePrev());
@@ -243,8 +245,12 @@ function ucdReadTokensSync(
   }
 }
 
-function ucdReadNestedListSync(reader: SyncUcdReader, rx: UcrxHandle): void {
-  const itemsRx = rx.nls();
+function ucdReadNestedListSync(
+  reader: SyncUcdReader,
+  rx: UcrxHandle,
+  beforeComma: boolean,
+): void {
+  const itemsRx = rx.nls(beforeComma);
 
   // Skip opening parenthesis and whitespace following it.
   reader.skip();
@@ -334,7 +340,7 @@ function ucdReadEntriesSync(reader: SyncUcdReader, rx: UcrxHandle): void {
       if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
         // Nested list ends the map and starts enclosing list charge.
         // But enclosing list charge should start _before_ the map charge completed.
-        rx.andBeforeNls();
+        rx.andBeforeNls(true);
       }
 
       break;
@@ -380,7 +386,7 @@ function ucdFindAnyBoundSync(
   return reader.find(token => {
     if (isUcBoundToken(token)) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(true);
       }
 
       return true;
@@ -393,6 +399,7 @@ function ucdFindAnyBoundSync(
 function ucdFindStrictBoundSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
+  beforeComma: boolean,
 ): UcToken | undefined {
   let newLine = false;
   let allowArgs = true;
@@ -402,7 +409,7 @@ function ucdFindStrictBoundSync(
 
     if (kind & UC_TOKEN_KIND_BOUND) {
       if (token === UC_TOKEN_COMMA) {
-        rx.and();
+        rx.and(beforeComma || reader.hasPrev());
       }
 
       return allowArgs || token !== UC_TOKEN_OPENING_PARENTHESIS;

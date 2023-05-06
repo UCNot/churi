@@ -11,6 +11,7 @@ export class UcrxHandle {
   #rx: Ucrx;
   #path: UcError$Path;
   #nextPath: UcError$Path | undefined;
+  #beforeComma = false;
   #reject: UcrxReject;
   #isList: -1 | 0 | 1 = -1;
 
@@ -19,9 +20,12 @@ export class UcrxHandle {
     this.#rx = rx;
     this.#path = path;
     this.#reject = rejection => {
-      const path = this.#nextPath ?? this.#path;
+      const path = (this.#nextPath ?? this.#path).slice() as UcError$Path;
 
-      reader.error({ ...rejection, path: path.slice() as UcError$Path });
+      if (this.#beforeComma) {
+        path[path.length - 1].index = 1;
+      }
+      reader.error({ ...rejection, path });
 
       return 0;
     };
@@ -46,15 +50,21 @@ export class UcrxHandle {
     }
   }
 
-  nls(): UcrxHandle {
-    const isList = this.andBeforeNls();
+  nls(beforeComma: boolean): UcrxHandle {
+    const isList = this.andBeforeNls(beforeComma);
     let itemsRx: Ucrx | undefined;
 
     if (isList > 0) {
+      this.#beforeComma = beforeComma;
       itemsRx = this.#rx.nls(this.#reject);
+      this.#beforeComma = false;
     }
 
-    const itemHandle = new UcrxHandle(this.#reader, itemsRx ?? this.#reader.opaqueRx, this.#path);
+    const itemPath = this.#path.slice() as UcError$Path;
+
+    itemPath.push({ index: 0 });
+
+    const itemHandle = new UcrxHandle(this.#reader, itemsRx ?? this.#reader.opaqueRx, itemPath);
 
     itemHandle.and();
 
@@ -119,21 +129,23 @@ export class UcrxHandle {
     this.#rx.map(this.#reject);
   }
 
-  and(): void {
+  and(beforeComma = false): void {
     if (this.#isList < 0) {
       this.#firstItem();
-
+      this.#beforeComma = beforeComma;
       this.#isList = this.#rx.and(this.#reject);
+      this.#beforeComma = false;
+
       if (!this.#isList) {
         this.makeOpaque();
       }
     }
   }
 
-  andBeforeNls(): -1 | 0 | 1 {
+  andBeforeNls(beforeComma: boolean): -1 | 0 | 1 {
     if (this.#isList < 0) {
       this.#firstItem();
-
+      this.#beforeComma = beforeComma;
       this.#isList = this.#rx.and(rejection => {
         if (rejection.code === 'unexpectedType' && rejection.details?.type === 'list') {
           // Replace "unexpected list" with "unexpected nested list".
@@ -142,6 +154,8 @@ export class UcrxHandle {
 
         return this.#reject(rejection);
       });
+      this.#beforeComma = false;
+
       if (!this.#isList) {
         this.makeOpaque();
       }
