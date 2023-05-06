@@ -1,6 +1,5 @@
 import { UcToken } from '../syntax/uc-token.js';
 import { AllUcrx } from './all.ucrx.js';
-import { Ucrx } from './ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
 
 export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
@@ -17,7 +16,7 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     return this;
   }
 
-  override for(_key: PropertyKey): Ucrx {
+  override for(_key: PropertyKey): this {
     return this;
   }
 
@@ -39,11 +38,11 @@ export interface OpaqueUcrx extends AllUcrx {
   bol(value: boolean): 1;
   big(value: bigint): 1;
   ent(value: readonly UcToken[]): 1;
-  nls(): AllUcrx;
+  nls(): this;
   nul(): 1;
   num(value: number): 1;
   str(value: string): 1;
-  for(key: PropertyKey): AllUcrx;
+  for(key: PropertyKey): this;
   map(): 1;
   and(): 1;
   end(): void;
