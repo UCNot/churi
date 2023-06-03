@@ -1,5 +1,14 @@
-import { asArray, mayHaveProperties } from '@proc7ts/primitives';
-import { EsEvaluationOptions, EsGenerationOptions, EsSnippet, esEvaluate, esGenerate } from 'esgen';
+import { asArray, mayHaveProperties, noop } from '@proc7ts/primitives';
+import {
+  EsEmissionResult,
+  EsEmitter,
+  EsEvaluationOptions,
+  EsGenerationOptions,
+  EsPrinter,
+  EsScope,
+  esEvaluate,
+  esGenerate,
+} from 'esgen';
 import { jsStringLiteral, quoteJsKey } from 'httongue';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
@@ -14,13 +23,13 @@ import { UcsLib } from './ucs-lib.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
- * Serializer setup used to {@link UcsSetup#bootstrap bootstrap} {@link UcsLib serializer library}.
+ * Serializer setup used to bootstrap {@link UcsLib serializer library}.
  *
  * Passed to {@link UcsFeature serializer feature} when the latter enabled.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TModels extends UcsModels = UcsModels> {
+export class UcsSetup<TModels extends UcsModels = UcsModels> implements EsEmitter {
 
   readonly #options: UcsSetup.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
@@ -114,7 +123,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
    * @returns Promise resolved to serializer module text.
    */
   async generate(options: EsGenerationOptions = {}): Promise<string> {
-    return await esGenerate(options, this.bootstrap());
+    return await esGenerate(options, this);
   }
 
   /**
@@ -125,7 +134,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
    * @returns Promise resolved to deserializers exported from generated module.
    */
   async evaluate(options: EsEvaluationOptions = {}): Promise<UcsExports<TModels>> {
-    return (await esEvaluate(options, this.bootstrap())) as UcsExports<TModels>;
+    return (await esEvaluate(options, this)) as UcsExports<TModels>;
   }
 
   /**
@@ -136,9 +145,13 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
    *
    * @returns Code snippet that bootstraps serializer library.
    */
-  bootstrap(): EsSnippet {
-    return async (_, scope) => {
-      UcsLib.create(scope.bundle, await this.bootstrapOptions());
+  emit(scope: EsScope): EsEmissionResult;
+
+  async emit({ bundle }: EsScope): Promise<EsPrinter> {
+    UcsLib.create(bundle, await this.bootstrapOptions());
+
+    return {
+      printTo: noop,
     };
   }
 

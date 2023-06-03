@@ -18,8 +18,7 @@ import { UcsModels } from './ucs-setup.js';
 /**
  * Serializer library that {@link UcsLib#compileFactory compiles data models} into serialization functions.
  *
- * An {@link UcsSetup serializer setup} expected to be used to configure and {@link UcsSetup#bootstrap bootstrap}
- * the library instance.
+ * An {@link UcsSetup serializer setup} expected to be used to configure and bootstrap the library instance.
  *
  * @typeParam TModels - Compiled models record type.
  */
