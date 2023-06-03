@@ -1,7 +1,9 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
+import { EsEvaluationOptions, EsGenerationOptions, EsSnippet, esEvaluate, esGenerate } from 'esgen';
 import { jsStringLiteral, quoteJsKey } from 'httongue';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcSerializer } from '../../schema/uc-serializer.js';
 import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
@@ -18,7 +20,7 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
+export class UcsSetup<TModels extends UcsModels = UcsModels> {
 
   readonly #options: UcsSetup.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
@@ -95,16 +97,35 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
     type: TSchema['type'],
     generator: UcsGenerator<T, TSchema>,
   ): this {
-    this.#generators.set(
-      type,
-      (fn: UcsFunction, schema: TSchema, value: string, asItem: string) => {
-        const onValue = generator(fn, schema, value, asItem);
+    this.#generators.set(type, (fn: UcsFunction, schema: TSchema, args) => {
+      const onValue = generator(fn, schema, args);
 
-        return onValue && ucsCheckConstraints(fn, schema, value, onValue);
-      },
-    );
+      return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
+    });
 
     return this;
+  }
+
+  /**
+   * Generates serialization code.
+   *
+   * @param options - Code generation options.
+   *
+   * @returns Promise resolved to serializer module text.
+   */
+  async generate(options: EsGenerationOptions = {}): Promise<string> {
+    return await esGenerate(options, this.bootstrap());
+  }
+
+  /**
+   * Generates serialization code and evaluates it.
+   *
+   * @param options - Code evaluation options.
+   *
+   * @returns Promise resolved to deserializers exported from generated module.
+   */
+  async evaluate(options: EsEvaluationOptions = {}): Promise<UcsExports<TModels>> {
+    return (await esEvaluate(options, this.bootstrap())) as UcsExports<TModels>;
   }
 
   /**
@@ -113,10 +134,12 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
    * Enables configured {@link UcsFeature serialization features}, bootstraps {@link bootstrapOptions library
    * options}, then creates library with that options.
    *
-   * @returns Promise resolved to configured serializer library.
+   * @returns Code snippet that bootstraps serializer library.
    */
-  async bootstrap(): Promise<UcsLib<TModels>> {
-    return new UcsLib(await this.bootstrapOptions());
+  bootstrap(): EsSnippet {
+    return async (_, scope) => {
+      UcsLib.create(scope.bundle, await this.bootstrapOptions());
+    };
   }
 
   /**
@@ -129,9 +152,12 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
   async bootstrapOptions(): Promise<UcsLib.Options<TModels>> {
     await this.#init();
 
+    const { createSerializer = options => new UcsFunction(options) } = this.#options;
+
     return {
       ...this.#options,
       generatorFor: this.#generatorFor.bind(this),
+      createSerializer,
     };
   }
 
@@ -183,7 +209,7 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
 }
 
 export namespace UcsSetup {
-  export interface Options<TModels extends UcsLib.Models> extends UccLib.Options {
+  export interface Options<TModels extends UcsModels> extends UccLib.Options {
     readonly models: TModels;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
 
@@ -193,6 +219,14 @@ export namespace UcsSetup {
     ): UcsFunction<T, TSchema>;
   }
 }
+
+export interface UcsModels {
+  readonly [writer: string]: UcModel;
+}
+
+export type UcsExports<out TModels extends UcsModels> = {
+  readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
+};
 
 class UcsSetup$FeatureUse {
 

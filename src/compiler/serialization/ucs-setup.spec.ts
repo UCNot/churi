@@ -7,14 +7,36 @@ import { UcsSetup } from './ucs-setup.js';
 
 describe('UcsSetup', () => {
   it('respects custom serializer', async () => {
-    const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+    const setup = new UcsSetup<{ writeValue: UcModel<number> }>({
       models: { writeValue: Number },
       features: UcsSupportNumberAsHex,
-    }).bootstrap();
+    });
 
-    const { writeValue } = await lib.compileFactory().toExports();
+    const { writeValue } = await setup.evaluate();
 
     await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
+  });
+
+  describe('generate', () => {
+    it('generates module', async () => {
+      const setup = new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: Number },
+      });
+      const module = await setup.generate();
+
+      expect(module).toContain(`} from 'churi/serializer.js';\n`);
+      expect(module).toContain('export async function writeValue(stream, value) {\n');
+    });
+    it('fails to serialize unknown schema', async () => {
+      const setup = new UcsSetup<{ writeValue: UcModel<number> }>({
+        models: { writeValue: { type: 'test-type' } },
+        features: UcsSupportNumberAsHex,
+      });
+
+      await expect(setup.generate()).rejects.toThrow(
+        `test_x2D_type$serialize(writer, value, asItem?): Can not serialize type "test-type"`,
+      );
+    });
   });
 
   describe('schema uses', () => {
@@ -28,10 +50,10 @@ describe('UcsSetup', () => {
         },
       };
 
-      const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+      const setup = new UcsSetup<{ writeValue: UcModel<number> }>({
         models: { writeValue: schema },
-      }).bootstrap();
-      const { writeValue } = await lib.compileFactory().toExports();
+      });
+      const { writeValue } = await setup.evaluate();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
     });
@@ -45,10 +67,10 @@ describe('UcsSetup', () => {
         },
       };
 
-      const lib = await new UcsSetup<{ writeValue: UcModel<number> }>({
+      const setup = new UcsSetup<{ writeValue: UcModel<number> }>({
         models: { writeValue: schema },
-      }).bootstrap();
-      const { writeValue } = await lib.compileFactory().toExports();
+      });
+      const { writeValue } = await setup.evaluate();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
     });
@@ -65,7 +87,7 @@ describe('UcsSetup', () => {
       await expect(
         new UcsSetup<{ writeValue: UcModel<number> }>({
           models: { writeValue: schema },
-        }).bootstrap(),
+        }).generate(),
       ).rejects.toThrow(
         new ReferenceError(`No such serializer feature: import('${SPEC_MODULE}').MissingFeature`),
       );
@@ -83,7 +105,7 @@ describe('UcsSetup', () => {
       await expect(
         new UcsSetup<{ writeValue: UcModel<number> }>({
           models: { writeValue: schema },
-        }).bootstrap(),
+        }).generate(),
       ).rejects.toThrow(
         new ReferenceError(`Not a serializer feature: import('${SPEC_MODULE}').WrongFeature`),
       );

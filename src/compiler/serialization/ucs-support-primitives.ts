@@ -1,8 +1,9 @@
-import { SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { EsSnippet, esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSource } from '../codegen/ucc-code.js';
+import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsSetup } from './ucs-setup.js';
+import { UcsSignature } from './ucs.signature.js';
 
 export function ucsSupportPrimitives(setup: UcsSetup): void {
   setup
@@ -12,36 +13,48 @@ export function ucsSupportPrimitives(setup: UcsSetup): void {
     .useUcsGenerator(String, ucsWriteString);
 }
 
-function ucsWriteBigInt(fn: UcsFunction, _schema: UcSchema, value: string): UccSource {
-  const { lib, args } = fn;
-  const writeBigInt = lib.import(SERIALIZER_MODULE, 'writeUcBigInt');
+function ucsWriteBigInt(
+  _fn: UcsFunction,
+  _schema: UcSchema,
+  { writer, value }: UcsSignature.AllValues,
+): EsSnippet {
+  const writeBigInt = UC_MODULE_SERIALIZER.import('writeUcBigInt');
 
-  return `await ${writeBigInt}(${args.writer}, ${value});`;
+  return esline`await ${writeBigInt}(${writer}, ${value});`;
 }
 
-function ucsWriteBoolean(fn: UcsFunction, _schema: UcSchema, value: string): UccSource {
-  const { lib, args } = fn;
-  const ucsTrue = lib.import(SERIALIZER_MODULE, 'UCS_TRUE');
-  const ucsFalse = lib.import(SERIALIZER_MODULE, 'UCS_FALSE');
+function ucsWriteBoolean(
+  _fn: UcsFunction,
+  _schema: UcSchema,
+  { writer, value }: UcsSignature.AllValues,
+): EsSnippet {
+  const ucsTrue = UC_MODULE_SERIALIZER.import('UCS_TRUE');
+  const ucsFalse = UC_MODULE_SERIALIZER.import('UCS_FALSE');
 
   return code => {
     code.write(
-      `await ${args.writer}.ready;`,
-      `${args.writer}.write(${value} ? ${ucsTrue} : ${ucsFalse});`,
+      esline`await ${writer}.ready;`,
+      esline`${writer}.write(${value} ? ${ucsTrue} : ${ucsFalse});`,
     );
   };
 }
 
-function ucsWriteNumber(fn: UcsFunction, _schema: UcSchema, value: string): UccSource {
-  const { lib, args } = fn;
-  const writeNumber = lib.import(SERIALIZER_MODULE, 'writeUcNumber');
+function ucsWriteNumber(
+  _fn: UcsFunction,
+  _schema: UcSchema,
+  { writer, value }: UcsSignature.AllValues,
+): EsSnippet {
+  const writeNumber = UC_MODULE_SERIALIZER.import('writeUcNumber');
 
-  return `await ${writeNumber}(${args.writer}, ${value});`;
+  return esline`await ${writeNumber}(${writer}, ${value});`;
 }
 
-function ucsWriteString(fn: UcsFunction, _schema: UcSchema, value: string): UccSource {
-  const { lib, args } = fn;
-  const writeString = lib.import(SERIALIZER_MODULE, 'writeUcString');
+function ucsWriteString(
+  _fn: UcsFunction,
+  _schema: UcSchema,
+  { writer, value }: UcsSignature.AllValues,
+): EsSnippet {
+  const writeString = UC_MODULE_SERIALIZER.import('writeUcString');
 
-  return `await ${writeString}(${args.writer}, ${value});`;
+  return esline`await ${writeString}(${writer}, ${value});`;
 }

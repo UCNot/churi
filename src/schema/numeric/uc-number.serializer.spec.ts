@@ -1,21 +1,20 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
 import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcNumber serializer', () => {
-  let lib: UcsLib<{ writeValue: UcModel<number> }>;
+  let setup: UcsSetup<{ writeValue: UcModel<number> }>;
   let writeValue: UcSerializer<number>;
 
   beforeEach(async () => {
-    lib = await new UcsSetup({
+    setup = new UcsSetup({
       models: {
         writeValue: Number,
       },
-    }).bootstrap();
-    ({ writeValue } = await lib.compileFactory().toExports());
+    });
+    ({ writeValue } = await setup.evaluate());
   });
 
   it('serializes number', async () => {

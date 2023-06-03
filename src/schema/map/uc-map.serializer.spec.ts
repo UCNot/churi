@@ -9,23 +9,23 @@ import { ucMap } from './uc-map.js';
 
 describe('UcMap serializer', () => {
   it('serializes map', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           foo: String,
           bar: Number,
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: 13 })),
     ).resolves.toBe("foo('test)bar(13)");
   });
   it('serializes nested map', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           foo: ucMap({
@@ -36,9 +36,9 @@ describe('UcMap serializer', () => {
           }),
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(
@@ -47,31 +47,31 @@ describe('UcMap serializer', () => {
     ).resolves.toBe('foo(test1(11))bar(test2(22))');
   });
   it('serializes list entry', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           foo: ucList(Number),
           bar: ucList<number[]>(ucList(Number)),
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { foo: [11], bar: [[22, 333]] })),
     ).resolves.toBe('foo(,11)bar(,(22,333))');
   });
   it('serializes entry with empty key', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           '': String,
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(TextOutStream.read(async to => await writeMap(to, { '': 'test' }))).resolves.toBe(
       "$('test)",
@@ -79,7 +79,7 @@ describe('UcMap serializer', () => {
   });
   it('serializes entry with special keys', async () => {
     const specialKey = '(%)\r\n\t\uD83D\uDFB1 ' as const;
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           "'": String,
@@ -89,9 +89,9 @@ describe('UcMap serializer', () => {
           [specialKey]: String,
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(
@@ -108,15 +108,15 @@ describe('UcMap serializer', () => {
     );
   });
   it('serializes nullable entry', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           test: ucNullable(String),
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
@@ -126,15 +126,15 @@ describe('UcMap serializer', () => {
     );
   });
   it('serializes optional nullable entry', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           test: ucOptional(ucNullable(String)),
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
@@ -145,32 +145,32 @@ describe('UcMap serializer', () => {
     await expect(TextOutStream.read(async to => await writeMap(to, {}))).resolves.toBe('$');
   });
   it('serializes second entry with empty key', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           first: Number,
           '': String,
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
     ).resolves.toBe("first(1)$('test)");
   });
   it('serializes second entry with empty key when first one is optional', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap({
           first: ucOptional(Number),
           '': String,
         }),
       },
-    }).bootstrap();
+    });
 
-    const { writeMap } = await lib.compileFactory().toExports();
+    const { writeMap } = await setup.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
@@ -180,7 +180,7 @@ describe('UcMap serializer', () => {
     ).resolves.toBe("$('test)");
   });
   it('does not serialize unrecognized schema', async () => {
-    const lib = await new UcsSetup({
+    const setup = new UcsSetup({
       models: {
         writeMap: ucMap(
           {
@@ -191,12 +191,12 @@ describe('UcMap serializer', () => {
           },
         ),
       },
-    }).bootstrap();
+    });
 
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await lib.compileFactory().toExports();
+      await setup.evaluate();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }
@@ -204,9 +204,7 @@ describe('UcMap serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'testMap$serialize: Can not serialize entry "test" of type "test-type"',
+      'testMap$serialize(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
-    expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
-    expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
   });
 });

@@ -1,6 +1,7 @@
+import { EsSnippet } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSource } from '../codegen/ucc-code.js';
 import { UcsFunction } from './ucs-function.js';
+import { UcsSignature } from './ucs.signature.js';
 
 /**
  * Generates code for type instance serialization.
@@ -9,11 +10,10 @@ import { UcsFunction } from './ucs-function.js';
  * @typeParam TSchema - Schema type.
  * @param serializer - Enclosing serializer function. Not necessarily for the target value.
  * @param schema - Schema of serialized value.
- * @param value - An expression resolved to serialized value.
- * @param asItem - Whether the serialized value is a list item.
+ * @param args - Serializer argument values.
  *
- * @returns Serializer code source, or `undefined` if the value serializer can not be generated.
+ * @returns Serializer code snippet, or `undefined` if the value serializer can not be generated.
  */
 export type UcsGenerator<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
-  serialize(fn: UcsFunction, schema: TSchema, value: string, asItem: string): UccSource | undefined;
+  serialize(fn: UcsFunction, schema: TSchema, args: UcsSignature.AllValues): EsSnippet | undefined;
 }['serialize'];

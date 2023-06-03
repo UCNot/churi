@@ -9,11 +9,11 @@ describe('UcUnknown serializer', () => {
   let writeValue: UcSerializer<unknown>;
 
   beforeEach(async () => {
-    const lib = await new UcsSetup<{ writeValue: UcModel }>({
+    const setup = new UcsSetup<{ writeValue: UcModel }>({
       models: { writeValue: ucUnknown() },
-    }).bootstrap();
+    });
 
-    ({ writeValue } = await lib.compileFactory().toExports());
+    ({ writeValue } = await setup.evaluate());
   });
 
   it('serializes primitive values', async () => {
