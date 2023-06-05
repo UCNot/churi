@@ -1,6 +1,8 @@
 import {
   EsBundle,
   EsScope,
+  EsScopeContext,
+  EsScopeSetup,
   EsSymbol,
   EsVarKind,
   EsVarSymbol,
@@ -24,39 +26,29 @@ import { UcsModels } from './ucs-setup.js';
  */
 export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
-  static create<TModels extends UcsModels>(
-    bundle: EsBundle,
-    options: UcsLib.Options<TModels>,
-  ): UcsLib<TModels> {
-    return bundle.get(this).#init(bundle, options) as UcsLib<TModels>;
-  }
-
   static esScopedValue(scope: EsScope): UcsLib {
     const { bundle } = scope;
 
-    if (bundle === scope) {
-      return new UcsLib();
+    if (bundle !== scope) {
+      return bundle.get(UcsLib);
     }
 
-    return bundle.get(UcsLib);
+    throw new ReferenceError('UcsLib is not initialized');
   }
 
-  #options!: UcsLib.Options<TModels>;
-  #models!: {
+  readonly #options: UcsLib.Options<TModels>;
+  readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
   };
 
-  #createSerializer!: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
+  readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
   readonly #serializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcsFunction>>();
 
   #textEncoder?: EsSymbol;
   readonly #binConstants = new Map<string, EsSymbol>();
 
-  private constructor() {
-    // To be initialized.
-  }
-
-  #init({ ns }: EsBundle, options: UcsLib.Options<TModels>): this {
+  constructor(bundle: EsBundle, options: UcsLib.Options<TModels>);
+  constructor({ ns }: EsBundle, options: UcsLib.Options<TModels>) {
     this.#options = options;
 
     const { models, createSerializer } = options;

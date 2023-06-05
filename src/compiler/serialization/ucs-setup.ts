@@ -1,11 +1,9 @@
-import { asArray, mayHaveProperties, noop } from '@proc7ts/primitives';
+import { asArray, mayHaveProperties } from '@proc7ts/primitives';
 import {
-  EsEmissionResult,
-  EsEmitter,
+  EsBundle,
   EsEvaluationOptions,
   EsGenerationOptions,
-  EsPrinter,
-  EsScope,
+  EsScopeSetup,
   esEvaluate,
   esGenerate,
 } from 'esgen';
@@ -29,7 +27,7 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TModels extends UcsModels = UcsModels> implements EsEmitter {
+export class UcsSetup<TModels extends UcsModels = UcsModels> {
 
   readonly #options: UcsSetup.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
@@ -123,7 +121,10 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> implements EsEmitte
    * @returns Promise resolved to serializer module text.
    */
   async generate(options: EsGenerationOptions = {}): Promise<string> {
-    return await esGenerate(options, this);
+    return await esGenerate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    });
   }
 
   /**
@@ -134,7 +135,10 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> implements EsEmitte
    * @returns Promise resolved to deserializers exported from generated module.
    */
   async evaluate(options: EsEvaluationOptions = {}): Promise<UcsExports<TModels>> {
-    return (await esEvaluate(options, this)) as UcsExports<TModels>;
+    return (await esEvaluate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    })) as UcsExports<TModels>;
   }
 
   /**
@@ -143,15 +147,15 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> implements EsEmitte
    * Enables configured {@link UcsFeature serialization features}, bootstraps {@link bootstrapOptions library
    * options}, then creates library with that options.
    *
-   * @returns Code snippet that bootstraps serializer library.
+   * @returns Promise resolved to code bundle initialization setup.
    */
-  emit(scope: EsScope): EsEmissionResult;
-
-  async emit({ bundle }: EsScope): Promise<EsPrinter> {
-    UcsLib.create(bundle, await this.bootstrapOptions());
+  async bootstrap(): Promise<EsScopeSetup<EsBundle>> {
+    const options = await this.bootstrapOptions();
 
     return {
-      printTo: noop,
+      esSetupScope(context) {
+        context.set(UcsLib, new UcsLib(context.scope, options));
+      },
     };
   }
 
