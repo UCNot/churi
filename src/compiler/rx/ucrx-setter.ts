@@ -1,41 +1,58 @@
-import { arraysAreEqual } from '@proc7ts/primitives';
-import { jsStringLiteral } from 'httongue';
-import { CHURI_MODULE } from '../../impl/module-names.js';
-import { UccArgs } from '../codegen/ucc-args.js';
-import { UcrxMethod } from './ucrx-method.js';
+import { EsArg, EsMethodDeclaration, EsSignature, esStringLiteral, esline } from 'esgen';
+import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { UcrxMethod, UcrxMethodInit } from './ucrx-method.js';
 
-export class UcrxSetter extends UcrxMethod<UcrxSetter.Arg> {
+export class UcrxSetter extends UcrxMethod<UcrxSetterSignature.Args> {
 
-  constructor(options: UcrxSetter.Options) {
-    const { stub = UcrxSetter$createStub(options.typeName) } = options;
+  constructor(requestedName: string, init: UcrxSetterInit) {
+    const { typeName, stub = UcrxSetter$createStub(typeName) } = init;
 
-    super({ ...options, args: UcrxSetter$args, stub });
+    super(requestedName, { ...init, args: UcrxSetterSignature, stub });
   }
 
 }
 
-export namespace UcrxSetter {
-  export type Arg = 'value' | 'reject';
-  export interface Options extends Omit<UcrxMethod.Options<UcrxSetter.Arg>, 'args' | 'stub'> {
-    readonly typeName: string;
-    readonly stub?: UcrxMethod.Body<Arg>;
-  }
+export interface UcrxSetter extends UcrxMethod<UcrxSetterSignature.Args> {
+  get typeName(): string;
 }
 
-export function isUcrxSetter(method: UcrxMethod<any>): method is UcrxSetter {
-  return arraysAreEqual(method.args.list, UcrxSetter$args.list);
+export interface UcrxSetterInit
+  extends Omit<UcrxMethodInit<UcrxSetterSignature.Args>, 'args' | 'stub'> {
+  readonly typeName: string;
+  readonly stub?: EsMethodDeclaration<UcrxSetterSignature.Args> | undefined;
 }
 
-const UcrxSetter$args = new UccArgs<UcrxSetter.Arg>('value', 'reject');
+export const UcrxSetterSignature: UcrxSetterSignature = /*#__PURE__*/ new EsSignature({
+  value: {},
+  reject: {},
+});
 
-function UcrxSetter$createStub(typeName: string): UcrxMethod.Body<UcrxSetter.Arg> {
-  return ({ value, reject }, _method, { lib }) => code => {
-      const ucrxRejectType = lib.import(CHURI_MODULE, 'ucrxRejectType');
+export type UcrxSetterSignature = EsSignature<UcrxSetterSignature.Args>;
 
-      code.write(
-        `return this.any(${value}) || ${reject}(${ucrxRejectType}(${jsStringLiteral(
-          typeName,
-        )}, this));`,
-      );
-    };
+export namespace UcrxSetterSignature {
+  export type Args = {
+    readonly value: EsArg;
+    readonly reject: EsArg;
+  };
+  export type Values = EsSignature.ValuesOf<Args>;
+}
+
+export function isUcrxSetter(method: UcrxMethod): method is UcrxSetter {
+  return method.signature === UcrxSetterSignature;
+}
+
+function UcrxSetter$createStub(typeName: string): EsMethodDeclaration<UcrxSetterSignature.Args> {
+  return {
+    body({
+      member: {
+        args: { value, reject },
+      },
+    }) {
+      const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
+
+      return esline`return this.any(${value}) || ${reject}(${ucrxRejectType}(${esStringLiteral(
+        typeName,
+      )}, this));`;
+    },
+  };
 }

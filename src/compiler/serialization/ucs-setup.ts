@@ -11,7 +11,6 @@ import { jsStringLiteral, quoteJsKey } from 'httongue';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
-import { UccLib } from '../codegen/ucc-lib.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UcsFeature, UcsSchemaFeature } from './ucs-feature.js';
@@ -226,7 +225,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
 }
 
 export namespace UcsSetup {
-  export interface Options<TModels extends UcsModels> extends UccLib.Options {
+  export interface Options<TModels extends UcsModels> {
     readonly models: TModels;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
 

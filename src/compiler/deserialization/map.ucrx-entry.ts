@@ -1,29 +1,60 @@
-import { lazyValue } from '@proc7ts/primitives';
-import { UcSchema } from '../../schema/uc-schema.js';
-import { UccArgs } from '../codegen/ucc-args.js';
-import { UccSource } from '../codegen/ucc-code.js';
-import { UccNamespace } from '../codegen/ucc-namespace.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { MapUcrxTemplate } from './map.ucrx-template.js';
+import {
+  EsArg,
+  EsFunction,
+  EsScopeKind,
+  EsSignature,
+  EsSnippet,
+  esEscapeString,
+  esline,
+} from 'esgen';
+import { UcMap } from '../../schema/map/uc-map.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcrxClass } from '../rx/ucrx.class.js';
+import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { MapUcrxClass, MapUcrxStore } from './map.ucrx.class.js';
 
 export class MapUcrxEntry {
 
-  readonly #mapDef: MapUcrxTemplate;
-  readonly #key: string | null;
-  readonly #schema: UcSchema;
-  readonly #ns: UccNamespace;
-  readonly #argValue = lazyValue(() => this.ns.name('value'));
-  readonly #varEntrySetter = lazyValue(() => this.ns.name('setEntry'));
+  static ucrxClass<
+    TEntriesModel extends UcMap.Schema.Entries.Model,
+    TExtraModel extends UcModel | false,
+  >(
+    lib: UcrxLib,
+    mapSchema: UcMap.Schema<TEntriesModel, TExtraModel>,
+    key: string | null,
+    entrySchema: UcSchema,
+  ): UcrxClass {
+    try {
+      return lib.ucrxClassFor(entrySchema);
+    } catch (cause) {
+      const entryName = key != null ? `entry "${esEscapeString(key)}"` : 'extra entry';
 
-  constructor(mapDef: MapUcrxTemplate, key: string | null, schema: UcSchema) {
-    this.#mapDef = mapDef;
-    this.#key = key;
-    this.#schema = schema;
-    this.#ns = mapDef.lib.ns.nest();
+      throw new UnsupportedUcSchemaError(
+        entrySchema,
+        `${ucSchemaTypeSymbol(mapSchema)}: Can not deserialize ${entryName} of type "${ucModelName(
+          entrySchema,
+        )}"`,
+        { cause },
+      );
+    }
   }
 
-  get mapDef(): MapUcrxTemplate {
-    return this.#mapDef;
+  readonly #mapClass: MapUcrxClass;
+  readonly #key: string | null;
+  readonly #schema: UcSchema;
+  #ucrxClass?: UcrxClass;
+
+  constructor(mapClass: MapUcrxClass, key: string | null, schema: UcSchema) {
+    this.#mapClass = mapClass;
+    this.#key = key;
+    this.#schema = schema;
+  }
+
+  get mapClass(): MapUcrxClass {
+    return this.#mapClass;
   }
 
   get key(): string | null {
@@ -34,71 +65,64 @@ export class MapUcrxEntry {
     return this.#schema;
   }
 
-  get ns(): UccNamespace {
-    return this.#ns;
+  get ucrxClass(): UcrxClass {
+    return (this.#ucrxClass ??= this.mapClass.entryUcrxFor(this.key, this.schema));
   }
 
-  createRx(args: MapUcrxEntry.RxArgs): UccSource;
+  instantiate(store: MapUcrxStore, args: MapUcrxEntrySignature.Values): EsSnippet;
 
-  createRx({ args: { map, key, context }, prefix, suffix }: MapUcrxEntry.RxArgs): UccSource {
-    const setEntry = this.#varEntrySetter();
-    const value = this.#argValue();
+  instantiate(
+    store: MapUcrxStore,
+    { slot, key, context }: MapUcrxEntrySignature.Values,
+  ): EsSnippet {
+    const setEntry = new EsFunction('setEntry', { value: {} });
 
-    return code => {
-      code
-        .write(`const ${setEntry} = ${value} => {`)
-        .indent(this.setEntry(`${map}[0]`, key, value))
-        .write(`};`)
-        .write(prefix + this.getTemplate().newInstance({ set: setEntry, context }) + suffix);
-    };
-  }
-
-  getTemplate(): UcrxTemplate {
-    return this.mapDef.entryTemplate(this.key, this.schema);
-  }
-
-  setEntry(map: string, key: string, value: string): UccSource {
-    return `${map}[${key}] = ${value};`;
-  }
-
-  declare(init: (value: UccSource) => UccSource): UccSource {
-    return init(code => {
-      code.write(`{`).indent(this.#rx(), this.#use(), '').write(`}`);
+    return this.ucrxClass.instantiate({
+      set: setEntry.lambda(({ args: { value } }) => store.setEntry(esline`${slot}[0]`, key, value)),
+      context,
     });
   }
 
-  #rx(): UccSource {
-    const args = UcdEntryArgs.declare(this.mapDef.lib.ns.nest());
-
+  declare(store: MapUcrxStore): EsSnippet {
     return code => {
-      code
-        .write(`rx(${args}) {`)
-        .indent(code => {
-          code.write(
-            this.createRx({
-              args: args.args,
-              prefix: 'return ',
-              suffix: ';',
-            }),
-          );
-        })
-        .write(`},`);
+      code.multiLine(code => {
+        code.write(`{`).indent(this.#rx(store), this.#use()).write(`}`);
+      });
     };
   }
 
-  #use(): UccSource {
+  #rx(mapStore: MapUcrxStore): EsSnippet {
+    return code => {
+      code.scope({ kind: EsScopeKind.Function, ns: {} }, code => {
+        code
+          .line(`rx`, MapUcrxEntrySignature.declare(), ` {`)
+          .indent(code => {
+            code.line(`return `, this.instantiate(mapStore, MapUcrxEntrySignature.args), `;`);
+          })
+          .write(`},`);
+      });
+    };
+  }
+
+  #use(): EsSnippet {
     return `use: ` + (this.key == null || this.schema.optional ? '0' : '1') + `,`;
   }
 
 }
 
-const UcdEntryArgs = /*#__PURE__*/ new UccArgs<MapUcrxEntry.Arg>('context', 'map', 'key');
+export const MapUcrxEntrySignature: MapUcrxEntrySignature = /*#__PURE__*/ new EsSignature({
+  context: {},
+  slot: {},
+  key: {},
+});
 
-export namespace MapUcrxEntry {
-  export type Arg = 'context' | 'map' | 'key';
-  export interface RxArgs {
-    readonly args: UccArgs.ByName<Arg>;
-    readonly prefix: string;
-    readonly suffix: string;
-  }
+export type MapUcrxEntrySignature = EsSignature<MapUcrxEntrySignature.Args>;
+
+export namespace MapUcrxEntrySignature {
+  export type Args = {
+    readonly context: EsArg;
+    readonly slot: EsArg;
+    readonly key: EsArg;
+  };
+  export type Values = EsSignature.ValuesOf<Args>;
 }

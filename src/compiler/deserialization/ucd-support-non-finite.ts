@@ -1,4 +1,4 @@
-import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UcdEntityFeature, UcdEntitySetup } from './ucd-entity-feature.js';
 import { UcdSetup } from './ucd-setup.js';
 
@@ -10,8 +10,8 @@ export function ucdSupportNonFinite(setup: UcdSetup.Any): void {
 }
 
 function handleUcdNonFinite(reader: string): UcdEntityFeature {
-  return ({ lib, register, refer }: UcdEntitySetup) => {
-    const readEntity = lib.import(DESERIALIZER_MODULE, reader);
+  return ({ register, refer }: UcdEntitySetup) => {
+    const readEntity = UC_MODULE_DESERIALIZER.import(reader);
 
     refer(readEntity);
 

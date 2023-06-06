@@ -1,34 +1,29 @@
-import { UccArgs } from '../codegen/ucc-args.js';
-import { UccSource } from '../codegen/ucc-code.js';
-import { UccMethod } from '../codegen/ucc-method.js';
-import { BaseUcrxTemplate } from './base.ucrx-template.js';
-import { UcrxLib } from './ucrx-lib.js';
+import {
+  EsClass,
+  EsMethod,
+  EsMethodDeclaration,
+  EsMethodHandle,
+  EsMethodInit,
+  EsSignature,
+} from 'esgen';
 
-export class UcrxMethod<in out TArg extends string = string> {
+export class UcrxMethod<
+  out TArgs extends EsSignature.Args = EsSignature.Args,
+> extends EsMethod<TArgs> {
 
-  readonly #key: string;
-  readonly #args: UccArgs<TArg>;
-  readonly #stub: UcrxMethod.Body<TArg>;
+  readonly #stub: EsMethodDeclaration<TArgs>;
   readonly #typeName: string | undefined;
 
-  constructor(options: UcrxMethod.Options<TArg>);
+  constructor(requestedName: string, init: UcrxMethodInit<TArgs>) {
+    super(requestedName, init);
 
-  constructor({ key, args, stub, typeName }: UcrxMethod.Options<TArg>) {
-    this.#key = key;
-    this.#args = UccArgs.by(args);
+    const { stub, typeName } = init;
+
     this.#stub = stub;
     this.#typeName = typeName;
   }
 
-  get preferredKey(): string {
-    return this.#key;
-  }
-
-  get args(): UccArgs<TArg> {
-    return this.#args;
-  }
-
-  get stub(): UcrxMethod.Body<TArg> {
+  get stub(): EsMethodDeclaration<TArgs> {
     return this.#stub;
   }
 
@@ -36,35 +31,14 @@ export class UcrxMethod<in out TArg extends string = string> {
     return this.#typeName;
   }
 
-  declare(template: BaseUcrxTemplate, body: UcrxMethod.Body<TArg>): UccSource {
-    return this.toMethod(template.lib).declare(template.lib.ns.nest(), (args, method) => body(args, method, template));
-  }
-
-  toMethod(lib: UcrxLib): UccMethod<TArg> {
-    return lib.ucrxMethod(this);
-  }
-
-  toString(): string {
-    return `Ucrx.${this.preferredKey}${this.args}`;
+  declareStub(hostClass: EsClass): EsMethodHandle<TArgs> {
+    return this.declareIn(hostClass, this.stub);
   }
 
 }
 
-export namespace UcrxMethod {
-  export interface Options<in out TArg extends string> {
-    readonly key: string;
-    readonly args: UccArgs.Spec<TArg>;
-    readonly stub: UcrxMethod.Body<TArg>;
-    readonly typeName?: string | undefined;
-  }
-
-  export type Body<TArg extends string> = (
-    args: UccArgs.ByName<TArg>,
-    method: UccMethod<TArg>,
-    template: BaseUcrxTemplate,
-  ) => UccSource;
-
-  export type ArgType<TMethod extends UcrxMethod<any>> = TMethod extends UcrxMethod<infer TArg>
-    ? TArg
-    : never;
+export interface UcrxMethodInit<out TArgs extends EsSignature.Args = EsSignature.Args>
+  extends EsMethodInit<TArgs> {
+  readonly stub: EsMethodDeclaration<TArgs>;
+  readonly typeName?: string | undefined;
 }

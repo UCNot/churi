@@ -1,22 +1,18 @@
-import { lazyValue } from '@proc7ts/primitives';
-import { DESERIALIZER_MODULE } from '../../impl/module-names.js';
+import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSource } from '../codegen/ucc-code.js';
-import { UccNamespace } from '../codegen/ucc-namespace.js';
+import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
+import { UcrxClass } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdLib } from './ucd-lib.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #lib: UcdLib.Any;
-  readonly #ns: UccNamespace;
   readonly #schema: TSchema;
-  #template?: UcrxTemplate<T, TSchema>;
-  #args?: UcdFunction.Args;
-  #vars?: UcdFunction.Vars;
+  #ucrxClass?: UcrxClass;
   readonly #createAsyncReader: Exclude<
     UcdFunction.Options<T, TSchema>['createAsyncReader'],
     undefined
@@ -27,8 +23,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     undefined
   >;
 
-  readonly #syncReaderVar = lazyValue(() => this.ns.name('syncReader'));
-
   constructor(options: UcdFunction.Options<T, TSchema>);
   constructor({
     lib,
@@ -37,7 +31,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     createSyncReader = UcdFunction$createSyncReader,
   }: UcdFunction.Options<T, TSchema>) {
     this.#lib = lib;
-    this.#ns = lib.ns.nest();
     this.#schema = schema;
     this.#createAsyncReader = createReader;
     this.#createSyncReader = createSyncReader;
@@ -51,34 +44,14 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#schema;
   }
 
-  get args(): UcdFunction.Args {
-    return (this.#args ??= {
-      reader: this.ns.name('reader'),
-      setter: this.ns.name('set'),
-    });
-  }
-
-  get vars(): UcdFunction.Vars {
-    return (this.#vars ??= {
-      input: this.ns.name('input'),
-      stream: this.ns.name('stream'),
-      options: this.ns.name('options'),
-      result: this.ns.name('result'),
-    });
-  }
-
-  get ns(): UccNamespace {
-    return this.#ns;
-  }
-
-  get template(): UcrxTemplate<T, TSchema> {
-    if (!this.#template) {
-      const template = this.lib.ucrxTemplateFactoryFor<T, TSchema>(this.schema)?.(
+  get ucrxClass(): UcrxClass {
+    if (!this.#ucrxClass) {
+      const ucrxClass = this.lib.ucrxClassFactoryFor<T, TSchema>(this.schema)?.(
         this.lib,
         this.schema,
       );
 
-      if (!template) {
+      if (!ucrxClass) {
         throw new UnsupportedUcSchemaError(
           this.schema,
           `${ucSchemaTypeSymbol(this.schema)}: Can not deserialize type "${ucModelName(
@@ -87,81 +60,119 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         );
       }
 
-      this.#template = template;
+      this.#ucrxClass = ucrxClass as UcrxClass;
+      ucrxClass.initUcrx(this.lib);
     }
 
-    return this.#template;
+    return this.#ucrxClass;
   }
 
-  toUcDeserializer(input: string, options: string): UccSource {
-    const { mode } = this.lib;
-    const { result } = this.vars;
-
-    if (mode !== 'universal') {
-      return code => {
+  exportFn(
+    externalName: string,
+    signature: UcdExportSignature,
+  ): EsFunction<UcdExportSignature.Args> {
+    const { mode, opaqueUcrx, entityHandler } = this.lib;
+    const stream = new EsSymbol('stream');
+    const options = (code: EsCode): void => {
+      code.multiLine(code => {
         code
-          .write(`let ${result};`)
-          .write(`const ${this.args.setter} = $ => ${result} = $;`)
-          .write(
-            mode === 'async'
-              ? this.#createAsyncReader(this, this.args.reader, input, options)
-              : this.#createSyncReader(this, this.args.reader, input, options),
-          )
-          .write(`try {`)
+          .write('{')
           .indent(
-            `${mode === 'async' ? 'await ' : ''}${this.args.reader}.read(`
-              + this.template.newInstance({
-                set: this.args.setter,
-                context: this.args.reader,
-              })
-              + ');',
+            'onError,',
+            'onEntity,',
+            opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
           )
-          .write(`} finally {`)
-          .indent(`${this.args.reader}.done();`)
-          .write(`}`)
-          .write('return result;');
-      };
-    }
+          .write('}');
+      });
+    };
 
+    return new EsFunction(externalName, signature, {
+      declare: {
+        at: 'exports',
+        async: mode === 'async',
+        body:
+          ({ args: { input: inputArg } }) => code => {
+            const input = mode === 'async' ? stream : inputArg;
+
+            code.write(
+              mode === 'universal'
+                ? this.#universalBody({ input, options })
+                : this.#nonUniversalBody(mode, { input, options }),
+            );
+          },
+        args: {
+          input:
+            mode === 'async'
+              ? { declare: () => stream.declareSymbol({ as: ({ naming }) => [naming, naming] }) }
+              : undefined,
+          options: { declare: () => esline`{ onError, onEntity = ${entityHandler} } = {}` },
+        },
+      },
+    });
+  }
+
+  #nonUniversalBody(mode: 'sync' | 'async', args: UcdExportSignature.AllValues): EsSnippet {
     return code => {
-      const syncReader = this.#syncReaderVar();
+      const result = new EsVarSymbol('result');
+      const reader = new EsVarSymbol('reader');
 
       code
-        .write(`let ${result};`)
-        .write(`const ${this.args.setter} = $ => ${result} = $;`)
-        .write(this.#createSyncReader(this, syncReader, input, options));
+        .write(result.declare({ as: EsVarKind.Let }))
+        .write(
+          reader.declare({
+            value: () => mode === 'async'
+                ? this.#createAsyncReader(args, this)
+                : this.#createSyncReader(args, this),
+          }),
+        )
+        .write(`try {`)
+        .indent(
+          esline`${mode === 'async' ? 'await ' : ''}${reader}.read(${this.ucrxClass.instantiate({
+            set: esline`$ => { ${result} = $; }`,
+            context: reader,
+          })});`,
+        )
+        .write(`} finally {`)
+        .indent(esline`${reader}.done();`)
+        .write(`}`)
+        .write(esline`return ${result};`);
+    };
+  }
+
+  #universalBody(args: UcdExportSignature.AllValues): EsSnippet {
+    return code => {
+      const result = new EsVarSymbol('result');
+      const syncReader = new EsVarSymbol('syncReader');
+      const reader = new EsVarSymbol('reader');
+      const set = esline`$ => { ${result} = $; }`;
 
       code
-        .write(`if (${syncReader}) {`)
+        .write(result.declare({ as: EsVarKind.Let }))
+        .write(syncReader.declare({ value: () => this.#createSyncReader(args, this) }))
+        .write(esline`if (${syncReader}) {`)
         .indent(code => {
           code
             .write(`try {`)
             .indent(
-              `${syncReader}.read(`
-                + this.template.newInstance({
-                  set: this.args.setter,
-                  context: syncReader,
-                })
-                + `);`,
+              esline`${syncReader}.read(${this.ucrxClass.instantiate({
+                set,
+                context: syncReader,
+              })});`,
             )
             .write(`} finally {`)
-            .indent(`${syncReader}.done();`)
+            .indent(esline`${syncReader}.done();`)
             .write(`}`)
             .write('return result;');
         })
-        .write(`}`);
-
-      code
-        .write(this.#createAsyncReader(this, this.args.reader, input, options))
+        .write(`}`)
+        .write(reader.declare({ value: () => this.#createAsyncReader(args, this) }))
         .write(
-          `return ${this.args.reader}.read(`
-            + this.template.newInstance({
-              set: this.args.setter,
-              context: this.args.reader,
-            })
-            + `)`,
+          esline`return ${reader}.read(${this.ucrxClass.instantiate({
+            set,
+            context: reader,
+          })})`,
         )
-        .indent(`.then(() => result)`, `.finally(() => ${this.args.reader}.done())`);
+        .indent(esline`.then(() => ${result})`, esline`.finally(() => ${reader}.done());`);
     };
   }
 
@@ -174,19 +185,15 @@ export namespace UcdFunction {
 
     createAsyncReader?(
       this: void,
+      args: UcdExportSignature.AllValues,
       deserializer: UcdFunction,
-      reader: string,
-      stream: string,
-      options: string,
-    ): UccSource;
+    ): EsSnippet;
 
     createSyncReader?(
       this: void,
+      args: UcdExportSignature.AllValues,
       deserializer: UcdFunction,
-      reader: string,
-      input: string,
-      options: string,
-    ): UccSource;
+    ): EsSnippet;
   }
 
   export interface Args {
@@ -241,24 +248,14 @@ export namespace UcdFunction {
   }
 }
 
-function UcdFunction$createReader(
-  deserializer: UcdFunction,
-  reader: string,
-  stream: string,
-  options: string,
-): string {
-  const AsyncUcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'AsyncUcdReader');
+function UcdFunction$createReader({ input, options }: UcdExportSignature.AllValues): EsSnippet {
+  const AsyncUcdReader = UC_MODULE_DESERIALIZER.import('AsyncUcdReader');
 
-  return `const ${reader} = new ${AsyncUcdReader}(${stream}, ${options});`;
+  return esline`new ${AsyncUcdReader}(${input}, ${options})`;
 }
 
-function UcdFunction$createSyncReader(
-  deserializer: UcdFunction,
-  reader: string,
-  input: string,
-  options: string,
-): string {
-  const createSyncUcdReader = deserializer.lib.import(DESERIALIZER_MODULE, 'createSyncUcdReader');
+function UcdFunction$createSyncReader({ input, options }: UcdExportSignature.AllValues): EsSnippet {
+  const createSyncUcdReader = UC_MODULE_DESERIALIZER.import('createSyncUcdReader');
 
-  return `const ${reader} = ${createSyncUcdReader}(${input}, ${options});`;
+  return esline`${createSyncUcdReader}(${input}, ${options})`;
 }

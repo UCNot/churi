@@ -80,7 +80,7 @@ const UcList$instructions: UcInstructions = {
   deserializer: {
     use: {
       from: COMPILER_MODULE,
-      feature: 'ListUcrxTemplate',
+      feature: 'ListUcrxClass',
     },
   },
   serializer: {

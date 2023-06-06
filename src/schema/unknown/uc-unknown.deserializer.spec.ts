@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
@@ -20,12 +19,12 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for nullable', () => {
-    let lib: UcdLib<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
+    let setup: UcdSetup<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = await new UcdSetup({ models: { readValue: ucUnknown() } }).bootstrap();
-      ({ readValue } = await lib.compileFactory().toExports());
+      setup = new UcdSetup({ models: { readValue: ucUnknown() } });
+      ({ readValue } = await setup.evaluate());
     });
 
     it('recognizes boolean', () => {
@@ -92,14 +91,14 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let lib: UcdLib<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
+    let setup: UcdSetup<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
-      lib = await new UcdSetup({
+      setup = new UcdSetup({
         models: { readValue: ucNullable(ucUnknown(), false) },
-      }).bootstrap();
-      ({ readValue } = await lib.compileFactory().toExports());
+      });
+      ({ readValue } = await setup.evaluate());
     });
 
     it('rejects null', () => {
@@ -119,15 +118,15 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('with custom entity', () => {
-    let lib: UcdLib<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
+    let setup: UcdSetup<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      lib = await new UcdSetup({
+      setup = new UcdSetup({
         models: { readValue: ucUnknown() },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
-      }).bootstrap();
-      ({ readValue } = await lib.compileFactory().toExports());
+      });
+      ({ readValue } = await setup.evaluate());
     });
 
     it('recognizes custom entity', () => {

@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
 import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -16,16 +15,16 @@ describe('UcString deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcModel<string> }>;
+  let setup: UcdSetup<{ readValue: UcModel<string> }>;
   let readValue: UcDeserializer<string>;
 
   beforeEach(async () => {
-    lib = await new UcdSetup({
+    setup = new UcdSetup({
       models: {
         readValue: String,
       },
-    }).bootstrap();
-    ({ readValue } = await lib.compileFactory().toExports());
+    });
+    ({ readValue } = await setup.evaluate());
   });
 
   it('deserializes string', async () => {

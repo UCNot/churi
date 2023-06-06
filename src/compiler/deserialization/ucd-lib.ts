@@ -1,18 +1,25 @@
+import {
+  EsBundle,
+  EsDeclarationContext,
+  EsScope,
+  EsSnippet,
+  EsSymbol,
+  EsVarSymbol,
+  esline,
+} from 'esgen';
 import { escapeJsString } from 'httongue';
-import { CHURI_MODULE, DEFAULT_ENTITIES_MODULE } from '../../impl/module-names.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
-import { UccBundle } from '../codegen/ucc-bundle.js';
-import { UccFragment, UccSource } from '../codegen/ucc-code.js';
-import { UccInitLocation } from '../codegen/ucc-declarations.js';
-import { UccOutputFormat } from '../codegen/ucc-output-format.js';
+import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.js';
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
+import { UcrxClass, UcrxClassFactory } from '../rx/ucrx.class.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
+import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
+import { UcdModels } from './ucd-setup.js';
 
 /**
  * Deserializer library that {@link UcdLib#compileFactory compiles data models} into their deserialization functions.
@@ -23,9 +30,19 @@ import { UcdFunction } from './ucd-function.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcdLib<
-  out TModels extends UcdLib.Models = UcdLib.Models,
+  out TModels extends UcdModels = UcdModels,
   out TMode extends UcDeserializer.Mode = 'universal',
 > extends UcrxLib {
+
+  static esScopedValue(scope: EsScope): UcdLib.Any {
+    const { bundle } = scope;
+
+    if (scope !== bundle) {
+      return bundle.get(this);
+    }
+
+    throw new ReferenceError(`UcdLib is not initialized`);
+  }
 
   readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
@@ -39,9 +56,10 @@ export class UcdLib<
   >;
 
   readonly #deserializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcdFunction>>();
-  #entityHandler?: string;
+  #entityHandler?: [EsSnippet, EsSymbol?];
 
-  constructor(options: UcdLib.Options<TModels, TMode>) {
+  constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
+  constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
     const { models, entities, createDeserializer = options => new UcdFunction(options) } = options;
 
     super({ ...options });
@@ -59,7 +77,7 @@ export class UcdLib<
     for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
       const fn = this.deserializerFor(schema);
 
-      this.#declareDeserializer(fn, externalName);
+      ns.refer(fn.exportFn(externalName, UcdExportSignature));
     }
   }
 
@@ -67,34 +85,48 @@ export class UcdLib<
     return this.#options.mode;
   }
 
-  get entityHandler(): string {
+  get entityHandler(): EsSnippet {
+    return this.#getEntityHandler()[0];
+  }
+
+  #getEntityHandler(): [EsSnippet, EsSymbol?] {
     return (this.#entityHandler ??= this.#createEntityHandler());
   }
 
-  #createEntityHandler(): string {
+  #createEntityHandler(): [EsSnippet, EsSymbol?] {
+    const { exportEntityHandler } = this.#options;
     const entities = this.#entities;
 
     if (!entities) {
       // Use precompiled entity handler.
-      return this.import(DEFAULT_ENTITIES_MODULE, 'onEntity$byDefault');
+      const entityHandler = UC_MODULE_DEFAULT_ENTITIES.import('onEntity$byDefault');
+
+      return [entityHandler, entityHandler];
     }
 
     if (!entities.length) {
       // No entities supported.
-      return 'undefined';
+      return ['undefined'];
     }
 
     // Generate custom entity handler.
-    return this.declarations.declare('onEntity$byDefault', location => code => {
-      code.write(this.createEntityHandler(location));
+    const entityHandler = new EsVarSymbol('onEntity$byDefault', {
+      declare: {
+        at: exportEntityHandler ? 'exports' : 'bundle',
+        value: context => code => {
+          code.write(this.#registerEntities(context));
+        },
+      },
     });
+
+    return [entityHandler, entityHandler];
   }
 
-  createEntityHandler({ init, refer }: UccInitLocation): UccSource {
-    const EntityUcrxHandler = this.import(CHURI_MODULE, 'EntityUcrxHandler');
+  #registerEntities({ refer }: EsDeclarationContext): EsSnippet {
+    const EntityUcrxHandler = UC_MODULE_CHURI.import('EntityUcrxHandler');
 
-    return init(code => {
-      code.write(`new ${EntityUcrxHandler}()`).indent(code => {
+    return code => {
+      code.write(esline`new ${EntityUcrxHandler}()`).indent(code => {
         this.#entities!.forEach(({ entity, feature, prefix }) => {
           if (typeof entity === 'string') {
             entity = UcLexer.scan(entity);
@@ -111,20 +143,14 @@ export class UcdLib<
             feature({
               lib: this,
               register: entityRx => code => {
-                code.inline(
-                  prefix ? '.addPrefix(' : '.addEntity(',
-                  tokenArray,
-                  ', ',
-                  entityRx,
-                  ')',
-                );
+                code.line(prefix ? '.addPrefix(' : '.addEntity(', tokenArray, ', ', entityRx, ')');
               },
               refer,
             }),
           );
         });
       }, '.toRx()');
-    });
+    };
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -153,100 +179,44 @@ export class UcdLib<
     return deserializer;
   }
 
-  #declareDeserializer(fn: UcdFunction, externalName: string): void {
-    const { opaqueUcrx } = this;
+  override ucrxClassFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): UcrxClass {
+    return this.deserializerFor<T, TSchema>(schema).ucrxClass;
+  }
 
-    const input = this.mode === 'async' ? fn.vars.stream : fn.vars.input;
-    const options = fn.vars.options;
+  ucrxClassFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcrxClassFactory<T, TSchema> | undefined {
+    return this.#options.ucrxClassFactoryFor?.(schema);
+  }
 
-    this.declarations.declareFunction(
-      externalName,
-      [this.mode === 'async' ? fn.vars.stream : fn.vars.input, options],
-      () => code => {
-        code.write(`const { onError, onEntity = ${this.entityHandler} } = ${options} ?? {};`);
-        if (opaqueUcrx) {
-          code
-            .write(`${options} = {`)
-            .indent(code => {
-              code.write(
-                'onError,',
-                'onEntity,',
-                `opaqueRx: `
-                  + opaqueUcrx.newInstance({
-                    set: 'undefined',
-                    context: 'undefined',
-                  })
-                  + ',',
-              );
-            })
-            .write('};');
-        } else {
-          code.write(`${options} = { onError, onEntity };`);
+  init(): EsSnippet {
+    return (_, { ns }) => {
+      if (this.#options.exportEntityHandler) {
+        const [, handlerSymbol] = this.#getEntityHandler();
+
+        if (handlerSymbol) {
+          ns.refer(handlerSymbol);
         }
-        code.write(fn.toUcDeserializer(input, options));
-      },
-      {
-        async: this.mode === 'async',
-        exported: true,
-        bindArgs:
-          this.mode === 'async'
-            ? {
-                [fn.vars.stream]: fn.vars.stream,
-                [options]: options,
-              }
-            : {
-                [fn.vars.input]: fn.vars.input,
-                [options]: options,
-              },
-      },
-    );
-  }
-
-  override ucrxTemplateFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxTemplate<T, TSchema> {
-    return this.deserializerFor<T, TSchema>(schema).template;
-  }
-
-  ucrxTemplateFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxTemplate.Factory<T, TSchema> | undefined {
-    return this.#options.ucrxTemplateFactoryFor?.(schema);
-  }
-
-  compileFactory(): UcdLib.Factory<TModels, TMode> {
-    const module = this.bundle.compile(UccOutputFormat.IIFE);
-
-    return {
-      toCode: module.toCode,
-      toExports: () => this.#toExports(module),
+      }
     };
-  }
-
-  async #toExports(module: UccBundle.Compiled): Promise<UcdLib.Exports<TModels, TMode>> {
-    const text = await module.toText();
-
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const factory = Function(text) as () => Promise<UcdLib.Exports<TModels, TMode>>;
-
-    return await factory();
   }
 
 }
 
 export namespace UcdLib {
-  export type Any<TModels extends Models = Models> = UcdLib<TModels, UcDeserializer.Mode>;
+  export type Any<TModels extends UcdModels = UcdModels> = UcdLib<TModels, UcDeserializer.Mode>;
 
-  export interface Options<out TModels extends Models, out TMode extends UcDeserializer.Mode>
+  export interface Options<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
     extends UcrxLib.Options {
     readonly models: TModels;
     readonly mode: TMode;
     readonly entities?: EntityConfig[] | undefined;
+    readonly exportEntityHandler?: boolean | undefined;
 
-    ucrxTemplateFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    ucrxClassFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
       this: void,
       schema: TSchema,
-    ): UcrxTemplate.Factory<T, TSchema> | undefined;
+    ): UcrxClassFactory<T, TSchema> | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -258,35 +228,5 @@ export namespace UcdLib {
     readonly entity: string | readonly UcToken[];
     readonly feature: UcdEntityFeature;
     readonly prefix?: boolean;
-  }
-
-  export interface Models {
-    readonly [reader: string]: UcModel;
-  }
-
-  export type Exports<
-    TModels extends Models,
-    TMode extends UcDeserializer.Mode,
-  > = TMode extends 'async'
-    ? AsyncExports<TModels>
-    : TMode extends 'sync'
-    ? SyncExports<TModels>
-    : UniversalExports<TModels>;
-
-  export type UniversalExports<TModels extends Models> = {
-    readonly [reader in keyof TModels]: UcDeserializer<UcInfer<TModels[reader]>>;
-  };
-
-  export type AsyncExports<TModels extends Models> = {
-    readonly [reader in keyof TModels]: UcDeserializer.Async<UcInfer<TModels[reader]>>;
-  };
-
-  export type SyncExports<TModels extends Models> = {
-    readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
-  };
-
-  export interface Factory<out TModels extends Models, out TMode extends UcDeserializer.Mode>
-    extends UccFragment {
-    toExports(): Promise<Exports<TModels, TMode>>;
   }
 }

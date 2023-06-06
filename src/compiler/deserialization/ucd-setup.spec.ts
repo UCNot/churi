@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
@@ -8,7 +9,7 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
 describe('UcdSetup', () => {
   describe('enables', () => {
     it('enables feature in object form', async () => {
-      const lib = await new UcdSetup({
+      const setup = new UcdSetup({
         models: {
           readTimestamp: Number,
         },
@@ -21,10 +22,10 @@ describe('UcdSetup', () => {
           },
           ucdSupportDefaults,
         ],
-      }).bootstrap();
+      });
 
       const now = new Date();
-      const { readTimestamp } = await lib.compileFactory().toExports();
+      const { readTimestamp } = await setup.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -40,15 +41,15 @@ describe('UcdSetup', () => {
           },
         },
       };
-      const lib = await new UcdSetup({
+      const setup = new UcdSetup({
         models: {
           readTimestamp: schema,
         },
         mode: 'sync',
-      }).bootstrap();
+      });
 
       const now = new Date();
-      const { readTimestamp } = await lib.compileFactory().toExports();
+      const { readTimestamp } = await setup.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -61,15 +62,15 @@ describe('UcdSetup', () => {
           },
         },
       };
-      const lib = await new UcdSetup({
+      const setup = new UcdSetup({
         models: {
           readTimestamp: schema,
         },
         mode: 'sync',
-      }).bootstrap();
+      });
 
       const now = new Date();
-      const { readTimestamp } = await lib.compileFactory().toExports();
+      const { readTimestamp } = await setup.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -82,15 +83,15 @@ describe('UcdSetup', () => {
           },
         },
       };
-      const lib = await new UcdSetup({
+      const setup = new UcdSetup({
         models: {
           readTimestamp: schema,
         },
         mode: 'sync',
-      }).bootstrap();
+      });
 
       const now = new Date();
-      const { readTimestamp } = await lib.compileFactory().toExports();
+      const { readTimestamp } = await setup.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
     });
@@ -129,6 +130,126 @@ describe('UcdSetup', () => {
       ).rejects.toThrow(
         new ReferenceError(`Not a deserializer feature: import('${SPEC_MODULE}').WrongFeature`),
       );
+    });
+  });
+
+  describe('generate', () => {
+    describe('ES2015', () => {
+      it('compiles async module', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'async'>({
+          models: { readValue: Number },
+          mode: 'async',
+        });
+        const text = await setup.generate();
+
+        expect(text).toContain(`} from 'churi/deserializer.js';\n`);
+        expect(text).toContain(
+          `
+export async function readValue(
+  stream,
+  { onError, onEntity = onEntity$byDefault } = {},
+) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bAsyncUcdReader\b/);
+        expect(text).not.toMatch(/\bSyncUcdReader\b/);
+      });
+      it('compiles sync module', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'sync'>({
+          models: { readValue: Number },
+          mode: 'sync',
+        });
+        const text = await setup.generate();
+
+        expect(text).toContain(`} from 'churi/deserializer.js';\n`);
+        expect(text).toContain(
+          `
+export function readValue(
+  input,
+  { onError, onEntity = onEntity$byDefault } = {},
+) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bcreateSyncUcdReader\b/);
+        expect(text).not.toMatch(/\bAsyncUcdReader\b/);
+      });
+      it('compiles universal module', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
+          models: { readValue: Number },
+        });
+        const text = await setup.generate();
+
+        expect(text).toContain(`} from 'churi/deserializer.js';\n`);
+        expect(text).toContain(
+          `
+export function readValue(
+  input,
+  { onError, onEntity = onEntity$byDefault } = {},
+) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bcreateSyncUcdReader\b/);
+        expect(text).toMatch(/\bAsyncUcdReader\b/);
+      });
+    });
+
+    describe('IIFE', () => {
+      it('creates async factory', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'async'>({
+          models: { readValue: Number },
+          mode: 'async',
+        });
+        const text = await setup.generate({ format: EsBundleFormat.IIFE });
+
+        expect(text).toContain("import('churi/deserializer.js')");
+        expect(text).toContain(
+          `
+  async function readValue(
+    stream,
+    { onError, onEntity = onEntity$byDefault } = {},
+  ) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bAsyncUcdReader\b/);
+        expect(text).not.toMatch(/\bcreateSyncUcdReader\b/);
+      });
+      it('creates sync factory', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'sync'>({
+          models: { readValue: Number },
+          mode: 'sync',
+        });
+        const text = await setup.generate({ format: EsBundleFormat.IIFE });
+
+        expect(text).toContain("import('churi/deserializer.js')");
+        expect(text).toContain(
+          `
+  function readValue(
+    input,
+    { onError, onEntity = onEntity$byDefault } = {},
+  ) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bcreateSyncUcdReader\b/);
+        expect(text).not.toMatch(/\bAsyncUcdReader\b/);
+      });
+      it('creates universal factory', async () => {
+        const setup = new UcdSetup<{ readValue: UcModel<number> }, 'universal'>({
+          models: { readValue: Number },
+        });
+        const text = await setup.generate({ format: EsBundleFormat.IIFE });
+
+        expect(text).toContain("import('churi/deserializer.js')");
+        expect(text).toContain(
+          `
+  function readValue(
+    input,
+    { onError, onEntity = onEntity$byDefault } = {},
+  ) {
+`.trimStart(),
+        );
+        expect(text).toMatch(/\bcreateSyncUcdReader\b/);
+        expect(text).toMatch(/\bAsyncUcdReader\b/);
+      });
     });
   });
 });

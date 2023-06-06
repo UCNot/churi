@@ -1,8 +1,6 @@
 import {
   EsBundle,
   EsScope,
-  EsScopeContext,
-  EsScopeSetup,
   EsSymbol,
   EsVarKind,
   EsVarSymbol,

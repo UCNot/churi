@@ -3,8 +3,6 @@
  *
  * @module churi/compiler.js
  */
-export * from './codegen/mod.js';
-export * from './codegen/ucc-args.js';
 export * from './deserialization/mod.js';
 export * from './rx/mod.js';
 export * from './serialization/mod.js';

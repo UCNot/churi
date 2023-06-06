@@ -1,4 +1,4 @@
-import { UccSource } from '../codegen/ucc-code.js';
+import { EsReference, EsSnippet } from 'esgen';
 import { UcdLib } from './ucd-lib.js';
 
 /**
@@ -8,9 +8,9 @@ import { UcdLib } from './ucd-lib.js';
  *
  * @param setup - Entity deserialization setup.
  *
- * @returns Source of entity registration code.
+ * @returns Code snippet containing entity registration.
  */
-export type UcdEntityFeature = (setup: UcdEntitySetup) => UccSource;
+export type UcdEntityFeature = (setup: UcdEntitySetup) => EsSnippet;
 
 /**
  * Entity deserialization setup.
@@ -28,16 +28,16 @@ export interface UcdEntitySetup {
    *
    * @param entityRx - Entity receiver expression.
    *
-   * @returns Source of entity registration code.
+   * @returns Code snippet containing entity registration.
    */
-  register(entityRx: UccSource): UccSource;
+  register(this: void, entityRx: EsSnippet): EsSnippet;
 
   /**
    * Makes entity handler refer the given symbol.
    *
    * The referenced symbol will be declared before the entity handler.
    *
-   * @param ref - Referenced symbol name.
+   * @param ref - Referred symbol.
    */
-  refer(this: void, ref: string): void;
+  refer(this: void, ref: EsReference): void;
 }

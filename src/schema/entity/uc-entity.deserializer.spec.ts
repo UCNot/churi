@@ -21,15 +21,15 @@ describe('UcEntity deserializer', () => {
   });
 
   it('(async) does not recognize unknown entity', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readNumber: Number,
       },
       mode: 'async',
       features: ucdSupportPrimitives,
-    }).bootstrap();
+    });
 
-    const { readNumber } = await lib.compileFactory().toExports();
+    const { readNumber } = await setup.evaluate();
 
     await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
     expect(errors).toEqual([
@@ -44,15 +44,15 @@ describe('UcEntity deserializer', () => {
     ]);
   });
   it('(sync) does not recognize unknown entity', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readNumber: Number,
       },
       mode: 'sync',
       features: ucdSupportPrimitives,
-    }).bootstrap();
+    });
 
-    const { readNumber } = await lib.compileFactory().toExports();
+    const { readNumber } = await setup.evaluate();
 
     expect(readNumber('!Infinity', { onError })).toBeUndefined();
     expect(errors).toEqual([
@@ -68,55 +68,55 @@ describe('UcEntity deserializer', () => {
   });
 
   it('recognizes by custom prefix', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readString: String,
       },
       mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
-    }).bootstrap();
-    const { readString } = await lib.compileFactory().toExports();
+    });
+    const { readString } = await setup.evaluate();
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
   it('closes hanging parentheses', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readString: String,
       },
       mode: 'async',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
-    }).bootstrap();
-    const { readString } = await lib.compileFactory().toExports();
+    });
+    const { readString } = await setup.evaluate();
 
     await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
       '!plain(bar(item1,item2)baz())',
     );
   });
   it('extends base ucrx', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readTimestamp: Number,
       },
       mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportTimestampEntity],
-    }).bootstrap();
+    });
     const now = new Date();
-    const { readTimestamp } = await lib.compileFactory().toExports();
+    const { readTimestamp } = await setup.evaluate();
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
   it('fails without required ucrx method', async () => {
-    const lib = await new UcdSetup({
+    const setup = new UcdSetup({
       models: {
         readTimestamp: Number,
       },
       mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportTimestampEntityOnly],
-    }).bootstrap();
+    });
 
-    await expect(lib.compileFactory().toExports()).rejects.toThrow(
-      new ReferenceError(`Unknown charge receiver method: Ucrx.date(value, reject)`),
+    await expect(setup.evaluate()).rejects.toThrow(
+      new ReferenceError(`.date(value, reject) is not available in VoidUcrx /* [Class] */`),
     );
   });
 });

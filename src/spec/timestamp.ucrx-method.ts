@@ -1,20 +1,23 @@
-import { UccArgs } from '../compiler/codegen/ucc-args.js';
-import { UccSource } from '../compiler/codegen/ucc-code.js';
+import { EsFunction, EsVarSymbol, esline } from 'esgen';
 import { UcdFeature, UcdSchemaFeature } from '../compiler/deserialization/ucd-feature.js';
 import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
-import { CustomUcrxTemplate } from '../compiler/rx/custom.ucrx-template.js';
+import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
+import { UcrxCore } from '../compiler/rx/ucrx-core.js';
 import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
-import { UcrxTemplate } from '../compiler/rx/ucrx-template.js';
-import { CHURI_MODULE } from '../impl/module-names.js';
+import { UcrxClass } from '../compiler/rx/ucrx.class.js';
 import { UcSchema } from '../schema/uc-schema.js';
 
-export const TimestampUcrxMethod = new UcrxSetter({
-  key: 'date',
-  stub:
-    ({ value, reject }) => code => {
-      code.write(`return this.num(${value}.getTime(), ${reject});`);
+export const TimestampUcrxMethod = new UcrxSetter('date', {
+  stub: {
+    body({
+      member: {
+        args: { value, reject },
+      },
+    }) {
+      return esline`return this.num(${value}.getTime(), ${reject});`;
     },
+  },
   typeName: 'date',
 });
 
@@ -22,25 +25,39 @@ export function ucdSupportTimestampEntity(setup: UcdSetup): void {
   setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampEntityOnly);
 }
 
+const readTimestampEntityFn = new EsFunction(
+  'readTimestampEntity',
+  {
+    reader: {},
+    rx: {},
+    prefix: {},
+    args: {},
+    reject: {},
+  },
+  {
+    declare: {
+      at: 'bundle',
+      body({ args: { rx, args, reject } }) {
+        return (code, scope) => {
+          const lib = scope.get(UcrxLib);
+          const date = new EsVarSymbol('date');
+          const printTokens = UC_MODULE_CHURI.import('printUcTokens');
+          const setDate = lib.baseUcrx.member(TimestampUcrxMethod);
+
+          code
+            .line(date.declare({ value: () => esline`new Date(${printTokens}(${args}))` }), ';')
+            .line('return ', setDate.call(rx, { value: date, reject }), ';');
+        };
+      },
+    },
+  },
+);
+
 export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
-  setup.handleEntityPrefix("!timestamp'", ({ lib, register, refer }) => code => {
-    const readTimestamp = lib.declarations.declareFunction(
-      'readTimestampEntity',
-      ['_reader', 'rx', '_prefix', 'args', 'reject'],
-      ({ args: { rx, args, reject }, ns }) => code => {
-          const date = ns.name('date');
-          const printTokens = lib.import(CHURI_MODULE, 'printUcTokens');
+  setup.handleEntityPrefix("!timestamp'", ({ register, refer }) => code => {
+    refer(readTimestampEntityFn);
 
-          code.write(
-            `const ${date} = new Date(${printTokens}(${args}));`,
-            'return ' + TimestampUcrxMethod.toMethod(lib).call(rx, { value: date, reject }) + ';',
-          );
-        },
-    );
-
-    refer(readTimestamp);
-
-    code.write(register(readTimestamp));
+    code.write(register(readTimestampEntityFn.symbol));
   });
 }
 
@@ -48,10 +65,7 @@ export const UcdSupportTimestamp: UcdFeature.Object = {
   configureDeserializer(setup) {
     setup
       .enable(ucdSupportTimestampEntity)
-      .useUcrxTemplate<number>(
-        'timestamp',
-        (lib, schema) => new TimestampUcrxTemplate(lib, schema),
-      );
+      .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
   },
 };
 
@@ -65,19 +79,29 @@ export function ucdSupportTimestampSchema(setup: UcdSetup, _schema: UcSchema<num
   setup.enable(UcdSupportTimestamp);
 }
 
-class TimestampUcrxTemplate extends CustomUcrxTemplate<number> {
+class TimestampUcrxClass extends UcrxClass {
 
   constructor(lib: UcrxLib, schema: UcSchema<number>) {
-    super({ lib, schema });
-  }
+    super({
+      schema,
+      typeName: 'Timestamp',
+      baseClass: lib.baseUcrx,
+    });
 
-  protected override overrideMethods(): UcrxTemplate.MethodDecls {
-    return {
-      num({ value }: UccArgs.ByName<'value'>): UccSource {
-        return `return this.set(${value});`;
+    UcrxCore.num.declareIn(this, {
+      body({
+        member: {
+          args: { value },
+        },
+      }) {
+        return esline`return this.set(${value});`;
       },
-      nul: this.schema.nullable ? () => `return this.set(null);` : undefined,
-    };
+    });
+    if (schema.nullable) {
+      UcrxCore.nul.declareIn(this, {
+        body: () => `return this.set(null);`,
+      });
+    }
   }
 
 }

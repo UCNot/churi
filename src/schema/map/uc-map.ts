@@ -180,7 +180,7 @@ const UcMap$instructions: UcInstructions = {
   deserializer: {
     use: {
       from: COMPILER_MODULE,
-      feature: 'MapUcrxTemplate',
+      feature: 'MapUcrxClass',
     },
   },
   serializer: {
