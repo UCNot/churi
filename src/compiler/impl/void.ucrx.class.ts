@@ -1,7 +1,6 @@
 import { EsClass, EsField, esImportClass } from 'esgen';
 import { VoidUcrx } from '../../rx/void.ucrx.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClassSignature1 } from '../rx/ucrx.class.js';
 import { UC_MODULE_CHURI } from './uc-modules.js';
 
@@ -24,11 +23,7 @@ export class VoidUcrxClass extends EsClass<UcrxClassSignature1.Args> {
 
     // Register core methods.
     for (const member of Object.values(UcrxCore)) {
-      if (member instanceof UcrxMethod) {
-        member.declareStub(this);
-      } else {
-        member.declareIn(this, { get: () => `return ['void'];` });
-      }
+      member.declareStub(this);
     }
 
     // Reserve `VoidUcrx` members not declared in `UcrxCore`.

@@ -7,7 +7,7 @@ import { UcdCompiler } from './ucd-compiler.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 describe('UcdCompiler', () => {
-  describe('enables', () => {
+  describe('features', () => {
     it('enables feature in object form', async () => {
       const compiler = new UcdCompiler({
         models: {
@@ -28,6 +28,22 @@ describe('UcdCompiler', () => {
       const { readTimestamp } = await compiler.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
+    });
+  });
+
+  describe('exportEntityHandler', () => {
+    it('exports default entity handler', async () => {
+      const compiler = new UcdCompiler({
+        models: {},
+        exportEntityHandler: true,
+        features(compiler) {
+          ucdSupportDefaults(compiler);
+        },
+      });
+
+      await expect(compiler.evaluate()).resolves.toEqual({
+        onEntity$byDefault: expect.any(Function),
+      });
     });
   });
 
