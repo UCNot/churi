@@ -200,13 +200,13 @@ export class ListUcrxClass<
   }
 
   protected override discoverTypes(types: Set<string>): void {
-    if (!this.#isMatrix || this.itemClass.permitsSingle) {
-      for (const type of this.itemClass.supportedTypes) {
-        types.add(type);
-      }
+    if (this.#isMatrix && !this.itemClass.permitsSingle) {
+      return super.discoverTypes(types);
     }
 
-    super.discoverTypes(types);
+    for (const type of this.itemClass.supportedTypes) {
+      types.add(type);
+    }
   }
 
   get #isNullableList(): boolean | undefined {
