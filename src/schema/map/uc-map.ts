@@ -1,4 +1,4 @@
-import { quoteJsKey } from 'httongue';
+import { esQuoteKey } from 'esgen';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { ucModelName } from '../uc-model-name.js';
@@ -158,7 +158,7 @@ export function ucMap<
         if (i) {
           out += ', ';
         }
-        out += quoteJsKey(key) + ': ' + ucModelName(entry);
+        out += esQuoteKey(key) + ': ' + ucModelName(entry);
 
         if (i < 2) {
           return true;

@@ -1,5 +1,4 @@
-import { EsArg, EsCode, EsMethodDeclaration, EsProperty, esline } from 'esgen';
-import { jsStringLiteral } from 'httongue';
+import { EsArg, EsCode, EsMethodDeclaration, EsProperty, esStringLiteral, esline } from 'esgen';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxSetter } from './ucrx-setter.js';
@@ -104,7 +103,7 @@ function UcrxCore$rejectType(typeName: string): EsMethodDeclaration<{ reject: Es
     }) {
       const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
 
-      return esline`return ${reject}(${ucrxRejectType}(${jsStringLiteral(typeName)}, this));`;
+      return esline`return ${reject}(${ucrxRejectType}(${esStringLiteral(typeName)}, this));`;
     },
   };
 }

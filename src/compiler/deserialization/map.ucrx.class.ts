@@ -5,9 +5,9 @@ import {
   EsSnippet,
   EsSymbol,
   EsVarSymbol,
+  esQuoteKey,
   esline,
 } from 'esgen';
-import { quoteJsKey } from 'httongue';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
@@ -88,7 +88,7 @@ export class MapUcrxClass<
                 for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
                   const entry = this.createEntry(key, entrySchema);
 
-                  code.line(quoteJsKey(key), ': ', entry.declare(this.#store), ',');
+                  code.line(esQuoteKey(key), ': ', entry.declare(this.#store), ',');
                 }
               })
               .write(`}`);

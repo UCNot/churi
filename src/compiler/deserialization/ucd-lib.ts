@@ -5,9 +5,9 @@ import {
   EsSnippet,
   EsSymbol,
   EsVarSymbol,
+  esEscapeString,
   esline,
 } from 'esgen';
-import { escapeJsString } from 'httongue';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcDataType, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
@@ -135,7 +135,7 @@ export class UcdLib<
           const tokenArray =
             '['
             + entity
-              .map(token => typeof token === 'number' ? token.toString() : `'${escapeJsString(token)}'`)
+              .map(token => typeof token === 'number' ? token.toString() : `'${esEscapeString(token)}'`)
               .join(', ')
             + ']';
 

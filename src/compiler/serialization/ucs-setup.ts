@@ -6,8 +6,9 @@ import {
   EsScopeSetup,
   esEvaluate,
   esGenerate,
+  esQuoteKey,
+  esStringLiteral,
 } from 'esgen';
-import { jsStringLiteral, quoteJsKey } from 'httongue';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSerializer } from '../../schema/uc-serializer.js';
@@ -298,7 +299,7 @@ class UcsSetup$FeatureUse {
   }
 
   toString(): string {
-    return `import(${jsStringLiteral(this.#from)}).${quoteJsKey(this.#name)}`;
+    return `import(${esStringLiteral(this.#from)}).${esQuoteKey(this.#name)}`;
   }
 
 }
