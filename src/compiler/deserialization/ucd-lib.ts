@@ -1,7 +1,6 @@
 import {
   EsBundle,
   EsDeclarationContext,
-  EsScope,
   EsSnippet,
   EsSymbol,
   EsVarSymbol,
@@ -32,16 +31,6 @@ export class UcdLib<
   out TModels extends UcdModels = UcdModels,
   out TMode extends UcDeserializer.Mode = 'universal',
 > extends UcrxLib {
-
-  static esScopedValue(scope: EsScope): UcdLib.Any {
-    const { bundle } = scope;
-
-    if (scope !== bundle) {
-      return bundle.get(this);
-    }
-
-    throw new ReferenceError(`UcdLib is not initialized`);
-  }
 
   readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;

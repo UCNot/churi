@@ -224,7 +224,7 @@ export class UcdCompiler<
 
   #initLib(): EsSnippet {
     return (code, scope) => {
-      code.write(scope.get(UcdLib).init());
+      code.write((scope.get(UcdLib) as UcdLib).init());
     };
   }
 
