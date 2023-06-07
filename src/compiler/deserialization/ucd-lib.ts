@@ -21,9 +21,7 @@ import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
 
 /**
- * Deserializer library that {@link UcdLib#compileFactory compiles data models} into their deserialization functions.
- *
- * Created by {@link UcdCompiler#bootstrap compiler}.
+ * Deserializer library allocated by {@link UcdCompiler#bootstrap compiler}.
  *
  * @typeParam TModels - Compiled models record type.
  */

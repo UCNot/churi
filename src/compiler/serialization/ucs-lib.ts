@@ -16,9 +16,7 @@ import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
 
 /**
- * Serializer library that {@link UcsLib#compileFactory compiles data models} into serialization functions.
- *
- * Created by {@link UcsCompiler#bootstrap compiler}.
+ * Serializer library allocated by {@link UcsCompiler#bootstrap compiler}.
  *
  * @typeParam TModels - Compiled models record type.
  */
