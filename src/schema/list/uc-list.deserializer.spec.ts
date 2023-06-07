@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { ucMap } from '../map/uc-map.js';
@@ -23,13 +23,13 @@ describe('UcList deserializer', () => {
   let readList: UcDeserializer<number[]>;
 
   beforeEach(async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readList: ucList<number>(Number),
       },
     });
 
-    ({ readList } = await setup.evaluate());
+    ({ readList } = await compiler.evaluate());
   });
 
   it('deserializes list', async () => {
@@ -71,7 +71,7 @@ describe('UcList deserializer', () => {
     ]);
   });
   it('does not deserialize unrecognized schema', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
       },
@@ -80,7 +80,7 @@ describe('UcList deserializer', () => {
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await setup.evaluate();
+      await compiler.evaluate();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }
@@ -96,13 +96,13 @@ describe('UcList deserializer', () => {
     let readList: UcDeserializer<boolean[]>;
 
     beforeEach(async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readList: ucList<boolean>(Boolean),
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes items', async () => {
@@ -114,13 +114,13 @@ describe('UcList deserializer', () => {
     let readList: UcDeserializer<string[]>;
 
     beforeEach(async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readList: ucList<string>(String),
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes quoted strings', async () => {
@@ -137,7 +137,7 @@ describe('UcList deserializer', () => {
     let readList: UcDeserializer<{ foo: string }[]>;
 
     beforeEach(async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readList: ucList<{ foo: string }>(
             ucMap<{ foo: UcModel<string> }>(
@@ -152,7 +152,7 @@ describe('UcList deserializer', () => {
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes items', async () => {
@@ -227,13 +227,13 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const nullableNumber = ucNullable<number>(Number);
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readList: ucList<number | null>(nullableNumber),
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes null item', async () => {
@@ -263,13 +263,13 @@ describe('UcList deserializer', () => {
     let readList: UcDeserializer<number[] | null>;
 
     beforeEach(async () => {
-      const setup = new UcdSetup<{ readList: UcNullable<number[]> }>({
+      const compiler = new UcdCompiler<{ readList: UcNullable<number[]> }>({
         models: {
           readList: ucNullable(ucList<number>(Number)),
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes null', async () => {
@@ -317,13 +317,13 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const nullableNumber = ucNullable<number>(Number);
-      const setup = new UcdSetup<{ readList: UcNullable<(number | null)[]> }>({
+      const compiler = new UcdCompiler<{ readList: UcNullable<(number | null)[]> }>({
         models: {
           readList: ucNullable(ucList<number | null>(nullableNumber)),
         },
       });
 
-      ({ readList } = await setup.evaluate());
+      ({ readList } = await compiler.evaluate());
     });
 
     it('deserializes null', async () => {
@@ -347,13 +347,13 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       errors = [];
 
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMatrix: ucList<number[]>(ucList<number>(Number)),
         },
       });
 
-      ({ readMatrix } = await setup.evaluate());
+      ({ readMatrix } = await compiler.evaluate());
     });
 
     it('deserializes nested list', async () => {
@@ -391,24 +391,24 @@ describe('UcList deserializer', () => {
       ]);
     });
     it('deserializes deeply nested lists', async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readCube: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))),
         },
       });
 
-      const { readCube } = await setup.evaluate();
+      const { readCube } = await compiler.evaluate();
 
       await expect(readCube(readTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
     });
     it('recognized empty item of nested list', async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMatrix: ucList<string[]>(ucList<string>(String)),
         },
       });
 
-      const { readMatrix } = await setup.evaluate();
+      const { readMatrix } = await compiler.evaluate();
 
       await expect(readMatrix(readTokens('(,,)'))).resolves.toEqual([['']]);
       await expect(readMatrix(readTokens('(, ,)'))).resolves.toEqual([['']]);
@@ -421,13 +421,13 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const list = ucList<number>(Number);
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMatrix: ucList<number[] | null>(ucNullable(list)),
         },
       });
 
-      ({ readMatrix } = await setup.evaluate());
+      ({ readMatrix } = await compiler.evaluate());
     });
 
     it('deserializes nested list', async () => {
@@ -460,13 +460,13 @@ describe('UcList deserializer', () => {
 
     beforeEach(async () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMatrix: ucNullable(matrix),
         },
       });
 
-      ({ readMatrix } = await setup.evaluate());
+      ({ readMatrix } = await compiler.evaluate());
     });
 
     it('deserializes null', async () => {
@@ -508,13 +508,13 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const list = ucList<number>(Number);
       const matrix = ucList<number[] | null>(ucNullable(list));
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMatrix: ucNullable(matrix),
         },
       });
 
-      ({ readMatrix } = await setup.evaluate());
+      ({ readMatrix } = await compiler.evaluate());
     });
 
     it('deserializes null', async () => {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { UcList, ucList } from '../list/uc-list.js';
@@ -21,18 +21,18 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let setup: UcdSetup<{ readMap: UcMap.Schema<{ foo: UcModel<string> }> }>;
+    let compiler: UcdCompiler<{ readMap: UcMap.Schema<{ foo: UcModel<string> }> }>;
     let readMap: UcDeserializer<{ foo: string }>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucMap<{ foo: UcModel<string> }>({
             foo: String,
           }),
         },
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes entry', async () => {
@@ -113,7 +113,7 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('does not deserialize unrecognized entity schema', async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMap: ucMap(
             {
@@ -129,7 +129,7 @@ describe('UcMap deserializer', () => {
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await setup.generate();
+        await compiler.generate();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
@@ -143,13 +143,13 @@ describe('UcMap deserializer', () => {
   });
 
   describe('multiple entries', () => {
-    let setup: UcdSetup<{
+    let compiler: UcdCompiler<{
       readMap: UcMap.Schema<{ foo: UcModel<string>; bar: UcModel<string> }>;
     }>;
     let readMap: UcDeserializer<{ foo: string; bar: string }>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
             foo: String,
@@ -157,7 +157,7 @@ describe('UcMap deserializer', () => {
           }),
         },
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes entries', async () => {
@@ -274,13 +274,13 @@ describe('UcMap deserializer', () => {
   });
 
   describe('extra entries', () => {
-    let setup: UcdSetup<{
+    let compiler: UcdCompiler<{
       readMap: UcMap.Schema<{ length: UcModel<number> }, UcModel<string>>;
     }>;
     let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucMap(
             {
@@ -292,7 +292,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes extra entries', () => {
@@ -303,7 +303,7 @@ describe('UcMap deserializer', () => {
       });
     });
     it('does not deserialize unrecognized extra schema', async () => {
-      const setup = new UcdSetup({
+      const compiler = new UcdCompiler({
         models: {
           readMap: ucMap(
             {
@@ -320,7 +320,7 @@ describe('UcMap deserializer', () => {
       let error: UnsupportedUcSchemaError | undefined;
 
       try {
-        await setup.evaluate();
+        await compiler.evaluate();
       } catch (e) {
         error = e as UnsupportedUcSchemaError;
       }
@@ -334,7 +334,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('optional entries', () => {
-    let setup: UcdSetup<{
+    let compiler: UcdCompiler<{
       readMap: UcMap.Schema<{ length: UcOptional<number> }, UcModel<string>>;
     }>;
     let readMap: UcDeserializer<
@@ -342,7 +342,7 @@ describe('UcMap deserializer', () => {
     >;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucMap(
             {
@@ -354,7 +354,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes extra entries', () => {
@@ -375,7 +375,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('list entry', () => {
-    let setup: UcdSetup<
+    let compiler: UcdCompiler<
       {
         readMap: UcMap.Schema<{
           foo: UcList.Schema<string>;
@@ -387,7 +387,7 @@ describe('UcMap deserializer', () => {
     let readMap: UcDeserializer.Sync<{ foo: string[] }>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucMap({
             foo: ucList<string>(String),
@@ -396,7 +396,7 @@ describe('UcMap deserializer', () => {
         },
         mode: 'sync',
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes comma-separated items', () => {
@@ -458,11 +458,11 @@ describe('UcMap deserializer', () => {
   });
 
   describe('nullable', () => {
-    let setup: UcdSetup<{ readMap: UcNullable<{ foo: string }> }>;
+    let compiler: UcdCompiler<{ readMap: UcNullable<{ foo: string }> }>;
     let readMap: UcDeserializer<{ foo: string } | null>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readMap: ucNullable(
             ucMap<{ foo: UcModel<string> }>({
@@ -471,7 +471,7 @@ describe('UcMap deserializer', () => {
           ),
         },
       });
-      ({ readMap } = await setup.evaluate());
+      ({ readMap } = await compiler.evaluate());
     });
 
     it('deserializes entry', async () => {

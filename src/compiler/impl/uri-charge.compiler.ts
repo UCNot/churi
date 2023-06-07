@@ -6,7 +6,7 @@ import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { URICharge } from '../../schema/uri-charge/uri-charge.js';
 import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
-import { UcdSetup } from '../deserialization/ucd-setup.js';
+import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -14,14 +14,17 @@ import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UC_MODULE_CHURI, UC_MODULE_URI_CHARGE } from './uc-modules.js';
 
-export class URIChargeCompiler extends UcdSetup<{ parseURICharge: UcSchema<URICharge> }, 'sync'> {
+export class URIChargeCompiler extends UcdCompiler<
+  { parseURICharge: UcSchema<URICharge> },
+  'sync'
+> {
 
   constructor() {
     super({
       models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
       mode: 'sync',
-      features(setup) {
-        setup
+      features(compiler) {
+        compiler
           .enable(ucdSupportDefaults)
           .useUcrxClass('unknown', (lib, schema) => new URIChargeUcrxClass(lib, schema))
           .useUcrxClass(

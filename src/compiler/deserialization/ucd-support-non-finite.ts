@@ -1,9 +1,9 @@
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UcdCompiler } from './ucd-compiler.js';
 import { UcdEntityFeature, UcdEntitySetup } from './ucd-entity-feature.js';
-import { UcdSetup } from './ucd-setup.js';
 
-export function ucdSupportNonFinite(setup: UcdSetup.Any): void {
-  setup
+export function ucdSupportNonFinite(compiler: UcdCompiler.Any): void {
+  compiler
     .handleEntity('!Infinity', handleUcdNonFinite('ucrxInfinity'))
     .handleEntity('!-Infinity', handleUcdNonFinite('ucrxNegativeInfinity'))
     .handleEntity('!NaN', handleUcdNonFinite('ucrxNaN'));

@@ -16,16 +16,15 @@ import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxClassFactory } from '../rx/ucrx.class.js';
+import { UcdModels } from './ucd-compiler.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
-import { UcdModels } from './ucd-setup.js';
 
 /**
  * Deserializer library that {@link UcdLib#compileFactory compiles data models} into their deserialization functions.
  *
- * An {@link UcdSetup deserializer setup} expected to be used to configure and {@link UcdSetup#bootstrap bootstrap}
- * the library instance.
+ * Created by {@link UcdCompiler#bootstrap compiler}.
  *
  * @typeParam TModels - Compiled models record type.
  */

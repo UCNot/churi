@@ -20,12 +20,12 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static configureSchemaDeserializer(setup: UcdSetup.Any, schema: UcSchema): void {
-    setup
+  static configureSchemaDeserializer(compiler: UcdCompiler.Any, schema: UcSchema): void {
+    compiler
       .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
       .processModel(this.listSchemaFor(schema))
       .processModel(this.mapSchemaFor(schema));

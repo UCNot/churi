@@ -10,15 +10,15 @@ import {
 } from 'esgen';
 import { UcDataType, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UcsModels } from './ucs-compiler.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
-import { UcsModels } from './ucs-setup.js';
 
 /**
  * Serializer library that {@link UcsLib#compileFactory compiles data models} into serialization functions.
  *
- * An {@link UcsSetup serializer setup} expected to be used to configure and bootstrap the library instance.
+ * Created by {@link UcsCompiler#bootstrap compiler}.
  *
  * @typeParam TModels - Compiled models record type.
  */

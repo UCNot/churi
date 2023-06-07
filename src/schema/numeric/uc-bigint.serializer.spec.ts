@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
+import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcBigInt serializer', () => {
-  let setup: UcsSetup<{ writeValue: UcModel<bigint> }>;
+  let compiler: UcsCompiler<{ writeValue: UcModel<bigint> }>;
   let writeValue: UcSerializer<bigint>;
 
   beforeEach(async () => {
-    setup = new UcsSetup({
+    compiler = new UcsCompiler({
       models: {
         writeValue: BigInt,
       },
     });
-    ({ writeValue } = await setup.evaluate());
+    ({ writeValue } = await compiler.evaluate());
   });
 
   it('serializes value', async () => {

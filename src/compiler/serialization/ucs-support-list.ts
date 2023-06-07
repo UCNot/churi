@@ -6,13 +6,13 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { UcModel } from '../../schema/uc-schema.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsSignature } from './ucs.signature.js';
 
-export function ucsSupportList(setup: UcsSetup, schema: UcList.Schema): void;
-export function ucsSupportList(setup: UcsSetup, { item }: UcList.Schema): void {
-  setup.useUcsGenerator('list', ucsWriteList).processModel(item);
+export function ucsSupportList(compiler: UcsCompiler, schema: UcList.Schema): void;
+export function ucsSupportList(compiler: UcsCompiler, { item }: UcList.Schema): void {
+  compiler.useUcsGenerator('list', ucsWriteList).processModel(item);
 }
 
 function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(

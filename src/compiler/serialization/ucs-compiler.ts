@@ -21,17 +21,15 @@ import { UcsLib } from './ucs-lib.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
- * Serializer setup used to bootstrap {@link UcsLib serializer library}.
- *
- * Passed to {@link UcsFeature serializer feature} when the latter enabled.
+ * Compiler of schema {@link churi!UcSerializer serializers}.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TModels extends UcsModels = UcsModels> {
+export class UcsCompiler<TModels extends UcsModels = UcsModels> {
 
-  readonly #options: UcsSetup.Options<TModels>;
+  readonly #options: UcsCompiler.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
-  readonly #uses = new Map<UcSchema['type'], UcsSetup$FeatureUse>();
+  readonly #uses = new Map<UcSchema['type'], UcsCompiler$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #generators = new Map<string | UcDataType, UcsGenerator>();
 
@@ -40,7 +38,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
    *
    * @param options - Setup options.
    */
-  constructor(options: UcsSetup.Options<TModels>) {
+  constructor(options: UcsCompiler.Options<TModels>) {
     this.#options = options;
   }
 
@@ -86,7 +84,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcsSetup$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcsCompiler$FeatureUse(schema, from, feature));
     }
   }
 
@@ -225,7 +223,7 @@ export class UcsSetup<TModels extends UcsModels = UcsModels> {
 
 }
 
-export namespace UcsSetup {
+export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
     readonly models: TModels;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
@@ -245,7 +243,7 @@ export type UcsExports<out TModels extends UcsModels> = {
   readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
 };
 
-class UcsSetup$FeatureUse {
+class UcsCompiler$FeatureUse {
 
   readonly #schema: UcSchema;
   readonly #from: string;
@@ -258,7 +256,7 @@ class UcsSetup$FeatureUse {
     this.#name = name;
   }
 
-  async enable(setup: UcsSetup): Promise<void> {
+  async enable(compiler: UcsCompiler): Promise<void> {
     if (this.#enabled) {
       return;
     }
@@ -272,11 +270,11 @@ class UcsSetup$FeatureUse {
       let configured = false;
 
       if ('configureSerializer' in feature) {
-        setup.enable(feature);
+        compiler.enable(feature);
         configured = true;
       }
       if ('configureSchemaSerializer' in feature) {
-        feature.configureSchemaSerializer(setup, this.#schema);
+        feature.configureSchemaSerializer(compiler, this.#schema);
         configured = true;
       }
 
@@ -285,7 +283,7 @@ class UcsSetup$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcsSchemaFeature.Function)(setup, this.#schema);
+        (feature as UcsSchemaFeature.Function)(compiler, this.#schema);
 
         return;
       }

@@ -22,16 +22,16 @@ import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 export class ListUcrxClass<
   TItem = unknown,
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxClassSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static configureSchemaDeserializer(setup: UcdSetup.Any, { item }: UcList.Schema): void {
-    setup.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
-    setup.processModel(item);
+  static configureSchemaDeserializer(compiler: UcdCompiler.Any, { item }: UcList.Schema): void {
+    compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
+    compiler.processModel(item);
   }
 
   readonly #itemClass: UcrxClass;

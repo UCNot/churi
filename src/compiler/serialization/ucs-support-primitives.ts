@@ -1,12 +1,12 @@
 import { EsSnippet, esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
+import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsSignature } from './ucs.signature.js';
 
-export function ucsSupportPrimitives(setup: UcsSetup): void {
-  setup
+export function ucsSupportPrimitives(compiler: UcsCompiler): void {
+  compiler
     .useUcsGenerator(BigInt, ucsWriteBigInt)
     .useUcsGenerator(Boolean, ucsWriteBoolean)
     .useUcsGenerator(Number, ucsWriteNumber)

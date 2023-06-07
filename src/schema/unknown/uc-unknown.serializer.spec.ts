@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
+import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
@@ -9,11 +9,11 @@ describe('UcUnknown serializer', () => {
   let writeValue: UcSerializer<unknown>;
 
   beforeEach(async () => {
-    const setup = new UcsSetup<{ writeValue: UcModel }>({
+    const compiler = new UcsCompiler<{ writeValue: UcModel }>({
       models: { writeValue: ucUnknown() },
     });
 
-    ({ writeValue } = await setup.evaluate());
+    ({ writeValue } = await compiler.evaluate());
   });
 
   it('serializes primitive values', async () => {

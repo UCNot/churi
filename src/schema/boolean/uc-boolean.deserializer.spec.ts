@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
@@ -16,16 +16,16 @@ describe('UcBoolean deserializer', () => {
     errors = [];
   });
 
-  let setup: UcdSetup<{ readValue: UcModel<boolean> }>;
+  let compiler: UcdCompiler<{ readValue: UcModel<boolean> }>;
   let readValue: UcDeserializer<boolean>;
 
   beforeEach(async () => {
-    setup = new UcdSetup({
+    compiler = new UcdCompiler({
       models: {
         readValue: Boolean,
       },
     });
-    ({ readValue } = await setup.evaluate());
+    ({ readValue } = await compiler.evaluate());
   });
 
   it('deserializes boolean', async () => {
@@ -91,16 +91,16 @@ describe('UcBoolean deserializer', () => {
   });
 
   describe('nullable', () => {
-    let setup: UcdSetup<{ readValue: UcModel<boolean | null> }>;
+    let compiler: UcdCompiler<{ readValue: UcModel<boolean | null> }>;
     let readValue: UcDeserializer<boolean | null>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: {
           readValue: ucNullable<boolean>(Boolean),
         },
       });
-      ({ readValue } = await setup.evaluate());
+      ({ readValue } = await compiler.evaluate());
     });
 
     it('deserializes boolean', async () => {

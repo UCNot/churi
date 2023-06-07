@@ -10,8 +10,8 @@ export async function writeUcHexNumber(writer: UcsWriter, value: number): Promis
 }
 
 export const UcsSupportNumberAsHex: UcsFeature.Object = {
-  configureSerializer(setup) {
-    setup.useUcsGenerator<number>(Number, (_fn, _schema, { writer, value }) => {
+  configureSerializer(compiler) {
+    compiler.useUcsGenerator<number>(Number, (_fn, _schema, { writer, value }) => {
       const write = UC_MODULE_SPEC.import('writeUcHexNumber');
 
       return esline`await ${write}(${writer}, ${value});`;
@@ -20,8 +20,8 @@ export const UcsSupportNumberAsHex: UcsFeature.Object = {
 };
 
 export const UcsSupportHexNumber: UcsFeature.Object = {
-  configureSerializer(setup) {
-    setup.useUcsGenerator<number>('hexNumber', (_fn, _schema, { writer, value }) => {
+  configureSerializer(compiler) {
+    compiler.useUcsGenerator<number>('hexNumber', (_fn, _schema, { writer, value }) => {
       const write = UC_MODULE_SPEC.import('writeUcHexNumber');
 
       return esline`await ${write}(${writer}, ${value});`;
@@ -30,8 +30,8 @@ export const UcsSupportHexNumber: UcsFeature.Object = {
 };
 
 export const UcsSupportHexNumberSchema: UcsSchemaFeature.Object = {
-  configureSchemaSerializer(setup, schema: UcSchema<number>) {
-    setup.useUcsGenerator(schema.type, (_fn, _schema, { writer, value }) => {
+  configureSchemaSerializer(compiler, schema: UcSchema<number>) {
+    compiler.useUcsGenerator(schema.type, (_fn, _schema, { writer, value }) => {
       const write = UC_MODULE_SPEC.import('writeUcHexNumber');
 
       return esline`await ${write}(${writer}, ${value});`;

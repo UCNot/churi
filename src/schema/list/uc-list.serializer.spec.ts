@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
+import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucMap } from '../map/uc-map.js';
@@ -11,50 +11,50 @@ import { UcList, ucList } from './uc-list.js';
 
 describe('UcList serializer', () => {
   it('serializes list', async () => {
-    const setup = new UcsSetup({
+    const compiler = new UcsCompiler({
       models: {
         writeList: ucList(Number),
       },
     });
 
-    const { writeList } = await setup.evaluate();
+    const { writeList } = await compiler.evaluate();
 
     await expect(TextOutStream.read(async to => await writeList(to, [1, 22, 333]))).resolves.toBe(
       ',1,22,333',
     );
   });
   it('serializes empty list', async () => {
-    const setup = new UcsSetup({
+    const compiler = new UcsCompiler({
       models: {
         writeList: ucList(Number),
       },
     });
 
-    const { writeList } = await setup.evaluate();
+    const { writeList } = await compiler.evaluate();
 
     await expect(TextOutStream.read(async to => await writeList(to, []))).resolves.toBe(',');
   });
   it('serializes nulls', async () => {
-    const setup = new UcsSetup({
+    const compiler = new UcsCompiler({
       models: {
         writeList: ucList(ucNullable(Number)),
       },
     });
 
-    const { writeList } = await setup.evaluate();
+    const { writeList } = await compiler.evaluate();
 
     await expect(TextOutStream.read(async to => await writeList(to, [1, null, 333]))).resolves.toBe(
       ',1,--,333',
     );
   });
   it('serializes missing items as nulls', async () => {
-    const setup = new UcsSetup({
+    const compiler = new UcsCompiler({
       models: {
         writeList: ucList(ucOptional(Number)),
       },
     });
 
-    const { writeList } = await setup.evaluate();
+    const { writeList } = await compiler.evaluate();
 
     await expect(
       TextOutStream.read(async to => await writeList(to, [1, undefined, 333])),
@@ -65,13 +65,13 @@ describe('UcList serializer', () => {
     let writeList: UcSerializer<{ foo: string }[]>;
 
     beforeEach(async () => {
-      const setup = new UcsSetup({
+      const compiler = new UcsCompiler({
         models: {
           writeList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
         },
       });
 
-      ({ writeList } = await setup.evaluate());
+      ({ writeList } = await compiler.evaluate());
     });
 
     it('serializes list', async () => {
@@ -82,10 +82,10 @@ describe('UcList serializer', () => {
   });
 
   describe('nested list', () => {
-    let setup: UcsSetup<{ writeList: UcList.Schema<number[]> }>;
+    let compiler: UcsCompiler<{ writeList: UcList.Schema<number[]> }>;
 
     beforeEach(() => {
-      setup = new UcsSetup({
+      compiler = new UcsCompiler({
         models: {
           writeList: ucList<number[]>(ucList<number>(Number)),
         },
@@ -93,14 +93,14 @@ describe('UcList serializer', () => {
     });
 
     it('serialized with one item', async () => {
-      const { writeList } = await setup.evaluate();
+      const { writeList } = await compiler.evaluate();
 
       await expect(
         TextOutStream.read(async to => await writeList(to, [[1, 22, 333]])),
       ).resolves.toBe(',(1,22,333)');
     });
     it('serialized with multiple items', async () => {
-      const { writeList } = await setup.evaluate();
+      const { writeList } = await compiler.evaluate();
 
       await expect(
         TextOutStream.read(
@@ -112,14 +112,14 @@ describe('UcList serializer', () => {
       ).resolves.toBe(',(1,22,333),(1,2,3)');
     });
     it('serialized with empty item', async () => {
-      const { writeList } = await setup.evaluate();
+      const { writeList } = await compiler.evaluate();
 
       await expect(TextOutStream.read(async to => await writeList(to, [[]]))).resolves.toBe(',()');
     });
   });
 
   it('does not serialize unrecognized schema', async () => {
-    const setup = new UcsSetup({
+    const compiler = new UcsCompiler({
       models: {
         writeList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
       },
@@ -128,7 +128,7 @@ describe('UcList serializer', () => {
     let error: UnsupportedUcSchemaError | undefined;
 
     try {
-      await setup.evaluate();
+      await compiler.evaluate();
     } catch (e) {
       error = e as UnsupportedUcSchemaError;
     }

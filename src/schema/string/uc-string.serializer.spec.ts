@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
 import { UC_MODULE_SPEC } from '../../compiler/impl/uc-modules.js';
+import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { UcsFunction } from '../../compiler/serialization/ucs-function.js';
-import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel, UcSchema } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcString serializer', () => {
-  let setup: UcsSetup<{ writeValue: UcModel<string> }>;
+  let compiler: UcsCompiler<{ writeValue: UcModel<string> }>;
   let writeValue: UcSerializer<string>;
 
   beforeEach(async () => {
-    setup = new UcsSetup({
+    compiler = new UcsCompiler({
       models: {
         writeValue: String,
       },
     });
-    ({ writeValue } = await setup.evaluate());
+    ({ writeValue } = await compiler.evaluate());
   });
 
   it('percent-encodes special symbols', async () => {
@@ -43,7 +43,7 @@ describe('UcString serializer', () => {
     await expect(TextOutStream.read(async to => await writeValue(to, ''))).resolves.toBe("'");
   });
   it('writes multiple chunks', async () => {
-    setup = new UcsSetup({
+    compiler = new UcsCompiler({
       models: {
         writeValue: String,
       },
@@ -58,7 +58,7 @@ describe('UcString serializer', () => {
         });
       },
     });
-    ({ writeValue } = await setup.evaluate());
+    ({ writeValue } = await compiler.evaluate());
 
     await expect(
       TextOutStream.read(

@@ -1,6 +1,6 @@
 import { ucUnknown } from '#churi/core.js';
 import { URIChargeCompiler } from '#churi/uri-charge/compiler.js';
-import { UcdSetup, ucdSupportDefaults } from 'churi/compiler.js';
+import { UcdCompiler, ucdSupportDefaults } from 'churi/compiler.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,7 @@ await Promise.all([
 ]);
 
 async function emitDefaultEntities() {
-  const compiler = new UcdSetup({
+  const compiler = new UcdCompiler({
     models: {},
     exportEntityHandler: true,
     features(setup) {
@@ -36,7 +36,7 @@ async function emitDefaultEntities() {
 }
 
 async function emitUcValueDeserializer() {
-  const compiler = new UcdSetup({
+  const compiler = new UcdCompiler({
     models: { parseUcValue: ucUnknown() },
     mode: 'sync',
   });

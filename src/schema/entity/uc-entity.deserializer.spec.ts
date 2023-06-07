@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
@@ -21,7 +21,7 @@ describe('UcEntity deserializer', () => {
   });
 
   it('(async) does not recognize unknown entity', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readNumber: Number,
       },
@@ -29,7 +29,7 @@ describe('UcEntity deserializer', () => {
       features: ucdSupportPrimitives,
     });
 
-    const { readNumber } = await setup.evaluate();
+    const { readNumber } = await compiler.evaluate();
 
     await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
     expect(errors).toEqual([
@@ -44,7 +44,7 @@ describe('UcEntity deserializer', () => {
     ]);
   });
   it('(sync) does not recognize unknown entity', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readNumber: Number,
       },
@@ -52,7 +52,7 @@ describe('UcEntity deserializer', () => {
       features: ucdSupportPrimitives,
     });
 
-    const { readNumber } = await setup.evaluate();
+    const { readNumber } = await compiler.evaluate();
 
     expect(readNumber('!Infinity', { onError })).toBeUndefined();
     expect(errors).toEqual([
@@ -68,33 +68,33 @@ describe('UcEntity deserializer', () => {
   });
 
   it('recognizes by custom prefix', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readString: String,
       },
       mode: 'sync',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     });
-    const { readString } = await setup.evaluate();
+    const { readString } = await compiler.evaluate();
 
     expect(readString("!plain'test")).toBe("!plain'test");
   });
   it('closes hanging parentheses', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readString: String,
       },
       mode: 'async',
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     });
-    const { readString } = await setup.evaluate();
+    const { readString } = await compiler.evaluate();
 
     await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
       '!plain(bar(item1,item2)baz())',
     );
   });
   it('extends base ucrx', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readTimestamp: Number,
       },
@@ -102,12 +102,12 @@ describe('UcEntity deserializer', () => {
       features: [ucdSupportPrimitives, ucdSupportTimestampEntity],
     });
     const now = new Date();
-    const { readTimestamp } = await setup.evaluate();
+    const { readTimestamp } = await compiler.evaluate();
 
     expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
   });
   it('fails without required ucrx method', async () => {
-    const setup = new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         readTimestamp: Number,
       },
@@ -115,7 +115,7 @@ describe('UcEntity deserializer', () => {
       features: [ucdSupportPrimitives, ucdSupportTimestampEntityOnly],
     });
 
-    await expect(setup.evaluate()).rejects.toThrow(
+    await expect(compiler.evaluate()).rejects.toThrow(
       new ReferenceError(`.date(value, reject) is not available in VoidUcrx /* [Class] */`),
     );
   });

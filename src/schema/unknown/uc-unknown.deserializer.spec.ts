@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
@@ -19,12 +19,12 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for nullable', () => {
-    let setup: UcdSetup<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
+    let compiler: UcdCompiler<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({ models: { readValue: ucUnknown() } });
-      ({ readValue } = await setup.evaluate());
+      compiler = new UcdCompiler({ models: { readValue: ucUnknown() } });
+      ({ readValue } = await compiler.evaluate());
     });
 
     it('recognizes boolean', () => {
@@ -91,14 +91,14 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let setup: UcdSetup<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
+    let compiler: UcdCompiler<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: { readValue: ucNullable(ucUnknown(), false) },
       });
-      ({ readValue } = await setup.evaluate());
+      ({ readValue } = await compiler.evaluate());
     });
 
     it('rejects null', () => {
@@ -118,15 +118,15 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('with custom entity', () => {
-    let setup: UcdSetup<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
+    let compiler: UcdCompiler<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      setup = new UcdSetup({
+      compiler = new UcdCompiler({
         models: { readValue: ucUnknown() },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
       });
-      ({ readValue } = await setup.evaluate());
+      ({ readValue } = await compiler.evaluate());
     });
 
     it('recognizes custom entity', () => {

@@ -16,7 +16,7 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 export class MapUcrxClass<
   TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
@@ -27,13 +27,16 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static configureSchemaDeserializer(setup: UcdSetup.Any, { entries, extra }: UcMap.Schema): void {
-    setup.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+  static configureSchemaDeserializer(
+    compiler: UcdCompiler.Any,
+    { entries, extra }: UcMap.Schema,
+  ): void {
+    compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
     for (const entrySchema of Object.values(entries)) {
-      setup.processModel(entrySchema);
+      compiler.processModel(entrySchema);
     }
     if (extra) {
-      setup.processModel(extra);
+      compiler.processModel(extra);
     }
   }
 

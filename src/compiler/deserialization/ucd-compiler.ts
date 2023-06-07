@@ -26,20 +26,18 @@ import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
- * Deserializer setup used to {@link UcdSetup#bootstrap bootstrap} {@link UcdLib deserializer library}.
- *
- * Passed to {@link UcdFeature deserializer feature} when the latter enabled.
+ * Compiler of schema {@link churi!UcDeserializer deserializers}.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcdSetup<
+export class UcdCompiler<
   out TModels extends UcdModels = UcdModels,
   out TMode extends UcDeserializer.Mode = 'universal',
 > {
 
-  readonly #options: UcdSetup.Options<TModels, TMode>;
+  readonly #options: UcdCompiler.Options<TModels, TMode>;
   readonly #enabled = new Set<UcdFeature>();
-  readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
+  readonly #uses = new Map<UcSchema['type'], UcdCompiler$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #types = new Map<string | UcDataType, UcrxClassFactory>();
   #defaultEntities: UcdLib.EntityConfig[] | undefined;
@@ -47,17 +45,17 @@ export class UcdSetup<
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
-   * Starts deserializer setup.
+   * Constructs deserializer compiler.
    *
-   * @param options - Setup options.
+   * @param options - Compiler options.
    */
   constructor(
     ...options: TMode extends 'sync' | 'async'
-      ? [UcdSetup.Options<TModels, TMode>]
-      : [UcdSetup.DefaultOptions<TModels>]
+      ? [UcdCompiler.Options<TModels, TMode>]
+      : [UcdCompiler.DefaultOptions<TModels>]
   );
 
-  constructor(options: UcdSetup.Options<TModels, TMode>) {
+  constructor(options: UcdCompiler.Options<TModels, TMode>) {
     this.#options = options;
   }
 
@@ -121,7 +119,7 @@ export class UcdSetup<
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcdSetup$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcdCompiler$FeatureUse(schema, from, feature));
     }
   }
 
@@ -344,8 +342,8 @@ export type UcdSyncExports<TModels extends UcdModels> = {
   readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
 };
 
-export namespace UcdSetup {
-  export type Any = UcdSetup<UcdModels, UcDeserializer.Mode>;
+export namespace UcdCompiler {
+  export type Any = UcdCompiler<UcdModels, UcDeserializer.Mode>;
 
   export interface BaseOptions<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
     extends Omit<UcrxLib.Options, 'methods'> {
@@ -368,7 +366,7 @@ export namespace UcdSetup {
   }
 }
 
-class UcdSetup$FeatureUse {
+class UcdCompiler$FeatureUse {
 
   readonly #schema: UcSchema;
   readonly #from: string;
@@ -381,7 +379,7 @@ class UcdSetup$FeatureUse {
     this.#name = name;
   }
 
-  async enable(setup: UcdSetup.Any): Promise<void> {
+  async enable(compiler: UcdCompiler.Any): Promise<void> {
     if (this.#enabled) {
       return;
     }
@@ -395,11 +393,11 @@ class UcdSetup$FeatureUse {
       let configured = false;
 
       if ('configureDeserializer' in feature) {
-        setup.enable(feature);
+        compiler.enable(feature);
         configured = true;
       }
       if ('configureSchemaDeserializer' in feature) {
-        feature.configureSchemaDeserializer(setup, this.#schema);
+        feature.configureSchemaDeserializer(compiler, this.#schema);
         configured = true;
       }
 
@@ -408,7 +406,7 @@ class UcdSetup$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcdSchemaFeature.Function)(setup, this.#schema);
+        (feature as UcdSchemaFeature.Function)(compiler, this.#schema);
 
         return;
       }

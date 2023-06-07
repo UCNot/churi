@@ -4,10 +4,10 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxClass, UcrxClassSignature1 } from '../rx/ucrx.class.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
-export function ucdSupportPrimitives(setup: UcdSetup.Any): void {
-  setup
+export function ucdSupportPrimitives(compiler: UcdCompiler.Any): void {
+  compiler
     .useUcrxClass<boolean>(
       Boolean,
       (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.bol),

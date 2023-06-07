@@ -1,6 +1,6 @@
 import { EsFunction, EsVarSymbol, esline } from 'esgen';
+import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
 import { UcdFeature, UcdSchemaFeature } from '../compiler/deserialization/ucd-feature.js';
-import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
 import { UcrxCore } from '../compiler/rx/ucrx-core.js';
 import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
@@ -21,8 +21,8 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   typeName: 'date',
 });
 
-export function ucdSupportTimestampEntity(setup: UcdSetup): void {
-  setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampEntityOnly);
+export function ucdSupportTimestampEntity(compiler: UcdCompiler): void {
+  compiler.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampEntityOnly);
 }
 
 const readTimestampEntityFn = new EsFunction(
@@ -53,8 +53,8 @@ const readTimestampEntityFn = new EsFunction(
   },
 );
 
-export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
-  setup.handleEntityPrefix("!timestamp'", ({ register, refer }) => code => {
+export function ucdSupportTimestampEntityOnly(compiler: UcdCompiler): void {
+  compiler.handleEntityPrefix("!timestamp'", ({ register, refer }) => code => {
     refer(readTimestampEntityFn);
 
     code.write(register(readTimestampEntityFn.symbol));
@@ -62,21 +62,21 @@ export function ucdSupportTimestampEntityOnly(setup: UcdSetup): void {
 }
 
 export const UcdSupportTimestamp: UcdFeature.Object = {
-  configureDeserializer(setup) {
-    setup
+  configureDeserializer(compiler) {
+    compiler
       .enable(ucdSupportTimestampEntity)
       .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
   },
 };
 
 export const UcdSupportTimestampSchema: UcdSchemaFeature.Object = {
-  configureSchemaDeserializer(setup, _schema) {
-    setup.enable(UcdSupportTimestamp);
+  configureSchemaDeserializer(compiler, _schema) {
+    compiler.enable(UcdSupportTimestamp);
   },
 };
 
-export function ucdSupportTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): void {
-  setup.enable(UcdSupportTimestamp);
+export function ucdSupportTimestampSchema(compiler: UcdCompiler, _schema: UcSchema<number>): void {
+  compiler.enable(UcdSupportTimestamp);
 }
 
 class TimestampUcrxClass extends UcrxClass {

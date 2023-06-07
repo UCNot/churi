@@ -1,20 +1,20 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdSetup } from '../deserialization/ucd-setup.js';
+import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UcrxSetter } from './ucrx-setter.js';
 
 describe('UcrxSetter', () => {
-  let setup: UcdSetup;
+  let compiler: UcdCompiler;
 
   beforeEach(() => {
-    setup = new UcdSetup({
+    compiler = new UcdCompiler({
       models: {
         readValue: Number,
       },
       features: [
         ucdSupportDefaults,
-        setup => {
-          setup.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
+        compiler => {
+          compiler.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
         },
       ],
     });
@@ -22,7 +22,7 @@ describe('UcrxSetter', () => {
 
   describe('stub', () => {
     it('sets value', async () => {
-      await expect(setup.generate()).resolves.toContain(
+      await expect(compiler.generate()).resolves.toContain(
         `
 class BaseUcrx extends VoidUcrx {
   test(value, reject) {
