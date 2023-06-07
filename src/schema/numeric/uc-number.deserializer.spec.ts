@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcdLib } from '../../compiler/deserialization/ucd-lib.js';
-import { UcdSetup } from '../../compiler/deserialization/ucd-setup.js';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
@@ -18,17 +17,17 @@ describe('UcNumber deserializer', () => {
     errors = [];
   });
 
-  let lib: UcdLib<{ readValue: UcModel<number> }>;
+  let compiler: UcdCompiler<{ readValue: UcModel<number> }>;
   let readValue: UcDeserializer<number>;
 
   beforeEach(async () => {
-    lib = await new UcdSetup({
+    compiler = new UcdCompiler({
       models: {
         readValue: Number,
       },
       features: [ucdSupportPrimitives, ucdSupportNonFinite],
-    }).bootstrap();
-    ({ readValue } = await lib.compileFactory().toExports());
+    });
+    ({ readValue } = await compiler.evaluate());
   });
 
   it('deserializes number', async () => {
@@ -36,27 +35,26 @@ describe('UcNumber deserializer', () => {
     await expect(readValue(readTokens('-123'))).resolves.toBe(-123);
   });
   it('deserializes number synchronously', async () => {
-    const lib = await new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         parseValue: Number,
       },
       mode: 'sync',
-    }).bootstrap();
+    });
 
-    const { parseValue } = await lib.compileFactory().toExports();
+    const { parseValue } = await compiler.evaluate();
 
     expect(parseValue(parseTokens('123'))).toBe(123);
     expect(parseValue(parseTokens('-123'))).toBe(-123);
   });
   it('deserializes number from string', async () => {
-    const lib = await new UcdSetup({
+    const compiler = new UcdCompiler({
       models: {
         parseValue: Number,
       },
       mode: 'sync',
-    }).bootstrap();
-
-    const { parseValue } = await lib.compileFactory().toExports();
+    });
+    const { parseValue } = await compiler.evaluate();
 
     expect(parseValue('123')).toBe(123);
     expect(parseValue('-123')).toBe(-123);

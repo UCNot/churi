@@ -1,64 +1,67 @@
-import { SERIALIZER_MODULE } from '../../impl/module-names.js';
+import { EsSnippet, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcModel } from '../../schema/uc-schema.js';
-import { UccSource } from '../codegen/ucc-code.js';
+import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsSignature } from './ucs.signature.js';
 
-export function ucsSupportList(setup: UcsSetup, schema: UcList.Schema): void;
-export function ucsSupportList(setup: UcsSetup, { item }: UcList.Schema): void {
-  setup.useUcsGenerator('list', ucsWriteList).processModel(item);
+export function ucsSupportList(compiler: UcsCompiler, schema: UcList.Schema): void;
+export function ucsSupportList(compiler: UcsCompiler, { item }: UcList.Schema): void {
+  compiler.useUcsGenerator('list', ucsWriteList).processModel(item);
 }
 
 function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
   fn: UcsFunction,
   schema: UcList.Schema<TItem, TItemModel>,
-  value: string,
-  asItem: string,
-): UccSource {
-  const { lib, ns, args } = fn;
-  const openingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_OPENING_PARENTHESIS');
-  const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
-  const emptyList = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_LIST');
-  const comma = lib.import(SERIALIZER_MODULE, 'UCS_COMMA');
+  { writer, value, asItem }: UcsSignature.AllValues,
+): EsSnippet {
+  const openingParenthesis = UC_MODULE_SERIALIZER.import('UCS_OPENING_PARENTHESIS');
+  const closingParenthesis = UC_MODULE_SERIALIZER.import('UCS_CLOSING_PARENTHESIS');
+  const emptyList = UC_MODULE_SERIALIZER.import('UCS_EMPTY_LIST');
+  const comma = UC_MODULE_SERIALIZER.import('UCS_COMMA');
   const itemSchema = schema.item.optional
     ? ucOptional(ucNullable(schema.item), false) // Write `undefined` items as `null`
     : schema.item;
-  const itemValue = ns.name(`${value}$item`);
-  const itemWritten = ns.name(`${value}$itemWritten`);
 
-  return code => {
+  return (code, { ns: { names } }) => {
+    const itemValue = names.reserveName(`itemValue`);
+    const itemWritten = new EsVarSymbol(`itemWritten`);
+
     code
-      .write(`let ${itemWritten} = false;`)
-      .write(`for (const ${itemValue} of ${value}) {`)
-      .indent(code => {
-        code.write(
-          `await ${args.writer}.ready;`,
-          `${args.writer}.write(${itemWritten} || !${asItem} ? ${comma} : ${openingParenthesis});`,
-          `${itemWritten} = true;`,
-        );
-        try {
-          code.write(fn.serialize(itemSchema, itemValue, '1'));
-        } catch (cause) {
-          throw new UnsupportedUcSchemaError(
-            itemSchema,
-            `${fn.name}: Can not serialize list item of type "${ucModelName(itemSchema)}"`,
-            { cause },
-          );
-        }
-      })
-      .write(`}`)
-      .write(`if (${asItem}) {`)
+      .line(itemWritten.declare({ as: EsVarKind.Let, value: () => 'false' }), ';')
+      .write(esline`for (const ${itemValue} of ${value}) {`)
       .indent(
-        `await ${args.writer}.ready;`,
-        `${args.writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
+        esline`await ${writer}.ready;`,
+        esline`${writer}.write(${itemWritten} || !${asItem} ? ${comma} : ${openingParenthesis});`,
+        esline`${itemWritten} = true;`,
+        fn.serialize(
+          itemSchema,
+          {
+            writer,
+            value: itemValue,
+            asItem: '1',
+          },
+          (schema, fn) => {
+            throw new UnsupportedUcSchemaError(
+              schema,
+              `${fn}: Can not serialize list item of type "${ucModelName(schema)}"`,
+            );
+          },
+        ),
       )
-      .write(`} else if (!${itemWritten}) {`)
-      .indent(`await ${args.writer}.ready;`, `${args.writer}.write(${comma});`)
+      .write(`}`)
+      .write(esline`if (${asItem}) {`)
+      .indent(
+        esline`await ${writer}.ready;`,
+        esline`${writer}.write(${itemWritten} ? ${closingParenthesis} : ${emptyList});`,
+      )
+      .write(esline`} else if (!${itemWritten}) {`)
+      .indent(esline`await ${writer}.ready;`, esline`${writer}.write(${comma});`)
       .write(`}`);
   };
 }

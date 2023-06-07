@@ -56,6 +56,14 @@
     }
   },
   "sideEffects": false,
+  "peerDependencies": {
+    "esgen": "^0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "esgen": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@proc7ts/primitives": "4.0.1",
     "httongue": "^3.1.0"
@@ -71,6 +79,7 @@
     "@swc/jest": "^0.2.26",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
+    "esgen": "^0.2.1",
     "eslint": "^8.41.0",
     "eslint-plugin-jest": "^27.2.1",
     "expect": "^29.5.0",

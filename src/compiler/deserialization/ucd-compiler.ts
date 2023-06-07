@@ -1,13 +1,24 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
-import { jsStringLiteral, quoteJsKey } from 'httongue';
+import {
+  EsBundle,
+  EsEvaluationOptions,
+  EsGenerationOptions,
+  EsScopeSetup,
+  EsSignature,
+  EsSnippet,
+  esEvaluate,
+  esGenerate,
+  esQuoteKey,
+  esStringLiteral,
+} from 'esgen';
 import { UcDeserializer } from '../../mod.js';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
+import { UcrxClassFactory } from '../rx/ucrx.class.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdFeature, UcdSchemaFeature } from './ucd-feature.js';
 import { UcdFunction } from './ucd-function.js';
@@ -15,38 +26,36 @@ import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
- * Deserializer setup used to {@link UcdSetup#bootstrap bootstrap} {@link UcdLib deserializer library}.
- *
- * Passed to {@link UcdFeature deserializer feature} when the latter enabled.
+ * Compiler of schema {@link churi!UcDeserializer deserializers}.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcdSetup<
-  out TModels extends UcdLib.Models = UcdLib.Models,
+export class UcdCompiler<
+  out TModels extends UcdModels = UcdModels,
   out TMode extends UcDeserializer.Mode = 'universal',
 > {
 
-  readonly #options: UcdSetup.Options<TModels, TMode>;
+  readonly #options: UcdCompiler.Options<TModels, TMode>;
   readonly #enabled = new Set<UcdFeature>();
-  readonly #uses = new Map<UcSchema['type'], UcdSetup$FeatureUse>();
+  readonly #uses = new Map<UcSchema['type'], UcdCompiler$FeatureUse>();
   #hasPendingInstructions = false;
-  readonly #types = new Map<string | UcDataType, UcrxTemplate.Factory>();
+  readonly #types = new Map<string | UcDataType, UcrxClassFactory>();
   #defaultEntities: UcdLib.EntityConfig[] | undefined;
   #entities: UcdLib.EntityConfig[] | undefined = [];
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
-   * Starts deserializer setup.
+   * Constructs deserializer compiler.
    *
-   * @param options - Setup options.
+   * @param options - Compiler options.
    */
   constructor(
     ...options: TMode extends 'sync' | 'async'
-      ? [UcdSetup.Options<TModels, TMode>]
-      : [UcdSetup.DefaultOptions<TModels>]
+      ? [UcdCompiler.Options<TModels, TMode>]
+      : [UcdCompiler.DefaultOptions<TModels>]
   );
 
-  constructor(options: UcdSetup.Options<TModels, TMode>) {
+  constructor(options: UcdCompiler.Options<TModels, TMode>) {
     this.#options = options;
   }
 
@@ -110,23 +119,23 @@ export class UcdSetup<
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcdSetup$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcdCompiler$FeatureUse(schema, from, feature));
     }
   }
 
   /**
-   * Assigns template that generates a charge receiver code used to deserialize the given type.
+   * Assigns {@link churi!Ucrx Ucrx} class to use for the given `type` deserialization.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    * @param type - Target type name or class.
-   * @param factory - Template factory.
+   * @param factory - Ucrx class factory.
    *
    * @returns `this` instance.
    */
-  useUcrxTemplate<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  useUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     type: TSchema['type'],
-    factory: UcrxTemplate.Factory<T, TSchema>,
+    factory: UcrxClassFactory<T, TSchema>,
   ): this {
     this.#types.set(type, factory);
 
@@ -140,7 +149,7 @@ export class UcdSetup<
    *
    * @returns `this` instance.
    */
-  declareUcrxMethod<TArg extends string>(method: UcrxMethod<TArg>): this {
+  declareUcrxMethod<TArg extends EsSignature.Args>(method: UcrxMethod<TArg>): this {
     this.#methods.add(method);
 
     return this;
@@ -180,15 +189,64 @@ export class UcdSetup<
   }
 
   /**
+   * Generates deserialization code.
+   *
+   * @param options - Code generation options.
+   *
+   * @returns Promise resolved to deserializer module text.
+   */
+  async generate(options: EsGenerationOptions = {}): Promise<string> {
+    return await esGenerate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      this.#initLib(),
+    );
+  }
+
+  /**
+   * Generates serialization code and evaluates it.
+   *
+   * @param options - Code evaluation options.
+   *
+   * @returns Promise resolved to deserializers exported from generated module.
+   */
+  async evaluate(options: EsEvaluationOptions = {}): Promise<UcdExports<TModels, TMode>> {
+    return (await esEvaluate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      this.#initLib(),
+    )) as UcdExports<TModels, TMode>;
+  }
+
+  #initLib(): EsSnippet {
+    return (code, scope) => {
+      code.write((scope.get(UcdLib) as UcdLib).init());
+    };
+  }
+
+  /**
    * Bootstraps deserializer library.
    *
    * Enables configured {@link UcdFeature deserialization features}, bootstraps {@link bootstrapOptions library
    * options}, then creates library with that options.
    *
-   * @returns Promise resolved to configured deserializer library.
+   * @returns Promise resolved to bundle setup.
    */
-  async bootstrap(): Promise<UcdLib<TModels, TMode>> {
-    return new UcdLib(await this.bootstrapOptions());
+  async bootstrap(): Promise<EsScopeSetup<EsBundle>> {
+    const options = await this.bootstrapOptions();
+
+    return {
+      esSetupScope(context) {
+        const lib = new UcdLib(context.scope, options);
+
+        context.set(UcrxLib, lib);
+        context.set(UcdLib, lib);
+      },
+    };
   }
 
   /**
@@ -208,7 +266,7 @@ export class UcdSetup<
       mode,
       entities: this.#entities,
       methods: this.#methods,
-      ucrxTemplateFactoryFor: this.#ucrxTemplateFactoryFor.bind(this),
+      ucrxClassFactoryFor: this.#ucrxClassFactoryFor.bind(this),
     };
   }
 
@@ -251,24 +309,48 @@ export class UcdSetup<
     });
   }
 
-  #ucrxTemplateFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  #ucrxClassFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcrxTemplate.Factory<T, TSchema> | undefined {
-    return this.#types.get(schema.type) as UcrxTemplate.Factory<T, TSchema> | undefined;
+  ): UcrxClassFactory<T, TSchema> | undefined {
+    return this.#types.get(schema.type) as UcrxClassFactory<T, TSchema> | undefined;
   }
 
 }
 
-export namespace UcdSetup {
-  export type Any = UcdSetup<UcdLib.Models, UcDeserializer.Mode>;
+export interface UcdModels {
+  readonly [reader: string]: UcModel;
+}
 
-  export interface BaseOptions<
-    out TModels extends UcdLib.Models,
-    out TMode extends UcDeserializer.Mode,
-  > extends Omit<UcrxLib.Options, 'methods'> {
+export type UcdExports<
+  TModels extends UcdModels,
+  TMode extends UcDeserializer.Mode,
+> = TMode extends 'async'
+  ? UcdAsyncExports<TModels>
+  : TMode extends 'sync'
+  ? UcdSyncExports<TModels>
+  : UcdUniversalExports<TModels>;
+
+export type UcdUniversalExports<TModels extends UcdModels> = {
+  readonly [reader in keyof TModels]: UcDeserializer<UcInfer<TModels[reader]>>;
+};
+
+export type UcdAsyncExports<TModels extends UcdModels> = {
+  readonly [reader in keyof TModels]: UcDeserializer.Async<UcInfer<TModels[reader]>>;
+};
+
+export type UcdSyncExports<TModels extends UcdModels> = {
+  readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
+};
+
+export namespace UcdCompiler {
+  export type Any = UcdCompiler<UcdModels, UcDeserializer.Mode>;
+
+  export interface BaseOptions<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
+    extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
     readonly mode?: TMode | undefined;
     readonly features?: UcdFeature | readonly UcdFeature[] | undefined;
+    readonly exportEntityHandler?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -276,15 +358,15 @@ export namespace UcdSetup {
     ): UcdFunction<T, TSchema>;
   }
 
-  export type DefaultOptions<TModels extends UcdLib.Models> = BaseOptions<TModels, 'universal'>;
+  export type DefaultOptions<TModels extends UcdModels> = BaseOptions<TModels, 'universal'>;
 
-  export interface Options<out TModels extends UcdLib.Models, out TMode extends UcDeserializer.Mode>
+  export interface Options<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
     extends BaseOptions<TModels, TMode> {
     readonly mode: TMode;
   }
 }
 
-class UcdSetup$FeatureUse {
+class UcdCompiler$FeatureUse {
 
   readonly #schema: UcSchema;
   readonly #from: string;
@@ -297,7 +379,7 @@ class UcdSetup$FeatureUse {
     this.#name = name;
   }
 
-  async enable(setup: UcdSetup.Any): Promise<void> {
+  async enable(compiler: UcdCompiler.Any): Promise<void> {
     if (this.#enabled) {
       return;
     }
@@ -311,11 +393,11 @@ class UcdSetup$FeatureUse {
       let configured = false;
 
       if ('configureDeserializer' in feature) {
-        setup.enable(feature);
+        compiler.enable(feature);
         configured = true;
       }
       if ('configureSchemaDeserializer' in feature) {
-        feature.configureSchemaDeserializer(setup, this.#schema);
+        feature.configureSchemaDeserializer(compiler, this.#schema);
         configured = true;
       }
 
@@ -324,7 +406,7 @@ class UcdSetup$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcdSchemaFeature.Function)(setup, this.#schema);
+        (feature as UcdSchemaFeature.Function)(compiler, this.#schema);
 
         return;
       }
@@ -338,7 +420,7 @@ class UcdSetup$FeatureUse {
   }
 
   toString(): string {
-    return `import(${jsStringLiteral(this.#from)}).${quoteJsKey(this.#name)}`;
+    return `import(${esStringLiteral(this.#from)}).${esQuoteKey(this.#name)}`;
   }
 
 }

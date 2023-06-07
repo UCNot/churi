@@ -1,8 +1,17 @@
 import { asArray, mayHaveProperties } from '@proc7ts/primitives';
-import { jsStringLiteral, quoteJsKey } from 'httongue';
+import {
+  EsBundle,
+  EsEvaluationOptions,
+  EsGenerationOptions,
+  EsScopeSetup,
+  esEvaluate,
+  esGenerate,
+  esQuoteKey,
+  esStringLiteral,
+} from 'esgen';
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcDataType, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccLib } from '../codegen/ucc-lib.js';
+import { UcDataType, UcInfer, UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcSerializer } from '../../schema/uc-serializer.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UcsFeature, UcsSchemaFeature } from './ucs-feature.js';
@@ -12,17 +21,15 @@ import { UcsLib } from './ucs-lib.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
- * Serializer setup used to {@link UcsSetup#bootstrap bootstrap} {@link UcsLib serializer library}.
- *
- * Passed to {@link UcsFeature serializer feature} when the latter enabled.
+ * Compiler of schema {@link churi!UcSerializer serializers}.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
+export class UcsCompiler<TModels extends UcsModels = UcsModels> {
 
-  readonly #options: UcsSetup.Options<TModels>;
+  readonly #options: UcsCompiler.Options<TModels>;
   readonly #enabled = new Set<UcsFeature>();
-  readonly #uses = new Map<UcSchema['type'], UcsSetup$FeatureUse>();
+  readonly #uses = new Map<UcSchema['type'], UcsCompiler$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #generators = new Map<string | UcDataType, UcsGenerator>();
 
@@ -31,7 +38,7 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
    *
    * @param options - Setup options.
    */
-  constructor(options: UcsSetup.Options<TModels>) {
+  constructor(options: UcsCompiler.Options<TModels>) {
     this.#options = options;
   }
 
@@ -77,7 +84,7 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcsSetup$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcsCompiler$FeatureUse(schema, from, feature));
     }
   }
 
@@ -95,16 +102,41 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
     type: TSchema['type'],
     generator: UcsGenerator<T, TSchema>,
   ): this {
-    this.#generators.set(
-      type,
-      (fn: UcsFunction, schema: TSchema, value: string, asItem: string) => {
-        const onValue = generator(fn, schema, value, asItem);
+    this.#generators.set(type, (fn: UcsFunction, schema: TSchema, args) => {
+      const onValue = generator(fn, schema, args);
 
-        return onValue && ucsCheckConstraints(fn, schema, value, onValue);
-      },
-    );
+      return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
+    });
 
     return this;
+  }
+
+  /**
+   * Generates serialization code.
+   *
+   * @param options - Code generation options.
+   *
+   * @returns Promise resolved to serializer module text.
+   */
+  async generate(options: EsGenerationOptions = {}): Promise<string> {
+    return await esGenerate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    });
+  }
+
+  /**
+   * Generates serialization code and evaluates it.
+   *
+   * @param options - Code evaluation options.
+   *
+   * @returns Promise resolved to deserializers exported from generated module.
+   */
+  async evaluate(options: EsEvaluationOptions = {}): Promise<UcsExports<TModels>> {
+    return (await esEvaluate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    })) as UcsExports<TModels>;
   }
 
   /**
@@ -113,10 +145,16 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
    * Enables configured {@link UcsFeature serialization features}, bootstraps {@link bootstrapOptions library
    * options}, then creates library with that options.
    *
-   * @returns Promise resolved to configured serializer library.
+   * @returns Promise resolved to code bundle initialization setup.
    */
-  async bootstrap(): Promise<UcsLib<TModels>> {
-    return new UcsLib(await this.bootstrapOptions());
+  async bootstrap(): Promise<EsScopeSetup<EsBundle>> {
+    const options = await this.bootstrapOptions();
+
+    return {
+      esSetupScope(context) {
+        context.set(UcsLib, new UcsLib(context.scope, options));
+      },
+    };
   }
 
   /**
@@ -129,9 +167,12 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
   async bootstrapOptions(): Promise<UcsLib.Options<TModels>> {
     await this.#init();
 
+    const { createSerializer = options => new UcsFunction(options) } = this.#options;
+
     return {
       ...this.#options,
       generatorFor: this.#generatorFor.bind(this),
+      createSerializer,
     };
   }
 
@@ -182,8 +223,8 @@ export class UcsSetup<TModels extends UcsLib.Models = UcsLib.Models> {
 
 }
 
-export namespace UcsSetup {
-  export interface Options<TModels extends UcsLib.Models> extends UccLib.Options {
+export namespace UcsCompiler {
+  export interface Options<TModels extends UcsModels> {
     readonly models: TModels;
     readonly features?: UcsFeature | readonly UcsFeature[] | undefined;
 
@@ -194,7 +235,15 @@ export namespace UcsSetup {
   }
 }
 
-class UcsSetup$FeatureUse {
+export interface UcsModels {
+  readonly [writer: string]: UcModel;
+}
+
+export type UcsExports<out TModels extends UcsModels> = {
+  readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
+};
+
+class UcsCompiler$FeatureUse {
 
   readonly #schema: UcSchema;
   readonly #from: string;
@@ -207,7 +256,7 @@ class UcsSetup$FeatureUse {
     this.#name = name;
   }
 
-  async enable(setup: UcsSetup): Promise<void> {
+  async enable(compiler: UcsCompiler): Promise<void> {
     if (this.#enabled) {
       return;
     }
@@ -221,11 +270,11 @@ class UcsSetup$FeatureUse {
       let configured = false;
 
       if ('configureSerializer' in feature) {
-        setup.enable(feature);
+        compiler.enable(feature);
         configured = true;
       }
       if ('configureSchemaSerializer' in feature) {
-        feature.configureSchemaSerializer(setup, this.#schema);
+        feature.configureSchemaSerializer(compiler, this.#schema);
         configured = true;
       }
 
@@ -234,7 +283,7 @@ class UcsSetup$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcsSchemaFeature.Function)(setup, this.#schema);
+        (feature as UcsSchemaFeature.Function)(compiler, this.#schema);
 
         return;
       }
@@ -248,7 +297,7 @@ class UcsSetup$FeatureUse {
   }
 
   toString(): string {
-    return `import(${jsStringLiteral(this.#from)}).${quoteJsKey(this.#name)}`;
+    return `import(${esStringLiteral(this.#from)}).${esQuoteKey(this.#name)}`;
   }
 
 }

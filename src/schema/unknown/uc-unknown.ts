@@ -21,7 +21,7 @@ const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
     deserializer: {
       use: {
         from: COMPILER_MODULE,
-        feature: 'UnknownUcrxTemplate',
+        feature: 'UnknownUcrxClass',
       },
     },
     serializer: {

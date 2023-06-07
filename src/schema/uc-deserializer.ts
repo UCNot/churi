@@ -99,7 +99,7 @@ export namespace UcDeserializer {
     /**
      * Function to call to deserialize entities.
      *
-     * By default, entities will be deserialized by {@link churi/compiler.js!UcdSetup#handleEntity compiler}.
+     * By default, entities will be deserialized by {@link churi/compiler.js!UcdCompiler#handleEntity compiler}.
      */
     readonly onEntity?: EntityUcrx | undefined;
   }

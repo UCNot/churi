@@ -1,112 +1,119 @@
-import { noop } from '@proc7ts/primitives';
+import { EsCode, EsSnippet, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { escapeJsString, jsPropertyAccessor } from 'httongue';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
-import { SERIALIZER_MODULE } from '../../impl/module-names.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccBuilder, UccSource } from '../codegen/ucc-code.js';
+import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
+import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsLib } from './ucs-lib.js';
+import { UcsSignature } from './ucs.signature.js';
 
-export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): void;
-export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): void {
-  setup.useUcsGenerator('map', ucsWriteMap);
-  Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
+export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): void;
+export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): void {
+  compiler.useUcsGenerator('map', ucsWriteMap);
+  Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
   // istanbul ignore next
   if (extra) {
     // TODO Implement extra entries serialization.
-    setup.processModel(extra);
+    compiler.processModel(extra);
   }
 }
 
 function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
   fn: UcsFunction,
   schema: UcMap.Schema<TEntriesModel>,
-  value: string,
-): UccSource {
-  const { lib, ns, args } = fn;
-  const textEncoder = lib.declarations.declareConst('TEXT_ENCODER', 'new TextEncoder()');
-  const closingParenthesis = lib.import(SERIALIZER_MODULE, 'UCS_CLOSING_PARENTHESIS');
-  const emptyMap = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_MAP');
-  const emptyEntryPrefix = lib.import(SERIALIZER_MODULE, 'UCS_EMPTY_ENTRY_PREFIX');
-  const nullEntryValue = lib.import(SERIALIZER_MODULE, 'UCS_NULL_ENTRY_VALUE');
-  const entryValue = ns.name(`${value}$entryValue`);
+  { writer, value }: UcsSignature.AllValues,
+): EsSnippet {
+  return (code, scope) => {
+    const lib = scope.get(UcsLib);
 
-  let startMap: UccBuilder = noop;
-  let endMap: UccBuilder = noop;
-  const writeDefaultEntryPrefix = (key: string): UccSource => {
-    const entryPrefix = key
-      ? lib.declarations.declareConst(
-          key,
-          `${textEncoder}.encode('${escapeJsString(encodeUcsKey(key))}(')`,
-          {
-            prefix: 'EP_',
-            refs: [textEncoder],
-          },
-        )
-      : emptyEntryPrefix;
+    let startMap: EsSnippet = EsCode.none;
+    let endMap: EsSnippet = EsCode.none;
+    const writeDefaultEntryPrefix = (key: string): EsSnippet => {
+      const entryPrefix = key
+        ? lib.binConst(`${encodeUcsKey(key)}(`)
+        : UC_MODULE_SERIALIZER.import('UCS_EMPTY_ENTRY_PREFIX');
 
-    return code => {
-      code.write(`await ${args.writer}.ready;`, `${args.writer}.write(${entryPrefix})`);
+      return code => {
+        code.write(esline`await ${writer}.ready;`, esline`${writer}.write(${entryPrefix});`);
+      };
     };
-  };
-  let writeEntryPrefix = writeDefaultEntryPrefix;
+    let writeEntryPrefix = writeDefaultEntryPrefix;
 
-  if (ucsMapMayBeEmpty(schema)) {
-    const entryWritten = ns.name(`${value}$entryWritten`);
+    if (ucsMapMayBeEmpty(schema)) {
+      const entryWritten = new EsVarSymbol(`entryWritten`);
 
-    startMap = code => {
-      code.write(`let ${entryWritten} = false;`);
-    };
-    endMap = code => {
-      code
-        .write(`if (!${entryWritten}) {`)
-        .indent(`await ${args.writer}.ready; ${args.writer}.write(${emptyMap});`)
-        .write(`}`);
-    };
-    writeEntryPrefix = key => code => {
-      code.write(`${entryWritten} = true;`, writeDefaultEntryPrefix(key));
-    };
-  }
+      startMap = code => {
+        code.line(entryWritten.declare({ as: EsVarKind.Let, value: () => 'false' }), ';');
+      };
+      endMap = code => {
+        const emptyMap = UC_MODULE_SERIALIZER.import('UCS_EMPTY_MAP');
 
-  return code => {
-    code.write(`let ${entryValue};`, startMap);
+        code
+          .write(esline`if (!${entryWritten}) {`)
+          .indent(esline`await ${writer}.ready;`, esline`${writer}.write(${emptyMap});`)
+          .write(`}`);
+      };
+      writeEntryPrefix = key => code => {
+        code.write(esline`${entryWritten} = true;`, writeDefaultEntryPrefix(key));
+      };
+    }
+
+    const entryValue = new EsVarSymbol(`entryValue`);
+
+    code.write(
+      entryValue.declare({
+        as: EsVarKind.Let,
+      }),
+      startMap,
+    );
 
     for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
       code.write(
-        `${entryValue} = ${value}${jsPropertyAccessor(key)};`,
+        esline`${entryValue} = ${value}${jsPropertyAccessor(key)};`,
         ucsCheckConstraints(
           fn,
           entrySchema,
           entryValue,
           code => {
-            code.write(writeEntryPrefix(key));
-            try {
-              code.write(
-                fn.serialize(ucOptional(ucNullable(entrySchema, false), false), entryValue),
+            const closingParenthesis = UC_MODULE_SERIALIZER.import('UCS_CLOSING_PARENTHESIS');
+
+            code
+              .write(writeEntryPrefix(key))
+              .write(
+                fn.serialize(
+                  ucOptional(ucNullable(entrySchema, false), false),
+                  {
+                    writer,
+                    value: entryValue,
+                    asItem: '0',
+                  },
+                  (schema, fn) => {
+                    throw new UnsupportedUcSchemaError(
+                      schema,
+                      `${fn}: Can not serialize entry "${escapeJsString(
+                        key,
+                      )}" of type "${ucModelName(schema)}"`,
+                    );
+                  },
+                ),
+              )
+              .write(
+                esline`await ${writer}.ready;`,
+                esline`${writer}.write(${closingParenthesis});`,
               );
-            } catch (cause) {
-              throw new UnsupportedUcSchemaError(
-                entrySchema,
-                `${fn.name}: Can not serialize entry "${escapeJsString(
-                  key,
-                )}" of type "${ucModelName(entrySchema)}"`,
-                { cause },
-              );
-            }
-            code.write(
-              `await ${args.writer}.ready;`,
-              `${args.writer}.write(${closingParenthesis});`,
-            );
           },
           {
             onNull: code => {
-              code.write(writeEntryPrefix(key), `${args.writer}.write(${nullEntryValue})`);
+              const nullEntryValue = UC_MODULE_SERIALIZER.import('UCS_NULL_ENTRY_VALUE');
+
+              code.write(writeEntryPrefix(key), esline`${writer}.write(${nullEntryValue});`);
             },
           },
         ),

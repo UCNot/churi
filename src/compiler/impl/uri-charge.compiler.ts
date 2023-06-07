@@ -1,102 +1,106 @@
-import { jsStringLiteral } from 'httongue';
-import { CHURI_MODULE, URI_CHARGE_MODULE } from '../../impl/module-names.js';
+import { EsSignature, EsSnippet, esStringLiteral, esline } from 'esgen';
 import { UcList } from '../../schema/list/uc-list.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { URICharge } from '../../schema/uri-charge/uri-charge.js';
-import { UccArgs } from '../codegen/ucc-args.js';
-import { UccSource } from '../codegen/ucc-code.js';
-import { ListUcrxTemplate } from '../deserialization/list.ucrx-template.js';
-import { MapUcrxEntry } from '../deserialization/map.ucrx-entry.js';
-import { MapUcrxTemplate } from '../deserialization/map.ucrx-template.js';
-import { UcdLib } from '../deserialization/ucd-lib.js';
-import { UcdSetup } from '../deserialization/ucd-setup.js';
+import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
+import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
+import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
-import { UnknownUcrxTemplate } from '../deserialization/unknown.ucrx-template.js';
+import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxSetter, isUcrxSetter } from '../rx/ucrx-setter.js';
+import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
+import { UC_MODULE_CHURI, UC_MODULE_URI_CHARGE } from './uc-modules.js';
 
-export async function createURIChargeUcdLib(): Promise<
-  UcdLib<{ parseURICharge: UcSchema<URICharge> }, 'sync'>
+export class URIChargeCompiler extends UcdCompiler<
+  { parseURICharge: UcSchema<URICharge> },
+  'sync'
 > {
-  return await new UcdSetup({
-    models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
-    mode: 'sync',
-    features(setup) {
-      setup
-        .enable(ucdSupportDefaults)
-        .useUcrxTemplate('unknown', (lib, schema) => new URIChargeUcrxTemplate(lib, schema))
-        .useUcrxTemplate(
-          'list',
-          (lib, schema: UcList.Schema) => new URIChargeListUcrxTemplate(lib, schema),
-        )
-        .useUcrxTemplate(
-          'map',
-          (lib, schema: UcMap.Schema) => new URIChargeMapUcrxTemplate(lib, schema),
-        );
-    },
-  }).bootstrap();
-}
 
-class URIChargeListUcrxTemplate extends ListUcrxTemplate {
-
-  override addNull({ addItem }: ListUcrxTemplate.Allocation): UccSource {
-    const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
-
-    return addItem.call('this', { item: `new ${URICharge$Single}(null, 'null')` }) + ';';
-  }
-
-  override storeItems({ setList, items }: ListUcrxTemplate.Allocation): UccSource {
-    const URICharge$List = this.lib.import(URI_CHARGE_MODULE, 'URICharge$List');
-
-    return `${setList}(new ${URICharge$List}(${items}));`;
+  constructor() {
+    super({
+      models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
+      mode: 'sync',
+      features(compiler) {
+        compiler
+          .enable(ucdSupportDefaults)
+          .useUcrxClass('unknown', (lib, schema) => new URIChargeUcrxClass(lib, schema))
+          .useUcrxClass(
+            'list',
+            (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
+          )
+          .useUcrxClass(
+            'map',
+            (lib, schema: UcMap.Schema) => new URIChargeMapUcrxClass(lib, schema),
+          );
+      },
+    });
   }
 
 }
 
-class URIChargeMapUcrxTemplate extends MapUcrxTemplate {
+class URIChargeListUcrxClass extends ListUcrxClass {
 
-  override createEntry(key: string | null, schema: UcSchema<unknown>): URIChargeMapUcrxEntry {
-    return new URIChargeMapUcrxEntry(this, key, schema);
+  protected override createNullItem(): EsSnippet {
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
+
+    return esline`new ${URICharge$Single}(null, 'null')`;
   }
 
-  override allocateMap(prefix: string, suffix: string): UccSource {
-    return `${prefix}new Map()${suffix}`;
-  }
+  protected override createList(): EsSnippet {
+    const URICharge$List = UC_MODULE_URI_CHARGE.import('URICharge$List');
 
-  override storeMap(setter: string, { map }: MapUcrxTemplate.Allocation): UccSource {
-    const URICharge$Map = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Map');
-
-    return `${setter}(new ${URICharge$Map}(${map}[0]));`;
-  }
-
-}
-
-class URIChargeMapUcrxEntry extends MapUcrxEntry {
-
-  override setEntry(map: string, key: string, value: string): UccSource {
-    return `${map}.set(${key}, ${value});`;
+    return esline`new ${URICharge$List}(${super.createList()})`;
   }
 
 }
 
-class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
+class URIChargeMapUcrxClass extends MapUcrxClass {
 
-  protected override setValue<TArg extends string>(
-    _allocation: UnknownUcrxTemplate.Allocation,
-    method: UcrxMethod<TArg>,
-    args: UccArgs.ByName<TArg>,
-  ): UccSource {
+  override allocateStore(): MapUcrxStore {
+    return new URIChargeMapUcrxStore();
+  }
+
+}
+
+class URIChargeMapUcrxStore implements MapUcrxStore {
+
+  init(): EsSnippet {
+    return `new Map()`;
+  }
+
+  setEntry(map: EsSnippet, key: EsSnippet, value: EsSnippet): EsSnippet {
+    return esline`${map}.set(${key}, ${value});`;
+  }
+
+  store(map: EsSnippet): EsSnippet {
+    const URICharge$Map = UC_MODULE_URI_CHARGE.import('URICharge$Map');
+
+    return esline`new ${URICharge$Map}(${map})`;
+  }
+
+  reclaim(_map: EsSnippet): EsSnippet {
+    return this.init();
+  }
+
+}
+
+class URIChargeUcrxClass extends UnknownUcrxClass {
+
+  protected override setValue<TArgs extends EsSignature.Args>(
+    method: UcrxMethod<TArgs>,
+    args: EsSignature.ValuesOf<TArgs>,
+  ): EsSnippet {
     switch (method as UcrxMethod<any>) {
       case UcrxCore.ent:
-        return this.#setEntity(UcrxCore.ent, args as UccArgs.ByName<UcrxSetter.Arg>);
+        return this.#setEntity(UcrxCore.ent, args as UcrxSetterSignature.Values);
       case UcrxCore.nul:
         return this.#setNull();
       default:
         if (isUcrxSetter(method)) {
-          return this.#setValue(method, args as UccArgs.ByName<UcrxSetter.Arg>);
+          return this.#setValue(method, args as UcrxSetterSignature.Values);
         }
 
         // istanbul ignore next
@@ -104,64 +108,57 @@ class URIChargeUcrxTemplate extends UnknownUcrxTemplate {
     }
   }
 
-  #setValue(method: UcrxSetter, { value, reject }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
-    const type = jsStringLiteral(method.typeName!);
-    const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
+  #setValue(setter: UcrxSetter, { value, reject }: UcrxSetterSignature.Values): EsSnippet {
+    const type = esStringLiteral(setter.typeName);
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return `return ${method.toMethod(this.lib).call('super', {
-      value: `new ${URICharge$Single}(${value}, ${type})`,
+    return esline`return ${this.member(setter).call('super', {
+      value: esline`new ${URICharge$Single}(${value}, ${type})`,
       reject,
     })};`;
   }
 
-  #setEntity(method: UcrxSetter, { value }: UccArgs.ByName<UcrxSetter.Arg>): UccSource {
-    const type = jsStringLiteral(method.typeName!);
-    const UcEntity = this.lib.import(CHURI_MODULE, 'UcEntity');
-    const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
+  #setEntity(method: UcrxSetter, { value }: UcrxSetterSignature.Values): EsSnippet {
+    const type = esStringLiteral(method.typeName);
+    const UcEntity = UC_MODULE_CHURI.import('UcEntity');
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return `return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}));`;
+    return esline`return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}));`;
   }
 
-  #setNull(): UccSource {
-    const URICharge$Single = this.lib.import(URI_CHARGE_MODULE, 'URICharge$Single');
+  #setNull(): EsSnippet {
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return `return this.any(new ${URICharge$Single}(null, 'null'));`;
+    return esline`return this.any(new ${URICharge$Single}(null, 'null'));`;
   }
 
-  protected override addItem<TArg extends string>(
-    allocation: UnknownUcrxTemplate.Allocation,
-    method: UcrxMethod<TArg>,
-    args: UccArgs.ByName<TArg>,
-  ): UccSource {
+  protected override addItem<TArgs extends EsSignature.Args>(
+    method: UcrxMethod<TArgs>,
+    listRx: EsSnippet,
+    args: EsSignature.ValuesOf<TArgs>,
+  ): EsSnippet {
     if ((method as UcrxMethod<any>) === UcrxCore.nul) {
-      return this.#addNull(allocation, args);
+      return this.#addNull(listRx, args);
     }
     if (isUcrxSetter(method)) {
-      return this.#addValue(allocation, method, args as UccArgs.ByName<UcrxSetter.Arg>);
+      return this.#addValue(method, listRx, args as UcrxSetterSignature.Values);
     }
 
     // istanbul ignore next
     throw new TypeError(`Unsupported URICharge method: ${method}`);
   }
 
-  #addValue(
-    { listRx }: UnknownUcrxTemplate.Allocation,
-    method: UcrxSetter,
-    args: UccArgs.ByName<UcrxSetter.Arg>,
-  ): UccSource {
-    return `return ${method.toMethod(this.lib).call(listRx, args)};`;
+  #addValue(method: UcrxSetter, listRx: EsSnippet, args: UcrxSetterSignature.Values): EsSnippet {
+    return esline`return ${this.member(method).call(listRx, args)};`;
   }
 
-  #addNull<TArg extends string>(
-    { listRx }: UnknownUcrxTemplate.Allocation,
-    args: UccArgs.ByName<TArg>,
-  ): UccSource;
+  #addNull<TArgs extends EsSignature.Args>(
+    listRx: EsSnippet,
+    args: EsSignature.ValuesOf<TArgs>,
+  ): EsSnippet;
 
-  #addNull(
-    { listRx }: UnknownUcrxTemplate.Allocation,
-    { reject }: UccArgs.ByName<string>,
-  ): UccSource {
-    return `return ${listRx}.nul(${reject});`;
+  #addNull(listRx: EsSnippet, { reject }: { reject: EsSnippet }): EsSnippet {
+    return esline`return ${listRx}.nul(${reject});`;
   }
 
 }

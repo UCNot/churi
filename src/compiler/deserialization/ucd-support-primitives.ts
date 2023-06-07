@@ -1,42 +1,56 @@
+import { esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccArgs } from '../codegen/ucc-args.js';
-import { UccSource } from '../codegen/ucc-code.js';
-import { CustomUcrxTemplate } from '../rx/custom.ucrx-template.js';
+import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxTemplate } from '../rx/ucrx-template.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcrxSetter } from '../rx/ucrx-setter.js';
+import { UcrxClass, UcrxClassSignature1 } from '../rx/ucrx.class.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
-export function ucdSupportPrimitives(setup: UcdSetup.Any): void {
-  setup
-    .useUcrxTemplate<boolean>(
+export function ucdSupportPrimitives(compiler: UcdCompiler.Any): void {
+  compiler
+    .useUcrxClass<boolean>(
       Boolean,
-      (lib, schema) => new PrimitiveUcrxTemplate(lib, schema, 'bol'),
+      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.bol),
     )
-    .useUcrxTemplate<bigint>(BigInt, (lib, schema) => new PrimitiveUcrxTemplate(lib, schema, 'big'))
-    .useUcrxTemplate<number>(Number, (lib, schema) => new PrimitiveUcrxTemplate(lib, schema, 'num'))
-    .useUcrxTemplate<string>(
+    .useUcrxClass<bigint>(
+      BigInt,
+      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.big),
+    )
+    .useUcrxClass<number>(
+      Number,
+      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.num),
+    )
+    .useUcrxClass<string>(
       String,
-      (lib, schema) => new PrimitiveUcrxTemplate(lib, schema, 'str'),
+      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.str),
     );
 }
 
-class PrimitiveUcrxTemplate<T, TSchema extends UcSchema<T>> extends CustomUcrxTemplate<T, TSchema> {
+class PrimitiveUcrxClass<
+  T,
+  TSchema extends UcSchema<T>,
+> extends UcrxClass<UcrxClassSignature1.Args> {
 
-  readonly #key: 'bol' | 'big' | 'num' | 'str';
+  constructor({ baseUcrx }: UcrxLib, schema: TSchema, setter: UcrxSetter) {
+    super({
+      schema,
+      baseClass: baseUcrx,
+    });
 
-  constructor(lib: UcrxLib, schema: TSchema, key: 'bol' | 'big' | 'num' | 'str') {
-    super({ lib, schema });
-
-    this.#key = key;
-  }
-
-  protected override overrideMethods(): UcrxTemplate.MethodDecls {
-    return {
-      [this.#key]({ value }: UccArgs.ByName<'value'>): UccSource {
-        return `return this.set(${value});`;
+    setter.declareIn(this, {
+      body({
+        member: {
+          args: { value },
+        },
+      }) {
+        return esline`return this.set(${value});`;
       },
-      nul: this.schema.nullable ? () => `return this.set(null);` : undefined,
-    };
+    });
+    if (schema.nullable) {
+      UcrxCore.nul.declareIn(this, {
+        body: () => `return this.set(null);`,
+      });
+    }
   }
 
 }

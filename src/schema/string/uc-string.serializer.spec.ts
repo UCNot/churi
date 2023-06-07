@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { esline } from 'esgen';
+import { UC_MODULE_SPEC } from '../../compiler/impl/uc-modules.js';
+import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { UcsFunction } from '../../compiler/serialization/ucs-function.js';
-import { UcsLib } from '../../compiler/serialization/ucs-lib.js';
-import { UcsSetup } from '../../compiler/serialization/ucs-setup.js';
-import { SPEC_MODULE } from '../../impl/module-names.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel, UcSchema } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcString serializer', () => {
-  let lib: UcsLib<{ writeValue: UcModel<string> }>;
+  let compiler: UcsCompiler<{ writeValue: UcModel<string> }>;
   let writeValue: UcSerializer<string>;
 
   beforeEach(async () => {
-    lib = await new UcsSetup({
+    compiler = new UcsCompiler({
       models: {
         writeValue: String,
       },
-    }).bootstrap();
-    ({ writeValue } = await lib.compileFactory().toExports());
+    });
+    ({ writeValue } = await compiler.evaluate());
   });
 
   it('percent-encodes special symbols', async () => {
@@ -43,22 +43,22 @@ describe('UcString serializer', () => {
     await expect(TextOutStream.read(async to => await writeValue(to, ''))).resolves.toBe("'");
   });
   it('writes multiple chunks', async () => {
-    lib = await new UcsSetup({
+    compiler = new UcsCompiler({
       models: {
         writeValue: String,
       },
       createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {
         return new UcsFunction<T, TSchema>({
           ...options,
-          createWriter(serializer, writer, stream) {
-            const UcsWriter = serializer.lib.import(SPEC_MODULE, 'SmallChunkUcsWriter');
+          createWriter({ stream }) {
+            const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
 
-            return `const ${writer} = new ${UcsWriter}(${stream}, 4);`;
+            return esline`new ${UcsWriter}(${stream}, 4);`;
           },
         });
       },
-    }).bootstrap();
-    ({ writeValue } = await lib.compileFactory().toExports());
+    });
+    ({ writeValue } = await compiler.evaluate());
 
     await expect(
       TextOutStream.read(

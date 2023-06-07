@@ -1,10 +1,11 @@
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsCompiler } from './ucs-compiler.js';
 
 /**
  * Deserializer feature.
  *
- * May be enabled by {@link churi!UcInstructions#serializer schema instructions} or {@link UcsSetup#enable explicitly}.
+ * May be enabled by {@link churi!UcInstructions#serializer schema instructions}
+ * or {@link UcsCompiler#enable explicitly}.
  */
 export type UcsFeature = UcsFeature.Object | UcsFeature.Function;
 
@@ -14,11 +15,11 @@ export namespace UcsFeature {
    */
   export interface Object {
     /**
-     * Configures serializer during setup.
+     * Configures serializer compiler during setup.
      *
-     * @param setup - Serializer setup.
+     * @param compiler - Compiler to configure.
      */
-    configureSerializer(setup: UcsSetup): void;
+    configureSerializer(compiler: UcsCompiler): void;
   }
 
   /**
@@ -42,10 +43,10 @@ export namespace UcsSchemaFeature {
     /**
      * Configures schema serialization.
      *
-     * @param setup - Serializer setup.
+     * @param compiler - Serializer compiler to configure.
      * @param schema - Configured schema instance.
      */
-    configureSchemaSerializer(setup: UcsSetup, schema: UcSchema): void;
+    configureSchemaSerializer(compiler: UcsCompiler, schema: UcSchema): void;
   }
 
   /**

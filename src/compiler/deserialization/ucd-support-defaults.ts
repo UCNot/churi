@@ -1,7 +1,7 @@
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 import { ucdSupportNonFinite } from './ucd-support-non-finite.js';
 import { ucdSupportPrimitives } from './ucd-support-primitives.js';
 
-export function ucdSupportDefaults(setup: UcdSetup.Any): void {
-  setup.enable(ucdSupportPrimitives).enable(ucdSupportNonFinite);
+export function ucdSupportDefaults(compiler: UcdCompiler.Any): void {
+  compiler.enable(ucdSupportPrimitives).enable(ucdSupportNonFinite);
 }

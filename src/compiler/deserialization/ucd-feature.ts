@@ -1,12 +1,12 @@
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcdSetup } from './ucd-setup.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 /**
  * Deserializer feature.
  *
- * Configures deserializer during setup.
+ * Configures deserializer compiler during setup.
  *
- * May be enabled by {@link churi!UcInstructions#deserializer schema instructions} or {@link UcdSetup#enable
+ * May be enabled by {@link churi!UcInstructions#deserializer schema instructions} or {@link UcdCompiler#enable
  * explicitly}.
  */
 export type UcdFeature = UcdFeature.Object | UcdFeature.Function;
@@ -17,11 +17,11 @@ export namespace UcdFeature {
    */
   export interface Object {
     /**
-     * Configures deserializer during setup.
+     * Configures deserializer compiler during setup.
      *
-     * @param setup - Deserializer setup.
+     * @param compiler - Deserializer compiler to configure.
      */
-    configureDeserializer(setup: UcdSetup.Any): void;
+    configureDeserializer(compiler: UcdCompiler.Any): void;
   }
 
   /**
@@ -43,12 +43,12 @@ export namespace UcdSchemaFeature {
    */
   export interface Object {
     /**
-     * Configures schema deserialization during setup.
+     * Configures schema serialization.
      *
-     * @param setup - Deserializer setup.
+     * @param compiler - Deserializer compiler to configure.
      * @param schema - Configured schema instance.
      */
-    configureSchemaDeserializer(setup: UcdSetup.Any, schema: UcSchema): void;
+    configureSchemaDeserializer(compiler: UcdCompiler.Any, schema: UcSchema): void;
   }
 
   /**

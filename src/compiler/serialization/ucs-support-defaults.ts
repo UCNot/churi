@@ -1,6 +1,6 @@
-import { UcsSetup } from './ucs-setup.js';
+import { UcsCompiler } from './ucs-compiler.js';
 import { ucsSupportPrimitives } from './ucs-support-primitives.js';
 
-export function ucsSupportDefaults(setup: UcsSetup): void {
-  setup.enable(ucsSupportPrimitives);
+export function ucsSupportDefaults(compiler: UcsCompiler): void {
+  compiler.enable(ucsSupportPrimitives);
 }

@@ -1,4 +1,4 @@
-import { escapeJsString, quoteJsKey } from 'httongue';
+import { esEscapeString, esQuoteKey } from 'esgen';
 import { UcErrorInfo } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
@@ -65,7 +65,7 @@ export function ucrxRejectMissingEntries(
     details: {
       keys,
     },
-    message: `Map entries missing: ${keys.map(key => '"' + escapeJsString(key) + '"').join(', ')}`,
+    message: `Map entries missing: ${keys.map(key => '"' + esEscapeString(key) + '"').join(', ')}`,
   };
 }
 
@@ -90,7 +90,7 @@ export function ucrxRejectEntry(key: string): UcrxRejection {
     details: {
       key,
     },
-    message: `Unexpected entry: ${quoteJsKey(key, '"')}`,
+    message: `Unexpected entry: ${esQuoteKey(key, '"')}`,
   };
 }
 
