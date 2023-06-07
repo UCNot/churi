@@ -2,8 +2,22 @@ import { describe, expect, it } from '@jest/globals';
 import { EsClass, esGenerate } from 'esgen';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxMethod } from './ucrx-method.js';
+import { UcrxProperty } from './ucrx-property.js';
 
 describe('UcrxCore', () => {
+  describe('types', () => {
+    it('returns void', async () => {
+      await expect(generate(UcrxCore.types)).resolves.toContain(
+        `
+class TestClass {
+  get types() {
+    return ['void'];
+  }
+}`.trimStart(),
+      );
+    });
+  });
+
   describe('ent', () => {
     it('has stub creating UcEntity instance', async () => {
       await expect(generate(UcrxCore.ent)).resolves.toContain(
@@ -107,7 +121,7 @@ class TestClass {
     });
   });
 
-  async function generate(method: UcrxMethod): Promise<string> {
+  async function generate(method: UcrxMethod | UcrxProperty): Promise<string> {
     const testClass = new EsClass('TestClass');
 
     method.declareStub(testClass);
