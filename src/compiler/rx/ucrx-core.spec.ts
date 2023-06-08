@@ -62,7 +62,7 @@ class TestClass {
       await expect(generate(UcrxCore.for)).resolves.toContain(
         `
 class TestClass {
-  ['for'](key, reject) {
+  for(key, reject) {
     return reject(ucrxRejectType('map', this));
   }
 }`.trimStart(),

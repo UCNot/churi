@@ -1,5 +1,12 @@
-import { EsCode, EsSnippet, EsVarKind, EsVarSymbol, esline } from 'esgen';
-import { escapeJsString, jsPropertyAccessor } from 'httongue';
+import {
+  EsCode,
+  EsSnippet,
+  EsVarKind,
+  EsVarSymbol,
+  esEscapeString,
+  esMemberAccessor,
+  esline,
+} from 'esgen';
 import { encodeUcsKey } from '../../impl/encode-ucs-string.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
@@ -76,7 +83,7 @@ function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
 
     for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
       code.write(
-        esline`${entryValue} = ${value}${jsPropertyAccessor(key)};`,
+        esline`${entryValue} = ${value}${esMemberAccessor(key).accessor};`,
         ucsCheckConstraints(
           fn,
           entrySchema,
@@ -97,7 +104,7 @@ function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
                   (schema, fn) => {
                     throw new UnsupportedUcSchemaError(
                       schema,
-                      `${fn}: Can not serialize entry "${escapeJsString(
+                      `${fn}: Can not serialize entry "${esEscapeString(
                         key,
                       )}" of type "${ucModelName(schema)}"`,
                     );
