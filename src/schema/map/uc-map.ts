@@ -90,7 +90,7 @@ export namespace UcMap {
     /**
      * Additional options for the {@link ucMap map schema}.
      */
-    export interface BaseOptions {
+    export interface BaseOptions extends UcSchema.Extension {
       /**
        * Unique schema identifier.
        *
@@ -112,7 +112,7 @@ export namespace UcMap {
 }
 
 /**
- * Creates a reference to URI charge schema for JavaScript {@link UcMap object} serialized as map.
+ * Creates data schema for JavaScript {@link UcMap object} serialized as map.
  *
  * @typeParam TEntriesModel - Per-entry model type.
  * @param entries - Per-entry model.
@@ -125,6 +125,15 @@ export function ucMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
   options?: UcMap.Schema.ExactOptions,
 ): UcMap.Schema<TEntriesModel>;
 
+/**
+ * Creates data schema for JavaScript {@link UcMap object} serialized as map with extra properties.
+ *
+ * @typeParam TEntriesModel - Per-entry model type.
+ * @param entries - Per-entry model.
+ * @param options - Schema options.
+ *
+ * @returns New map schema.
+ */
 export function ucMap<
   TEntriesModel extends UcMap.Schema.Entries.Model,
   TExtraModel extends UcModel,
@@ -133,45 +142,53 @@ export function ucMap<
   options: UcMap.Schema.ExtraOptions<TExtraModel>,
 ): UcMap.Schema<TEntriesModel, TExtraModel>;
 
+/*#__NO_SIDE_EFFECTS__*/
 export function ucMap<
   TEntriesModel extends UcMap.Schema.Entries.Model,
   TExtraModel extends UcModel,
 >(
   entriesModel: TEntriesModel,
-  { id, extra }: UcMap.Schema.Options<TExtraModel> = {},
+  options: UcMap.Schema.Options<TExtraModel> = {},
 ): UcMap.Schema<TEntriesModel, TExtraModel> {
+  const { id, extra } = options;
   const entries: [string, UcSchema][] = Object.entries(entriesModel).map(([key, model]) => [
     key,
     ucSchema(model),
   ]);
 
-  return {
-    type: 'map',
-    id: id ?? `map_${++UcMap$idSeq}`,
-    with: UcMap$instructions,
-    entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesModel>,
-    extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
-    toString() {
-      let out = '{';
+  return ucSchema<
+    UcMap.Infer<TEntriesModel, TExtraModel>,
+    UcMap.Schema<TEntriesModel, TExtraModel>
+  >(
+    {
+      type: 'map',
+      id: id ?? `map_${++UcMap$idSeq}`,
+      with: UcMap$instructions,
+      entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesModel>,
+      extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
+      toString() {
+        let out = '{';
 
-      entries.every(([key, entry], i) => {
-        if (i) {
-          out += ', ';
-        }
-        out += esQuoteKey(key) + ': ' + ucModelName(entry);
+        entries.every(([key, entry], i) => {
+          if (i) {
+            out += ', ';
+          }
+          out += esQuoteKey(key) + ': ' + ucModelName(entry);
 
-        if (i < 2) {
-          return true;
-        }
+          if (i < 2) {
+            return true;
+          }
 
-        out += ', ...';
+          out += ', ...';
 
-        return false;
-      });
+          return false;
+        });
 
-      return out + '}';
+        return out + '}';
+      },
     },
-  };
+    options,
+  );
 }
 
 let UcMap$idSeq = 0;

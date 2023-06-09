@@ -18,22 +18,26 @@ describe('ucSchema', () => {
           },
         },
         {
-          deserializer: {
-            use: {
-              from: 'test-module',
-              feature: 'test-feature',
-              options: { test: 2 },
+          with: [
+            {
+              deserializer: {
+                use: {
+                  from: 'test-module',
+                  feature: 'test-feature',
+                  options: { test: 2 },
+                },
+              },
             },
-          },
-        },
-        {
-          deserializer: {
-            use: {
-              from: 'test-module',
-              feature: 'test-feature3',
-              options: { test: 3 },
+            {
+              deserializer: {
+                use: {
+                  from: 'test-module',
+                  feature: 'test-feature3',
+                  options: { test: 3 },
+                },
+              },
             },
-          },
+          ],
         },
       ),
     ).toEqual({
@@ -61,7 +65,7 @@ describe('ucSchema', () => {
       },
     });
   });
-  it('leaves schema without additional per-tool instructions unchanged', () => {
+  it('returns schema without extension as is', () => {
     const schema: UcSchema = {
       type: 'test-type',
       with: {
@@ -75,15 +79,26 @@ describe('ucSchema', () => {
       },
     };
 
-    expect(ucSchema(schema)).toEqual(schema);
+    expect(ucSchema(schema)).toBe(schema);
   });
-  it('leaves schema without per-tool instructions unchanged', () => {
-    expect(
-      ucSchema({
-        type: 'test-type',
-      }),
-    ).toEqual({
+  it('leaves schema without per-tool instructions extension', () => {
+    const schema: UcSchema = {
       type: 'test-type',
-    });
+      with: {
+        deserializer: {
+          use: {
+            from: 'test-module',
+            feature: 'test-feature',
+            options: { test: 1 },
+          },
+        },
+      },
+    };
+
+    expect(
+      ucSchema(schema, {
+        with: [],
+      }),
+    ).toEqual(schema);
   });
 });

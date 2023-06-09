@@ -62,6 +62,7 @@ export namespace UcInstructions {
  *
  * @returns Combined instructions or `undefined` if nothing to combine.
  */
+/*#__NO_SIDE_EFFECTS__*/
 export function ucInstructions(...instructions: UcInstructions[]): UcInstructions | undefined {
   if (instructions.length < 2) {
     return instructions.length ? instructions[0] : undefined;

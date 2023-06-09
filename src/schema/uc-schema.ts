@@ -106,11 +106,11 @@ export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
  *
  * @typeParam T - Implied data type.
  * @param type - Modelled data type.
- * @param instructions - Additional per-tool schema processing instructions.
+ * @param extension - Schema extension.
  *
  * @returns Schema instance.
  */
-export function ucSchema<T>(type: UcDataType<T>, ...instructions: UcInstructions[]): UcSchema<T>;
+export function ucSchema<T>(type: UcDataType<T>, extension?: UcSchema.Extension): UcSchema<T>;
 
 /**
  * Obtains a {@link UcSchema schema} of the given data `model`.
@@ -118,30 +118,34 @@ export function ucSchema<T>(type: UcDataType<T>, ...instructions: UcInstructions
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Schema type.
  * @param model - Data model to obtain a schema of.
- * @param instructions - Additional per-tool schema processing instructions.
+ * @param extension - Schema extension.
  *
  * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
  * type otherwise.
  */
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
-  ...instructions: UcInstructions[]
+  extension?: UcSchema.Extension,
 ): TSchema;
 
+/*#__NO_SIDE_EFFECTS__*/
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
-  ...instructions: UcInstructions[]
+  { with: instructions }: UcSchema.Extension = {},
 ): TSchema {
   if (typeof model === 'function') {
     return {
       optional: false,
       nullable: false,
       type: model,
-      with: ucInstructions(...instructions),
+      with: ucInstructions(...asArray(instructions)),
     } as TSchema;
   }
+  if (!instructions) {
+    return model;
+  }
 
-  return { ...model, with: ucInstructions(...asArray(model.with), ...instructions) };
+  return { ...model, with: ucInstructions(...asArray(model.with), ...asArray(instructions)) };
 }
 
 /**
@@ -156,6 +160,15 @@ export type UcInfer<TModel extends UcModel> =
   | UcSchema.OptionalType<UcSchema.Of<TModel>>;
 
 export namespace UcSchema {
+  /**
+   * Schema {@link ucSchema extension}.
+   */
+  export interface Extension {
+    /**
+     * Additional per-tool schema processing instructions.
+     */
+    readonly with?: UcInstructions | readonly UcInstructions[] | undefined;
+  }
   /**
    * Schema type corresponding to the given model type.
    *

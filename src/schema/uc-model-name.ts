@@ -7,6 +7,7 @@ import { UcModel, ucSchema } from './uc-schema.js';
  *
  * @returns String containing schema name.
  */
+/*#__NO_SIDE_EFFECTS__*/
 export function ucModelName(model: UcModel): string {
   const schema = ucSchema(model);
 

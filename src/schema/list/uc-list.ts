@@ -33,7 +33,7 @@ export namespace UcList {
     /**
      * Additional options for the {@link ucList list schema}.
      */
-    export interface Options {
+    export interface Options extends UcSchema.Extension {
       /**
        * Unique schema identifier.
        *
@@ -45,7 +45,7 @@ export namespace UcList {
 }
 
 /**
- * Creates a reference to URI charge schema for JavaScript {@link UcList array} serialized as list.
+ * Creates data schema for JavaScript {@link UcList array} serialized as list.
  *
  * @typeParam TItemModel - Type of list item model.
  * @param itemModel - List item model.
@@ -57,21 +57,26 @@ export function ucList<TItem, TItemModel extends UcModel<TItem> = UcModel<TItem>
   options?: UcList.Schema.Options,
 ): UcList.Schema<TItem, TItemModel>;
 
+/*#__NO_SIDE_EFFECTS__*/
 export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TItem>>(
   itemModel: UcModel<TItem, TItemSchema>,
-  { id }: UcList.Schema.Options = {},
+  options: UcList.Schema.Options = {},
 ): UcList.Schema<TItem, TItemSchema> {
+  const { id } = options;
   const item = ucSchema<TItem, TItemSchema>(itemModel) as UcSchema.Of<TItemSchema>;
 
-  return {
-    type: 'list',
-    id: id ?? `list_${++UcList$idSeq}`,
-    with: UcList$instructions,
-    item,
-    toString() {
-      return `${ucModelName(item)}[]`;
+  return ucSchema<TItem[], UcList.Schema<TItem, TItemSchema>>(
+    {
+      type: 'list',
+      id: id ?? `list_${++UcList$idSeq}`,
+      with: UcList$instructions,
+      item,
+      toString() {
+        return `${ucModelName(item)}[]`;
+      },
     },
-  };
+    options,
+  );
 }
 
 let UcList$idSeq = 0;

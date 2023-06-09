@@ -121,7 +121,7 @@ export namespace UcDeserializer {
 export function createUcDeserializer<T>(model: UcModel<T>): UcDeserializer<T> {
   return () => {
     throw new TypeError(
-      `Can not deserialize ${ucModelName(model)}. Is "ts-transform-churi" transformer applied?`,
+      `Can not deserialize ${ucModelName(model)}. Is "ts-transformer-churi" applied?`,
     );
   };
 }

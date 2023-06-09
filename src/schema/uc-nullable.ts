@@ -109,6 +109,7 @@ export function ucNullable<
   TNullable extends boolean | undefined = true,
 >(model: UcModel<T, TSchema>, nullable: TNullable): UcNullable<T, TSchema, TNullable>;
 
+/*#__NO_SIDE_EFFECTS__*/
 export function ucNullable<T, TSchema extends UcSchema<T>, TNullable extends boolean | undefined>(
   model: UcModel<T, TSchema>,
   nullable = true as TNullable,

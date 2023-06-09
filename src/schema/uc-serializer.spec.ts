@@ -4,7 +4,7 @@ import { createUcSerializer } from './uc-serializer.js';
 describe('createUcSerializer', () => {
   it('creates failing serializer', () => {
     expect(() => createUcSerializer(Number)(null!, null!)).toThrow(
-      new TypeError(`Can not serialize Number. Is "ts-transform-churi" transformer applied?`),
+      new TypeError(`Can not serialize Number. Is "ts-transformer-churi" applied?`),
     );
   });
 });
