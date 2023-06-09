@@ -1,10 +1,10 @@
-import { UcSchema, ucSchema } from '../uc-schema.js';
+import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 export type UcString = string;
 
 export namespace UcString {
   export interface Schema extends UcSchema<string> {
-    readonly type: typeof String;
+    readonly type: UcDataType<UcString>;
   }
 }
 
@@ -17,5 +17,5 @@ export namespace UcString {
  */
 /*#__NO_SIDE_EFFECTS__*/
 export function ucString(extension?: UcSchema.Extension): UcString.Schema {
-  return ucSchema(String, extension) as UcString.Schema;
+  return ucSchema<string>(String, extension);
 }

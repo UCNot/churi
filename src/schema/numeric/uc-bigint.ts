@@ -1,10 +1,10 @@
-import { UcSchema, ucSchema } from '../uc-schema.js';
+import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 export type UcBigInt = bigint;
 
 export namespace UcBigInt {
   export interface Schema extends UcSchema<bigint> {
-    readonly type: typeof BigInt;
+    readonly type: UcDataType<UcBigInt>;
   }
 }
 
@@ -17,5 +17,5 @@ export namespace UcBigInt {
  */
 /*#__NO_SIDE_EFFECTS__*/
 export function ucBigInt(extension?: UcSchema.Extension): UcBigInt.Schema {
-  return ucSchema(BigInt, extension) as UcBigInt.Schema;
+  return ucSchema<bigint>(BigInt, extension);
 }

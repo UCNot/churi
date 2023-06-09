@@ -1,10 +1,10 @@
-import { UcSchema, ucSchema } from '../uc-schema.js';
+import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 export type UcNumber = number;
 
 export namespace UcNumber {
   export interface Schema extends UcSchema<number> {
-    readonly type: typeof Number;
+    readonly type: UcDataType<UcNumber>;
   }
 }
 
@@ -17,5 +17,5 @@ export namespace UcNumber {
  */
 /*#__NO_SIDE_EFFECTS__*/
 export function ucNumber(extension?: UcSchema.Extension): UcNumber.Schema {
-  return ucSchema(Number, extension) as UcNumber.Schema;
+  return ucSchema<number>(Number, extension);
 }

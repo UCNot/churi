@@ -1,10 +1,10 @@
-import { UcSchema, ucSchema } from '../uc-schema.js';
+import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 export type UcBoolean = boolean;
 
 export namespace UcBoolean {
   export interface Schema extends UcSchema<boolean> {
-    readonly type: typeof Boolean;
+    readonly type: UcDataType<UcBoolean>;
   }
 }
 
@@ -17,5 +17,5 @@ export namespace UcBoolean {
  */
 /*#__NO_SIDE_EFFECTS__*/
 export function ucBoolean(extension?: UcSchema.Extension): UcBoolean.Schema {
-  return ucSchema(Boolean, extension) as UcBoolean.Schema;
+  return ucSchema<boolean>(Boolean, extension);
 }
