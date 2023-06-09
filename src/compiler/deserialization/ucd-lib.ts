@@ -1,8 +1,8 @@
 import {
   EsBundle,
   EsDeclarationContext,
+  EsNamespace,
   EsSnippet,
-  EsSymbol,
   EsVarSymbol,
   esEscapeString,
   esline,
@@ -42,57 +42,44 @@ export class UcdLib<
   >;
 
   readonly #deserializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcdFunction>>();
-  #entityHandler?: [EsSnippet, EsSymbol?];
+  readonly #entityHandler: EsSnippet;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
     const { models, entities, createDeserializer = options => new UcdFunction(options) } = options;
 
-    super({ ...options });
+    super(options);
 
     this.#options = options;
     this.#entities = entities;
-    this.#models = Object.fromEntries(
+    this.#models = this.#createModels(models);
+    this.#createDeserializer = createDeserializer;
+    this.#entityHandler = this.#createEntityHandler(ns);
+    this.#declareDeserializers(ns);
+  }
+
+  #createModels(models: TModels): {
+    readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
+  } {
+    return Object.fromEntries(
       Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
     ) as {
       readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
     };
-
-    this.#createDeserializer = createDeserializer;
-
-    for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
-      const fn = this.deserializerFor(schema);
-
-      ns.refer(fn.exportFn(externalName, UcdExportSignature));
-    }
   }
 
-  get mode(): TMode {
-    return this.#options.mode;
-  }
-
-  get entityHandler(): EsSnippet {
-    return this.#getEntityHandler()[0];
-  }
-
-  #getEntityHandler(): [EsSnippet, EsSymbol?] {
-    return (this.#entityHandler ??= this.#createEntityHandler());
-  }
-
-  #createEntityHandler(): [EsSnippet, EsSymbol?] {
+  #createEntityHandler(ns: EsNamespace): EsSnippet {
     const { exportEntityHandler } = this.#options;
     const entities = this.#entities;
 
     if (!entities) {
       // Use precompiled entity handler.
-      const entityHandler = UC_MODULE_DEFAULT_ENTITIES.import('onEntity$byDefault');
-
-      return [entityHandler, entityHandler];
+      return UC_MODULE_DEFAULT_ENTITIES.import('onEntity$byDefault');
     }
 
     if (!entities.length) {
       // No entities supported.
-      return ['undefined'];
+      return 'undefined';
     }
 
     // Generate custom entity handler.
@@ -105,7 +92,7 @@ export class UcdLib<
       },
     });
 
-    return [entityHandler, entityHandler];
+    return exportEntityHandler ? ns.refer(entityHandler) : entityHandler;
   }
 
   #registerEntities({ refer }: EsDeclarationContext): EsSnippet {
@@ -137,6 +124,22 @@ export class UcdLib<
         });
       }, '.toRx()');
     };
+  }
+
+  #declareDeserializers(ns: EsNamespace): void {
+    for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
+      const fn = this.deserializerFor(schema);
+
+      ns.refer(fn.exportFn(externalName, UcdExportSignature));
+    }
+  }
+
+  get mode(): TMode {
+    return this.#options.mode;
+  }
+
+  get entityHandler(): EsSnippet {
+    return this.#entityHandler;
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -173,18 +176,6 @@ export class UcdLib<
     schema: TSchema,
   ): UcrxClassFactory<T, TSchema> | undefined {
     return this.#options.ucrxClassFactoryFor?.(schema);
-  }
-
-  init(): EsSnippet {
-    return (_, { ns }) => {
-      if (this.#options.exportEntityHandler) {
-        const [, handlerSymbol] = this.#getEntityHandler();
-
-        if (handlerSymbol) {
-          ns.refer(handlerSymbol);
-        }
-      }
-    };
   }
 
 }

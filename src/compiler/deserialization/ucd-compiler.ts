@@ -5,7 +5,6 @@ import {
   EsGenerationOptions,
   EsScopeSetup,
   EsSignature,
-  EsSnippet,
   esEvaluate,
   esGenerate,
   esQuoteKey,
@@ -196,13 +195,10 @@ export class UcdCompiler<
    * @returns Promise resolved to deserializer module text.
    */
   async generate(options: EsGenerationOptions = {}): Promise<string> {
-    return await esGenerate(
-      {
-        ...options,
-        setup: [...asArray(options.setup), await this.bootstrap()],
-      },
-      this.#initLib(),
-    );
+    return await esGenerate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    });
   }
 
   /**
@@ -213,19 +209,10 @@ export class UcdCompiler<
    * @returns Promise resolved to deserializers exported from generated module.
    */
   async evaluate(options: EsEvaluationOptions = {}): Promise<UcdExports<TModels, TMode>> {
-    return (await esEvaluate(
-      {
-        ...options,
-        setup: [...asArray(options.setup), await this.bootstrap()],
-      },
-      this.#initLib(),
-    )) as UcdExports<TModels, TMode>;
-  }
-
-  #initLib(): EsSnippet {
-    return (code, scope) => {
-      code.write((scope.get(UcdLib) as UcdLib).init());
-    };
+    return (await esEvaluate({
+      ...options,
+      setup: [...asArray(options.setup), await this.bootstrap()],
+    })) as UcdExports<TModels, TMode>;
   }
 
   /**
