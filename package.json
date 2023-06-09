@@ -1,14 +1,13 @@
 {
   "name": "churi",
   "version": "0.9.0",
-  "description": "Charged URI with schema compiler",
+  "description": "Charged URI syntax and URI charge data interchange format with schema support",
   "keywords": [
     "charged-uri",
     "matrix-uri",
     "matrix-url",
     "rfc3986",
     "schema",
-    "schema-compiler",
     "uri",
     "uri-charge",
     "url"
