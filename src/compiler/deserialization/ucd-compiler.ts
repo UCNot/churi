@@ -35,7 +35,7 @@ export class UcdCompiler<
 > {
 
   readonly #options: UcdCompiler.Options<TModels, TMode>;
-  readonly #enabled = new Set<UcdFeature>();
+  readonly #enabled = new Set<UcdFeature<never>>();
   readonly #uses = new Map<UcSchema['type'], UcdCompiler$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #types = new Map<string | UcDataType, UcrxClassFactory>();
@@ -61,19 +61,32 @@ export class UcdCompiler<
   /**
    * Enables the given deserializer `feature`, unless enabled already.
    *
-   * @param feature - Deserializer feature to enable.
+   * @typeParam TOptions - Type of feature options.
+   * @param feature - Feature to enable.
+   * @param options - Feature options.
    *
    * @returns `this` instance.
    */
-  enable(feature: UcdFeature): this {
+  enable<TOptions>(feature: UcdFeature<TOptions>, options: TOptions): this;
+
+  /**
+   * Enables the given deserializer `feature` without additional options, unless enabled already.
+   *
+   * @param feature - Feature to enable.
+   *
+   * @returns `this` instance.
+   */
+  enable(feature: UcdFeature<void>): this;
+
+  enable<TOptions>(feature: UcdFeature<TOptions>, options?: TOptions): this {
     if (!this.#enabled.has(feature)) {
       this.#enabled.add(feature);
       if ('configureDeserializer' in feature) {
-        feature.configureDeserializer(this);
+        feature.configureDeserializer(this, options!);
       } else if (feature === ucdSupportDefaults) {
         this.#enableDefault();
       } else {
-        feature(this);
+        feature(this, options!);
       }
     }
 
@@ -113,12 +126,12 @@ export class UcdCompiler<
     return this;
   }
 
-  #useFeature(schema: UcSchema, { from, feature }: UcInstructions.UseFeature): void {
+  #useFeature(schema: UcSchema, { from, feature, options }: UcInstructions.UseFeature): void {
     const useId = `${ucSchemaSymbol(schema)}::${from}::${feature}`;
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcdCompiler$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcdCompiler$FeatureUse(schema, from, feature, options));
     }
   }
 
@@ -358,12 +371,14 @@ class UcdCompiler$FeatureUse {
   readonly #schema: UcSchema;
   readonly #from: string;
   readonly #name: string;
+  readonly #options: unknown;
   #enabled = false;
 
-  constructor(schema: UcSchema, from: string, name: string) {
+  constructor(schema: UcSchema, from: string, name: string, options: unknown) {
     this.#schema = schema;
     this.#from = from;
     this.#name = name;
+    this.#options = options;
   }
 
   async enable(compiler: UcdCompiler.Any): Promise<void> {
@@ -384,7 +399,7 @@ class UcdCompiler$FeatureUse {
         configured = true;
       }
       if ('configureSchemaDeserializer' in feature) {
-        feature.configureSchemaDeserializer(compiler, this.#schema);
+        feature.configureSchemaDeserializer(compiler, this.#schema, this.#options);
         configured = true;
       }
 
@@ -393,7 +408,7 @@ class UcdCompiler$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcdSchemaFeature.Function)(compiler, this.#schema);
+        (feature as UcdSchemaFeature.Function)(compiler, this.#schema, this.#options);
 
         return;
       }

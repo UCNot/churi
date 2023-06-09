@@ -1,4 +1,5 @@
-import { UcInstructions } from './uc-instructions.js';
+import { asArray } from '@proc7ts/primitives';
+import { UcInstructions, ucInstructions } from './uc-instructions.js';
 
 /**
  * Data schema definition.
@@ -105,10 +106,11 @@ export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
  *
  * @typeParam T - Implied data type.
  * @param type - Modelled data type.
+ * @param instructions - Additional per-tool schema processing instructions.
  *
  * @returns Schema instance.
  */
-export function ucSchema<T>(type: UcDataType<T>): UcSchema<T>;
+export function ucSchema<T>(type: UcDataType<T>, ...instructions: UcInstructions[]): UcSchema<T>;
 
 /**
  * Obtains a {@link UcSchema schema} of the given data `model`.
@@ -116,26 +118,30 @@ export function ucSchema<T>(type: UcDataType<T>): UcSchema<T>;
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Schema type.
  * @param model - Data model to obtain a schema of.
+ * @param instructions - Additional per-tool schema processing instructions.
  *
  * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
  * type otherwise.
  */
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
+  ...instructions: UcInstructions[]
 ): TSchema;
 
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
+  ...instructions: UcInstructions[]
 ): TSchema {
   if (typeof model === 'function') {
     return {
       optional: false,
       nullable: false,
       type: model,
+      with: ucInstructions(...instructions),
     } as TSchema;
   }
 
-  return model;
+  return { ...model, with: ucInstructions(...asArray(model.with), ...instructions) };
 }
 
 /**

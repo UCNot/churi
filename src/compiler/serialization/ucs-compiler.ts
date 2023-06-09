@@ -28,7 +28,7 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
 export class UcsCompiler<TModels extends UcsModels = UcsModels> {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #enabled = new Set<UcsFeature>();
+  readonly #enabled = new Set<UcsFeature<never>>();
   readonly #uses = new Map<UcSchema['type'], UcsCompiler$FeatureUse>();
   #hasPendingInstructions = false;
   readonly #generators = new Map<string | UcDataType, UcsGenerator>();
@@ -45,17 +45,39 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> {
   /**
    * Enables the given serializer `feature`, unless enabled already.
    *
-   * @param feature - Serializer feature to enable.
+   * @typeParam TOptions - Type of feature options.
+   * @param feature - Feature to enable.
+   * @param options - Feature options.
    *
    * @returns `this` instance.
    */
-  enable(feature: UcsFeature): this {
+  enable<TOptions>(feature: UcsFeature<TOptions>, options: TOptions): this;
+
+  /**
+   * Enables the given serializer `feature` without additional options, unless enabled already.
+   *
+   * @param feature - Feature to enable.
+   *
+   * @returns `this` instance.
+   */
+  enable(feature: UcsFeature<void>): this;
+
+  /**
+   * Enables the given serializer `feature`, unless enabled already.
+   *
+   * @typeParam TOptions - Type of feature options.
+   * @param feature - Feature to enable.
+   * @param options - Feature options.
+   *
+   * @returns `this` instance.
+   */
+  enable<TOptions>(feature: UcsFeature<TOptions>, options?: TOptions): this {
     if (!this.#enabled.has(feature)) {
       this.#enabled.add(feature);
       if ('configureSerializer' in feature) {
-        feature.configureSerializer(this);
+        feature.configureSerializer(this, options!);
       } else {
-        feature(this);
+        feature(this, options!);
       }
     }
 
@@ -79,12 +101,12 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> {
     return this;
   }
 
-  #useFeature(schema: UcSchema, { from, feature }: UcInstructions.UseFeature): void {
+  #useFeature(schema: UcSchema, { from, feature, options }: UcInstructions.UseFeature): void {
     const useId = `${ucSchemaSymbol(schema)}::${from}::${feature}`;
 
     if (!this.#uses.has(useId)) {
       this.#hasPendingInstructions = true;
-      this.#uses.set(useId, new UcsCompiler$FeatureUse(schema, from, feature));
+      this.#uses.set(useId, new UcsCompiler$FeatureUse(schema, from, feature, options));
     }
   }
 
@@ -248,12 +270,14 @@ class UcsCompiler$FeatureUse {
   readonly #schema: UcSchema;
   readonly #from: string;
   readonly #name: string;
+  readonly #options: unknown;
   #enabled = false;
 
-  constructor(schema: UcSchema, from: string, name: string) {
+  constructor(schema: UcSchema, from: string, name: string, options: unknown) {
     this.#schema = schema;
     this.#from = from;
     this.#name = name;
+    this.#options = options;
   }
 
   async enable(compiler: UcsCompiler): Promise<void> {
@@ -270,11 +294,11 @@ class UcsCompiler$FeatureUse {
       let configured = false;
 
       if ('configureSerializer' in feature) {
-        compiler.enable(feature);
+        compiler.enable(feature, this.#options);
         configured = true;
       }
       if ('configureSchemaSerializer' in feature) {
-        feature.configureSchemaSerializer(compiler, this.#schema);
+        feature.configureSchemaSerializer(compiler, this.#schema, this.#options);
         configured = true;
       }
 
@@ -283,7 +307,7 @@ class UcsCompiler$FeatureUse {
       }
 
       if (typeof feature === 'function') {
-        (feature as UcsSchemaFeature.Function)(compiler, this.#schema);
+        feature(compiler, this.#schema, this.#options);
 
         return;
       }
