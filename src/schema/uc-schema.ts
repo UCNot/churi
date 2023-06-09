@@ -110,7 +110,10 @@ export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
  *
  * @returns Schema instance.
  */
-export function ucSchema<T>(type: UcDataType<T>, extension?: UcSchema.Extension): UcSchema<T>;
+export function ucSchema<T>(
+  type: UcDataType<T>,
+  extension?: UcSchema.Extension,
+): Omit<UcSchema<T>, 'type'> & { readonly type: UcDataType<T> };
 
 /**
  * Obtains a {@link UcSchema schema} of the given data `model`.
