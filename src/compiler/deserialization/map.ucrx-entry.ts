@@ -1,5 +1,6 @@
 import {
   EsArg,
+  EsCode,
   EsFunction,
   EsScopeKind,
   EsSignature,
@@ -105,6 +106,10 @@ export class MapUcrxEntry {
   }
 
   #use(): EsSnippet {
+    if (!this.mapClass.hasRequired) {
+      return EsCode.none;
+    }
+
     return `use: ` + (this.key == null || this.schema.optional ? '0' : '1') + `,`;
   }
 

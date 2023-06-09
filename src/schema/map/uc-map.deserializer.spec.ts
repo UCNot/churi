@@ -20,6 +20,53 @@ describe('UcMap deserializer', () => {
     errors = [];
   });
 
+  describe('empty map', () => {
+    let compiler: UcdCompiler<{ readMap: UcMap.Schema }>;
+    let readMap: UcDeserializer<UcMap>;
+
+    beforeEach(async () => {
+      compiler = new UcdCompiler({
+        models: {
+          readMap: ucMap({}),
+        },
+      });
+      ({ readMap } = await compiler.evaluate());
+    });
+
+    it('deserializes empty map', () => {
+      expect(readMap('$')).toEqual({});
+    });
+    it('rejects null', () => {
+      expect(readMap('--', { onError })).toBeUndefined();
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          path: [{}],
+          details: {
+            type: 'null',
+            expected: {
+              types: ['map'],
+            },
+          },
+          message: 'Unexpected null instead of map',
+        },
+      ]);
+    });
+    it('rejects entry', () => {
+      expect(readMap('foo()', { onError })).toEqual({});
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedEntry',
+          path: [{}, { key: 'foo' }],
+          details: {
+            key: 'foo',
+          },
+          message: 'Unexpected entry: foo',
+        },
+      ]);
+    });
+  });
+
   describe('single entry', () => {
     let compiler: UcdCompiler<{ readMap: UcMap.Schema<{ foo: UcModel<string> }> }>;
     let readMap: UcDeserializer<{ foo: string }>;

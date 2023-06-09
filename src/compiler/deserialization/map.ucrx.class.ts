@@ -41,7 +41,7 @@ export class MapUcrxClass<
   }
 
   readonly #lib: UcrxLib;
-  readonly #entries: EsSymbol;
+  readonly #entries: EsSymbol | undefined;
   readonly #extra: EsSymbol | undefined;
   readonly #context: EsFieldHandle;
   readonly #counter: MapUcrxStore$Counter | undefined;
@@ -77,18 +77,26 @@ export class MapUcrxClass<
     }
   }
 
-  #declareEntries(): EsSymbol {
+  get hasRequired(): boolean {
+    return !!this.#counter;
+  }
+
+  #declareEntries(): EsSymbol | undefined {
+    const entries = Object.entries<UcSchema>(this.schema.entries);
+
+    if (!entries.length) {
+      return;
+    }
+
     return new EsVarSymbol(`${this.symbol.requestedName}$entries`, {
       declare: {
         at: 'bundle',
         value: () => code => {
-          const { entries } = this.schema;
-
           code.multiLine(code => {
             code
               .write(`{`)
               .indent(code => {
-                for (const [key, entrySchema] of Object.entries<UcSchema>(entries)) {
+                for (const [key, entrySchema] of entries) {
                   const entry = this.createEntry(key, entrySchema);
 
                   code.line(esQuoteKey(key), ': ', entry.declare(this.#store), ',');
@@ -157,53 +165,82 @@ export class MapUcrxClass<
   #declareFor(): void {
     UcrxCore.for.declareIn(this, {
       body:
-        ({
-          member: {
-            args: { key, reject },
-          },
-        }) => code => {
-          const counter = this.#counter;
-          const ucrxRejectEntry = UC_MODULE_CHURI.import('ucrxRejectEntry');
-          const entry = new EsVarSymbol('entry');
-          const rx = new EsVarSymbol('rx');
+        ({ member: { args } }) => code => {
+          const { key } = args;
+          const entries = this.#entries;
+          const extra = this.#extra;
 
-          code
-            .write(
-              entry.declare({
-                value: () => code => {
-                  code.write(esline`${this.#entries}[${key}]`);
-                  if (this.#extra) {
-                    code.write(' || ', this.#extra);
-                  }
-                },
-              }),
-            )
-            .write(esline`if (!${entry}) {`)
-            .indent(esline`${reject}(${ucrxRejectEntry}(${key}));`, 'return;')
-            .write('}')
-            .write(
-              rx.declare({
-                value: () => esline`${entry}.rx(${this.#context.get('this')}, ${this.#slot.get(
-                    'this',
-                  )}, ${key})`,
-              }),
-            );
+          if (!entries) {
+            if (extra) {
+              // Only extra present.
+              // No need for complex logic.
+              code.line('return ', this.#createEntryRx(args, extra), ';');
+            } else {
+              // Neither entries, nor extra present.
+              // Empty map expected.
+              code.write(this.#rejectEntry(args));
+            }
+
+            return;
+          }
+
+          const entry = new EsVarSymbol('entry');
+
+          code.write(
+            entry.declare({
+              value: () => code => {
+                code.write(esline`${entries}[${key}]`);
+                if (extra) {
+                  code.write(' || ', extra);
+                }
+              },
+            }),
+          );
+
+          if (!extra) {
+            // Not needed when extra present.
+            code
+              .write(esline`if (!${entry}) {`)
+              .indent(this.#rejectEntry(args))
+              .write('}');
+          }
+
+          const counter = this.#counter;
 
           if (counter) {
             const { missingCount, assigned } = counter;
+            const rx = new EsVarSymbol('rx');
 
             code
+              .write(
+                rx.declare({
+                  value: () => this.#createEntryRx(args, entry),
+                }),
+              )
               .write(esline`if (${entry}.use && !${assigned.get('this')}[${key}]) {`)
               .indent(
                 esline`--${missingCount.get('this')};`,
                 esline`${assigned.get('this')}[${key}] = 1;`,
               )
-              .write('}');
+              .write('}')
+              .write(esline`return ${rx};`);
+          } else {
+            code.line('return ', this.#createEntryRx(args, entry), ';');
           }
-
-          code.write(esline`return ${rx};`);
         },
     });
+  }
+
+  #createEntryRx({ key }: { key: EsSnippet }, entry: EsSnippet): EsSnippet {
+    return esline`${entry}.rx(${this.#context.get('this')}, ${this.#slot.get('this')}, ${key})`;
+  }
+
+  #rejectEntry({ key, reject }: { key: EsSnippet; reject: EsSnippet }): EsSnippet {
+    const ucrxRejectEntry = UC_MODULE_CHURI.import('ucrxRejectEntry');
+
+    return code => {
+      code.write(esline`${reject}(${ucrxRejectEntry}(${key}));`, 'return;');
+    };
   }
 
   #declareMap(): void {
@@ -226,7 +263,7 @@ export class MapUcrxClass<
               .write(esline`if (${missingCount.get('this')}) {`)
               .indent(
                 esline`${reject}(${ucrxRejectMissingEntries}(${assigned.get('this')}, ${
-                  this.#entries
+                  this.#entries! // Won't be accessed without entries
                 }));`,
                 'return 0;',
               )
