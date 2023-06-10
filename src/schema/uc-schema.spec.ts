@@ -47,8 +47,8 @@ describe('ucSchema', () => {
           use: [
             {
               from: 'test-module',
-              feature: 'test-feature3',
-              options: { test: 3 },
+              feature: 'test-feature',
+              options: { test: 1 },
             },
             {
               from: 'test-module',
@@ -57,8 +57,8 @@ describe('ucSchema', () => {
             },
             {
               from: 'test-module',
-              feature: 'test-feature',
-              options: { test: 1 },
+              feature: 'test-feature3',
+              options: { test: 3 },
             },
           ],
         },

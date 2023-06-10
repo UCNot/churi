@@ -73,8 +73,6 @@ export namespace UcInstructions {
 /**
  * Combines per-tool schema processing instructions.
  *
- * The instructions specified later take precedence over preceding ones.
- *
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Supported schema type.
  * @param instructions - Instructions to combine.
@@ -93,7 +91,7 @@ export function ucInstructions<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     -readonly [tool in keyof UcInstructions<T, TSchema>]: UcInstructions<T, TSchema>[tool];
   } = {};
 
-  for (const instr of instructions.reverse()) {
+  for (const instr of instructions) {
     for (const [tool, forTool] of Object.entries(instr) as [
       UcInstructions.ToolName,
       UcInstructions.ForTool | undefined,
