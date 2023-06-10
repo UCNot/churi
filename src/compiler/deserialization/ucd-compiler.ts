@@ -53,7 +53,7 @@ export class UcdCompiler<
     const { models, features } = options;
 
     super({
-      name: 'deserializer',
+      tool: 'deserializer',
       models: Object.values(models),
       features,
     });

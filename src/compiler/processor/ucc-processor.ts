@@ -11,25 +11,35 @@ import { UccSchemaFeature } from './ucc-schema-feature.js';
  * Abstract schema processor.
  *
  * Supports processing {@link UccFeature features}.
+ *
+ * @typeParam TProcessor - Type of this schema processor.
  */
 export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> {
 
-  readonly #name: keyof UcInstructions;
+  readonly #tool: keyof UcInstructions;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TProcessor, void>[] | undefined;
   readonly #configs = new Map<UccFeature<TProcessor, never>, () => UccConfig<never>>();
   readonly #uses = new Map<UcSchema['type'], UccProcessor$FeatureUse<TProcessor>>();
   #hasPendingInstructions = false;
 
+  /**
+   * Constructs schema processor.
+   *
+   * @param init - Processor initialization options.
+   */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ name, models, features }: UccProcessorInit<TProcessor>) {
-    this.#name = name;
+  constructor({ tool, models, features }: UccProcessorInit<TProcessor>) {
+    this.#tool = tool;
     this.#models = models;
     this.#features = features && asArray(features);
   }
 
-  get name(): keyof UcInstructions {
-    return this.#name;
+  /**
+   * Name of this schema processing tool.
+   */
+  get tool(): keyof UcInstructions {
+    return this.#tool;
   }
 
   /**
@@ -75,6 +85,13 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
     return this;
   }
 
+  /**
+   * Creates schema processing configuration for just {@link enable enabled} `feature`.
+   *
+   * @param feature - Enabled feature.
+   *
+   * @returns Schema processing configuration.
+   */
   protected createConfig<TOptions>(feature: UccFeature<TProcessor, TOptions>): UccConfig<TOptions> {
     return 'uccProcess' in feature
       ? feature.uccProcess(this as unknown as TProcessor)
@@ -82,7 +99,7 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
   }
 
   /**
-   * Applies model deserialization instructions.
+   * Applies model processing instructions.
    *
    * @typeParam T - Implied data type.
    * @param model - Target model.
@@ -91,7 +108,7 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
    */
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
-    const use = asArray(schema.with?.[this.#name]?.use);
+    const use = asArray(schema.with?.[this.tool]?.use);
 
     use.forEach(useFeature => this.#useFeature(schema, useFeature));
 
@@ -127,6 +144,9 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
     });
   }
 
+  /**
+   * Processes instructions supplied by {@link enable features} and {@link processModel modules}.
+   */
   async #processInstructions(): Promise<void> {
     while (this.#hasPendingInstructions) {
       this.#hasPendingInstructions = false;
@@ -146,9 +166,25 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
 
 }
 
+/**
+ * Schema {@link UccProcessor processor} initialization options.
+ *
+ * @typeParam TProcessor - Schema processor type.
+ */
 export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
-  readonly name: keyof UcInstructions;
+  /**
+   * Name of the tool within {@link churi!UcInstructions per-tool schema processing instructions}.
+   */
+  readonly tool: keyof UcInstructions;
+
+  /**
+   * Models containing processing instructions.
+   */
   readonly models?: readonly UcModel[] | undefined;
+
+  /**
+   * Additional schema processing instructions.
+   */
   readonly features?:
     | UccFeature<TProcessor, void>
     | readonly UccFeature<TProcessor, void>[]
