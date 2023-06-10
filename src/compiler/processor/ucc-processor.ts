@@ -16,7 +16,7 @@ import { UccSchemaFeature } from './ucc-schema-feature.js';
  */
 export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> {
 
-  readonly #tool: keyof UcInstructions;
+  readonly #tool: UcInstructions.ToolName;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TProcessor, void>[] | undefined;
   readonly #configs = new Map<UccFeature<TProcessor, never>, () => UccConfig<never>>();
@@ -38,7 +38,7 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
   /**
    * Name of this schema processing tool.
    */
-  get tool(): keyof UcInstructions {
+  get tool(): UcInstructions.ToolName {
     return this.#tool;
   }
 
@@ -175,7 +175,7 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Name of the tool within {@link churi!UcInstructions per-tool schema processing instructions}.
    */
-  readonly tool: keyof UcInstructions;
+  readonly tool: UcInstructions.ToolName;
 
   /**
    * Models containing processing instructions.

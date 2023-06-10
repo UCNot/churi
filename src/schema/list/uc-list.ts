@@ -19,8 +19,10 @@ export namespace UcList {
    * @typeParam TItem - Type of list item.
    * @typeParam TItemModel - Type of list item model.
    */
-  export interface Schema<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
-    extends UcSchema<TItem[]> {
+  export interface Schema<
+    out TItem = unknown,
+    out TItemModel extends UcModel<TItem> = UcModel<TItem>,
+  > extends UcSchema<TItem[]> {
     readonly type: 'list';
 
     /**
@@ -33,7 +35,10 @@ export namespace UcList {
     /**
      * Additional options for the {@link ucList list schema}.
      */
-    export interface Options extends UcSchema.Extension {
+    export interface Options<
+      out TItem = unknown,
+      out TItemModel extends UcModel<TItem> = UcModel<TItem>,
+    > extends UcSchema.Extension<TItem[], Schema<TItem, TItemModel>> {
       /**
        * Unique schema identifier.
        *
@@ -54,13 +59,13 @@ export namespace UcList {
  */
 export function ucList<TItem, TItemModel extends UcModel<TItem> = UcModel<TItem>>(
   itemModel: TItemModel,
-  options?: UcList.Schema.Options,
+  options?: UcList.Schema.Options<TItem, TItemModel>,
 ): UcList.Schema<TItem, TItemModel>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TItem>>(
   itemModel: UcModel<TItem, TItemSchema>,
-  options: UcList.Schema.Options = {},
+  options: UcList.Schema.Options<TItem, TItemSchema> = {},
 ): UcList.Schema<TItem, TItemSchema> {
   const { id } = options;
   const item = ucSchema<TItem, TItemSchema>(itemModel) as UcSchema.Of<TItemSchema>;
@@ -81,7 +86,7 @@ export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TIt
 
 let UcList$idSeq = 0;
 
-const UcList$instructions: UcInstructions = {
+const UcList$instructions: UcInstructions<never[], UcList.Schema<never>> = {
   deserializer: {
     use: {
       from: COMPILER_MODULE,

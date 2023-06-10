@@ -16,6 +16,8 @@ export namespace UcBigInt {
  * @returns BigInt data schema.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucBigInt(extension?: UcSchema.Extension): UcBigInt.Schema {
+export function ucBigInt(
+  extension?: UcSchema.Extension<UcBigInt, UcBigInt.Schema>,
+): UcBigInt.Schema {
   return ucSchema<bigint>(BigInt, extension);
 }

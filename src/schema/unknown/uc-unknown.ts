@@ -47,6 +47,8 @@ const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
  * @returns Unknown schema instance.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucUnknown(extension?: UcSchema.Extension): UcNullable<UcUnknown, UcUnknown.Schema> {
-  return ucSchema(UcUnknown$Schema, extension);
+export function ucUnknown(
+  extension?: UcSchema.Extension<UcUnknown, UcNullable<UcUnknown, UcUnknown.Schema>>,
+): UcNullable<UcUnknown, UcUnknown.Schema> {
+  return ucSchema<UcUnknown, UcNullable<UcUnknown, UcUnknown.Schema>>(UcUnknown$Schema, extension);
 }

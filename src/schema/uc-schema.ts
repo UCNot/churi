@@ -56,7 +56,7 @@ export interface UcSchema<out T = unknown> {
   /**
    * Per-tool schema processing instructions.
    */
-  readonly with?: UcInstructions | undefined;
+  readonly with?: UcInstructions<T> | undefined;
 
   /**
    * Custom schema name.
@@ -102,6 +102,22 @@ export type UcConstructor<out T = unknown> = new (...args: never[]) => T;
 export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
 
 /**
+ * Obtains a {@link UcSchema schema} of the given data `model`.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ * @param model - Data model to obtain a schema of.
+ * @param extension - Schema extension.
+ *
+ * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
+ * type otherwise.
+ */
+export function ucSchema<T, TSchema extends UcSchema<T>>(
+  model: UcModel<T, TSchema>,
+  extension?: UcSchema.Extension<T, TSchema>,
+): TSchema;
+
+/**
  * Creates a {@link UcSchema schema} of the given data `type`.
  *
  * @typeParam T - Implied data type.
@@ -115,26 +131,10 @@ export function ucSchema<T>(
   extension?: UcSchema.Extension,
 ): Omit<UcSchema<T>, 'type'> & { readonly type: UcDataType<T> };
 
-/**
- * Obtains a {@link UcSchema schema} of the given data `model`.
- *
- * @typeParam T - Implied data type.
- * @typeParam TSchema - Schema type.
- * @param model - Data model to obtain a schema of.
- * @param extension - Schema extension.
- *
- * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
- * type otherwise.
- */
-export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-  model: UcModel<T, TSchema>,
-  extension?: UcSchema.Extension,
-): TSchema;
-
 /*#__NO_SIDE_EFFECTS__*/
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
-  { with: instructions }: UcSchema.Extension = {},
+  { with: instructions }: UcSchema.Extension<T, TSchema> = {},
 ): TSchema {
   if (typeof model === 'function') {
     return {
@@ -165,12 +165,15 @@ export type UcInfer<TModel extends UcModel> =
 export namespace UcSchema {
   /**
    * Schema {@link ucSchema extension}.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
    */
-  export interface Extension {
+  export interface Extension<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
     /**
      * Additional per-tool schema processing instructions.
      */
-    readonly with?: UcInstructions | readonly UcInstructions[] | undefined;
+    readonly with?: UcInstructions<T, TSchema> | readonly UcInstructions<T, TSchema>[] | undefined;
   }
   /**
    * Schema type corresponding to the given model type.

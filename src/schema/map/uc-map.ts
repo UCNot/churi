@@ -21,8 +21,8 @@ export namespace UcMap {
    * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
   export interface Schema<
-    TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
-    TExtraModel extends UcModel | false = false,
+    in out TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
+    out TExtraModel extends UcModel | false = false,
   > extends UcSchema<Infer<TEntriesModel, TExtraModel>> {
     readonly type: 'map';
     readonly entries: Schema.Entries<TEntriesModel>;
@@ -89,8 +89,17 @@ export namespace UcMap {
 
     /**
      * Additional options for the {@link ucMap map schema}.
+     *
+     * @typeParam TEntriesModel - Per-entry model type.
+     * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
      */
-    export interface BaseOptions extends UcSchema.Extension {
+    export interface BaseOptions<
+      in out TEntriesModel extends Schema.Entries.Model,
+      out TExtraModel extends UcModel | false,
+    > extends UcSchema.Extension<
+        UcMap.Infer<TEntriesModel, TExtraModel>,
+        UcMap.Schema<TEntriesModel, TExtraModel>
+      > {
       /**
        * Unique schema identifier.
        *
@@ -99,13 +108,20 @@ export namespace UcMap {
       readonly id?: string | UcDataType | undefined;
     }
 
-    export type Options<TExtraModel extends UcModel> = ExactOptions | ExtraOptions<TExtraModel>;
+    export type Options<TEntriesModel extends Schema.Entries.Model, TExtraModel extends UcModel> =
+      | ExactOptions<TEntriesModel>
+      | ExtraOptions<TEntriesModel, TExtraModel>;
 
-    export interface ExactOptions extends BaseOptions {
+    export interface ExactOptions<
+      in out TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
+    > extends BaseOptions<TEntriesModel, false> {
       readonly extra?: false | undefined;
     }
 
-    export interface ExtraOptions<TExtraModel extends UcModel> extends BaseOptions {
+    export interface ExtraOptions<
+      in out TEntriesModel extends Schema.Entries.Model,
+      out TExtraModel extends UcModel,
+    > extends BaseOptions<TEntriesModel, TExtraModel> {
       readonly extra: TExtraModel;
     }
   }
@@ -139,7 +155,7 @@ export function ucMap<
   TExtraModel extends UcModel,
 >(
   entries: TEntriesModel,
-  options: UcMap.Schema.ExtraOptions<TExtraModel>,
+  options: UcMap.Schema.ExtraOptions<TEntriesModel, TExtraModel>,
 ): UcMap.Schema<TEntriesModel, TExtraModel>;
 
 /*#__NO_SIDE_EFFECTS__*/
@@ -148,7 +164,7 @@ export function ucMap<
   TExtraModel extends UcModel,
 >(
   entriesModel: TEntriesModel,
-  options: UcMap.Schema.Options<TExtraModel> = {},
+  options: UcMap.Schema.Options<TEntriesModel, TExtraModel> = {},
 ): UcMap.Schema<TEntriesModel, TExtraModel> {
   const { id, extra } = options;
   const entries: [string, UcSchema][] = Object.entries(entriesModel).map(([key, model]) => [
@@ -187,13 +203,18 @@ export function ucMap<
         return out + '}';
       },
     },
-    options,
+    options as
+      | UcSchema.Extension<
+          UcMap.Infer<TEntriesModel, TExtraModel>,
+          UcMap.Schema<TEntriesModel, TExtraModel>
+        >
+      | undefined,
   );
 }
 
 let UcMap$idSeq = 0;
 
-const UcMap$instructions: UcInstructions = {
+const UcMap$instructions: UcInstructions<any, any> = {
   deserializer: {
     use: {
       from: COMPILER_MODULE,

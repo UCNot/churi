@@ -1,11 +1,23 @@
 import { asArray } from '@proc7ts/primitives';
+import { UcSchema } from './uc-schema.js';
 
 /**
  * Per-tool schema processing instructions.
  *
  * Contains instructions for named processing tools.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Supported schema type.
  */
-export interface UcInstructions {
+export interface UcInstructions<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+  /**
+   * Marker method needed for correct type inference.
+   *
+   * Not supposed to be defined.
+   */
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  __UcInstructions__?(schema: TSchema): TSchema;
+
   /**
    * Schema deserializer instructions.
    */
@@ -18,6 +30,11 @@ export interface UcInstructions {
 }
 
 export namespace UcInstructions {
+  /**
+   * Name of schema processing tool.
+   */
+  export type ToolName = Exclude<keyof UcInstructions, '__UcInstructions__'>;
+
   /**
    * Schema processing instructions for particular tool.
    */
@@ -58,23 +75,27 @@ export namespace UcInstructions {
  *
  * The instructions specified later take precedence over preceding ones.
  *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Supported schema type.
  * @param instructions - Instructions to combine.
  *
  * @returns Combined instructions or `undefined` if nothing to combine.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucInstructions(...instructions: UcInstructions[]): UcInstructions | undefined {
+export function ucInstructions<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  ...instructions: UcInstructions<T, TSchema>[]
+): UcInstructions<T, TSchema> | undefined {
   if (instructions.length < 2) {
     return instructions.length ? instructions[0] : undefined;
   }
 
   const result: {
-    -readonly [tool in keyof UcInstructions]: UcInstructions[tool];
+    -readonly [tool in keyof UcInstructions<T, TSchema>]: UcInstructions<T, TSchema>[tool];
   } = {};
 
   for (const instr of instructions.reverse()) {
     for (const [tool, forTool] of Object.entries(instr) as [
-      keyof UcInstructions,
+      UcInstructions.ToolName,
       UcInstructions.ForTool | undefined,
     ][]) {
       if (forTool) {

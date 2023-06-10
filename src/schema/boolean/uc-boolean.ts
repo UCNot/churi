@@ -16,6 +16,8 @@ export namespace UcBoolean {
  * @returns Boolean data schema.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucBoolean(extension?: UcSchema.Extension): UcBoolean.Schema {
+export function ucBoolean(
+  extension?: UcSchema.Extension<UcBoolean, UcBoolean.Schema>,
+): UcBoolean.Schema {
   return ucSchema<boolean>(Boolean, extension);
 }

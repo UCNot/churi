@@ -16,6 +16,8 @@ export namespace UcNumber {
  * @returns Number data schema.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucNumber(extension?: UcSchema.Extension): UcNumber.Schema {
+export function ucNumber(
+  extension?: UcSchema.Extension<UcNumber, UcNumber.Schema>,
+): UcNumber.Schema {
   return ucSchema<number>(Number, extension);
 }

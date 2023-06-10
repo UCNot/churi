@@ -16,6 +16,8 @@ export namespace UcString {
  * @returns String data schema.
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function ucString(extension?: UcSchema.Extension): UcString.Schema {
+export function ucString(
+  extension?: UcSchema.Extension<UcString, UcString.Schema>,
+): UcString.Schema {
   return ucSchema<string>(String, extension);
 }
