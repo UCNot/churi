@@ -4,7 +4,7 @@ import { CustomBaseUcrxClass } from '../impl/custom-base.ucrx.class.js';
 import { CustomOpaqueUcrxClass } from '../impl/custom-opaque.ucrx.class.js';
 import { VoidUcrxClass } from '../impl/void.ucrx.class.js';
 import { UcrxMethod } from './ucrx-method.js';
-import { UcrxClass } from './ucrx.class.js';
+import { UcrxClass, UcrxFactory } from './ucrx.class.js';
 
 export abstract class UcrxLib {
 
@@ -20,10 +20,25 @@ export abstract class UcrxLib {
 
   readonly #baseUcrx: EsClass<{ set: EsArg }>;
   readonly #opaqueUcrx: EsClass<EsSignature.NoArgs> | undefined;
+  readonly #ucrxFactoryFor?:
+    | (<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+        this: void,
+        schema: TSchema,
+      ) => UcrxFactory<T, TSchema> | undefined)
+    | undefined;
 
   constructor(options: UcrxLib.Options) {
-    const { methods } = options;
+    const { ucrxFactoryFor } = options;
 
+    this.#ucrxFactoryFor = ucrxFactoryFor;
+
+    const baseUcrx = this.#declareBaseUcrx(options);
+
+    this.#baseUcrx = baseUcrx ?? VoidUcrxClass.instance;
+    this.#opaqueUcrx = baseUcrx && new CustomOpaqueUcrxClass();
+  }
+
+  #declareBaseUcrx({ methods }: UcrxLib.Options): EsClass<{ set: EsArg }> | undefined {
     const voidUcrx = VoidUcrxClass.instance;
     let baseUcrx: CustomBaseUcrxClass | undefined;
 
@@ -39,8 +54,7 @@ export abstract class UcrxLib {
       }
     }
 
-    this.#baseUcrx = baseUcrx ?? voidUcrx;
-    this.#opaqueUcrx = baseUcrx && new CustomOpaqueUcrxClass();
+    return baseUcrx;
   }
 
   get baseUcrx(): EsClass<{ set: EsArg }> {
@@ -53,10 +67,22 @@ export abstract class UcrxLib {
 
   abstract ucrxClassFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): UcrxClass;
 
+  ucrxFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcrxFactory<T, TSchema> | undefined {
+    return this.#ucrxFactoryFor?.(schema);
+  }
+
 }
 
 export namespace UcrxLib {
   export interface Options {
     readonly methods?: Iterable<UcrxMethod> | undefined;
+    readonly ucrxFactoryFor?:
+      | (<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+          this: void,
+          schema: TSchema,
+        ) => UcrxFactory<T, TSchema> | undefined)
+      | undefined;
   }
 }

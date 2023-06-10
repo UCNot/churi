@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { EsField } from 'esgen';
 import { ucMap } from '../../schema/map/uc-map.js';
 import { VoidUcrxClass } from '../impl/void.ucrx.class.js';
-import { UcrxClass, UcrxClassSignature } from './ucrx.class.js';
+import { UcrxClass, UcrxSignature } from './ucrx.class.js';
 
 describe('UcrxClass', () => {
   describe('baseUcrx', () => {
@@ -33,7 +33,7 @@ class TestClass extends UcrxClass {
       typeName: 'Test',
       schema: ucMap({}),
       baseClass: VoidUcrxClass.instance,
-      classConstructor: { args: UcrxClassSignature },
+      classConstructor: { args: UcrxSignature },
     });
   }
 
@@ -46,7 +46,7 @@ class TestClass2 extends UcrxClass {
       typeName: 'Test2',
       schema: ucMap({}),
       baseClass: new TestClass(),
-      classConstructor: { args: UcrxClassSignature },
+      classConstructor: { args: UcrxSignature },
     });
   }
 

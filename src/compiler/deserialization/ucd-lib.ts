@@ -14,7 +14,7 @@ import { UcToken } from '../../syntax/uc-token.js';
 import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.js';
 import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass, UcrxClassFactory } from '../rx/ucrx.class.js';
+import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdModels } from './ucd-compiler.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
@@ -172,12 +172,6 @@ export class UcdLib<
     return this.deserializerFor<T, TSchema>(schema).ucrxClass;
   }
 
-  ucrxClassFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxClassFactory<T, TSchema> | undefined {
-    return this.#options.ucrxClassFactoryFor?.(schema);
-  }
-
 }
 
 export namespace UcdLib {
@@ -189,11 +183,6 @@ export namespace UcdLib {
     readonly mode: TMode;
     readonly entities?: EntityConfig[] | undefined;
     readonly exportEntityHandler?: boolean | undefined;
-
-    ucrxClassFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-      this: void,
-      schema: TSchema,
-    ): UcrxClassFactory<T, TSchema> | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,

@@ -4,19 +4,16 @@ import {
   EsEvaluationOptions,
   EsGenerationOptions,
   EsScopeSetup,
-  EsSignature,
   esEvaluate,
   esGenerate,
 } from 'esgen';
 import { UcDeserializer } from '../../mod.js';
-import { UcDataType, UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
-import { UccProcessor } from '../processor/ucc-processor.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxClassFactory } from '../rx/ucrx.class.js';
+import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdLib } from './ucd-lib.js';
@@ -26,17 +23,16 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  * Compiler of schema {@link churi!UcDeserializer deserializers}.
  *
  * @typeParam TModels - Compiled models record type.
+ * @typeParam TMode - Deserialization mode type.
  */
 export class UcdCompiler<
   out TModels extends UcdModels = UcdModels,
   out TMode extends UcDeserializer.Mode = 'universal',
-> extends UccProcessor<UcdCompiler.Any> {
+> extends UcrxProcessor<UcdCompiler.Any> {
 
   readonly #options: UcdCompiler.Options<TModels, TMode>;
-  readonly #types = new Map<string | UcDataType, UcrxClassFactory>();
   #defaultEntities: UcdLib.EntityConfig[] | undefined;
   #entities: UcdLib.EntityConfig[] | undefined = [];
-  readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
    * Constructs deserializer compiler.
@@ -86,38 +82,6 @@ export class UcdCompiler<
     this.#entities = undefined;
 
     return { configure: noop };
-  }
-
-  /**
-   * Assigns {@link churi!Ucrx Ucrx} class to use for the given `type` deserialization.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   * @param type - Target type name or class.
-   * @param factory - Ucrx class factory.
-   *
-   * @returns `this` instance.
-   */
-  useUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    type: TSchema['type'],
-    factory: UcrxClassFactory<T, TSchema>,
-  ): this {
-    this.#types.set(type, factory);
-
-    return this;
-  }
-
-  /**
-   * Declares `method` to charge receiver template.
-   *
-   * @param method - Declaration of method to add to charge receiver template.
-   *
-   * @returns `this` instance.
-   */
-  declareUcrxMethod<TArg extends EsSignature.Args>(method: UcrxMethod<TArg>): this {
-    this.#methods.add(method);
-
-    return this;
   }
 
   /**
@@ -217,10 +181,9 @@ export class UcdCompiler<
 
     return {
       ...this.#options,
+      ...this.createUcrxLibOptions(),
       mode,
       entities: this.#entities,
-      methods: this.#methods,
-      ucrxClassFactoryFor: this.#ucrxClassFactoryFor.bind(this),
     };
   }
 
@@ -230,12 +193,6 @@ export class UcdCompiler<
     if (!features) {
       this.enable(ucdSupportDefaults);
     }
-  }
-
-  #ucrxClassFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxClassFactory<T, TSchema> | undefined {
-    return this.#types.get(schema.type) as UcrxClassFactory<T, TSchema> | undefined;
   }
 
 }

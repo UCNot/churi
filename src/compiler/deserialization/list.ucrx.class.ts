@@ -21,14 +21,14 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class ListUcrxClass<
   TItem = unknown,
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
-> extends UcrxClass<UcrxClassSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
+> extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
   static uccProcessSchema(compiler: UcdCompiler.Any, { item }: UcList.Schema): UccConfig {
     return {
@@ -75,7 +75,7 @@ export class ListUcrxClass<
       typeName: 'List' + ucSchemaVariant(schema) + 'Of' + itemClass.typeName,
       baseClass: isMatrix ? lib.baseUcrx : itemClass,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
 
@@ -362,8 +362,8 @@ export class ListUcrxClass<
     }
   }
 
-  #delegate<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  #delegate<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
     itemRx: EsPropertyHandle,
   ): void {
     method.declareIn(this, {

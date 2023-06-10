@@ -20,7 +20,7 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class UnknownUcrxClass extends UcrxClass {
@@ -61,7 +61,7 @@ export class UnknownUcrxClass extends UcrxClass {
       schema,
       baseClass: lib.baseUcrx,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
     this.#context = new EsField('context', { visibility: EsMemberVisibility.Private }).declareIn(
@@ -329,8 +329,8 @@ export class UnknownUcrxClass extends UcrxClass {
     }
   }
 
-  protected addItem<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  protected addItem<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
     listRx: EsSnippet,
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet {

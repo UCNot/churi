@@ -15,7 +15,7 @@ import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
@@ -23,7 +23,7 @@ export class MapUcrxClass<
   in out TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
   out TExtraModel extends UcModel | false = false,
 > extends UcrxClass<
-  UcrxClassSignature.Args,
+  UcrxSignature.Args,
   UcMap.Infer<TEntriesModel, TExtraModel>,
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
@@ -56,7 +56,7 @@ export class MapUcrxClass<
       schema,
       baseClass: lib.baseUcrx,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
 

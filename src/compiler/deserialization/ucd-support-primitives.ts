@@ -4,7 +4,7 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
-import { UcrxClass, UcrxClassSignature1 } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export function ucdSupportPrimitives(compiler: UcdCompiler.Any): UccConfig {
@@ -31,10 +31,7 @@ export function ucdSupportPrimitives(compiler: UcdCompiler.Any): UccConfig {
   };
 }
 
-class PrimitiveUcrxClass<
-  T,
-  TSchema extends UcSchema<T>,
-> extends UcrxClass<UcrxClassSignature1.Args> {
+class PrimitiveUcrxClass<T, TSchema extends UcSchema<T>> extends UcrxClass<UcrxSignature1.Args> {
 
   constructor({ baseUcrx }: UcrxLib, schema: TSchema, setter: UcrxSetter) {
     super({

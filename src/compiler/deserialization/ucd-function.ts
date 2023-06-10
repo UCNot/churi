@@ -46,10 +46,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   get ucrxClass(): UcrxClass {
     if (!this.#ucrxClass) {
-      const ucrxClass = this.lib.ucrxClassFactoryFor<T, TSchema>(this.schema)?.(
-        this.lib,
-        this.schema,
-      );
+      const ucrxClass = this.lib.ucrxFactoryFor<T, TSchema>(this.schema)?.(this.lib, this.schema);
 
       if (!ucrxClass) {
         throw new UnsupportedUcSchemaError(
@@ -61,7 +58,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       }
 
       this.#ucrxClass = ucrxClass as UcrxClass;
-      ucrxClass.initUcrx(this.lib);
     }
 
     return this.#ucrxClass;
