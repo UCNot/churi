@@ -12,6 +12,7 @@ import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
@@ -27,17 +28,18 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static configureSchemaDeserializer(
-    compiler: UcdCompiler.Any,
-    { entries, extra }: UcMap.Schema,
-  ): void {
-    compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
-    for (const entrySchema of Object.values(entries)) {
-      compiler.processModel(entrySchema);
-    }
-    if (extra) {
-      compiler.processModel(extra);
-    }
+  static uccProcessSchema(compiler: UcdCompiler.Any, { entries, extra }: UcMap.Schema): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+        for (const entrySchema of Object.values(entries)) {
+          compiler.processModel(entrySchema);
+        }
+        if (extra) {
+          compiler.processModel(extra);
+        }
+      },
+    };
   }
 
   readonly #lib: UcrxLib;

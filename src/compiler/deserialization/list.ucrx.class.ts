@@ -17,6 +17,7 @@ import { UcModel } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -29,9 +30,13 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxClassSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static configureSchemaDeserializer(compiler: UcdCompiler.Any, { item }: UcList.Schema): void {
-    compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
-    compiler.processModel(item);
+  static uccProcessSchema(compiler: UcdCompiler.Any, { item }: UcList.Schema): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
+        compiler.processModel(item);
+      },
+    };
   }
 
   readonly #itemClass: UcrxClass;

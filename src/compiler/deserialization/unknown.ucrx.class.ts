@@ -16,6 +16,7 @@ import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
@@ -24,11 +25,15 @@ import { UcdCompiler } from './ucd-compiler.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static configureSchemaDeserializer(compiler: UcdCompiler.Any, schema: UcSchema): void {
-    compiler
-      .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
-      .processModel(this.listSchemaFor(schema))
-      .processModel(this.mapSchemaFor(schema));
+  static uccProcessSchema(compiler: UcdCompiler.Any, schema: UcSchema): UccConfig {
+    return {
+      configure: () => {
+        compiler
+          .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
+          .processModel(this.listSchemaFor(schema))
+          .processModel(this.mapSchemaFor(schema));
+      },
+    };
   }
 
   static listSchemaFor(schema: UcSchema): UcList.Schema {

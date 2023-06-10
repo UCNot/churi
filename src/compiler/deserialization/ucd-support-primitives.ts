@@ -1,29 +1,34 @@
 import { esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxClass, UcrxClassSignature1 } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
-export function ucdSupportPrimitives(compiler: UcdCompiler.Any): void {
-  compiler
-    .useUcrxClass<boolean>(
-      Boolean,
-      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.bol),
-    )
-    .useUcrxClass<bigint>(
-      BigInt,
-      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.big),
-    )
-    .useUcrxClass<number>(
-      Number,
-      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.num),
-    )
-    .useUcrxClass<string>(
-      String,
-      (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.str),
-    );
+export function ucdSupportPrimitives(compiler: UcdCompiler.Any): UccConfig {
+  return {
+    configure() {
+      compiler
+        .useUcrxClass<boolean>(
+          Boolean,
+          (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.bol),
+        )
+        .useUcrxClass<bigint>(
+          BigInt,
+          (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.big),
+        )
+        .useUcrxClass<number>(
+          Number,
+          (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.num),
+        )
+        .useUcrxClass<string>(
+          String,
+          (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.str),
+        );
+    },
+  };
 }
 
 class PrimitiveUcrxClass<

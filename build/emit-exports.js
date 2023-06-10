@@ -22,9 +22,9 @@ async function emitDefaultEntities() {
   const compiler = new UcdCompiler({
     models: {},
     exportEntityHandler: true,
-    features(setup) {
+    features(compiler) {
       // Call explicitly rather enable to force entity handler generation.
-      ucdSupportDefaults(setup);
+      return ucdSupportDefaults(compiler);
     },
   });
 
