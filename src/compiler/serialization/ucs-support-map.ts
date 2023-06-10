@@ -15,21 +15,26 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSignature } from './ucs.signature.js';
 
-export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): void;
-export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): void {
-  compiler.useUcsGenerator('map', ucsWriteMap);
-  Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
-  // istanbul ignore next
-  if (extra) {
-    // TODO Implement extra entries serialization.
-    compiler.processModel(extra);
-  }
+export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): UccConfig;
+export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): UccConfig {
+  return {
+    configure() {
+      compiler.useUcsGenerator('map', ucsWriteMap);
+      Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
+      // istanbul ignore next
+      if (extra) {
+        // TODO Implement extra entries serialization.
+        compiler.processModel(extra);
+      }
+    },
+  };
 }
 
 function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(

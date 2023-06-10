@@ -1,6 +1,5 @@
 export * from './ucs-compiler.js';
 export * from './ucs-export.signature.js';
-export * from './ucs-feature.js';
 export * from './ucs-function.js';
 export * from './ucs-generator.js';
 export * from './ucs-lib.js';

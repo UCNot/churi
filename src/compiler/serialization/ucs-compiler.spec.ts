@@ -89,7 +89,9 @@ describe('UcsCompiler', () => {
           models: { writeValue: schema },
         }).generate(),
       ).rejects.toThrow(
-        new ReferenceError(`No such serializer feature: import('${SPEC_MODULE}').MissingFeature`),
+        new ReferenceError(
+          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
+        ),
       );
     });
     it('fails to enable wrong feature', async () => {
@@ -107,7 +109,9 @@ describe('UcsCompiler', () => {
           models: { writeValue: schema },
         }).generate(),
       ).rejects.toThrow(
-        new ReferenceError(`Not a serializer feature: import('${SPEC_MODULE}').WrongFeature`),
+        new ReferenceError(
+          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
+        ),
       );
     });
   });
