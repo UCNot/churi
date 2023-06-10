@@ -3,7 +3,7 @@ import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxMethod } from './ucrx-method.js';
-import { UcrxClass, UcrxFactory } from './ucrx.class.js';
+import { UcrxClass, UcrxProto } from './ucrx.class.js';
 
 /**
  * Schema processor utilizing {@link churi!Ucrx charge receiver} code generation.
@@ -14,7 +14,7 @@ export abstract class UcrxProcessor<
   TProcessor extends UcrxProcessor<TProcessor>,
 > extends UccProcessor<TProcessor> {
 
-  readonly #types = new Map<string | UcDataType, UcrxClass$Entry>();
+  readonly #types = new Map<string | UcDataType, UcrxProto$Entry>();
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
@@ -23,15 +23,15 @@ export abstract class UcrxProcessor<
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    * @param type - Target type name or class.
-   * @param factory - Ucrx class factory.
+   * @param proto - Ucrx class prototype.
    *
    * @returns `this` instance.
    */
   useUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     type: TSchema['type'],
-    factory: UcrxFactory<T, TSchema>,
+    proto: UcrxProto<T, TSchema>,
   ): this {
-    this.#ucrxEntryFor(type).useFactory(factory);
+    this.#ucrxEntryFor(type).useProto(proto);
 
     return this;
   }
@@ -75,21 +75,21 @@ export abstract class UcrxProcessor<
   createUcrxLibOptions(): UcrxLib.Options {
     return {
       methods: this.#methods,
-      ucrxFactoryFor: this.#ucrxFactoryFor.bind(this),
+      ucrxProtoFor: this.#ucrxProtoFor.bind(this),
     };
   }
 
-  #ucrxFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  #ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcrxFactory<T, TSchema> | undefined {
-    return (this.#ucrxEntryFor(schema.type) as UcrxClass$Entry<T, TSchema>).factory;
+  ): UcrxProto<T, TSchema> | undefined {
+    return (this.#ucrxEntryFor(schema.type) as UcrxProto$Entry<T, TSchema>).proto;
   }
 
-  #ucrxEntryFor(type: UcSchema['type']): UcrxClass$Entry {
+  #ucrxEntryFor(type: UcSchema['type']): UcrxProto$Entry {
     let entry = this.#types.get(type);
 
     if (!entry) {
-      entry = new UcrxClass$Entry();
+      entry = new UcrxProto$Entry();
       this.#types.set(type, entry);
     }
 
@@ -98,19 +98,19 @@ export abstract class UcrxProcessor<
 
 }
 
-class UcrxClass$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
-  #rawFactory?: UcrxFactory<T, TSchema>;
-  #factory: UcrxFactory<T, TSchema> | undefined;
+  #rawProto?: UcrxProto<T, TSchema>;
+  #proto: UcrxProto<T, TSchema> | undefined;
   readonly #mods: ((ucrxClass: UcrxClass.Any) => void)[] = [];
 
-  get factory(): UcrxFactory<T, TSchema> | undefined {
-    if (!this.#factory) {
-      const factory = this.#rawFactory;
+  get proto(): UcrxProto<T, TSchema> | undefined {
+    if (!this.#proto) {
+      const proto = this.#rawProto;
 
-      if (factory) {
-        this.#factory = (lib, schema) => {
-          const ucrxClass = factory(lib, schema);
+      if (proto) {
+        this.#proto = (lib, schema) => {
+          const ucrxClass = proto(lib, schema);
 
           if (ucrxClass) {
             this.#mods.forEach(mod => mod(ucrxClass));
@@ -122,12 +122,12 @@ class UcrxClass$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
       }
     }
 
-    return this.#factory;
+    return this.#proto;
   }
 
-  useFactory(factory: UcrxFactory<T, TSchema>): void {
-    this.#rawFactory = factory;
-    this.#factory = undefined;
+  useProto(proto: UcrxProto<T, TSchema>): void {
+    this.#rawProto = proto;
+    this.#proto = undefined;
   }
 
   modifyMethod<TArgs extends EsSignature.Args, TMod>(

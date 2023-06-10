@@ -129,7 +129,7 @@ export namespace UcrxClass {
   };
 }
 
-export type UcrxFactory<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
+export type UcrxProto<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
   createUcrxClass(lib: UcrxLib, schema: TSchema): UcrxClass.Any | undefined;
 }['createUcrxClass'];
 

@@ -4,7 +4,7 @@ import { CustomBaseUcrxClass } from '../impl/custom-base.ucrx.class.js';
 import { CustomOpaqueUcrxClass } from '../impl/custom-opaque.ucrx.class.js';
 import { VoidUcrxClass } from '../impl/void.ucrx.class.js';
 import { UcrxMethod } from './ucrx-method.js';
-import { UcrxClass, UcrxFactory } from './ucrx.class.js';
+import { UcrxClass, UcrxProto } from './ucrx.class.js';
 
 export abstract class UcrxLib {
 
@@ -20,17 +20,17 @@ export abstract class UcrxLib {
 
   readonly #baseUcrx: EsClass<{ set: EsArg }>;
   readonly #opaqueUcrx: EsClass<EsSignature.NoArgs> | undefined;
-  readonly #ucrxFactoryFor?:
+  readonly #ucrxProtoFor?:
     | (<T, TSchema extends UcSchema<T> = UcSchema<T>>(
         this: void,
         schema: TSchema,
-      ) => UcrxFactory<T, TSchema> | undefined)
+      ) => UcrxProto<T, TSchema> | undefined)
     | undefined;
 
   constructor(options: UcrxLib.Options) {
-    const { ucrxFactoryFor } = options;
+    const { ucrxProtoFor: ucrxProtoFor } = options;
 
-    this.#ucrxFactoryFor = ucrxFactoryFor;
+    this.#ucrxProtoFor = ucrxProtoFor;
 
     const baseUcrx = this.#declareBaseUcrx(options);
 
@@ -67,10 +67,10 @@ export abstract class UcrxLib {
 
   abstract ucrxClassFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): UcrxClass;
 
-  ucrxFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcrxFactory<T, TSchema> | undefined {
-    return this.#ucrxFactoryFor?.(schema);
+  ): UcrxProto<T, TSchema> | undefined {
+    return this.#ucrxProtoFor?.(schema);
   }
 
 }
@@ -78,11 +78,11 @@ export abstract class UcrxLib {
 export namespace UcrxLib {
   export interface Options {
     readonly methods?: Iterable<UcrxMethod> | undefined;
-    readonly ucrxFactoryFor?:
+    readonly ucrxProtoFor?:
       | (<T, TSchema extends UcSchema<T> = UcSchema<T>>(
           this: void,
           schema: TSchema,
-        ) => UcrxFactory<T, TSchema> | undefined)
+        ) => UcrxProto<T, TSchema> | undefined)
       | undefined;
   }
 }

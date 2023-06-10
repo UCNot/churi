@@ -46,7 +46,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   get ucrxClass(): UcrxClass {
     if (!this.#ucrxClass) {
-      const ucrxClass = this.lib.ucrxFactoryFor<T, TSchema>(this.schema)?.(this.lib, this.schema);
+      const ucrxClass = this.lib.ucrxProtoFor<T, TSchema>(this.schema)?.(this.lib, this.schema);
 
       if (!ucrxClass) {
         throw new UnsupportedUcSchemaError(

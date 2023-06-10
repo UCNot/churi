@@ -34,7 +34,7 @@ export namespace UccFeature {
   }
 
   /**
-   * Schema processing feature factory.
+   * Schema processing feature signature.
    *
    * @typeParam TProcessor - Supported schema processor type.
    * @typeParam TOptions - Type of schema processing options.
