@@ -24,7 +24,7 @@ export namespace UccFeature {
     /**
      * Enables this feature in schema `processor` during setup.
      *
-     * Called when feature {@link EsProcessor#enable enabled} in processor, at least once per processor.
+     * Called when feature {@link UccProcessor#enable enabled} in processor, at least once per processor.
      *
      * @param processor - Schema processor to enable.
      *

@@ -98,8 +98,8 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   /**
    * Bootstraps serializer library.
    *
-   * Enables configured {@link UcsFeature serialization features}, bootstraps {@link bootstrapOptions library
-   * options}, then creates library with that options.
+   * Enables configured {@link enable serialization features}, bootstraps {@link bootstrapOptions library options},
+   * then creates library with that options.
    *
    * @returns Promise resolved to code bundle initialization setup.
    */
@@ -116,7 +116,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   /**
    * Bootstraps serializer library options.
    *
-   * Enables configured {@link UcsFeature serialization features}.
+   * Enables configured {@link enable serialization features}.
    *
    * @returns Promise resolved to serializer library options.
    */

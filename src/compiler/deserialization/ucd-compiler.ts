@@ -184,8 +184,8 @@ export class UcdCompiler<
   /**
    * Bootstraps deserializer library.
    *
-   * Enables configured {@link UcdFeature deserialization features}, bootstraps {@link bootstrapOptions library
-   * options}, then creates library with that options.
+   * Enables configured {@link enable deserialization features}, bootstraps {@link bootstrapOptions library options},
+   * then creates library with that options.
    *
    * @returns Promise resolved to bundle setup.
    */
@@ -205,7 +205,7 @@ export class UcdCompiler<
   /**
    * Bootstraps deserializer library options.
    *
-   * Enables configured {@link UcdFeature deserialization features}.
+   * Enables configured {@link enable deserialization features}.
    *
    * @returns Promise resolved to deserializer library options.
    */
