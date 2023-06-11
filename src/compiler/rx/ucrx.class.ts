@@ -68,7 +68,7 @@ export abstract class UcrxClass<
     return !!this.baseUcrx?.isMemberOverridden(member);
   }
 
-  methodModifiersFor<TArgs extends EsSignature.Args, TMod>(
+  methodModifiersOf<TArgs extends EsSignature.Args, TMod>(
     method: UcrxMethod<TArgs, TMod>,
   ): readonly TMod[] {
     return (this.#methodMods.get(method) ?? []) as TMod[];

@@ -232,12 +232,12 @@ export class ListUcrxClass<
     const listCreated = this.#listCreated;
     const isNull = this.#isNull;
 
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
 
     if (isNull) {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -260,7 +260,7 @@ export class ListUcrxClass<
       });
     }
 
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body:
         ({
           member: {
@@ -292,16 +292,16 @@ export class ListUcrxClass<
     const isNull = this.#isNull;
     const itemRx = this.#itemRx;
 
-    UcrxCore.nls.declareIn(this, {
+    UcrxCore.nls.overrideIn(this, {
       body: () => esline`return ${itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
           context: context.get('this'),
         })};`,
     });
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body: () => code => {
         if (isNull) {
           code
@@ -315,7 +315,7 @@ export class ListUcrxClass<
       },
     });
     if (this.#isNullable) {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -366,7 +366,7 @@ export class ListUcrxClass<
     method: UcrxMethod<TArgs, TMod>,
     itemRx: EsPropertyHandle,
   ): void {
-    method.declareIn(this, {
+    method.overrideIn(this, {
       body:
         ({ getHandle, member: { args } }) => code => {
           code

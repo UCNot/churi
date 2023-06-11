@@ -39,7 +39,7 @@ class PrimitiveUcrxClass<T, TSchema extends UcSchema<T>> extends UcrxClass<UcrxS
       baseClass: baseUcrx,
     });
 
-    setter.declareIn(this, {
+    setter.overrideIn(this, {
       body({
         member: {
           args: { value },
@@ -49,7 +49,7 @@ class PrimitiveUcrxClass<T, TSchema extends UcSchema<T>> extends UcrxClass<UcrxS
       },
     });
     if (schema.nullable) {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body: () => `return this.set(null);`,
       });
     }

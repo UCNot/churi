@@ -154,7 +154,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareNls(): void {
-    UcrxCore.nls.declareIn(this, {
+    UcrxCore.nls.overrideIn(this, {
       body: ({
         member: {
           args: { reject },
@@ -167,7 +167,7 @@ export class UnknownUcrxClass extends UcrxClass {
     if (this.schema.nullable) {
       this.#declareMethod(UcrxCore.nul);
     } else {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -183,7 +183,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareFor(): void {
-    UcrxCore.for.declareIn(this, {
+    UcrxCore.for.overrideIn(this, {
       body:
         ({
           member: {
@@ -211,7 +211,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareMap(): void {
-    UcrxCore.map.declareIn(this, {
+    UcrxCore.map.overrideIn(this, {
       body:
         ({
           member: {
@@ -244,7 +244,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareAnd(): void {
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body:
         ({
           member: {
@@ -276,7 +276,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareEnd(): void {
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body: ({
         member: {
           args: { reject },
@@ -286,7 +286,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareAny(): void {
-    UcrxCore.any.declareIn(this, {
+    UcrxCore.any.overrideIn(this, {
       body: ({
         member: {
           args: { value },
@@ -296,7 +296,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareMethod<TArgs extends EsSignature.Args>(method: UcrxMethod<TArgs>): void {
-    method.declareIn(this, {
+    method.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
           const listRx = this.#listRx.get('this');

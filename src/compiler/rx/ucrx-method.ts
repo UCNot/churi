@@ -6,6 +6,7 @@ import {
   EsMethodInit,
   EsSignature,
 } from 'esgen';
+import { UcrxClass } from './ucrx.class.js';
 
 export class UcrxMethod<
   out TArgs extends EsSignature.Args = EsSignature.Args,
@@ -34,6 +35,13 @@ export class UcrxMethod<
 
   declareStub(hostClass: EsClass): EsMethodHandle<TArgs> {
     return this.declareIn(hostClass, this.stub);
+  }
+
+  overrideIn(
+    ucrxClass: UcrxClass.Any,
+    declaration: EsMethodDeclaration<TArgs>,
+  ): EsMethodHandle<TArgs> {
+    return this.declareIn(ucrxClass, declaration);
   }
 
 }

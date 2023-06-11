@@ -165,7 +165,7 @@ export class MapUcrxClass<
   }
 
   #declareFor(): void {
-    UcrxCore.for.declareIn(this, {
+    UcrxCore.for.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
           const { key } = args;
@@ -254,7 +254,7 @@ export class MapUcrxClass<
       const { requiredCount, missingCount, assigned } = counter;
       const ucrxRejectMissingEntries = UC_MODULE_CHURI.import('ucrxRejectMissingEntries');
 
-      UcrxCore.map.declareIn(this, {
+      UcrxCore.map.overrideIn(this, {
         body:
           ({
             member: {
@@ -279,7 +279,7 @@ export class MapUcrxClass<
           },
       });
     } else {
-      UcrxCore.map.declareIn(this, {
+      UcrxCore.map.overrideIn(this, {
         body: () => code => {
           code
             .line('this.set(', this.#store.store(map), ');')
@@ -291,7 +291,7 @@ export class MapUcrxClass<
   }
 
   #declareNul(): void {
-    UcrxCore.nul.declareIn(this, {
+    UcrxCore.nul.overrideIn(this, {
       body: () => `return this.set(null);`,
     });
   }
