@@ -14,9 +14,9 @@ import { UccSchemaFeature } from './ucc-schema-feature.js';
  *
  * @typeParam TProcessor - Type of this schema processor.
  */
-export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> {
+export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor>> {
 
-  readonly #tool: UcInstructions.ToolName;
+  readonly #tools: readonly UcInstructions.ToolName[];
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TProcessor, void>[] | undefined;
   readonly #configs = new Map<UccFeature<TProcessor, never>, () => UccConfig<never>>();
@@ -29,17 +29,17 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ tool, models, features }: UccProcessorInit<TProcessor>) {
-    this.#tool = tool;
+  constructor({ tools, models, features }: UccProcessorInit<TProcessor>) {
+    this.#tools = asArray<UcInstructions.ToolName>(tools);
     this.#models = models;
     this.#features = features && asArray(features);
   }
 
   /**
-   * Name of this schema processing tool.
+   * Name of schema processing tools supported by this processor.
    */
-  get tool(): UcInstructions.ToolName {
-    return this.#tool;
+  get tools(): readonly UcInstructions.ToolName[] {
+    return this.#tools;
   }
 
   /**
@@ -108,9 +108,10 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
    */
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
-    const use = asArray(schema.with?.[this.tool]?.use);
 
-    use.forEach(useFeature => this.#useFeature(schema, useFeature));
+    for (const tool of this.tools) {
+      asArray(schema.with?.[tool]?.use).forEach(useFeature => this.#useFeature(schema, useFeature));
+    }
 
     return this;
   }
@@ -173,9 +174,9 @@ export abstract class UccProcessor<TProcessor extends UccProcessor<TProcessor>> 
  */
 export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
-   * Name of the tool within {@link churi!UcInstructions per-tool schema processing instructions}.
+   * Name or names of tools within {@link churi!UcInstructions per-tool schema processing instructions}.
    */
-  readonly tool: UcInstructions.ToolName;
+  readonly tools: UcInstructions.ToolName | readonly UcInstructions.ToolName[];
 
   /**
    * Models containing processing instructions.

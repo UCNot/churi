@@ -21,12 +21,17 @@ export interface UcInstructions<out T = unknown, out TSchema extends UcSchema<T>
   /**
    * Schema deserializer instructions.
    */
-  readonly deserializer?: UcInstructions.ForTool;
+  readonly deserializer?: UcInstructions.ForTool | undefined;
 
   /**
    * Schema serializer instructions.
    */
-  readonly serializer?: UcInstructions.ForTool;
+  readonly serializer?: UcInstructions.ForTool | undefined;
+
+  /**
+   * Schema validation instructions.
+   */
+  readonly validator?: UcInstructions.ForTool | undefined;
 }
 
 export namespace UcInstructions {
@@ -97,7 +102,7 @@ export function ucInstructions<T, TSchema extends UcSchema<T> = UcSchema<T>>(
       UcInstructions.ForTool | undefined,
     ][]) {
       if (forTool) {
-        const prevForTool = result[tool] as UcInstructions.ForTool | undefined;
+        const prevForTool = result[tool];
 
         if (prevForTool) {
           result[tool] = {

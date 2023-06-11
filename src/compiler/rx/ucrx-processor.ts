@@ -11,7 +11,7 @@ import { UcrxClass, UcrxProto } from './ucrx.class.js';
  * @typeParam TProcessor - Type of this schema processor.
  */
 export abstract class UcrxProcessor<
-  TProcessor extends UcrxProcessor<TProcessor>,
+  in TProcessor extends UcrxProcessor<TProcessor>,
 > extends UccProcessor<TProcessor> {
 
   readonly #types = new Map<string | UcDataType, UcrxProto$Entry>();
@@ -31,7 +31,7 @@ export abstract class UcrxProcessor<
     type: TSchema['type'],
     proto: UcrxProto<T, TSchema>,
   ): this {
-    this.#ucrxEntryFor(type).useProto(proto);
+    this.#entryFor(type).useProto(proto);
 
     return this;
   }
@@ -56,18 +56,24 @@ export abstract class UcrxProcessor<
    *
    * @typeParam TArgs - Type of method arguments definition.
    * @typeParam TMod - Type of method modifier.
-   * @param type - Target type name or class.
+   * @param schema - Target schema.
    * @param method - Method to modify.
    * @param mod - Modifier to apply to target `method`.
    *
    * @returns `this` instance.
    */
   modifyUcrxMethod<TArgs extends EsSignature.Args, TMod>(
-    type: UcSchema['type'],
+    schema: UcSchema,
+    method: UcrxMethod<TArgs, TMod>,
+    mod: TMod,
+  ): this;
+
+  modifyUcrxMethod<TArgs extends EsSignature.Args, TMod>(
+    { type, id = type }: UcSchema,
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
   ): this {
-    this.#ucrxEntryFor(type).modifyMethod(method, mod);
+    this.#entryFor(id).modifyMethod(method, mod);
 
     return this;
   }
@@ -79,23 +85,39 @@ export abstract class UcrxProcessor<
     };
   }
 
-  #ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxProto<T, TSchema> | undefined {
-    return (this.#ucrxEntryFor(schema.type) as UcrxProto$Entry<T, TSchema>).proto;
+  #ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>({
+    type,
+    id = type,
+  }: TSchema): UcrxProto<T, TSchema> | undefined {
+    const typeEntry = this.#entryFor(type) as UcrxProto$Entry<T, TSchema>;
+
+    if (id !== type) {
+      // Concrete schema modifiers may differ from the ones of the type.
+      const entry = this.#entryFor(id) as UcrxProto$Entry<T, TSchema>;
+
+      if (entry) {
+        return entry.proto(typeEntry);
+      }
+    }
+
+    return typeEntry.proto();
   }
 
-  #ucrxEntryFor(type: UcSchema['type']): UcrxProto$Entry {
-    let entry = this.#types.get(type);
+  #entryFor(id: string | UcDataType): UcrxProto$Entry {
+    let entry = this.#types.get(id);
 
     if (!entry) {
       entry = new UcrxProto$Entry();
-      this.#types.set(type, entry);
+      this.#types.set(id, entry);
     }
 
     return entry;
   }
 
+}
+
+export namespace UcrxProcessor {
+  export type Any = UcrxProcessor<UcrxProcessor.Any>;
 }
 
 class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
@@ -104,16 +126,20 @@ class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
   #proto: UcrxProto<T, TSchema> | undefined;
   readonly #mods: ((ucrxClass: UcrxClass.Any) => void)[] = [];
 
-  get proto(): UcrxProto<T, TSchema> | undefined {
+  proto(typeEntry?: UcrxProto$Entry<T, TSchema>): UcrxProto<T, TSchema> | undefined {
     if (!this.#proto) {
-      const proto = this.#rawProto;
+      const proto = this.#rawProto ?? (typeEntry && typeEntry.#rawProto);
 
       if (proto) {
         this.#proto = (lib, schema) => {
           const ucrxClass = proto(lib, schema);
 
           if (ucrxClass) {
-            this.#mods.forEach(mod => mod(ucrxClass));
+            if (typeEntry) {
+              typeEntry.#modify(ucrxClass);
+            }
+            this.#modify(ucrxClass);
+
             ucrxClass.initUcrx(lib);
           }
 
@@ -123,6 +149,10 @@ class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
     }
 
     return this.#proto;
+  }
+
+  #modify(ucrxClass: UcrxClass.Any): void {
+    this.#mods.forEach(mod => mod(ucrxClass));
   }
 
   useProto(proto: UcrxProto<T, TSchema>): void {

@@ -49,7 +49,7 @@ export class UcdCompiler<
     const { models, features } = options;
 
     super({
-      tool: 'deserializer',
+      tools: ['validator', 'deserializer'],
       models: Object.values(models),
       features,
     });
