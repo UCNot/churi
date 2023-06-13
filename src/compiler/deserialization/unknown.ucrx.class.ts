@@ -15,7 +15,6 @@ import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
-import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
@@ -37,14 +36,11 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   static listSchemaFor(schema: UcSchema): UcList.Schema {
-    return ucList(schema, { id: 'listOf' + ucSchemaTypeSymbol(schema) });
+    return ucList(schema);
   }
 
   static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Model, UcSchema> {
-    return ucMap<UcMap.Schema.Entries.Model, UcSchema>(
-      {},
-      { id: 'mapOf' + ucSchemaTypeSymbol(schema), extra: schema },
-    );
+    return ucMap<UcMap.Schema.Entries.Model, UcSchema>({}, { extra: schema });
   }
 
   readonly #listClass: () => UcrxClass;

@@ -182,14 +182,9 @@ describe('UcMap serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap(
-          {
-            test: { type: 'test-type' },
-          },
-          {
-            id: 'testMap',
-          },
-        ),
+        writeMap: ucMap({
+          test: { type: 'test-type' },
+        }),
       },
     });
 
@@ -204,7 +199,7 @@ describe('UcMap serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'testMap$serialize(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
+      'map$serialize(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
   });
 });

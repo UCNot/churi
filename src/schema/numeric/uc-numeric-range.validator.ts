@@ -2,7 +2,12 @@ import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../uc-schema.js';
 import { UcBigInt } from './uc-bigint.js';
 import { UcNumber } from './uc-number.js';
-import { UcvNumericRange } from './uc-numeric-range.impl.js';
+
+export type UcvNumericRange = [
+  op: '<=' | '<' | '>=' | '>',
+  than: number | bigint,
+  or?: string | undefined,
+];
 
 export function ucMin(
   min: number,

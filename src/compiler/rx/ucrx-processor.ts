@@ -1,6 +1,7 @@
 import { EsSignature } from 'esgen';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
+import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxClass, UcrxProto } from './ucrx.class.js';
@@ -89,7 +90,7 @@ export abstract class UcrxProcessor<
     let entry = this.#types.get(type);
 
     if (!entry) {
-      entry = new UcrxTypeEntry(this as unknown as UcrxProcessor.Any);
+      entry = new UcrxTypeEntry(this.schemaIndex);
       this.#types.set(type, entry);
     }
 
@@ -104,12 +105,12 @@ export namespace UcrxProcessor {
 
 class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
-  readonly #processor: UcrxProcessor.Any;
+  readonly #schemaIndex: UccSchemaIndex;
   #proto: UcrxProto<T, TSchema> | undefined;
   readonly #mods = new Map<string, UcrxClassMods<T, TSchema>>();
 
-  constructor(processor: UcrxProcessor.Any) {
-    this.#processor = processor;
+  constructor(schemaIndex: UccSchemaIndex) {
+    this.#schemaIndex = schemaIndex;
   }
 
   useProto(proto: UcrxProto<T, TSchema>): void {
@@ -129,7 +130,7 @@ class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<
   }
 
   #modsOf(schema: TSchema): UcrxClassMods<T, TSchema> {
-    const schemaId =this.#processor.schemaIndex.schemaId(schema);
+    const schemaId = this.#schemaIndex.schemaId(schema);
 
     let mods = this.#mods.get(schemaId);
 

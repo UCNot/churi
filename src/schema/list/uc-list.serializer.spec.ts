@@ -121,7 +121,7 @@ describe('UcList serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
+        writeList: ucList<number>({ type: 'test-type' }),
       },
     });
 
@@ -136,7 +136,7 @@ describe('UcList serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'testList$serialize(writer, value, asItem?): Can not serialize list item of type "test-type"',
+      'list$serialize(writer, value, asItem?): Can not serialize list item of type "test-type"',
     );
   });
 });

@@ -43,17 +43,6 @@ export interface UcSchema<out T = unknown> {
   readonly type: UcDataType<T> | string;
 
   /**
-   * Unique schema identifier.
-   *
-   * Types with different {@link optional} and {@link nullable} flags may share the same identifier.
-   *
-   * Is is up to schema author (or factory function) to make this identifier unique.
-   *
-   * @defaultValue Equal to {@link type}.
-   */
-  readonly id?: string | UcDataType | undefined;
-
-  /**
    * Per-tool schema processing instructions.
    */
   readonly with?: UcInstructions<T> | undefined;

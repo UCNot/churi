@@ -1,5 +1,6 @@
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
 export class UccSchemaIndex {
 
@@ -31,7 +32,7 @@ export class UccSchemaIndex {
     const typeId = typeof type === 'string' ? `name:${type}` : `type:${type.name}`;
 
     if (this.#tools.some(tool => schema.with?.[tool]?.use)) {
-      return `${typeId}#${this.#nextIndex(typeId)}`;
+      return `${typeId}${ucSchemaVariant(schema)}#${this.#nextIndex(typeId)}`;
     }
 
     return typeId;

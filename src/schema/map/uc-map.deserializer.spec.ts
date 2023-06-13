@@ -164,14 +164,9 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized entity schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              test: { type: 'test-type' },
-            },
-            {
-              id: 'testMap',
-            },
-          ),
+          readMap: ucMap({
+            test: { type: 'test-type' },
+          }),
         },
       });
 
@@ -185,7 +180,7 @@ describe('UcMap deserializer', () => {
 
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
-      expect(error?.message).toBe('TestMap: Can not deserialize entry "test" of type "test-type"');
+      expect(error?.message).toBe('Map: Can not deserialize entry "test" of type "test-type"');
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });
@@ -359,7 +354,6 @@ describe('UcMap deserializer', () => {
               test: String,
             },
             {
-              id: 'testMap',
               extra: { type: 'test-type' },
             },
           ),
@@ -376,7 +370,7 @@ describe('UcMap deserializer', () => {
 
       expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
       expect(error?.schema.type).toBe('test-type');
-      expect(error?.message).toBe('TestMap: Can not deserialize extra entry of type "test-type"');
+      expect(error?.message).toBe('Map: Can not deserialize extra entry of type "test-type"');
       expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
       expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
     });

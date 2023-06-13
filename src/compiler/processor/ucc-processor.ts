@@ -2,7 +2,6 @@ import { asArray, lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { esQuoteKey, esStringLiteral } from 'esgen';
 import { UcInstructions } from '../../schema/uc-instructions.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
@@ -125,7 +124,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
     schema: UcSchema,
     { from, feature, options }: UcInstructions.UseFeature,
   ): void {
-    const useId = `${ucSchemaSymbol(schema)}::${from}::${feature}`;
+    const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
     let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TProcessor, TOptions> | undefined;
 
     if (!use) {

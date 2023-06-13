@@ -1,5 +1,5 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UcvNumericRange } from '../../schema/numeric/uc-numeric-range.impl.js';
+import { UcvNumericRange } from '../../schema/numeric/uc-numeric-range.validator.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';

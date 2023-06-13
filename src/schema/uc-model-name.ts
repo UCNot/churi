@@ -15,8 +15,8 @@ export function ucModelName(model: UcModel): string {
     return schema.toString();
   }
 
-  const { optional, nullable, type, id = type } = schema;
-  const typeName = typeof id === 'string' ? id : id.name;
+  const { optional, nullable, type } = schema;
+  const typeName = typeof type === 'string' ? type : type.name;
 
   return optional
     ? nullable
