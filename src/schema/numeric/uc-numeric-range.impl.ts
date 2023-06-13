@@ -1,5 +1,5 @@
-export interface UcvNumericRange {
-  readonly type: 'min' | 'greaterThan' | 'max' | 'lessThan';
-  readonly bound: number | bigint;
-  readonly message: string | undefined;
-}
+export type UcvNumericRange = [
+  op: '<=' | '<' | '>=' | '>',
+  than: number | bigint,
+  or?: string | undefined,
+];

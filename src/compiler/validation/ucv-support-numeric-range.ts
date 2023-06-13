@@ -1,5 +1,4 @@
 import { esStringLiteral, esline } from 'esgen';
-import { capitalize } from 'httongue';
 import { UcvNumericRange } from '../../schema/numeric/uc-numeric-range.impl.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
@@ -7,49 +6,56 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
+import { ucvValidate } from './ucv-validate.js';
 
 export function ucvSupportNumericRange(
   processor: UcrxProcessor.Any,
   schema: UcSchema<number | bigint>,
 ): UccConfig<UcvNumericRange> {
   return {
-    configure({ type, bound, message }) {
+    configure([op, than, or]) {
       let setter: UcrxSetter;
-      let compareWith: string;
+      let bound: string;
 
       if (schema.type === BigInt) {
-        compareWith = `${bound}n`;
+        bound = `${than}n`;
         setter = UcrxCore.big;
       } else {
-        compareWith = String(bound);
+        bound = String(than);
         setter = UcrxCore.num;
       }
 
-      const messageArg = message != null ? `, ${esStringLiteral(message)}` : '';
+      const message = or != null ? `, ${esStringLiteral(or)}` : '';
 
       processor.modifyUcrxMethod(schema, setter, {
-        before({
-          member: {
-            args: { value, reject },
-          },
-        }) {
-          return code => {
-            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvReject${capitalize(type)}`);
+        before({ member: { args } }) {
+          return ucvValidate(args, ({ value, reject }) => code => {
+            const ucvReject = UC_MODULE_VALIDATOR.import(
+              `ucvRejectNot${UcvNumericRange$reject[op]}`,
+            );
 
             code
-              .write(esline`if (${value} ${UcvNumericRange$reverseSign[type]} ${compareWith}) {`)
-              .indent(esline`return ${reject}(${ucvReject}(${compareWith}, ${messageArg}));`)
+              .write(esline`if (${value} ${UcvNumericRange$reverseOp[op]} ${bound}) {`)
+              .indent(reject(esline`${ucvReject}(${bound}${message})`))
               .write('}');
-          };
+          });
         },
       });
     },
   };
 }
 
-const UcvNumericRange$reverseSign: { readonly [key in UcvNumericRange['type']]: string } = {
-  min: '<',
-  greaterThan: '<=',
-  max: '>',
-  lessThan: '>=',
+const UcvNumericRange$reject: { readonly [key in UcvNumericRange['0']]: string } = {
+  '>=': 'GE',
+  '>': 'GT',
+  '<=': 'LE',
+  '<': 'LT',
 };
+
+const UcvNumericRange$reverseOp: { readonly [key in UcvNumericRange['0']]: UcvNumericRange['0'] } =
+  {
+    '>=': '<',
+    '>': '<=',
+    '<=': '>',
+    '<': '>=',
+  };

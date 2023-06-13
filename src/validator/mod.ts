@@ -5,4 +5,4 @@
  *
  * @module churi/validator.js
  */
-export * from './ucv-numeric-range.js';
+export * from './ucv-numeric-range.rejection.js';

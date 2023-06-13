@@ -1,6 +1,6 @@
 import { UcrxRejection } from '../rx/ucrx-rejection.js';
 
-export function ucvRejectMin(
+export function ucvRejectNotGE(
   min: number | bigint,
   message = `At least ${min} expected`,
 ): UcrxRejection {
@@ -14,7 +14,7 @@ export function ucvRejectMin(
   };
 }
 
-export function ucvRejectGreaterThan(
+export function ucvRejectNotGT(
   min: number | bigint,
   message = `Greater than ${min} expected`,
 ): UcrxRejection {
@@ -28,7 +28,7 @@ export function ucvRejectGreaterThan(
   };
 }
 
-export function ucvRejectMax(
+export function ucvRejectNotLE(
   max: number | bigint,
   message = `At most ${max} expected`,
 ): UcrxRejection {
@@ -42,7 +42,7 @@ export function ucvRejectMax(
   };
 }
 
-export function ucvRejectLessThan(
+export function ucvRejectNotLT(
   max: number | bigint,
   message = `Less than ${max} expected`,
 ): UcrxRejection {
