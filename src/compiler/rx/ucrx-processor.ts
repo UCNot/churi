@@ -14,7 +14,7 @@ export abstract class UcrxProcessor<
   in TProcessor extends UcrxProcessor<TProcessor>,
 > extends UccProcessor<TProcessor> {
 
-  readonly #types = new Map<string | UcDataType, UcrxProto$Entry>();
+  readonly #types = new Map<string | UcDataType, UcrxTypeEntry>();
   readonly #methods = new Set<UcrxMethod<any>>();
 
   /**
@@ -31,7 +31,7 @@ export abstract class UcrxProcessor<
     type: TSchema['type'],
     proto: UcrxProto<T, TSchema>,
   ): this {
-    this.#entryFor(type).useProto(proto);
+    this.#typeEntryFor(type).useProto(proto);
 
     return this;
   }
@@ -66,14 +66,8 @@ export abstract class UcrxProcessor<
     schema: UcSchema,
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
-  ): this;
-
-  modifyUcrxMethod<TArgs extends EsSignature.Args, TMod>(
-    { type, id = type }: UcSchema,
-    method: UcrxMethod<TArgs, TMod>,
-    mod: TMod,
   ): this {
-    this.#entryFor(id).modifyMethod(method, mod);
+    this.#typeEntryFor(schema.type).modifyMethodOf(schema, method, mod);
 
     return this;
   }
@@ -85,30 +79,18 @@ export abstract class UcrxProcessor<
     };
   }
 
-  #ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>({
-    type,
-    id = type,
-  }: TSchema): UcrxProto<T, TSchema> | undefined {
-    const typeEntry = this.#entryFor(type) as UcrxProto$Entry<T, TSchema>;
-
-    if (id !== type) {
-      // Concrete schema modifiers may differ from the ones of the type.
-      const entry = this.#entryFor(id) as UcrxProto$Entry<T, TSchema>;
-
-      if (entry) {
-        return entry.proto(typeEntry);
-      }
-    }
-
-    return typeEntry.proto();
+  #ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+  ): UcrxProto<T, TSchema> | undefined {
+    return this.#typeEntryFor(schema.type).protoFor(schema) as UcrxProto<T, TSchema> | undefined;
   }
 
-  #entryFor(id: string | UcDataType): UcrxProto$Entry {
-    let entry = this.#types.get(id);
+  #typeEntryFor(type: string | UcDataType): UcrxTypeEntry {
+    let entry = this.#types.get(type);
 
     if (!entry) {
-      entry = new UcrxProto$Entry();
-      this.#types.set(id, entry);
+      entry = new UcrxTypeEntry(this as unknown as UcrxProcessor.Any);
+      this.#types.set(type, entry);
     }
 
     return entry;
@@ -120,44 +102,68 @@ export namespace UcrxProcessor {
   export type Any = UcrxProcessor<UcrxProcessor.Any>;
 }
 
-class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
-  #rawProto?: UcrxProto<T, TSchema>;
+  readonly #processor: UcrxProcessor.Any;
   #proto: UcrxProto<T, TSchema> | undefined;
-  readonly #mods: ((ucrxClass: UcrxClass.Any) => void)[] = [];
+  readonly #mods = new Map<string, UcrxClassMods<T, TSchema>>();
 
-  proto(typeEntry?: UcrxProto$Entry<T, TSchema>): UcrxProto<T, TSchema> | undefined {
-    if (!this.#proto) {
-      const proto = this.#rawProto ?? (typeEntry && typeEntry.#rawProto);
-
-      if (proto) {
-        this.#proto = (lib, schema) => {
-          const ucrxClass = proto(lib, schema);
-
-          if (ucrxClass) {
-            if (typeEntry) {
-              typeEntry.#modify(ucrxClass);
-            }
-            this.#modify(ucrxClass);
-
-            ucrxClass.initUcrx(lib);
-          }
-
-          return ucrxClass;
-        };
-      }
-    }
-
-    return this.#proto;
-  }
-
-  #modify(ucrxClass: UcrxClass.Any): void {
-    this.#mods.forEach(mod => mod(ucrxClass));
+  constructor(processor: UcrxProcessor.Any) {
+    this.#processor = processor;
   }
 
   useProto(proto: UcrxProto<T, TSchema>): void {
-    this.#rawProto = proto;
-    this.#proto = undefined;
+    this.#proto = proto;
+  }
+
+  protoFor(schema: TSchema): UcrxProto<T, TSchema> | undefined {
+    return this.#proto && this.#modsOf(schema).proto(this.#proto);
+  }
+
+  modifyMethodOf<TArgs extends EsSignature.Args, TMod>(
+    schema: TSchema,
+    method: UcrxMethod<TArgs, TMod>,
+    mod: TMod,
+  ): void {
+    this.#modsOf(schema).modifyMethod(method, mod);
+  }
+
+  #modsOf(schema: TSchema): UcrxClassMods<T, TSchema> {
+    const schemaId =this.#processor.schemaIndex.schemaId(schema);
+
+    let mods = this.#mods.get(schemaId);
+
+    if (!mods) {
+      mods = new UcrxClassMods();
+      this.#mods.set(schemaId, mods);
+    }
+
+    return mods;
+  }
+
+}
+
+class UcrxClassMods<out T, out TSchema extends UcSchema<T>> {
+
+  readonly #mods: ((ucrxClass: UcrxClass.Any) => void)[] = [];
+  #proto?: UcrxProto<T, TSchema>;
+
+  proto(rawProto: UcrxProto<T, TSchema>): UcrxProto<T, TSchema> {
+    if (!this.#proto) {
+      this.#proto = (lib, schema) => {
+        const ucrxClass = rawProto(lib, schema);
+
+        if (ucrxClass) {
+          this.#modify(ucrxClass);
+
+          ucrxClass.initUcrx(lib);
+        }
+
+        return ucrxClass;
+      };
+    }
+
+    return this.#proto;
   }
 
   modifyMethod<TArgs extends EsSignature.Args, TMod>(
@@ -165,6 +171,10 @@ class UcrxProto$Entry<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
     mod: TMod,
   ): void {
     this.#mods.push(ucrxClass => ucrxClass.modifyMethod(method, mod));
+  }
+
+  #modify(ucrxClass: UcrxClass.Any): void {
+    this.#mods.forEach(mod => mod(ucrxClass));
   }
 
 }

@@ -6,6 +6,7 @@ import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
+import { UccSchemaIndex } from './ucc-schema-index.js';
 
 /**
  * Abstract schema processor.
@@ -16,7 +17,7 @@ import { UccSchemaFeature } from './ucc-schema-feature.js';
  */
 export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor>> {
 
-  readonly #tools: readonly UcInstructions.ToolName[];
+  readonly #schemaIndex: UccSchemaIndex;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TProcessor, void>[] | undefined;
   readonly #configs = new Map<UccFeature<TProcessor, never>, () => UccConfig<never>>();
@@ -30,16 +31,20 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    */
   constructor(init: UccProcessorInit<TProcessor>);
   constructor({ tools, models, features }: UccProcessorInit<TProcessor>) {
-    this.#tools = asArray<UcInstructions.ToolName>(tools);
+    this.#schemaIndex = new UccSchemaIndex(asArray<UcInstructions.ToolName>(tools));
     this.#models = models;
     this.#features = features && asArray(features);
+  }
+
+  get schemaIndex(): UccSchemaIndex {
+    return this.#schemaIndex;
   }
 
   /**
    * Name of schema processing tools supported by this processor.
    */
   get tools(): readonly UcInstructions.ToolName[] {
-    return this.#tools;
+    return this.schemaIndex.tools;
   }
 
   /**

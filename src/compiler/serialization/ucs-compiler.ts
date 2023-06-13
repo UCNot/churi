@@ -128,6 +128,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
 
     return {
       ...this.#options,
+      schemaIndex: this.schemaIndex,
       generatorFor: this.#generatorFor.bind(this),
       createSerializer,
     };

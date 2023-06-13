@@ -8,8 +8,8 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcDataType, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsModels } from './ucs-compiler.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsFunction } from './ucs-function.js';
@@ -33,12 +33,13 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   }
 
   readonly #options: UcsLib.Options<TModels>;
+  readonly #schemaIndex: UccSchemaIndex;
   readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
   };
 
   readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
-  readonly #serializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcsFunction>>();
+  readonly #serializers = new Map<string, UcsFunction>();
 
   #textEncoder?: EsSymbol;
   readonly #binConstants = new Map<string, EsSymbol>();
@@ -47,8 +48,9 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   constructor({ ns }: EsBundle, options: UcsLib.Options<TModels>) {
     this.#options = options;
 
-    const { models, createSerializer } = options;
+    const { schemaIndex, models, createSerializer } = options;
 
+    this.#schemaIndex = schemaIndex;
     this.#models = Object.fromEntries(
       Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
     ) as {
@@ -66,23 +68,14 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   }
 
   serializerFor<T, TSchema extends UcSchema<T>>(schema: TSchema): UcsFunction<T, TSchema> {
-    const { id = schema.type } = schema;
-    const variant = ucSchemaVariant(schema);
-
-    let variants = this.#serializers.get(id);
-
-    if (!variants) {
-      variants = new Map();
-      this.#serializers.set(id, variants);
-    }
-
-    let serializer = variants.get(variant) as UcsFunction<T, TSchema> | undefined;
+    const schemaId = this.#schemaIndex.schemaId(schema);
+    let serializer = this.#serializers.get(schemaId) as UcsFunction<T, TSchema> | undefined;
 
     if (!serializer) {
       serializer = this.#createSerializer({
         schema,
       });
-      variants.set(variant, serializer);
+      this.#serializers.set(schemaId, serializer);
     }
 
     return serializer;
@@ -125,6 +118,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
 export namespace UcsLib {
   export interface Options<out TModels extends UcsModels> {
+    readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
 
     generatorFor?<T, TSchema extends UcSchema<T>>(

@@ -182,6 +182,7 @@ export class UcdCompiler<
     return {
       ...this.#options,
       ...this.createUcrxLibOptions(),
+      schemaIndex: this.schemaIndex,
       mode,
       entities: this.#entities,
     };
