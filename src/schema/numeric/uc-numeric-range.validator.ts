@@ -1,13 +1,8 @@
+import type { UcvNumericRange } from '../../compiler/validation/ucv-support-numeric-range.js';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcInstructions } from '../uc-instructions.js';
 import { UcBigInt } from './uc-bigint.js';
 import { UcNumber } from './uc-number.js';
-
-export type UcvNumericRange = [
-  op: '<=' | '<' | '>=' | '>',
-  than: number | bigint,
-  or?: string | undefined,
-];
 
 export function ucMin(
   min: number,

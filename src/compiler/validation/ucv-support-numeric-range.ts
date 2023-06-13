@@ -1,5 +1,4 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UcvNumericRange } from '../../schema/numeric/uc-numeric-range.validator.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
@@ -7,6 +6,12 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { ucvValidate } from './ucv-validate.js';
+
+export type UcvNumericRange = [
+  op: '<=' | '<' | '>=' | '>',
+  than: number | bigint,
+  or?: string | undefined,
+];
 
 export function ucvSupportNumericRange(
   processor: UcrxProcessor.Any,
