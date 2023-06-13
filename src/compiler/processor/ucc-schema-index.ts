@@ -1,11 +1,13 @@
 import { UcInstructions } from '../../schema/uc-instructions.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
 export class UccSchemaIndex {
 
   readonly #tools: readonly UcInstructions.ToolName[];
-  readonly #typeCounters = new Map<string, number>();
+  readonly #types = new Map<string | UcDataType, UccSchemaIndex$TypeEntry>();
+  readonly #typesByPrefix = new Map<string, UccSchemaIndex$TypeEntry>();
+  #typeCounter = 0;
   readonly #schemaIds = new WeakMap<UcSchema, string>();
 
   constructor(tools: readonly UcInstructions.ToolName[]) {
@@ -28,22 +30,52 @@ export class UccSchemaIndex {
   }
 
   #createSchemaId(schema: UcSchema): string {
-    const { type } = schema;
-    const typeId = typeof type === 'string' ? `name:${type}` : `type:${type.name}`;
+    const typeEntry = this.#typeEntry(schema);
+    const typeId = `${typeEntry.prefix}${ucSchemaVariant(schema)}`;
 
     if (this.#tools.some(tool => schema.with?.[tool]?.use)) {
-      return `${typeId}${ucSchemaVariant(schema)}#${this.#nextIndex(typeId)}`;
+      return `${typeId}#${++typeEntry.counter}`;
     }
 
     return typeId;
   }
 
-  #nextIndex(typeId: string): number {
-    const counter = (this.#typeCounters.get(typeId) ?? 0) + 1;
+  #typeEntry({ type }: UcSchema): UccSchemaIndex$TypeEntry {
+    const entry = this.#types.get(type);
 
-    this.#typeCounters.set(typeId, counter);
+    if (entry) {
+      return entry;
+    }
 
-    return counter;
+    const prefix = typeof type === 'string' ? type : type.name;
+    const entryByPrefix = this.#typesByPrefix.get(prefix);
+
+    if (entryByPrefix && entryByPrefix.type !== type) {
+      return this.#addEntry({
+        type,
+        prefix: `${prefix}#${++this.#typeCounter}`,
+        counter: 0,
+      });
+    }
+
+    return this.#addEntry({
+      type,
+      prefix,
+      counter: 0,
+    });
   }
 
+  #addEntry(entry: UccSchemaIndex$TypeEntry): UccSchemaIndex$TypeEntry {
+    this.#types.set(entry.type, entry);
+    this.#typesByPrefix.set(entry.prefix, entry);
+
+    return entry;
+  }
+
+}
+
+interface UccSchemaIndex$TypeEntry {
+  readonly type: string | UcDataType;
+  readonly prefix: string;
+  counter: number;
 }
