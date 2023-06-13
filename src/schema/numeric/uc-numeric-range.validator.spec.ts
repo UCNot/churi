@@ -171,6 +171,52 @@ describe('number range validator', () => {
     });
   });
 
+  describe('multiple conditions', () => {
+    let readValue: UcDeserializer.Sync<number>;
+
+    beforeAll(async () => {
+      readValue = await compile(ucNumber({ with: [ucMax(9), ucLessThan(10)] }));
+    });
+
+    it('reports multiple violations', () => {
+      expect(readValue('10', { onError })).toBeUndefined();
+      expect(errors).toEqual([
+        {
+          code: 'tooBig',
+          path: [{}],
+          details: {
+            max: 9,
+            inclusive: true,
+          },
+          message: 'At most 9 expected',
+        },
+        {
+          code: 'tooBig',
+          path: [{}],
+          details: {
+            max: 10,
+            inclusive: false,
+          },
+          message: 'Less than 10 expected',
+        },
+      ]);
+    });
+    it('reports one violation', () => {
+      expect(readValue('9.5', { onError })).toBeUndefined();
+      expect(errors).toEqual([
+        {
+          code: 'tooBig',
+          path: [{}],
+          details: {
+            max: 9,
+            inclusive: true,
+          },
+          message: 'At most 9 expected',
+        },
+      ]);
+    });
+  });
+
   async function compile(schema: UcSchema<number>): Promise<UcDeserializer.Sync<number>> {
     const compiler = new UcdCompiler({ models: { readValue: schema }, mode: 'sync' });
     const { readValue } = await compiler.evaluate();
