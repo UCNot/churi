@@ -5,13 +5,13 @@ describe('ucBigInt', () => {
   it('creates bigint schema', () => {
     expect(
       ucBigInt({
-        with: { deserializer: { use: { from: 'test-module', feature: 'test-feature' } } },
+        where: { deserializer: { use: 'test-feature', from: 'test-module' } },
       }),
     ).toEqual({
       type: BigInt,
       optional: false,
       nullable: false,
-      with: { deserializer: { use: { from: 'test-module', feature: 'test-feature' } } },
+      where: { deserializer: { use: 'test-feature', from: 'test-module' } },
     });
   });
 });

@@ -1,21 +1,21 @@
-import { UcInstructions } from '../../schema/uc-instructions.js';
+import { UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
 export class UccSchemaIndex {
 
-  readonly #tools: readonly UcInstructions.ToolName[];
+  readonly #processors: readonly UcProcessorName[];
   readonly #types = new Map<string | UcDataType, UccSchemaIndex$TypeEntry>();
   readonly #typesByPrefix = new Map<string, UccSchemaIndex$TypeEntry>();
   #typeCounter = 0;
   readonly #schemaIds = new WeakMap<UcSchema, string>();
 
-  constructor(tools: readonly UcInstructions.ToolName[]) {
-    this.#tools = tools;
+  constructor(processors: readonly UcProcessorName[]) {
+    this.#processors = processors;
   }
 
-  get tools(): readonly UcInstructions.ToolName[] {
-    return this.#tools;
+  get processors(): readonly UcProcessorName[] {
+    return this.#processors;
   }
 
   schemaId(schema: UcSchema): string {
@@ -33,7 +33,7 @@ export class UccSchemaIndex {
     const typeEntry = this.#typeEntry(schema);
     const typeId = `${typeEntry.prefix}${ucSchemaVariant(schema)}`;
 
-    if (this.#tools.some(tool => schema.with?.[tool]?.use)) {
+    if (this.processors.some(name => schema.where?.[name])) {
       return `${typeId}#${++typeEntry.counter}`;
     }
 

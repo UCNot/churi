@@ -5,13 +5,13 @@ describe('ucString', () => {
   it('creates string schema', () => {
     expect(
       ucString({
-        with: { deserializer: { use: { from: 'test-module', feature: 'test-feature' } } },
+        where: { deserializer: { use: 'test-feature', from: 'test-module' } },
       }),
     ).toEqual({
       type: String,
       optional: false,
       nullable: false,
-      with: { deserializer: { use: { from: 'test-module', feature: 'test-feature' } } },
+      where: { deserializer: { use: 'test-feature', from: 'test-module' } },
     });
   });
 });

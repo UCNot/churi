@@ -2,39 +2,33 @@ import { describe, expect, it } from '@jest/globals';
 import { UcSchema, ucSchema } from './uc-schema.js';
 
 describe('ucSchema', () => {
-  it('merges per-tool schema processing instructions', () => {
+  it('merges schema constraints', () => {
     expect(
       ucSchema(
         {
           type: 'test-type',
-          with: {
+          where: {
             deserializer: {
-              use: {
-                from: 'test-module',
-                feature: 'test-feature',
-                options: { test: 1 },
-              },
+              use: 'test-feature',
+              from: 'test-module',
+              with: { test: 1 },
             },
           },
         },
         {
-          with: [
+          where: [
             {
               deserializer: {
-                use: {
-                  from: 'test-module',
-                  feature: 'test-feature',
-                  options: { test: 2 },
-                },
+                use: 'test-feature',
+                from: 'test-module',
+                with: { test: 2 },
               },
             },
             {
               deserializer: {
-                use: {
-                  from: 'test-module',
-                  feature: 'test-feature3',
-                  options: { test: 3 },
-                },
+                use: 'test-feature3',
+                from: 'test-module',
+                with: { test: 3 },
               },
             },
           ],
@@ -42,62 +36,56 @@ describe('ucSchema', () => {
       ),
     ).toEqual({
       type: 'test-type',
-      with: {
-        deserializer: {
-          use: [
-            {
-              from: 'test-module',
-              feature: 'test-feature',
-              options: { test: 1 },
-            },
-            {
-              from: 'test-module',
-              feature: 'test-feature',
-              options: { test: 2 },
-            },
-            {
-              from: 'test-module',
-              feature: 'test-feature3',
-              options: { test: 3 },
-            },
-          ],
-        },
+      where: {
+        deserializer: [
+          {
+            use: 'test-feature',
+            from: 'test-module',
+            with: { test: 1 },
+          },
+          {
+            use: 'test-feature',
+            from: 'test-module',
+            with: { test: 2 },
+          },
+          {
+            use: 'test-feature3',
+            from: 'test-module',
+            with: { test: 3 },
+          },
+        ],
       },
     });
   });
   it('returns schema without extension as is', () => {
     const schema: UcSchema = {
       type: 'test-type',
-      with: {
+      where: {
         deserializer: {
-          use: {
-            from: 'test-module',
-            feature: 'test-feature',
-            options: { test: 1 },
-          },
+          use: 'test-feature',
+          from: 'test-module',
+          with: { test: 1 },
         },
       },
     };
 
     expect(ucSchema(schema)).toBe(schema);
   });
-  it('leaves schema without per-tool instructions extension', () => {
+  it('leaves the schema without constraints extension', () => {
     const schema: UcSchema = {
       type: 'test-type',
-      with: {
+      where: {
         deserializer: {
-          use: {
-            from: 'test-module',
-            feature: 'test-feature',
-            options: { test: 1 },
-          },
+          use: 'test-feature',
+          from: 'test-module',
+          with: { test: 1 },
         },
       },
     };
 
     expect(
       ucSchema(schema, {
-        with: [],
+        where: [],
       }),
     ).toEqual(schema);
   });

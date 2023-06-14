@@ -5,7 +5,7 @@ import { UccProcessor } from './ucc-processor.js';
 /**
  * Schema-specific processing feature.
  *
- * Can be enabled by {@link churi!UcInstructions schema instructions}.
+ * Can be enabled by {@link churi!UcConstraints schema constraints}.
  *
  * @typeParam TProcessor - Supported schema processor type.
  * @typeParam TOptions - Type of schema processing options.
