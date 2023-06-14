@@ -55,9 +55,10 @@ describe('UcdCompiler', () => {
     it('enables deserializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
-        with: {
+        where: {
           deserializer: {
-            use: { from: SPEC_MODULE, feature: 'UcdSupportTimestamp' },
+            use: 'UcdSupportTimestamp',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -76,9 +77,10 @@ describe('UcdCompiler', () => {
     it('enables schema deserializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
-        with: {
+        where: {
           deserializer: {
-            use: { from: SPEC_MODULE, feature: 'UcdSupportTimestampSchema' },
+            use: 'UcdSupportTimestampSchema',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -97,9 +99,10 @@ describe('UcdCompiler', () => {
     it('enables functional schema deserializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
-        with: {
+        where: {
           deserializer: {
-            use: { from: SPEC_MODULE, feature: 'ucdSupportTimestampSchema' },
+            use: 'ucdSupportTimestampSchema',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -118,9 +121,10 @@ describe('UcdCompiler', () => {
     it('fails to enable missing feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
-        with: {
+        where: {
           deserializer: {
-            use: { from: SPEC_MODULE, feature: 'MissingFeature' },
+            use: 'MissingFeature',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -138,9 +142,10 @@ describe('UcdCompiler', () => {
     it('fails to enable wrong feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
-        with: {
+        where: {
           deserializer: {
-            use: { from: SPEC_MODULE, feature: 'WrongFeature' },
+            use: 'WrongFeature',
+            from: SPEC_MODULE,
           },
         },
       };

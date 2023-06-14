@@ -1,6 +1,6 @@
 import { esQuoteKey } from 'esgen';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcInstructions } from '../uc-instructions.js';
+import { UcConstraints } from '../uc-constraints.js';
 import { ucModelName } from '../uc-model-name.js';
 import { UcInfer, UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
@@ -171,7 +171,7 @@ export function ucMap<
   >(
     {
       type: 'map',
-      with: UcMap$instructions,
+      where: UcMap$constraints,
       entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesModel>,
       extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
       toString() {
@@ -204,17 +204,13 @@ export function ucMap<
   );
 }
 
-const UcMap$instructions: UcInstructions<any, any> = {
+const UcMap$constraints: UcConstraints<any, any> = {
   deserializer: {
-    use: {
-      from: COMPILER_MODULE,
-      feature: 'MapUcrxClass',
-    },
+    use: 'MapUcrxClass',
+    from: COMPILER_MODULE,
   },
   serializer: {
-    use: {
-      from: COMPILER_MODULE,
-      feature: 'ucsSupportMap',
-    },
+    use: 'ucsSupportMap',
+    from: COMPILER_MODULE,
   },
 };

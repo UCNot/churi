@@ -1,5 +1,5 @@
 import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcInstructions } from '../uc-instructions.js';
+import { UcConstraints } from '../uc-constraints.js';
 import { ucModelName } from '../uc-model-name.js';
 import { UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
@@ -65,7 +65,7 @@ export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TIt
   return ucSchema<TItem[], UcList.Schema<TItem, TItemSchema>>(
     {
       type: 'list',
-      with: UcList$instructions,
+      where: UcList$constraints,
       item,
       toString() {
         return `${ucModelName(item)}[]`;
@@ -75,17 +75,13 @@ export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TIt
   );
 }
 
-const UcList$instructions: UcInstructions<never[], UcList.Schema<never>> = {
+const UcList$constraints: UcConstraints<never[], UcList.Schema<never>> = {
   deserializer: {
-    use: {
-      from: COMPILER_MODULE,
-      feature: 'ListUcrxClass',
-    },
+    use: 'ListUcrxClass',
+    from: COMPILER_MODULE,
   },
   serializer: {
-    use: {
-      from: COMPILER_MODULE,
-      feature: 'ucsSupportList',
-    },
+    use: 'ucsSupportList',
+    from: COMPILER_MODULE,
   },
 };

@@ -21,7 +21,7 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ with: ucMin(10) }));
+      readValue = await compile(ucNumber({ where: ucMin(10) }));
     });
 
     it('rejects lesser number', () => {
@@ -44,7 +44,7 @@ describe('number range validator', () => {
       expect(errors).toEqual([]);
     });
     it('supports custom message', async () => {
-      const readValue = await compile(ucNumber({ with: ucMin(10, 'Wrong!') }));
+      const readValue = await compile(ucNumber({ where: ucMin(10, 'Wrong!') }));
 
       expect(readValue('0', { onError })).toBeUndefined();
       expect(errors).toEqual([
@@ -65,7 +65,7 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ with: ucGreaterThan(10) }));
+      readValue = await compile(ucNumber({ where: ucGreaterThan(10) }));
     });
 
     it('rejects lesser number', () => {
@@ -106,7 +106,7 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ with: ucMax(10) }));
+      readValue = await compile(ucNumber({ where: ucMax(10) }));
     });
 
     it('rejects greater number', () => {
@@ -134,7 +134,7 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ with: ucLessThan(10) }));
+      readValue = await compile(ucNumber({ where: ucLessThan(10) }));
     });
 
     it('rejects greater number', () => {
@@ -175,7 +175,7 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ with: [ucMax(9), ucLessThan(10)] }));
+      readValue = await compile(ucNumber({ where: [ucMax(9), ucLessThan(10)] }));
     });
 
     it('reports multiple violations', () => {
@@ -239,7 +239,7 @@ describe('bigint range validator', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ with: ucMin(10) }));
+      readValue = await compile(ucBigInt({ where: ucMin(10) }));
     });
 
     it('rejects lesser number', () => {
@@ -267,7 +267,7 @@ describe('bigint range validator', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ with: ucMin(10n) }));
+      readValue = await compile(ucBigInt({ where: ucMin(10n) }));
     });
 
     it('rejects lesser bigint', () => {
@@ -295,7 +295,7 @@ describe('bigint range validator', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ with: ucGreaterThan(10) }));
+      readValue = await compile(ucBigInt({ where: ucGreaterThan(10) }));
     });
 
     it('rejects lesser number', () => {
@@ -336,7 +336,7 @@ describe('bigint range validator', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ with: ucMax(10) }));
+      readValue = await compile(ucBigInt({ where: ucMax(10) }));
     });
 
     it('rejects greater number', () => {
@@ -364,7 +364,7 @@ describe('bigint range validator', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ with: ucLessThan(10) }));
+      readValue = await compile(ucBigInt({ where: ucLessThan(10) }));
     });
 
     it('rejects greater number', () => {

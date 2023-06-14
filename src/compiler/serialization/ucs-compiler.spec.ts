@@ -43,9 +43,10 @@ describe('UcsCompiler', () => {
     it('enables serializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'hexNumber',
-        with: {
+        where: {
           serializer: {
-            use: { from: SPEC_MODULE, feature: 'UcsSupportHexNumber' },
+            use: 'UcsSupportHexNumber',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -60,9 +61,10 @@ describe('UcsCompiler', () => {
     it('enables schema serializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'hexNumber',
-        with: {
+        where: {
           serializer: {
-            use: { from: SPEC_MODULE, feature: 'UcsSupportHexNumberSchema' },
+            use: 'UcsSupportHexNumberSchema',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -77,9 +79,10 @@ describe('UcsCompiler', () => {
     it('fails to enable missing feature', async () => {
       const schema: UcSchema<number> = {
         type: 'hexNumber',
-        with: {
+        where: {
           serializer: {
-            use: { from: SPEC_MODULE, feature: 'MissingFeature' },
+            use: 'MissingFeature',
+            from: SPEC_MODULE,
           },
         },
       };
@@ -97,9 +100,10 @@ describe('UcsCompiler', () => {
     it('fails to enable wrong feature', async () => {
       const schema: UcSchema<number> = {
         type: 'hexNumber',
-        with: {
+        where: {
           serializer: {
-            use: { from: SPEC_MODULE, feature: 'WrongFeature' },
+            use: 'WrongFeature',
+            from: SPEC_MODULE,
           },
         },
       };

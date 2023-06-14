@@ -1,5 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
-import { UcInstructions, ucInstructions } from './uc-instructions.js';
+import { UcConstraints, ucConstraints } from './uc-constraints.js';
 
 /**
  * Data schema definition.
@@ -43,9 +43,9 @@ export interface UcSchema<out T = unknown> {
   readonly type: UcDataType<T> | string;
 
   /**
-   * Per-tool schema processing instructions.
+   * Schema constraints.
    */
-  readonly with?: UcInstructions<T> | undefined;
+  readonly where?: UcConstraints<T> | undefined;
 
   /**
    * Custom schema name.
@@ -123,21 +123,21 @@ export function ucSchema<T>(
 /*#__NO_SIDE_EFFECTS__*/
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
-  { with: instructions }: UcSchema.Extension<T, TSchema> = {},
+  { where }: UcSchema.Extension<T, TSchema> = {},
 ): TSchema {
   if (typeof model === 'function') {
     return {
       optional: false,
       nullable: false,
       type: model,
-      with: ucInstructions(...asArray(instructions)),
+      where: ucConstraints(...asArray(where)),
     } as TSchema;
   }
-  if (!instructions) {
+  if (!where) {
     return model;
   }
 
-  return { ...model, with: ucInstructions(...asArray(model.with), ...asArray(instructions)) };
+  return { ...model, where: ucConstraints(...asArray(model.where), ...asArray(where)) };
 }
 
 /**
@@ -160,9 +160,9 @@ export namespace UcSchema {
    */
   export interface Extension<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
     /**
-     * Additional per-tool schema processing instructions.
+     * Additional schema constraints.
      */
-    readonly with?: UcInstructions<T, TSchema> | readonly UcInstructions<T, TSchema>[] | undefined;
+    readonly where?: UcConstraints<T, TSchema> | readonly UcConstraints<T, TSchema>[] | undefined;
   }
   /**
    * Schema type corresponding to the given model type.

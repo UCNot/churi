@@ -23,18 +23,14 @@ export namespace UcUnknown {
 const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
   type: 'unknown',
   nullable: true,
-  with: {
+  where: {
     deserializer: {
-      use: {
-        from: COMPILER_MODULE,
-        feature: 'UnknownUcrxClass',
-      },
+      use: 'UnknownUcrxClass',
+      from: COMPILER_MODULE,
     },
     serializer: {
-      use: {
-        from: COMPILER_MODULE,
-        feature: 'ucsSupportUnknown',
-      },
+      use: 'ucsSupportUnknown',
+      from: COMPILER_MODULE,
     },
   },
 };

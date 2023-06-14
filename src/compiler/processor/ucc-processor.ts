@@ -1,6 +1,6 @@
 import { asArray, lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { esQuoteKey, esStringLiteral } from 'esgen';
-import { UcInstructions } from '../../schema/uc-instructions.js';
+import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
@@ -29,8 +29,8 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ tools, models, features }: UccProcessorInit<TProcessor>) {
-    this.#schemaIndex = new UccSchemaIndex(asArray<UcInstructions.ToolName>(tools));
+  constructor({ names, models, features }: UccProcessorInit<TProcessor>) {
+    this.#schemaIndex = new UccSchemaIndex(asArray<UcProcessorName>(names));
     this.#models = models;
     this.#features = features && asArray(features);
   }
@@ -40,10 +40,10 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   }
 
   /**
-   * Name of schema processing tools supported by this processor.
+   * Processor names within {@link churi!UcConstraints schema constraints}.
    */
-  get tools(): readonly UcInstructions.ToolName[] {
-    return this.schemaIndex.tools;
+  get names(): readonly UcProcessorName[] {
+    return this.schemaIndex.processors;
   }
 
   /**
@@ -103,7 +103,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   }
 
   /**
-   * Applies model processing instructions.
+   * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.
    *
    * @typeParam T - Implied data type.
    * @param model - Target model.
@@ -113,8 +113,8 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    for (const tool of this.tools) {
-      asArray(schema.with?.[tool]?.use).forEach(useFeature => this.#useFeature(schema, useFeature));
+    for (const name of this.names) {
+      asArray(schema.where?.[name]).forEach(useFeature => this.#useFeature(schema, useFeature));
     }
 
     return this;
@@ -122,7 +122,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
 
   #useFeature<TOptions>(
     schema: UcSchema,
-    { from, feature, options }: UcInstructions.UseFeature,
+    { use: feature, from, with: options }: UcFeatureConstraint,
   ): void {
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
     let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TProcessor, TOptions> | undefined;
@@ -178,9 +178,9 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
  */
 export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
-   * Name or names of tools within {@link churi!UcInstructions per-tool schema processing instructions}.
+   * Processor names within {@link churi!UcConstraints schema constraints}.
    */
-  readonly tools: UcInstructions.ToolName | readonly UcInstructions.ToolName[];
+  readonly names: UcProcessorName | readonly UcProcessorName[];
 
   /**
    * Models containing processing instructions.
