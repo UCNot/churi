@@ -183,12 +183,12 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   readonly names: UcProcessorName | readonly UcProcessorName[];
 
   /**
-   * Models containing processing instructions.
+   * Models with constraints to extract processing instructions from.
    */
   readonly models?: readonly UcModel[] | undefined;
 
   /**
-   * Additional schema processing instructions.
+   * Additional schema processing features to enable and use.
    */
   readonly features?:
     | UccFeature<TProcessor, void>
