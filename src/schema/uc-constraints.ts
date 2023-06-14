@@ -44,7 +44,7 @@ export interface UcConstraints<out T = unknown, out TSchema extends UcSchema<T> 
 export type UcProcessorName = Exclude<keyof UcConstraints, '__UcConstraints__'>;
 
 /**
- * {@link UcConstraint Schema constraint} instructing a processor to enable and use particular processing feature.
+ * {@link UcConstraints Schema constraint} instructing a processor to enable and use particular processing feature.
  *
  * The feature is declared in ECMAScript module and exported from it as a named symbol.
  *
