@@ -17,21 +17,26 @@ import { UcModel } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class ListUcrxClass<
   TItem = unknown,
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
-> extends UcrxClass<UcrxClassSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
+> extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static configureSchemaDeserializer(compiler: UcdCompiler.Any, { item }: UcList.Schema): void {
-    compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
-    compiler.processModel(item);
+  static uccProcessSchema(compiler: UcdCompiler.Any, { item }: UcList.Schema): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
+        compiler.processModel(item);
+      },
+    };
   }
 
   readonly #itemClass: UcrxClass;
@@ -70,7 +75,7 @@ export class ListUcrxClass<
       typeName: 'List' + ucSchemaVariant(schema) + 'Of' + itemClass.typeName,
       baseClass: isMatrix ? lib.baseUcrx : itemClass,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
 
@@ -227,12 +232,12 @@ export class ListUcrxClass<
     const listCreated = this.#listCreated;
     const isNull = this.#isNull;
 
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
 
     if (isNull) {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -255,7 +260,7 @@ export class ListUcrxClass<
       });
     }
 
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body:
         ({
           member: {
@@ -287,16 +292,16 @@ export class ListUcrxClass<
     const isNull = this.#isNull;
     const itemRx = this.#itemRx;
 
-    UcrxCore.nls.declareIn(this, {
+    UcrxCore.nls.overrideIn(this, {
       body: () => esline`return ${itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
           context: context.get('this'),
         })};`,
     });
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body: () => code => {
         if (isNull) {
           code
@@ -310,7 +315,7 @@ export class ListUcrxClass<
       },
     });
     if (this.#isNullable) {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -357,11 +362,11 @@ export class ListUcrxClass<
     }
   }
 
-  #delegate<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  #delegate<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
     itemRx: EsPropertyHandle,
   ): void {
-    method.declareIn(this, {
+    method.overrideIn(this, {
       body:
         ({ getHandle, member: { args } }) => code => {
           code

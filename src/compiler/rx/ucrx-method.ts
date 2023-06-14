@@ -6,9 +6,11 @@ import {
   EsMethodInit,
   EsSignature,
 } from 'esgen';
+import { UcrxClass } from './ucrx.class.js';
 
 export class UcrxMethod<
   out TArgs extends EsSignature.Args = EsSignature.Args,
+  out TMod = unknown,
 > extends EsMethod<TArgs> {
 
   readonly #stub: EsMethodDeclaration<TArgs>;
@@ -35,6 +37,21 @@ export class UcrxMethod<
     return this.declareIn(hostClass, this.stub);
   }
 
+  overrideIn(
+    ucrxClass: UcrxClass.Any,
+    declaration: EsMethodDeclaration<TArgs>,
+  ): EsMethodHandle<TArgs> {
+    return this.declareIn(ucrxClass, declaration);
+  }
+
+}
+
+export interface UcrxMethod<
+  out TArgs extends EsSignature.Args = EsSignature.Args,
+  out TMod = unknown,
+> extends EsMethod<TArgs> {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  __applyMod__?(mod: TMod): TMod;
 }
 
 export interface UcrxMethodInit<out TArgs extends EsSignature.Args = EsSignature.Args>

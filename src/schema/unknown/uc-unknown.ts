@@ -4,11 +4,17 @@ import { UcBigInt } from '../numeric/uc-bigint.js';
 import { UcNumber } from '../numeric/uc-number.js';
 import { UcString } from '../string/uc-string.js';
 import { UcNullable } from '../uc-nullable.js';
-import { UcSchema } from '../uc-schema.js';
+import { UcSchema, ucSchema } from '../uc-schema.js';
 
+/**
+ * Unknown data type.
+ */
 export type UcUnknown = UcBigInt | UcBoolean | UcNumber | UcString | symbol | object;
 
 export namespace UcUnknown {
+  /**
+   * Schema for unknown data type, except `null`.
+   */
   export interface Schema extends UcSchema<UcUnknown> {
     readonly type: 'unknown';
   }
@@ -33,6 +39,16 @@ const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
   },
 };
 
-export function ucUnknown(): UcNullable<UcUnknown, UcUnknown.Schema> {
-  return UcUnknown$Schema;
+/**
+ * Creates schema for unknown data, including `null`.
+ *
+ * @param extension - Schema extension.
+ *
+ * @returns Unknown schema instance.
+ */
+/*#__NO_SIDE_EFFECTS__*/
+export function ucUnknown(
+  extension?: UcSchema.Extension<UcUnknown, UcNullable<UcUnknown, UcUnknown.Schema>>,
+): UcNullable<UcUnknown, UcUnknown.Schema> {
+  return ucSchema<UcUnknown, UcNullable<UcUnknown, UcUnknown.Schema>>(UcUnknown$Schema, extension);
 }

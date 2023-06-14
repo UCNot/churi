@@ -12,32 +12,34 @@ import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class MapUcrxClass<
-  TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
-  TExtraModel extends UcModel | false = false,
+  in out TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
+  out TExtraModel extends UcModel | false = false,
 > extends UcrxClass<
-  UcrxClassSignature.Args,
+  UcrxSignature.Args,
   UcMap.Infer<TEntriesModel, TExtraModel>,
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static configureSchemaDeserializer(
-    compiler: UcdCompiler.Any,
-    { entries, extra }: UcMap.Schema,
-  ): void {
-    compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
-    for (const entrySchema of Object.values(entries)) {
-      compiler.processModel(entrySchema);
-    }
-    if (extra) {
-      compiler.processModel(extra);
-    }
+  static uccProcessSchema(compiler: UcdCompiler.Any, { entries, extra }: UcMap.Schema): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+        for (const entrySchema of Object.values(entries)) {
+          compiler.processModel(entrySchema);
+        }
+        if (extra) {
+          compiler.processModel(extra);
+        }
+      },
+    };
   }
 
   readonly #lib: UcrxLib;
@@ -54,7 +56,7 @@ export class MapUcrxClass<
       schema,
       baseClass: lib.baseUcrx,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
 
@@ -163,7 +165,7 @@ export class MapUcrxClass<
   }
 
   #declareFor(): void {
-    UcrxCore.for.declareIn(this, {
+    UcrxCore.for.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
           const { key } = args;
@@ -252,7 +254,7 @@ export class MapUcrxClass<
       const { requiredCount, missingCount, assigned } = counter;
       const ucrxRejectMissingEntries = UC_MODULE_CHURI.import('ucrxRejectMissingEntries');
 
-      UcrxCore.map.declareIn(this, {
+      UcrxCore.map.overrideIn(this, {
         body:
           ({
             member: {
@@ -277,7 +279,7 @@ export class MapUcrxClass<
           },
       });
     } else {
-      UcrxCore.map.declareIn(this, {
+      UcrxCore.map.overrideIn(this, {
         body: () => code => {
           code
             .line('this.set(', this.#store.store(map), ');')
@@ -289,7 +291,7 @@ export class MapUcrxClass<
   }
 
   #declareNul(): void {
-    UcrxCore.nul.declareIn(this, {
+    UcrxCore.nul.overrideIn(this, {
       body: () => `return this.set(null);`,
     });
   }
@@ -315,7 +317,7 @@ export class MapUcrxClass<
   }
 
   createEntry(key: string | null, schema: UcSchema): MapUcrxEntry {
-    return new MapUcrxEntry(this as MapUcrxClass, key, schema);
+    return new MapUcrxEntry(this as unknown as MapUcrxClass, key, schema);
   }
 
   allocateStore(): MapUcrxStore {

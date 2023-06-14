@@ -54,6 +54,10 @@
     "./serializer.js": {
       "types": "./dist/churi.serializer.d.ts",
       "default": "./dist/churi.serializer.js"
+    },
+    "./validator.js": {
+      "types": "./dist/churi.validator.d.ts",
+      "default": "./dist/churi.validator.js"
     }
   },
   "sideEffects": false,

@@ -1,8 +1,8 @@
 import { EsClass } from 'esgen';
-import { UcrxClassSignature1 } from '../rx/ucrx.class.js';
+import { UcrxSignature1 } from '../rx/ucrx.class.js';
 import { VoidUcrxClass } from './void.ucrx.class.js';
 
-export class CustomBaseUcrxClass extends EsClass<UcrxClassSignature1.Args> {
+export class CustomBaseUcrxClass extends EsClass<UcrxSignature1.Args> {
 
   constructor() {
     super('BaseUcrx', {

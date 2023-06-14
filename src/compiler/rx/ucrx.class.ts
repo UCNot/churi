@@ -6,13 +6,14 @@ import { UcrxLib } from './ucrx-lib.js';
 import { UcrxMethod } from './ucrx-method.js';
 
 export abstract class UcrxClass<
-  out TArgs extends UcrxClassSignature1.Args = UcrxClassSignature.Args,
+  out TArgs extends UcrxSignature1.Args = UcrxSignature.Args,
   out T = unknown,
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > extends EsClass<TArgs> {
 
   readonly #schema: TSchema;
   readonly #typeName: string;
+  readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, unknown>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
@@ -67,6 +68,25 @@ export abstract class UcrxClass<
     return !!this.baseUcrx?.isMemberOverridden(member);
   }
 
+  methodModifiersOf<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
+  ): readonly TMod[] {
+    return (this.#methodMods.get(method) ?? []) as TMod[];
+  }
+
+  modifyMethod<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
+    mod: TMod,
+  ): void {
+    const mods = this.#methodMods.get(method);
+
+    if (mods) {
+      mods.push(mod);
+    } else {
+      this.#methodMods.set(method, [mod]);
+    }
+  }
+
   protected discoverTypes(types: Set<string>): void {
     for (const memberRef of this.members()) {
       const { member, declared } = memberRef;
@@ -97,10 +117,10 @@ export abstract class UcrxClass<
 }
 
 export namespace UcrxClass {
-  export type Any = UcrxClass<UcrxClassSignature1.Args>;
+  export type Any = UcrxClass<UcrxSignature1.Args>;
 
   export type Init<
-    TArgs extends UcrxClassSignature1.Args,
+    TArgs extends UcrxSignature1.Args,
     T = unknown,
     TSchema extends UcSchema<T> = UcSchema<T>,
   > = EsClassInit<TArgs> & {
@@ -109,30 +129,30 @@ export namespace UcrxClass {
   };
 }
 
-export type UcrxClassFactory<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
-  createClass(lib: UcrxLib, schema: TSchema): UcrxClass.Any | undefined;
-}['createClass'];
+export type UcrxProto<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
+  createUcrxClass(lib: UcrxLib, schema: TSchema): UcrxClass.Any | undefined;
+}['createUcrxClass'];
 
-export const UcrxClassSignature: UcrxClassSignature = /*#__PURE__*/ new EsSignature({
+export const UcrxSignature: UcrxSignature = /*#__PURE__*/ new EsSignature({
   set: {},
   context: {},
 });
 
-export const UcrxClassSignature1: UcrxClassSignature1 = /*#__PURE__*/ new EsSignature({
+export const UcrxSignature1: UcrxSignature1 = /*#__PURE__*/ new EsSignature({
   set: {},
 });
 
-export type UcrxClassSignature = EsSignature<UcrxClassSignature.Args>;
-export type UcrxClassSignature1 = EsSignature<UcrxClassSignature1.Args>;
+export type UcrxSignature = EsSignature<UcrxSignature.Args>;
+export type UcrxSignature1 = EsSignature<UcrxSignature1.Args>;
 
-export namespace UcrxClassSignature {
+export namespace UcrxSignature {
   export type Args = {
     readonly set: EsArg;
     readonly context: EsArg;
   };
 }
 
-export namespace UcrxClassSignature1 {
+export namespace UcrxSignature1 {
   export type Args = {
     readonly set: EsArg;
   };

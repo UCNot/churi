@@ -15,31 +15,32 @@ import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
-import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxClass, UcrxClassSignature } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static configureSchemaDeserializer(compiler: UcdCompiler.Any, schema: UcSchema): void {
-    compiler
-      .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
-      .processModel(this.listSchemaFor(schema))
-      .processModel(this.mapSchemaFor(schema));
+  static uccProcessSchema(compiler: UcdCompiler.Any, schema: UcSchema): UccConfig {
+    return {
+      configure: () => {
+        compiler
+          .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
+          .processModel(this.listSchemaFor(schema))
+          .processModel(this.mapSchemaFor(schema));
+      },
+    };
   }
 
   static listSchemaFor(schema: UcSchema): UcList.Schema {
-    return ucList(schema, { id: 'listOf' + ucSchemaTypeSymbol(schema) });
+    return ucList(schema);
   }
 
   static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Model, UcSchema> {
-    return ucMap<UcMap.Schema.Entries.Model, UcSchema>(
-      {},
-      { id: 'mapOf' + ucSchemaTypeSymbol(schema), extra: schema },
-    );
+    return ucMap<UcMap.Schema.Entries.Model, UcSchema>({}, { extra: schema });
   }
 
   readonly #listClass: () => UcrxClass;
@@ -56,7 +57,7 @@ export class UnknownUcrxClass extends UcrxClass {
       schema,
       baseClass: lib.baseUcrx,
       classConstructor: {
-        args: UcrxClassSignature,
+        args: UcrxSignature,
       },
     });
     this.#context = new EsField('context', { visibility: EsMemberVisibility.Private }).declareIn(
@@ -149,7 +150,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareNls(): void {
-    UcrxCore.nls.declareIn(this, {
+    UcrxCore.nls.overrideIn(this, {
       body: ({
         member: {
           args: { reject },
@@ -162,7 +163,7 @@ export class UnknownUcrxClass extends UcrxClass {
     if (this.schema.nullable) {
       this.#declareMethod(UcrxCore.nul);
     } else {
-      UcrxCore.nul.declareIn(this, {
+      UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
@@ -178,7 +179,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareFor(): void {
-    UcrxCore.for.declareIn(this, {
+    UcrxCore.for.overrideIn(this, {
       body:
         ({
           member: {
@@ -206,7 +207,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareMap(): void {
-    UcrxCore.map.declareIn(this, {
+    UcrxCore.map.overrideIn(this, {
       body:
         ({
           member: {
@@ -239,7 +240,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareAnd(): void {
-    UcrxCore.and.declareIn(this, {
+    UcrxCore.and.overrideIn(this, {
       body:
         ({
           member: {
@@ -271,7 +272,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareEnd(): void {
-    UcrxCore.end.declareIn(this, {
+    UcrxCore.end.overrideIn(this, {
       body: ({
         member: {
           args: { reject },
@@ -281,7 +282,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareAny(): void {
-    UcrxCore.any.declareIn(this, {
+    UcrxCore.any.overrideIn(this, {
       body: ({
         member: {
           args: { value },
@@ -291,7 +292,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareMethod<TArgs extends EsSignature.Args>(method: UcrxMethod<TArgs>): void {
-    method.declareIn(this, {
+    method.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
           const listRx = this.#listRx.get('this');
@@ -324,8 +325,8 @@ export class UnknownUcrxClass extends UcrxClass {
     }
   }
 
-  protected addItem<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  protected addItem<TArgs extends EsSignature.Args, TMod>(
+    method: UcrxMethod<TArgs, TMod>,
     listRx: EsSnippet,
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet {

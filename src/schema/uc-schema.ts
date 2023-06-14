@@ -1,4 +1,5 @@
-import { UcInstructions } from './uc-instructions.js';
+import { asArray } from '@proc7ts/primitives';
+import { UcInstructions, ucInstructions } from './uc-instructions.js';
 
 /**
  * Data schema definition.
@@ -42,20 +43,9 @@ export interface UcSchema<out T = unknown> {
   readonly type: UcDataType<T> | string;
 
   /**
-   * Unique schema identifier.
-   *
-   * Types with different {@link optional} and {@link nullable} flags may share the same identifier.
-   *
-   * Is is up to schema author (or factory function) to make this identifier unique.
-   *
-   * @defaultValue Equal to {@link type}.
-   */
-  readonly id?: string | UcDataType | undefined;
-
-  /**
    * Per-tool schema processing instructions.
    */
-  readonly with?: UcInstructions | undefined;
+  readonly with?: UcInstructions<T> | undefined;
 
   /**
    * Custom schema name.
@@ -101,41 +91,53 @@ export type UcConstructor<out T = unknown> = new (...args: never[]) => T;
 export type UcDataFactory<out T = unknown> = (...args: never[]) => T;
 
 /**
- * Creates a {@link UcSchema schema} of the given data `type`.
- *
- * @typeParam T - Implied data type.
- * @param type - Modelled data type.
- *
- * @returns Schema instance.
- */
-export function ucSchema<T>(type: UcDataType<T>): UcSchema<T>;
-
-/**
  * Obtains a {@link UcSchema schema} of the given data `model`.
  *
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Schema type.
  * @param model - Data model to obtain a schema of.
+ * @param extension - Schema extension.
  *
  * @returns Either the `model` itself if it is a schema instance already, or schema instance describing the given data
  * type otherwise.
  */
-export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+export function ucSchema<T, TSchema extends UcSchema<T>>(
   model: UcModel<T, TSchema>,
+  extension?: UcSchema.Extension<T, TSchema>,
 ): TSchema;
 
+/**
+ * Creates a {@link UcSchema schema} of the given data `type`.
+ *
+ * @typeParam T - Implied data type.
+ * @param type - Modelled data type.
+ * @param extension - Schema extension.
+ *
+ * @returns Schema instance.
+ */
+export function ucSchema<T>(
+  type: UcDataType<T>,
+  extension?: UcSchema.Extension,
+): Omit<UcSchema<T>, 'type'> & { readonly type: UcDataType<T> };
+
+/*#__NO_SIDE_EFFECTS__*/
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
+  { with: instructions }: UcSchema.Extension<T, TSchema> = {},
 ): TSchema {
   if (typeof model === 'function') {
     return {
       optional: false,
       nullable: false,
       type: model,
+      with: ucInstructions(...asArray(instructions)),
     } as TSchema;
   }
+  if (!instructions) {
+    return model;
+  }
 
-  return model;
+  return { ...model, with: ucInstructions(...asArray(model.with), ...asArray(instructions)) };
 }
 
 /**
@@ -150,6 +152,18 @@ export type UcInfer<TModel extends UcModel> =
   | UcSchema.OptionalType<UcSchema.Of<TModel>>;
 
 export namespace UcSchema {
+  /**
+   * Schema {@link ucSchema extension}.
+   *
+   * @typeParam T - Implied data type.
+   * @typeParam TSchema - Schema type.
+   */
+  export interface Extension<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+    /**
+     * Additional per-tool schema processing instructions.
+     */
+    readonly with?: UcInstructions<T, TSchema> | readonly UcInstructions<T, TSchema>[] | undefined;
+  }
   /**
    * Schema type corresponding to the given model type.
    *

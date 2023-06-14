@@ -24,17 +24,21 @@ export class URIChargeCompiler extends UcdCompiler<
       models: { parseURICharge: ucUnknown() as UcSchema<URICharge> },
       mode: 'sync',
       features(compiler) {
-        compiler
-          .enable(ucdSupportDefaults)
-          .useUcrxClass('unknown', (lib, schema) => new URIChargeUcrxClass(lib, schema))
-          .useUcrxClass(
-            'list',
-            (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
-          )
-          .useUcrxClass(
-            'map',
-            (lib, schema: UcMap.Schema) => new URIChargeMapUcrxClass(lib, schema),
-          );
+        return {
+          configure: () => {
+            compiler
+              .enable(ucdSupportDefaults)
+              .useUcrxClass('unknown', (lib, schema) => new URIChargeUcrxClass(lib, schema))
+              .useUcrxClass(
+                'list',
+                (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
+              )
+              .useUcrxClass(
+                'map',
+                (lib, schema: UcMap.Schema) => new URIChargeMapUcrxClass(lib, schema),
+              );
+          },
+        };
       },
     });
   }

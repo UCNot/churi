@@ -13,9 +13,11 @@ describe('UcrxSetter', () => {
       },
       features: [
         ucdSupportDefaults,
-        compiler => {
-          compiler.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
-        },
+        compiler => ({
+          configure() {
+            compiler.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
+          },
+        }),
       ],
     });
   });

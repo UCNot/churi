@@ -8,13 +8,13 @@ import {
   esline,
 } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcDataType, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.js';
-import { UcSchemaVariant, ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass, UcrxClassFactory } from '../rx/ucrx.class.js';
+import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdModels } from './ucd-compiler.js';
 import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
@@ -30,6 +30,7 @@ export class UcdLib<
   out TMode extends UcDeserializer.Mode = 'universal',
 > extends UcrxLib {
 
+  readonly #schemaIndex: UccSchemaIndex;
   readonly #models: {
     readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
   };
@@ -41,15 +42,21 @@ export class UcdLib<
     undefined
   >;
 
-  readonly #deserializers = new Map<string | UcDataType, Map<UcSchemaVariant, UcdFunction>>();
+  readonly #deserializers = new Map<string, UcdFunction>();
   readonly #entityHandler: EsSnippet;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
-    const { models, entities, createDeserializer = options => new UcdFunction(options) } = options;
+    const {
+      schemaIndex,
+      models,
+      entities,
+      createDeserializer = options => new UcdFunction(options),
+    } = options;
 
     super(options);
 
+    this.#schemaIndex = schemaIndex;
     this.#options = options;
     this.#entities = entities;
     this.#models = this.#createModels(models);
@@ -145,24 +152,15 @@ export class UcdLib<
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcdFunction<T, TSchema> {
-    const { id = schema.type } = schema;
-    const variant = ucSchemaVariant(schema);
-
-    let variants = this.#deserializers.get(id);
-
-    if (!variants) {
-      variants = new Map();
-      this.#deserializers.set(id, variants);
-    }
-
-    let deserializer = variants.get(variant) as UcdFunction<T, TSchema> | undefined;
+    const schemaId = this.#schemaIndex.schemaId(schema);
+    let deserializer = this.#deserializers.get(schemaId) as UcdFunction<T, TSchema> | undefined;
 
     if (!deserializer) {
       deserializer = this.#createDeserializer({
         lib: this as UcdLib,
         schema,
       });
-      variants.set(variant, deserializer);
+      this.#deserializers.set(schemaId, deserializer);
     }
 
     return deserializer;
@@ -172,12 +170,6 @@ export class UcdLib<
     return this.deserializerFor<T, TSchema>(schema).ucrxClass;
   }
 
-  ucrxClassFactoryFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-  ): UcrxClassFactory<T, TSchema> | undefined {
-    return this.#options.ucrxClassFactoryFor?.(schema);
-  }
-
 }
 
 export namespace UcdLib {
@@ -185,15 +177,11 @@ export namespace UcdLib {
 
   export interface Options<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
     extends UcrxLib.Options {
+    readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
     readonly mode: TMode;
     readonly entities?: EntityConfig[] | undefined;
     readonly exportEntityHandler?: boolean | undefined;
-
-    ucrxClassFactoryFor?<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-      this: void,
-      schema: TSchema,
-    ): UcrxClassFactory<T, TSchema> | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,

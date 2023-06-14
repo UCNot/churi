@@ -73,7 +73,7 @@ describe('UcList deserializer', () => {
   it('does not deserialize unrecognized schema', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readList: ucList<number>({ type: 'test-type' }, { id: 'testList' }),
+        readList: ucList<number>({ type: 'test-type' }),
       },
     });
 
@@ -87,7 +87,7 @@ describe('UcList deserializer', () => {
 
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
-    expect(error?.message).toBe('TestList: Can not deserialize list item of type "test-type"');
+    expect(error?.message).toBe('List: Can not deserialize list item of type "test-type"');
     expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
     expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
   });
@@ -139,16 +139,7 @@ describe('UcList deserializer', () => {
     beforeEach(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<{ foo: string }>(
-            ucMap<{ foo: UcModel<string> }>(
-              { foo: String },
-              {
-                id: function NestedMap() {
-                  return;
-                },
-              },
-            ),
-          ),
+          readList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
         },
       });
 

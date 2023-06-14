@@ -16,8 +16,12 @@ describe('UcdCompiler', () => {
         mode: 'sync',
         features: [
           {
-            configureDeserializer(compiler) {
-              compiler.enable(ucdSupportTimestampEntity);
+            uccProcess(compiler) {
+              return {
+                configure() {
+                  compiler.enable(ucdSupportTimestampEntity);
+                },
+              };
             },
           },
           ucdSupportDefaults,
@@ -37,7 +41,7 @@ describe('UcdCompiler', () => {
         models: {},
         exportEntityHandler: true,
         features(compiler) {
-          ucdSupportDefaults(compiler);
+          return ucdSupportDefaults(compiler);
         },
       });
 
@@ -126,7 +130,9 @@ describe('UcdCompiler', () => {
           models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`No such deserializer feature: import('${SPEC_MODULE}').MissingFeature`),
+        new ReferenceError(
+          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
+        ),
       );
     });
     it('fails to enable wrong feature', async () => {
@@ -144,7 +150,9 @@ describe('UcdCompiler', () => {
           models: { readTimestamp: schema },
         }).bootstrap(),
       ).rejects.toThrow(
-        new ReferenceError(`Not a deserializer feature: import('${SPEC_MODULE}').WrongFeature`),
+        new ReferenceError(
+          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
+        ),
       );
     });
   });

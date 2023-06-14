@@ -1,5 +1,6 @@
 import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
+import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { UcrxReject } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
@@ -16,8 +17,12 @@ export function readPlainEntity(
   return rx.str(printUcTokens([...prefix, ...args]), reject);
 }
 
-export function ucdSupportPlainEntity(compiler: UcdCompiler): void {
-  compiler.handleEntityPrefix('!plain', ({ register }) => code => {
-    code.write(register(UC_MODULE_SPEC.import('readPlainEntity')));
-  });
+export function ucdSupportPlainEntity(compiler: UcdCompiler.Any): UccConfig {
+  return {
+    configure() {
+      compiler.handleEntityPrefix('!plain', ({ register }) => code => {
+        code.write(register(UC_MODULE_SPEC.import('readPlainEntity')));
+      });
+    },
+  };
 }

@@ -106,6 +106,7 @@ export function ucOptional<
   TOptional extends boolean | undefined = true,
 >(model: UcModel<T, TSchema>, optional: TOptional): UcOptional<T, TSchema, TOptional>;
 
+/*#__NO_SIDE_EFFECTS__*/
 export function ucOptional<T, TSchema extends UcSchema<T>, TOptional extends boolean | undefined>(
   model: UcModel<T, TSchema>,
   optional: TOptional = true as TOptional,
