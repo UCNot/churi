@@ -5,67 +5,70 @@ import { UcBigInt } from './uc-bigint.js';
 import { UcNumber } from './uc-number.js';
 
 export function ucMin(
-  min: number,
+  min: UcNumber,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema>;
-export function ucMin(min: bigint, message?: string): UcConstraints<bigint, UcBigInt.Schema>;
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
+export function ucMin(min: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucMin(
-  min: number | bigint,
+  min: UcNumber | UcBigInt,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema> {
-  return ucNumericRangeValidator(['>=', min, message]);
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
+  return ucValidateNumericRange(['>=', min, message]);
 }
 
 export function ucGreaterThan(
-  min: number,
+  min: UcNumber,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema>;
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
 export function ucGreaterThan(
-  min: bigint,
+  min: UcBigInt,
   message?: string,
-): UcConstraints<bigint, UcBigInt.Schema>;
+): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucGreaterThan(
-  min: number | bigint,
+  min: UcNumber | UcBigInt,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema> {
-  return ucNumericRangeValidator(['>', min, message]);
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
+  return ucValidateNumericRange(['>', min, message]);
 }
 
 export function ucMax(
-  max: number,
+  max: UcNumber,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema>;
-export function ucMax(max: bigint, message?: string): UcConstraints<bigint, UcBigInt.Schema>;
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
+export function ucMax(max: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucMax(
-  max: number | bigint,
+  max: UcNumber | UcBigInt,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema> {
-  return ucNumericRangeValidator(['<=', max, message]);
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
+  return ucValidateNumericRange(['<=', max, message]);
 }
 
 export function ucLessThan(
-  max: number,
+  max: UcNumber,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema>;
-export function ucLessThan(max: bigint, message?: string): UcConstraints<bigint, UcBigInt.Schema>;
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
+export function ucLessThan(
+  max: UcBigInt,
+  message?: string,
+): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucLessThan(
-  max: number | bigint,
+  max: UcNumber | UcBigInt,
   message?: string,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema> {
-  return ucNumericRangeValidator(['<', max, message]);
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
+  return ucValidateNumericRange(['<', max, message]);
 }
 
-function ucNumericRangeValidator(
+function ucValidateNumericRange(
   options: UcvNumericRange,
-): UcConstraints<number, UcNumber.Schema> & UcConstraints<bigint, UcBigInt.Schema> {
+): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
   return {
     validator: {
       use: 'ucvSupportNumericRange',

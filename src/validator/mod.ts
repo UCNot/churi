@@ -6,3 +6,5 @@
  * @module churi/validator.js
  */
 export * from './ucv-numeric-range.rejection.js';
+export * from './ucv-string-length.rejection.js';
+export * from './ucv-string-pattern.rejection.js';
