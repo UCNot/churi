@@ -1,5 +1,9 @@
 import { encodeURIPart } from 'httongue';
-import { UC_ESCAPED, UC_KEY_ESCAPED } from '../impl/uc-string-escapes.js';
+import {
+  UC_KEY_ESCAPED,
+  isUcEscapedRawString,
+  isUcEscapedString,
+} from '../impl/uc-string-escapes.js';
 import { printUcToken } from '../syntax/print-uc-token.js';
 import {
   UC_TOKEN_APOSTROPHE,
@@ -106,11 +110,19 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
+  raw(value: string): 1 {
+    return this.#str(value, isUcEscapedRawString);
+  }
+
   str(value: string): 1 {
+    return this.#str(value, isUcEscapedString);
+  }
+
+  #str(value: string, isEscaped: (value: string) => number | boolean): 1 {
     if (value) {
       this.#addItem();
 
-      if (UC_ESCAPED.prefixes(value)) {
+      if (isEscaped(value)) {
         this.#add(UC_TOKEN_APOSTROPHE);
       }
 

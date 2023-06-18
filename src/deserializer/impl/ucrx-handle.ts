@@ -3,7 +3,6 @@ import { Ucrx } from '../../rx/ucrx.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
-import { ucdDecodeValue } from './ucd-decode-value.js';
 
 export class UcrxHandle {
 
@@ -32,7 +31,7 @@ export class UcrxHandle {
   }
 
   decode(input: string): void {
-    ucdDecodeValue(this.#rx, input, this.#reject);
+    this.#rx.raw(input, this.#reject);
   }
 
   makeOpaque(): void {
@@ -75,12 +74,16 @@ export class UcrxHandle {
     this.#rx.str(value, this.#reject);
   }
 
+  emptyStr(): void {
+    this.#rx.raw('', this.#reject);
+  }
+
   emptyMap(): void {
     this.#rx.map(this.#reject);
   }
 
   onlySuffix(key: string): void {
-    this.firstEntry(key).str('');
+    this.firstEntry(key).emptyStr();
     this.endMap();
   }
 
@@ -122,7 +125,7 @@ export class UcrxHandle {
   }
 
   suffix(key: string): void {
-    this.nextEntry(key).str('');
+    this.nextEntry(key).emptyStr();
   }
 
   endMap(): void {

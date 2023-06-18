@@ -36,7 +36,7 @@ export async function ucdReadValue(
   if (!firstToken) {
     // End of input.
     // Decode as empty string.
-    rx.str('');
+    rx.emptyStr();
 
     return;
   }
@@ -144,7 +144,7 @@ export async function ucdReadValue(
       }
     } else if (single) {
       // Decode empty item, unless it is a first one.
-      rx.str('');
+      rx.emptyStr();
 
       return;
     }

@@ -1,6 +1,16 @@
 import { ASCIICharSet } from './ascii-char-set.js';
 
-export const UC_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'-0123456789");
+const UC_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'-0123456789");
+
+export function isUcEscapedString(value: string): boolean | number {
+  return UC_ESCAPED.prefixes(value);
+}
+
+const UC_RAW_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'");
+
+export function isUcEscapedRawString(value: string): boolean | number {
+  return UC_RAW_ESCAPED.prefixes(value);
+}
 
 export const UC_KEY_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'");
 

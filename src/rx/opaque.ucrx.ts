@@ -41,6 +41,7 @@ export interface OpaqueUcrx extends AllUcrx {
   nls(): this;
   nul(): 1;
   num(value: number): 1;
+  raw(value: string): 1;
   str(value: string): 1;
   for(key: PropertyKey): this;
   map(): 1;
