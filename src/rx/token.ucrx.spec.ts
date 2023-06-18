@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { noop } from '@proc7ts/primitives';
 import {
-  UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
@@ -31,6 +30,10 @@ describe('TokenUcrx', () => {
         tokens.push(token);
       });
     });
+    it('does not escape empty string', () => {
+      ucrx.raw('');
+      expect(tokens).toEqual(['']);
+    });
     it('does not escape numbers', () => {
       ucrx.raw('123');
       expect(tokens).toEqual(['123']);
@@ -51,17 +54,17 @@ describe('TokenUcrx', () => {
       ucrx.raw('-');
       expect(tokens).toEqual(['-']);
     });
-    it('escapes string starting with dollar sign', () => {
+    it('does not escape string starting with dollar sign', () => {
       ucrx.raw('$abc');
-      expect(tokens).toEqual([UC_TOKEN_APOSTROPHE, '$abc']);
+      expect(tokens).toEqual(['$abc']);
     });
-    it('escapes string starting with exclamation mark', () => {
+    it('does not escape string starting with exclamation mark', () => {
       ucrx.raw('!abc');
-      expect(tokens).toEqual([UC_TOKEN_APOSTROPHE, '!abc']);
+      expect(tokens).toEqual(['!abc']);
     });
-    it('escapes string starting with apostrophe sign', () => {
+    it('does not escape string starting with apostrophe sign', () => {
       ucrx.raw("'abc");
-      expect(tokens).toEqual([UC_TOKEN_APOSTROPHE, "'abc"]);
+      expect(tokens).toEqual(["'abc"]);
     });
   });
 
@@ -74,12 +77,11 @@ describe('TokenUcrx', () => {
 
   describe('charge', () => {
     it('charges tokens', () => {
-      expect(TokenUcrx.charge('!Hello, World!')).toEqual([UC_TOKEN_APOSTROPHE, '!Hello, World!']);
+      expect(TokenUcrx.charge('!Hello, World!')).toEqual(['!Hello, World!']);
     });
     it('charges nested list', () => {
       expect(TokenUcrx.charge(['!Hello, World!'], { asItem: true })).toEqual([
         UC_TOKEN_OPENING_PARENTHESIS,
-        UC_TOKEN_APOSTROPHE,
         '!Hello, World!',
         UC_TOKEN_CLOSING_PARENTHESIS,
       ]);
