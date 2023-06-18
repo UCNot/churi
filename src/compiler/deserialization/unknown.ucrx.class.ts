@@ -319,7 +319,7 @@ export class UnknownUcrxClass extends UcrxClass {
 
   #overrideRemainingMethods(): void {
     for (const { member, declared } of this.members()) {
-      if (!declared && member instanceof UcrxMethod) {
+      if (!declared && member instanceof UcrxMethod && member !== UcrxCore.raw) {
         this.#declareMethod(member);
       }
     }
