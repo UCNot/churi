@@ -90,7 +90,7 @@ Raw string is an input not yet processed as numeric value, `null` (`--`), or `fa
 
 Data schema may change the way the raw string is parsed. E.g. it may wish to always treat it as a string.
 
-This, however, does not affect how _quoted strings_ or values starting with `"!" (U+0021)`, or `"$" (U+0024)`.
+This, however, does not affect how _quoted strings_ or values starting with `"!" (U+0021)`, or `"$" (U+0024)` processed.
 
 ## List
 
