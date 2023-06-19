@@ -22,7 +22,7 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: 13 })),
-    ).resolves.toBe("foo('test)bar(13)");
+    ).resolves.toBe('foo(test)bar(13)');
   });
   it('serializes nested map', async () => {
     const compiler = new UcsCompiler({
@@ -74,7 +74,7 @@ describe('UcMap serializer', () => {
     const { writeMap } = await compiler.evaluate();
 
     await expect(TextOutStream.read(async to => await writeMap(to, { '': 'test' }))).resolves.toBe(
-      "$('test)",
+      '$(test)',
     );
   });
   it('serializes entry with special keys', async () => {
@@ -103,9 +103,7 @@ describe('UcMap serializer', () => {
             [specialKey]: '13',
           }),
       ),
-    ).resolves.toBe(
-      "$'('quote)$!('exclamation)$$('dollar)\\(13)%28%25%29%0D%0A%09\uD83D\uDFB1 ('13)",
-    );
+    ).resolves.toBe("$'(quote)$!(exclamation)$$(dollar)\\(13)%28%25%29%0D%0A%09\uD83D\uDFB1 ('13)");
   });
   it('serializes nullable entry', async () => {
     const compiler = new UcsCompiler({
@@ -120,7 +118,7 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
-    ).resolves.toBe("test('value)");
+    ).resolves.toBe('test(value)');
     await expect(TextOutStream.read(async to => await writeMap(to, { test: null }))).resolves.toBe(
       'test(--)',
     );
@@ -138,7 +136,7 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { test: 'value' })),
-    ).resolves.toBe("test('value)");
+    ).resolves.toBe('test(value)');
     await expect(TextOutStream.read(async to => await writeMap(to, { test: null }))).resolves.toBe(
       'test(--)',
     );
@@ -158,7 +156,7 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
-    ).resolves.toBe("first(1)$('test)");
+    ).resolves.toBe('first(1)$(test)');
   });
   it('serializes second entry with empty key when first one is optional', async () => {
     const compiler = new UcsCompiler({
@@ -174,10 +172,10 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
-    ).resolves.toBe("first(1)$('test)");
+    ).resolves.toBe('first(1)$(test)');
     await expect(
       TextOutStream.read(async to => await writeMap(to, { first: undefined, '': 'test' })),
-    ).resolves.toBe("$('test)");
+    ).resolves.toBe('$(test)');
   });
   it('does not serialize unrecognized schema', async () => {
     const compiler = new UcsCompiler({

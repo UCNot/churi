@@ -77,7 +77,7 @@ describe('UcList serializer', () => {
     it('serializes list', async () => {
       await expect(
         TextOutStream.read(async to => await writeList(to, [{ foo: 'bar' }, { foo: 'baz' }])),
-      ).resolves.toBe(",foo('bar),foo('baz)");
+      ).resolves.toBe(',foo(bar),foo(baz)');
     });
   });
 

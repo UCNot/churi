@@ -1,5 +1,5 @@
 import { encodeURIPart } from 'httongue';
-import { UC_KEY_ESCAPED, hasUcEscapedPrefix } from '../impl/uc-string-escapes.js';
+import { UC_KEY_ESCAPED, isEscapedUcString } from '../impl/uc-string-escapes.js';
 import { printUcToken } from '../syntax/print-uc-token.js';
 import {
   UC_TOKEN_APOSTROPHE,
@@ -121,7 +121,7 @@ export class TokenUcrx implements AllUcrx {
     if (value) {
       this.#addItem();
 
-      if (hasUcEscapedPrefix(value)) {
+      if (isEscapedUcString(value)) {
         this.#add(UC_TOKEN_APOSTROPHE);
       }
 
