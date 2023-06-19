@@ -28,7 +28,7 @@ export class StringUcrxClass extends UcrxClass<UcrxSignature1.Args, UcString, Uc
       schema,
       baseClass: baseUcrx,
     });
-    if (raw !== 'prohibit') {
+    if (raw !== 'parse') {
       UcrxCore.raw.overrideIn(this, {
         body({
           member: {

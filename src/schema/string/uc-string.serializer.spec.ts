@@ -88,13 +88,13 @@ describe('UcString serializer', () => {
     });
   });
 
-  describe('when raw strings accepted', () => {
+  describe('with raw strings', () => {
     let writeValue: UcSerializer<string>;
 
     beforeEach(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucString({ raw: 'accept' }),
+          writeValue: ucString({ raw: 'asString' }),
         },
       });
 
@@ -128,7 +128,7 @@ describe('UcString serializer', () => {
       beforeEach(async () => {
         const compiler = new UcsCompiler({
           models: {
-            writeValue: ucNullable(ucString({ raw: 'accept' })),
+            writeValue: ucNullable(ucString({ raw: 'asString' })),
           },
         });
 

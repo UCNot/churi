@@ -88,7 +88,7 @@ describe('UcList serializer', () => {
     beforeEach(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<UcString>(ucString({ raw: 'accept' })),
+          writeList: ucList<UcString>(ucString({ raw: 'asString' })),
         },
       });
 
@@ -108,7 +108,7 @@ describe('UcList serializer', () => {
     beforeEach(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<UcString | null>(ucNullable(ucString({ raw: 'accept' }))),
+          writeList: ucList<UcString | null>(ucNullable(ucString({ raw: 'asString' }))),
         },
       });
 

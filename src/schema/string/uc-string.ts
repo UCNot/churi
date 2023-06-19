@@ -33,7 +33,7 @@ export namespace UcString {
    */
   export interface Variant {
     /**
-     * How to process raw strings.
+     * How to process raw values.
      *
      * @defaultValue `'escape'`
      */
@@ -46,23 +46,23 @@ export namespace UcString {
   export interface Options extends UcSchema.Extension<UcString, Schema>, Variant {}
 
   /**
-   * Raw strings processing policy.
+   * Raw value processing policy.
    *
-   * Raw strings may contain numeric values, `null` value (`--`), or `false` value (`-`). Without schema such strings
-   * are treated accordingly to their syntax. Raw string processing policy may change this.
+   * Raw value may contain numeric value, `null` (`--`), or `false` (`-`). Without schema such value parsed accordingly
+   * to its syntax. Raw value processing policy may change this.
    *
    * The policy is one of:
    *
-   * - `'escape'` or `undefined` (the default) to always treat input raw strings as string values, and escape output
-   *   to avoid ambiguity. I.e. string like `123` will be serialized as `'123`.
-   * - `'accept'` to always treat raw strings as string values, and do not escape the.
+   * - `'escape'` or `undefined` (the default) to treat raw value as string, and escape output to avoid ambiguity.
+   *   I.e. string like `123` will be serialized as `'123`.
+   * - `'asString'` to treat raw value as string, and do not escape the output when possible.
    *   I.e. a string like `123` will be serialized as is.
-   * - `'prohibit'` to never try to process numeric values, `null`, or booleans as strings. This is the default policy
-   *   for schema-less processing, but not when string value expected by schema.
+   * - `'parse'` to parse raw value according to its syntax. This is the default policy for schema-less processing,
+   *   but not when string value expected by schema.
    *
    * Note that if the value is {@link UcSchema#nullable nullable}, the `--` input is always treated as `null`.
    */
-  export type RawProcessing = 'accept' | 'escape' | 'prohibit' | undefined;
+  export type RawProcessing = 'escape' | 'asString' | 'parse' | undefined;
 }
 
 /**

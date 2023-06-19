@@ -148,14 +148,14 @@ describe('UcString deserializer', () => {
     });
   });
 
-  describe('when raw strings prohibited', () => {
+  describe('when raw values parsed', () => {
     let readValue: UcDeserializer<string>;
 
     beforeEach(async () => {
       const compiler = new UcdCompiler<{ readValue: UcString.Schema }>({
         models: {
           readValue: ucString({
-            raw: 'prohibit',
+            raw: 'parse',
           }),
         },
       });
@@ -257,7 +257,7 @@ describe('UcString deserializer', () => {
           models: {
             readValue: ucNullable(
               ucString({
-                raw: 'prohibit',
+                raw: 'parse',
               }),
             ),
           },

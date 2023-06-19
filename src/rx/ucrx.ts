@@ -20,7 +20,7 @@ export interface Ucrx {
   /**
    * Charges boolean value.
    *
-   * Called directly for `true` value (`!`), or from {@link raw} when the raw string interpreted as `false`,
+   * Called directly for `true` value (`!`), or from {@link raw} when the raw value interpreted as `false`,
    * i.e. it is `-`.
    *
    * @param value - Charged value.
@@ -33,7 +33,7 @@ export interface Ucrx {
   /**
    * Charges big integer value.
    *
-   * Typically called from {@link raw} when the raw string interpreted as bigint, i.e. when it starts with `0n` or
+   * Typically called from {@link raw} when the raw value interpreted as bigint, i.e. when it starts with `0n` or
    * `-0n` prefix.
    *
    * @param value - Charged value.
@@ -67,7 +67,7 @@ export interface Ucrx {
   /**
    * Charges `null` value.
    *
-   * Typically called from {@link raw} when the raw string interpreted as `null`, i.e. when it is `--`.
+   * Typically called from {@link raw} when the raw value interpreted as `null`, i.e. when it is `--`.
    *
    * @returns Either `1` if charge succeed, or ``0` for unexpected `null`.
    */
@@ -76,7 +76,7 @@ export interface Ucrx {
   /**
    * Charges number value.
    *
-   * Typically called from {@link raw} when the raw string interpreted as number, i.e. when it starts with digit.
+   * Typically called from {@link raw} when the raw value interpreted as number, i.e. when it starts with digit.
    *
    * @param value - Charged value.
    * @param reject - Rejection callback.
@@ -86,7 +86,7 @@ export interface Ucrx {
   num(value: number, reject: UcrxReject): 0 | 1;
 
   /**
-   * Charges raw string value.
+   * Charges raw value.
    *
    * In contrast to {@link str} method, this one is called for strings that look like numbers or start with
    * _hyphen_ (`"-" (U+002D)`).
@@ -103,7 +103,7 @@ export interface Ucrx {
   /**
    * Charges string value.
    *
-   * Always called directly for quoted strings. May be called from {@link raw}, unless the raw string interpreted
+   * Always called directly for quoted strings. May be called from {@link raw}, unless the raw value interpreted
    * otherwise.
    *
    * @param value - Charged value.

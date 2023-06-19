@@ -84,13 +84,13 @@ _Empty string_ may be left as is or encoded as single _apostrophe_ (`"'" (U+0027
 
 [percent-encoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
 
-### Raw String
+### Raw Value
 
-Raw string is an input not yet processed as numeric value, `null` (`--`), or `false` (`-`).
+Raw value is the one not yet processed as numeric value, `null` (`--`), or `false` (`-`).
 
-Data schema may change the way the raw string is parsed. E.g. it may wish to always treat it as a string.
+Data schema may change the way the raw value parsed. E.g. it may wish to always treat it as string.
 
-This, however, does not affect how _quoted strings_ or values starting with `"!" (U+0021)`, or `"$" (U+0024)` processed.
+This, however, does not affect _quoted strings_, or values starting with `"!" (U+0021)` or `"$" (U+0024)`.
 
 ## List
 
