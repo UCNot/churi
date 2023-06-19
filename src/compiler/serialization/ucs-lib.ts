@@ -83,12 +83,8 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
   generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcsGenerator<T> | undefined;
-
-  generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>({
-    type,
-  }: TSchema): UcsGenerator<T> | undefined {
-    return this.#options.generatorFor?.(type);
+  ): UcsGenerator<T> | undefined {
+    return this.#options.generatorFor?.(schema);
   }
 
   binConst(value: string): EsSymbol {
@@ -123,7 +119,7 @@ export namespace UcsLib {
 
     generatorFor?<T, TSchema extends UcSchema<T>>(
       this: void,
-      type: TSchema['type'],
+      schema: TSchema,
     ): UcsGenerator<T, TSchema> | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
