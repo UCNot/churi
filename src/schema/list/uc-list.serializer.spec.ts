@@ -3,6 +3,7 @@ import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucMap } from '../map/uc-map.js';
+import { UcString, ucString } from '../string/uc-string.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucOptional } from '../uc-optional.js';
 import { UcModel } from '../uc-schema.js';
@@ -59,6 +60,66 @@ describe('UcList serializer', () => {
     await expect(
       TextOutStream.read(async to => await writeList(to, [1, undefined, 333])),
     ).resolves.toBe(',1,--,333');
+  });
+
+  describe('of strings', () => {
+    let writeList: UcSerializer<string[]>;
+
+    beforeEach(async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeList: ucList<UcString>(String),
+        },
+      });
+
+      ({ writeList } = await compiler.evaluate());
+    });
+
+    it('escapes empty items', async () => {
+      await expect(TextOutStream.read(async to => await writeList(to, ['', '', '']))).resolves.toBe(
+        ",',','",
+      );
+    });
+  });
+
+  describe('of raw strings', () => {
+    let writeList: UcSerializer<string[]>;
+
+    beforeEach(async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeList: ucList<UcString>(ucString({ raw: 'accept' })),
+        },
+      });
+
+      ({ writeList } = await compiler.evaluate());
+    });
+
+    it('escapes empty items', async () => {
+      await expect(TextOutStream.read(async to => await writeList(to, ['', '', '']))).resolves.toBe(
+        ",',','",
+      );
+    });
+  });
+
+  describe('of nullable raw strings', () => {
+    let writeList: UcSerializer<(string | null)[]>;
+
+    beforeEach(async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeList: ucList<UcString | null>(ucNullable(ucString({ raw: 'accept' }))),
+        },
+      });
+
+      ({ writeList } = await compiler.evaluate());
+    });
+
+    it('escapes empty items', async () => {
+      await expect(TextOutStream.read(async to => await writeList(to, ['', '', '']))).resolves.toBe(
+        ",',','",
+      );
+    });
   });
 
   describe('of maps', () => {

@@ -1,4 +1,5 @@
 export const UCS_APOSTROPHE = /*#__PURE__*/ new Uint8Array([0x27]); // `'`
+export const UCS_ESCAPED_DOUBLE_HYPHEN = /*#__PURE__*/ new Uint8Array([0x27, 0x2d, 0x2d]); // `'--`
 export const UCS_OPENING_PARENTHESIS = /*#__PURE__*/ new Uint8Array([0x28]); // `(`
 export const UCS_CLOSING_PARENTHESIS = /*#__PURE__*/ new Uint8Array([0x29]); // `)`
 export const UCS_COMMA = /*#__PURE__*/ new Uint8Array([0x2c]); // `,`

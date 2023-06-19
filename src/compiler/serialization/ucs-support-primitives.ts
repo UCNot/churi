@@ -4,6 +4,7 @@ import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
+import { ucsSupportString } from './ucs-support-string.js';
 import { UcsSignature } from './ucs.signature.js';
 
 export function ucsSupportPrimitives(compiler: UcsCompiler): UccConfig {
@@ -12,8 +13,8 @@ export function ucsSupportPrimitives(compiler: UcsCompiler): UccConfig {
       compiler
         .useUcsGenerator(BigInt, ucsWriteBigInt)
         .useUcsGenerator(Boolean, ucsWriteBoolean)
-        .useUcsGenerator(Number, ucsWriteNumber)
-        .useUcsGenerator(String, ucsWriteString);
+        .useUcsGenerator(Number, ucsWriteNumber);
+      ucsSupportString(compiler, String).configure({});
     },
   };
 }
@@ -52,14 +53,4 @@ function ucsWriteNumber(
   const writeNumber = UC_MODULE_SERIALIZER.import('writeUcNumber');
 
   return esline`await ${writeNumber}(${writer}, ${value});`;
-}
-
-function ucsWriteString(
-  _fn: UcsFunction,
-  _schema: UcSchema,
-  { writer, value }: UcsSignature.AllValues,
-): EsSnippet {
-  const writeString = UC_MODULE_SERIALIZER.import('writeUcString');
-
-  return esline`await ${writeString}(${writer}, ${value});`;
 }
