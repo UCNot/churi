@@ -39,8 +39,8 @@ export class UnknownUcrxClass extends UcrxClass {
     return ucList(schema);
   }
 
-  static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.Schema.Entries.Model, UcSchema> {
-    return ucMap<UcMap.Schema.Entries.Model, UcSchema>({}, { extra: schema });
+  static mapSchemaFor(schema: UcSchema): UcMap.Schema<UcMap.EntriesModel, UcSchema> {
+    return ucMap<UcMap.EntriesModel, UcSchema>({}, { extra: schema });
   }
 
   readonly #listClass: () => UcrxClass;

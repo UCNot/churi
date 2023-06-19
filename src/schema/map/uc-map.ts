@@ -5,15 +5,15 @@ import { ucModelName } from '../uc-model-name.js';
 import { UcInfer, UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
- * URI charge map represented as JavaScript object.
+ * Data map represented as JavaScript object.
  */
 export interface UcMap {
-  [key: string]: unknown;
+  [key: PropertyKey]: unknown;
 }
 
 export namespace UcMap {
   /**
-   * URI charge schema definition for JavaScript {@link UcMap object} serialized as map.
+   * Data schema definition for JavaScript {@link UcMap object} serialized as map.
    *
    * Such schema can be built with {@link ucMap} function.
    *
@@ -21,22 +21,22 @@ export namespace UcMap {
    * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
   export interface Schema<
-    in out TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
+    in out TEntriesModel extends EntriesModel = EntriesModel,
     out TExtraModel extends UcModel | false = false,
   > extends UcSchema<Infer<TEntriesModel, TExtraModel>> {
     readonly type: 'map';
-    readonly entries: Schema.Entries<TEntriesModel>;
+    readonly entries: Entries<TEntriesModel>;
     readonly extra: TExtraModel extends UcModel ? UcSchema.Of<TExtraModel> : false;
   }
 
   /**
-   * Type of object inferred from the map model.
+   * Type of object inferred from the {@link Schema map model}.
    *
    * @typeParam TEntriesModel - Per-entry model type.
    * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
   export type Infer<
-    TEntriesModel extends Schema.Entries.Model,
+    TEntriesModel extends EntriesModel,
     TExtraModel extends UcModel | false = false,
   > = {
     -readonly [key in RequiredKeys<TEntriesModel>]: UcInfer<TEntriesModel[key]>;
@@ -47,76 +47,68 @@ export namespace UcMap {
       : { [key in never]: never });
 
   export type Required<
-    TEntriesModel extends Schema.Entries.Model,
+    TEntriesModel extends EntriesModel,
     TKey extends keyof TEntriesModel = keyof TEntriesModel,
   > = undefined extends UcInfer<TEntriesModel[TKey]> ? TKey : never;
 
   export type RequiredKeys<
-    TEntriesModel extends Schema.Entries.Model,
+    TEntriesModel extends EntriesModel,
     TKey extends keyof TEntriesModel = keyof TEntriesModel,
   > = undefined extends UcInfer<TEntriesModel[TKey]> ? never : TKey;
 
   export type OptionalKeys<
-    TEntriesModel extends Schema.Entries.Model,
+    TEntriesModel extends EntriesModel,
     TKey extends keyof TEntriesModel = keyof TEntriesModel,
   > = undefined extends UcInfer<TEntriesModel[TKey]> ? TKey : never;
 
-  export type ExtraKeys<TEntriesModel extends Schema.Entries.Model> = Exclude<
-    string,
-    keyof TEntriesModel
+  export type ExtraKeys<TEntriesModel extends EntriesModel> = Exclude<string, keyof TEntriesModel>;
+
+  /**
+   * Per-entry schema of URI charge map.
+   *
+   * @typeParam TEntriesModel - Per-entry model type.
+   */
+  export type Entries<TEntriesModel extends EntriesModel> = {
+    readonly [key in keyof TEntriesModel]: UcSchema.Of<TEntriesModel[key]>;
+  };
+
+  /**
+   * Per-entry model of the map.
+   *
+   * Each property corresponds to a map entry with data type implied by corresponding model.
+   */
+  export type EntriesModel = {
+    readonly [key in string]: UcModel;
+  };
+
+  /**
+   * Additional options for the {@link ucMap map schema}.
+   *
+   * @typeParam TEntriesModel - Per-entry model type.
+   * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
+   */
+  export type BaseOptions<
+    TEntriesModel extends EntriesModel,
+    TExtraModel extends UcModel | false,
+  > = UcSchema.Extension<
+    UcMap.Infer<TEntriesModel, TExtraModel>,
+    UcMap.Schema<TEntriesModel, TExtraModel>
   >;
 
-  export namespace Schema {
-    /**
-     * Per-entry schema of URI charge map.
-     *
-     * @typeParam TEntriesModel - Per-entry model type.
-     */
-    export type Entries<TEntriesModel extends Entries.Model> = {
-      readonly [key in keyof TEntriesModel]: UcSchema.Of<TEntriesModel[key]>;
-    };
+  export type Options<TEntriesModel extends EntriesModel, TExtraModel extends UcModel> =
+    | ExactOptions<TEntriesModel>
+    | ExtraOptions<TEntriesModel, TExtraModel>;
 
-    export namespace Entries {
-      /**
-       * Per-entry model of the map.
-       *
-       * Each property corresponds to a map entry with data type implied by corresponding model.
-       */
-      export type Model = {
-        readonly [key in string]: UcModel;
-      };
-    }
+  export interface ExactOptions<in out TEntriesModel extends EntriesModel = EntriesModel>
+    extends BaseOptions<TEntriesModel, false> {
+    readonly extra?: false | undefined;
+  }
 
-    /**
-     * Additional options for the {@link ucMap map schema}.
-     *
-     * @typeParam TEntriesModel - Per-entry model type.
-     * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
-     */
-    export type BaseOptions<
-      TEntriesModel extends Schema.Entries.Model,
-      TExtraModel extends UcModel | false,
-    > = UcSchema.Extension<
-      UcMap.Infer<TEntriesModel, TExtraModel>,
-      UcMap.Schema<TEntriesModel, TExtraModel>
-    >;
-
-    export type Options<TEntriesModel extends Schema.Entries.Model, TExtraModel extends UcModel> =
-      | ExactOptions<TEntriesModel>
-      | ExtraOptions<TEntriesModel, TExtraModel>;
-
-    export interface ExactOptions<
-      in out TEntriesModel extends Schema.Entries.Model = Schema.Entries.Model,
-    > extends BaseOptions<TEntriesModel, false> {
-      readonly extra?: false | undefined;
-    }
-
-    export interface ExtraOptions<
-      in out TEntriesModel extends Schema.Entries.Model,
-      out TExtraModel extends UcModel,
-    > extends BaseOptions<TEntriesModel, TExtraModel> {
-      readonly extra: TExtraModel;
-    }
+  export interface ExtraOptions<
+    in out TEntriesModel extends EntriesModel,
+    out TExtraModel extends UcModel,
+  > extends BaseOptions<TEntriesModel, TExtraModel> {
+    readonly extra: TExtraModel;
   }
 }
 
@@ -129,9 +121,9 @@ export namespace UcMap {
  *
  * @returns New map schema.
  */
-export function ucMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
+export function ucMap<TEntriesModel extends UcMap.EntriesModel>(
   entries: TEntriesModel,
-  options?: UcMap.Schema.ExactOptions,
+  options?: UcMap.ExactOptions,
 ): UcMap.Schema<TEntriesModel>;
 
 /**
@@ -143,21 +135,15 @@ export function ucMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
  *
  * @returns New map schema.
  */
-export function ucMap<
-  TEntriesModel extends UcMap.Schema.Entries.Model,
-  TExtraModel extends UcModel,
->(
+export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel extends UcModel>(
   entries: TEntriesModel,
-  options: UcMap.Schema.ExtraOptions<TEntriesModel, TExtraModel>,
+  options: UcMap.ExtraOptions<TEntriesModel, TExtraModel>,
 ): UcMap.Schema<TEntriesModel, TExtraModel>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucMap<
-  TEntriesModel extends UcMap.Schema.Entries.Model,
-  TExtraModel extends UcModel,
->(
+export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel extends UcModel>(
   entriesModel: TEntriesModel,
-  options: UcMap.Schema.Options<TEntriesModel, TExtraModel> = {},
+  options: UcMap.Options<TEntriesModel, TExtraModel> = {},
 ): UcMap.Schema<TEntriesModel, TExtraModel> {
   const { extra } = options;
   const entries: [string, UcSchema][] = Object.entries(entriesModel).map(([key, model]) => [
@@ -172,7 +158,7 @@ export function ucMap<
     {
       type: 'map',
       where: UcMap$constraints,
-      entries: Object.fromEntries(entries) as UcMap.Schema.Entries<TEntriesModel>,
+      entries: Object.fromEntries(entries) as UcMap.Entries<TEntriesModel>,
       extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
       toString() {
         let out = '{';

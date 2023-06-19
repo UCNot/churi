@@ -20,7 +20,7 @@ import { MapUcrxEntry } from './map.ucrx-entry.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class MapUcrxClass<
-  in out TEntriesModel extends UcMap.Schema.Entries.Model = UcMap.Schema.Entries.Model,
+  in out TEntriesModel extends UcMap.EntriesModel = UcMap.EntriesModel,
   out TExtraModel extends UcModel | false = false,
 > extends UcrxClass<
   UcrxSignature.Args,
@@ -386,7 +386,7 @@ export namespace MapUcrxClass {
 }
 
 function MapUcrxClass$typeName<
-  TEntriesModel extends UcMap.Schema.Entries.Model,
+  TEntriesModel extends UcMap.EntriesModel,
   TExtraModel extends UcModel | false,
 >(lib: UcrxLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>): string {
   const { entries, extra } = schema;
