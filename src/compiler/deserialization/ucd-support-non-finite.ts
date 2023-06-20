@@ -7,9 +7,9 @@ export function ucdSupportNonFinite(compiler: UcdCompiler.Any): UccConfig {
   return {
     configure() {
       compiler
-        .handleEntity('!Infinity', handleUcdNonFinite('ucrxInfinity'))
-        .handleEntity('!-Infinity', handleUcdNonFinite('ucrxNegativeInfinity'))
-        .handleEntity('!NaN', handleUcdNonFinite('ucrxNaN'));
+        .handleEntity('!Infinity', handleUcdNonFinite('ucdInfinity'))
+        .handleEntity('!-Infinity', handleUcdNonFinite('ucdNegativeInfinity'))
+        .handleEntity('!NaN', handleUcdNonFinite('ucdNaN'));
     },
   };
 }

@@ -1,5 +1,6 @@
 export * from './bigint.ucrx.class.js';
 export * from './boolean.ucrx.class.js';
+export * from './integer.ucrx.class.js';
 export * from './list.ucrx.class.js';
 export * from './map.ucrx-entry.js';
 export * from './map.ucrx.class.js';

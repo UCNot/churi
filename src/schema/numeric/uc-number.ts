@@ -17,7 +17,7 @@ export namespace UcNumber {
    *
    * [Number]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number/Number
    */
-  export interface Schema extends UcSchema<number> {
+  export interface Schema extends UcSchema<UcNumber> {
     /**
      * Number schema type always refers to standard [Number] constructor.
      *
