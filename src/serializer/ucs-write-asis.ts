@@ -1,6 +1,6 @@
 import { UcsWriter } from './ucs-writer.js';
 
-export async function writeUcAsIs(ucsWriter: UcsWriter, value: string): Promise<void> {
+export async function ucsWriteAsIs(ucsWriter: UcsWriter, value: string): Promise<void> {
   const { memory, encoder } = ucsWriter;
 
   while (

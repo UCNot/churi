@@ -1,8 +1,8 @@
 import { UCS_BIGINT_PREFIX, UCS_NEGATIVE_BIGINT_PREFIX } from './ucs-constants.js';
+import { ucsWriteAsIs } from './ucs-write-asis.js';
 import { UcsWriter } from './ucs-writer.js';
-import { writeUcAsIs } from './write-uc-asis.js';
 
-export async function writeUcBigInt(writer: UcsWriter, value: bigint): Promise<void> {
+export async function ucsWriteBigInt(writer: UcsWriter, value: bigint): Promise<void> {
   let string: string;
 
   await writer.ready;
@@ -14,5 +14,5 @@ export async function writeUcBigInt(writer: UcsWriter, value: bigint): Promise<v
     string = value.toString();
   }
 
-  await writeUcAsIs(writer, string);
+  await ucsWriteAsIs(writer, string);
 }

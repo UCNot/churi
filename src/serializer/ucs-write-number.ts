@@ -4,12 +4,12 @@ import {
   UCS_NAN_ENTITY,
   UCS_NEGATIVE_INFINITY_ENTITY,
 } from './ucs-constants.js';
+import { ucsWriteAsIs } from './ucs-write-asis.js';
 import { UcsWriter } from './ucs-writer.js';
-import { writeUcAsIs } from './write-uc-asis.js';
 
 export async function ucsWriteNumber(writer: UcsWriter, value: number): Promise<void> {
   if (Number.isFinite(value)) {
-    await writeUcAsIs(writer, value.toString());
+    await ucsWriteAsIs(writer, value.toString());
   } else {
     await writer.ready;
     writer.write(
@@ -25,5 +25,5 @@ export async function ucsWriteNumber(writer: UcsWriter, value: number): Promise<
 export async function ucsWriteNumberAsString(writer: UcsWriter, value: number): Promise<void> {
   await writer.ready;
   writer.write(UCS_APOSTROPHE);
-  await writeUcAsIs(writer, value.toString());
+  await ucsWriteAsIs(writer, value.toString());
 }

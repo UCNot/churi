@@ -8,9 +8,9 @@ export function ucsSupportUnknown(compiler: UcsCompiler): UccConfig {
     configure() {
       compiler.useUcsGenerator('unknown', (_fn, _schema, { writer, value, asItem }) => {
         const chargeURI = UC_MODULE_CHURI.import('chargeURI');
-        const writeUcAsIs = UC_MODULE_SERIALIZER.import('writeUcAsIs');
+        const writeAsIs = UC_MODULE_SERIALIZER.import('ucsWriteAsIs');
 
-        return esline`await ${writeUcAsIs}(${writer}, ${chargeURI}(${value}, { asItem: ${asItem} }));`;
+        return esline`await ${writeAsIs}(${writer}, ${chargeURI}(${value}, { asItem: ${asItem} }));`;
       });
     },
   };

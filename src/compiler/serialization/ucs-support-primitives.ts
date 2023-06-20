@@ -23,7 +23,7 @@ function ucsWriteBigInt(
   _schema: UcSchema,
   { writer, value }: UcsSignature.AllValues,
 ): EsSnippet {
-  const writeBigInt = UC_MODULE_SERIALIZER.import('writeUcBigInt');
+  const writeBigInt = UC_MODULE_SERIALIZER.import('ucsWriteBigInt');
 
   return esline`await ${writeBigInt}(${writer}, ${value});`;
 }

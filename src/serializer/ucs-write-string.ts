@@ -1,7 +1,7 @@
 import { encodeUcsString, isEscapedUcsString } from '../impl/encode-ucs-string.js';
 import { UCS_APOSTROPHE, UCS_ESCAPED_DOUBLE_HYPHEN } from './ucs-constants.js';
+import { ucsWriteAsIs } from './ucs-write-asis.js';
 import { UcsWriter } from './ucs-writer.js';
-import { writeUcAsIs } from './write-uc-asis.js';
 
 export async function ucsWriteString(
   ucsWriter: UcsWriter,
@@ -23,7 +23,7 @@ export async function ucsWriteString(
     ucsWriter.write(UCS_APOSTROPHE);
   }
 
-  await writeUcAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
 }
 
 export async function ucsWriteRawString(
@@ -41,7 +41,7 @@ export async function ucsWriteRawString(
     return;
   }
 
-  await writeUcAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
 }
 
 export async function ucsWriteNullableRawString(
@@ -64,5 +64,5 @@ export async function ucsWriteNullableRawString(
     return;
   }
 
-  await writeUcAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
 }
