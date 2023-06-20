@@ -3,7 +3,7 @@ import { UCS_APOSTROPHE, UCS_ESCAPED_DOUBLE_HYPHEN } from './ucs-constants.js';
 import { UcsWriter } from './ucs-writer.js';
 import { writeUcAsIs } from './write-uc-asis.js';
 
-export async function writeUcString(
+export async function ucsWriteString(
   ucsWriter: UcsWriter,
   value: string,
   asItem: boolean,
@@ -26,7 +26,7 @@ export async function writeUcString(
   await writeUcAsIs(ucsWriter, encodeUcsString(value));
 }
 
-export async function writeRawUcString(
+export async function ucsWriteRawString(
   ucsWriter: UcsWriter,
   value: string,
   asItem: boolean,
@@ -44,7 +44,7 @@ export async function writeRawUcString(
   await writeUcAsIs(ucsWriter, encodeUcsString(value));
 }
 
-export async function writeNullableRawUcString(
+export async function ucsWriteNullableRawString(
   ucsWriter: UcsWriter,
   value: string,
   asItem: boolean,

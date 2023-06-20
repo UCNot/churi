@@ -14,10 +14,10 @@ export function ucsSupportString(
       compiler.useUcsGenerator(target, (_fn, schema, { writer, value, asItem }) => {
         const writeString = UC_MODULE_SERIALIZER.import(
           raw === 'escape'
-            ? 'writeUcString'
+            ? 'ucsWriteString'
             : schema.nullable
-            ? 'writeNullableRawUcString'
-            : 'writeRawUcString',
+            ? 'ucsWriteNullableRawString'
+            : 'ucsWriteRawString',
         );
 
         return esline`await ${writeString}(${writer}, ${value}, ${asItem});`;

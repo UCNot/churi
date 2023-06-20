@@ -11,4 +11,4 @@ export * from './ucs-writer.js';
 export * from './write-uc-asis.js';
 export * from './write-uc-bigint.js';
 export * from './ucs-write-number.js';
-export * from './write-uc-string.js';
+export * from './ucs-write-string.js';
