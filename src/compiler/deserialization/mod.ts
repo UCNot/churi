@@ -1,6 +1,7 @@
 export * from './list.ucrx.class.js';
 export * from './map.ucrx-entry.js';
 export * from './map.ucrx.class.js';
+export * from './number.ucrx.class.js';
 export * from './string.ucrx.class.js';
 export * from './ucd-compiler.js';
 export * from './ucd-entity-feature.js';

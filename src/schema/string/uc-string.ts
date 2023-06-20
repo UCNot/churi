@@ -3,7 +3,7 @@ import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
- * String value type alias used for {@link UcString.Schema schema} processing.
+ * String type alias used in {@link UcString.Schema schema} processing.
  */
 export type UcString = string;
 

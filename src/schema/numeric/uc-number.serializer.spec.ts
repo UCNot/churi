@@ -1,35 +1,67 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
-import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
+import { ucNumber } from './uc-number.js';
 
 describe('UcNumber serializer', () => {
-  let compiler: UcsCompiler<{ writeValue: UcModel<number> }>;
-  let writeValue: UcSerializer<number>;
+  describe('bu default', () => {
+    let writeValue: UcSerializer<number>;
 
-  beforeEach(async () => {
-    compiler = new UcsCompiler({
-      models: {
-        writeValue: Number,
-      },
+    beforeEach(async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeValue: Number,
+        },
+      });
+
+      ({ writeValue } = await compiler.evaluate());
     });
-    ({ writeValue } = await compiler.evaluate());
+
+    it('serializes number', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, 13))).resolves.toBe('13');
+      await expect(TextOutStream.read(async to => await writeValue(to, -13))).resolves.toBe('-13');
+    });
+    it('serializes `NaN`', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, NaN))).resolves.toBe('!NaN');
+    });
+    it('serializes infinity', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, Infinity))).resolves.toBe(
+        '!Infinity',
+      );
+      await expect(TextOutStream.read(async to => await writeValue(to, -Infinity))).resolves.toBe(
+        '!-Infinity',
+      );
+    });
   });
 
-  it('serializes number', async () => {
-    await expect(TextOutStream.read(async to => await writeValue(to, 13))).resolves.toBe('13');
-    await expect(TextOutStream.read(async to => await writeValue(to, -13))).resolves.toBe('-13');
-  });
-  it('serializes `NaN`', async () => {
-    await expect(TextOutStream.read(async to => await writeValue(to, NaN))).resolves.toBe('!NaN');
-  });
-  it('serializes infinity', async () => {
-    await expect(TextOutStream.read(async to => await writeValue(to, Infinity))).resolves.toBe(
-      '!Infinity',
-    );
-    await expect(TextOutStream.read(async to => await writeValue(to, -Infinity))).resolves.toBe(
-      '!-Infinity',
-    );
+  describe('when converted to string', () => {
+    let writeValue: UcSerializer<number>;
+
+    beforeEach(async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeValue: ucNumber({ string: 'serialize' }),
+        },
+      });
+
+      ({ writeValue } = await compiler.evaluate());
+    });
+
+    it('serializes number', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, 13))).resolves.toBe("'13");
+      await expect(TextOutStream.read(async to => await writeValue(to, -13))).resolves.toBe("'-13");
+    });
+    it('serializes `NaN`', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, NaN))).resolves.toBe("'NaN");
+    });
+    it('serializes infinity', async () => {
+      await expect(TextOutStream.read(async to => await writeValue(to, Infinity))).resolves.toBe(
+        "'Infinity",
+      );
+      await expect(TextOutStream.read(async to => await writeValue(to, -Infinity))).resolves.toBe(
+        "'-Infinity",
+      );
+    });
   });
 });

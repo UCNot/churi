@@ -9,6 +9,7 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { NumberUcrxClass } from './number.ucrx.class.js';
 import { StringUcrxClass } from './string.ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
@@ -26,7 +27,7 @@ export function ucdSupportPrimitives(compiler: UcdCompiler.Any): UccConfig {
         )
         .useUcrxClass<UcNumber, UcNumber.Schema>(
           Number,
-          (lib, schema) => new PrimitiveUcrxClass(lib, schema, UcrxCore.num),
+          (lib, schema) => new NumberUcrxClass(lib, schema),
         )
         .useUcrxClass<UcString, UcString.Schema>(
           String,
