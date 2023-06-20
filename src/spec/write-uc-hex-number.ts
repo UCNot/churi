@@ -4,11 +4,11 @@ import { UccFeature } from '../compiler/processor/ucc-feature.js';
 import { UccSchemaFeature } from '../compiler/processor/ucc-schema-feature.js';
 import { UcsCompiler } from '../compiler/serialization/ucs-compiler.js';
 import { UcSchema } from '../schema/uc-schema.js';
+import { ucsWriteAsIs } from '../serializer/ucs-write-asis.js';
 import { UcsWriter } from '../serializer/ucs-writer.js';
-import { writeUcAsIs } from '../serializer/write-uc-asis.js';
 
 export async function writeUcHexNumber(writer: UcsWriter, value: number): Promise<void> {
-  await writeUcAsIs(writer, '0x' + value.toString(16));
+  await ucsWriteAsIs(writer, '0x' + value.toString(16));
 }
 
 export const UcsSupportNumberAsHex: UccFeature.Object<UcsCompiler> = {

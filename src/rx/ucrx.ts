@@ -20,6 +20,9 @@ export interface Ucrx {
   /**
    * Charges boolean value.
    *
+   * Called directly for `true` value (`!`), or from {@link raw} when the raw value interpreted as `false`,
+   * i.e. it is `-`.
+   *
    * @param value - Charged value.
    * @param reject - Rejection callback.
    *
@@ -29,6 +32,9 @@ export interface Ucrx {
 
   /**
    * Charges big integer value.
+   *
+   * Typically called from {@link raw} when the raw value interpreted as bigint, i.e. when it starts with `0n` or
+   * `-0n` prefix.
    *
    * @param value - Charged value.
    * @param reject - Rejection callback.
@@ -61,12 +67,16 @@ export interface Ucrx {
   /**
    * Charges `null` value.
    *
+   * Typically called from {@link raw} when the raw value interpreted as `null`, i.e. when it is `--`.
+   *
    * @returns Either `1` if charge succeed, or ``0` for unexpected `null`.
    */
   nul(reject: UcrxReject): 0 | 1;
 
   /**
    * Charges number value.
+   *
+   * Typically called from {@link raw} when the raw value interpreted as number, i.e. when it starts with digit.
    *
    * @param value - Charged value.
    * @param reject - Rejection callback.
@@ -76,7 +86,25 @@ export interface Ucrx {
   num(value: number, reject: UcrxReject): 0 | 1;
 
   /**
+   * Charges raw value.
+   *
+   * In contrast to {@link str} method, this one is called for strings that look like numbers or start with
+   * _hyphen_ (`"-" (U+002D)`).
+   *
+   * By default, calls {@link big}, {@link bol}, {@link nul}, {@link num}, or {@link str} depending on `value` prefix.
+   *
+   * @param value - Charged value.
+   * @param reject - Rejection callback.
+   *
+   * @returns Either `1` if charge succeed, or `0` for unexpected number.
+   */
+  raw(value: string, reject: UcrxReject): 0 | 1;
+
+  /**
    * Charges string value.
+   *
+   * Always called directly for quoted strings. May be called from {@link raw}, unless the raw value interpreted
+   * otherwise.
    *
    * @param value - Charged value.
    * @param reject - Rejection callback.

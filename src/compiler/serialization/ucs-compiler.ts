@@ -12,6 +12,7 @@ import { UcSerializer } from '../../schema/uc-serializer.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
+import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
 import { UcsLib } from './ucs-lib.js';
@@ -25,7 +26,7 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
 export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProcessor<UcsCompiler> {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #generators = new Map<string | UcDataType, UcsGenerator>();
+  readonly #perType = new Map<string | UcDataType, UcsTypeEntry>();
 
   /**
    * Starts serializer setup.
@@ -45,26 +46,45 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   }
 
   /**
-   * Assigns serialization code generator for the given type.
+   * Assigns serialization code generator to use for `target` value type or schema.
+   *
+   * Generator provided for particular schema takes precedence over the one provided for the type.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
-   * @param type - Target type name or class.
+   * @param target - Name or class of target value type, or target schema instance.
    * @param generator - Assigned generator.
    *
    * @returns `this` instance.
    */
   useUcsGenerator<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    type: TSchema['type'],
+    target: TSchema['type'] | TSchema,
     generator: UcsGenerator<T, TSchema>,
   ): this {
-    this.#generators.set(type, (fn: UcsFunction, schema: TSchema, args) => {
+    const fullGenerator: UcsGenerator<T, TSchema> = (fn, schema, args) => {
       const onValue = generator(fn, schema, args);
 
       return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
-    });
+    };
+
+    if (typeof target === 'object') {
+      this.#typeEntryFor(target.type).useGeneratorFor(target, fullGenerator);
+    } else {
+      this.#typeEntryFor(target).useGenerator(fullGenerator);
+    }
 
     return this;
+  }
+
+  #typeEntryFor<T, TSchema extends UcSchema<T>>(type: TSchema['type']): UcsTypeEntry<T, TSchema> {
+    let typeEntry = this.#perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
+
+    if (!typeEntry) {
+      typeEntry = new UcsTypeEntry(this.schemaIndex);
+      this.#perType.set(type, typeEntry);
+    }
+
+    return typeEntry;
   }
 
   /**
@@ -143,9 +163,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   }
 
   #generatorFor<T, TSchema extends UcSchema<T>>(
-    type: TSchema['type'],
+    schema: TSchema,
   ): UcsGenerator<T, TSchema> | undefined {
-    return this.#generators.get(type) as UcsGenerator<T, TSchema> | undefined;
+    return this.#typeEntryFor<T, TSchema>(schema.type).generatorFor(schema);
   }
 
 }
@@ -169,3 +189,31 @@ export interface UcsModels {
 export type UcsExports<out TModels extends UcsModels> = {
   readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
 };
+
+class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+
+  readonly #schemaIndex: UccSchemaIndex;
+  readonly #perSchema = new Map<string, UcsGenerator<T, TSchema>>();
+  #generator: UcsGenerator<T, TSchema> | undefined;
+
+  constructor(schemaIndex: UccSchemaIndex) {
+    this.#schemaIndex = schemaIndex;
+  }
+
+  useGenerator(generator: UcsGenerator<T, TSchema>): void {
+    this.#generator = generator;
+  }
+
+  useGeneratorFor(schema: TSchema, generator: UcsGenerator<T, TSchema>): void {
+    const schemaId = this.#schemaIndex.schemaId(schema);
+
+    this.#perSchema.set(schemaId, generator);
+  }
+
+  generatorFor(schema: TSchema): UcsGenerator<T, TSchema> | undefined {
+    const schemaId = this.#schemaIndex.schemaId(schema);
+
+    return this.#perSchema.get(schemaId) ?? this.#generator;
+  }
+
+}

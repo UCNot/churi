@@ -1,3 +1,9 @@
+import {
+  ucrxDecodeNumeric,
+  ucrxDecodePositive,
+  ucrxDecodeRaw,
+  ucrxDecodeString,
+} from '../impl/ucrx-decode-raw.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxReject, ucrxRejectEntity, ucrxRejectNull, ucrxRejectType } from './ucrx-rejection.js';
@@ -35,6 +41,17 @@ export class VoidUcrx implements Ucrx {
 
   num(value: number, reject: UcrxReject): 0 | 1 {
     return this.any(value) || reject(ucrxRejectType('number', this));
+  }
+
+  raw(value: string, reject: UcrxReject): 0 | 1 {
+    return ucrxDecodeRaw(
+      this,
+      value,
+      reject,
+      ucrxDecodeString,
+      ucrxDecodePositive,
+      ucrxDecodeNumeric,
+    );
   }
 
   str(value: string, reject: UcrxReject): 0 | 1 {

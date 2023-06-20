@@ -82,7 +82,15 @@ _Empty string_ may be left as is or encoded as single _apostrophe_ (`"'" (U+0027
 ?first=John&middle='&last=Doe&birthday='1970-01-01
 ```
 
-[percent=encoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
+[percent-encoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
+
+### Raw Value
+
+Raw value is the one not yet processed as numeric value, `null` (`--`), or `false` (`-`).
+
+Data schema may change the way the raw value parsed. E.g. it may wish to always treat it as string.
+
+This, however, does not affect _quoted strings_, or values starting with `"!" (U+0021)` or `"$" (U+0024)`.
 
 ## List
 

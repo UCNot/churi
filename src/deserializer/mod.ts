@@ -7,5 +7,6 @@
  */
 export * from './async-ucd-reader.js';
 export * from './sync-ucd-reader.js';
+export * from './ucd-decode-bigint.js';
 export * from './ucd-reader.js';
 export * from './ucrx-non-finite.js';

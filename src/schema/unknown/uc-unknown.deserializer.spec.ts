@@ -5,7 +5,7 @@ import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
 import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcNonNullable, UcNullable, ucNullable } from '../uc-nullable.js';
+import { UcNullable, ucNullable } from '../uc-nullable.js';
 import { UcUnknown, ucUnknown } from './uc-unknown.js';
 
 describe('UcUnknown deserializer', () => {
@@ -19,11 +19,11 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for nullable', () => {
-    let compiler: UcdCompiler<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
     beforeEach(async () => {
-      compiler = new UcdCompiler({ models: { readValue: ucUnknown() } });
+      const compiler = new UcdCompiler({ models: { readValue: ucUnknown() } });
+
       ({ readValue } = await compiler.evaluate());
     });
 
@@ -34,6 +34,25 @@ describe('UcUnknown deserializer', () => {
     it('recognizes bigint', () => {
       expect(readValue('0n123')).toBe(123n);
       expect(readValue('-0n123')).toBe(-123n);
+    });
+    it('recognizes bigint zero', () => {
+      expect(readValue('0n0')).toBe(0n);
+      expect(readValue('-0n0')).toBe(-0n);
+      expect(readValue('0n')).toBe(0n);
+      expect(readValue('-0n')).toBe(-0n);
+    });
+    it('rejects bigint NaN', () => {
+      expect(readValue('0nz', { onError })).toBeUndefined();
+
+      expect(errors).toEqual([
+        {
+          code: 'invalidSyntax',
+          path: [{}],
+          details: { type: 'bigint' },
+          message: 'Cannot convert z to a BigInt',
+          cause: new SyntaxError('Cannot convert z to a BigInt'),
+        },
+      ]);
     });
     it('recognizes number', () => {
       expect(readValue('123')).toBe(123);
@@ -91,13 +110,13 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let compiler: UcdCompiler<{ readValue: UcNonNullable<UcUnknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<UcUnknown>;
 
     beforeEach(async () => {
-      compiler = new UcdCompiler({
+      const compiler = new UcdCompiler({
         models: { readValue: ucNullable(ucUnknown(), false) },
       });
+
       ({ readValue } = await compiler.evaluate());
     });
 

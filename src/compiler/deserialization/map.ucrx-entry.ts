@@ -19,10 +19,7 @@ import { MapUcrxClass, MapUcrxStore } from './map.ucrx.class.js';
 
 export class MapUcrxEntry {
 
-  static ucrxClass<
-    TEntriesModel extends UcMap.Schema.Entries.Model,
-    TExtraModel extends UcModel | false,
-  >(
+  static ucrxClass<TEntriesModel extends UcMap.EntriesModel, TExtraModel extends UcModel | false>(
     lib: UcrxLib,
     mapSchema: UcMap.Schema<TEntriesModel, TExtraModel>,
     key: string | null,

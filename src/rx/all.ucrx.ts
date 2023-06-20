@@ -11,6 +11,7 @@ export interface AllUcrx extends Ucrx {
   nls(): AllUcrx;
   nul(): 1;
   num(value: number): 1;
+  raw(value: string): 1;
   str(value: string): 1;
   for(key: PropertyKey): AllUcrx;
   map(): 1;

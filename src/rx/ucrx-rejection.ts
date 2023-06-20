@@ -36,6 +36,23 @@ export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types)
   };
 }
 
+export function ucrxRejectSyntax(type: string, cause: unknown): UcrxRejection {
+  if (typeof cause === 'string') {
+    return {
+      code: 'invalidSyntax',
+      details: { type },
+      message: cause,
+    };
+  }
+
+  return {
+    code: 'invalidSyntax',
+    details: { type },
+    message: (cause as Error).message,
+    cause,
+  };
+}
+
 export function ucrxRejectNull(rx: Ucrx): UcrxRejection {
   return ucrxRejectType(
     'null',

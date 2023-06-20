@@ -1,4 +1,11 @@
-import { prefixUcKey } from './uc-string-escapes.js';
+import { ASCIICharSet } from './ascii-char-set.js';
+import { isEscapedUcString, prefixUcKey } from './uc-string-escapes.js';
+
+const UCS_ESCAPED = /*#__PURE__*/ new ASCIICharSet('\x09\x0a\x0d-0123456789');
+
+export function isEscapedUcsString(value: string): boolean {
+  return isEscapedUcString(value, UCS_ESCAPED);
+}
 
 /**
  * URL-encode special symbols for the use within `application/uri-charge`.

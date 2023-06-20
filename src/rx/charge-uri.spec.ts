@@ -79,21 +79,18 @@ describe('chargeURI', () => {
   describe('string value', () => {
     it('encoded as top-level value', () => {
       expect(chargeURI('Hello, (World)!')).toBe('Hello%2C%20%28World%29%21');
-      expect(chargeURI('-test')).toBe("'-test");
+      expect(chargeURI('-test')).toBe('-test');
     });
     it('encoded as map entry value', () => {
       expect(chargeURI({ foo: 'Hello, (World)!' })).toBe('foo(Hello%2C%20%28World%29%21)');
-      expect(chargeURI({ foo: '-test' })).toBe("foo('-test)");
+      expect(chargeURI({ foo: '-test' })).toBe('foo(-test)');
     });
     it('encoded as list item value', () => {
       expect(chargeURI(['Hello, (World)!'])).toBe('Hello%2C%20%28World%29%21,');
-      expect(chargeURI(['-test'])).toBe("'-test,");
+      expect(chargeURI(['-test'])).toBe('-test,');
     });
-    it('escapes special prefixes', () => {
-      expect(chargeURI('!foo')).toBe("'%21foo");
-      expect(chargeURI('$foo')).toBe("'%24foo");
-      expect(chargeURI("'foo")).toBe("'%27foo");
-      expect(chargeURI('-foo')).toBe("'-foo");
+    it('escapes numeric prefixes', () => {
+      expect(chargeURI('-0foo')).toBe("'-0foo");
       expect(chargeURI('0foo')).toBe("'0foo");
       expect(chargeURI('1foo')).toBe("'1foo");
       expect(chargeURI('2foo')).toBe("'2foo");
@@ -104,6 +101,20 @@ describe('chargeURI', () => {
       expect(chargeURI('7foo')).toBe("'7foo");
       expect(chargeURI('8foo')).toBe("'8foo");
       expect(chargeURI('9foo')).toBe("'9foo");
+    });
+    it('escapes single and double hyphen', () => {
+      expect(chargeURI('-')).toBe("'-");
+      expect(chargeURI('--')).toBe("'--");
+      expect(chargeURI('---')).toBe('---');
+    });
+    it('percent-encodes special prefixes', () => {
+      expect(chargeURI('!foo')).toBe('%21foo');
+      expect(chargeURI('$foo')).toBe('%24foo');
+      expect(chargeURI("'foo")).toBe('%27foo');
+    });
+    it('percent-encodes parentheses', () => {
+      expect(chargeURI('()')).toBe('%28%29');
+      expect(chargeURI(')(')).toBe('%29%28');
     });
   });
 

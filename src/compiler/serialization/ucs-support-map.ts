@@ -37,7 +37,7 @@ export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.S
   };
 }
 
-function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
+function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
   fn: UcsFunction,
   schema: UcMap.Schema<TEntriesModel>,
   { writer, value }: UcsSignature.AllValues,
@@ -136,7 +136,7 @@ function ucsWriteMap<TEntriesModel extends UcMap.Schema.Entries.Model>(
   };
 }
 
-function ucsMapMayBeEmpty<TEntriesModel extends UcMap.Schema.Entries.Model>(
+function ucsMapMayBeEmpty<TEntriesModel extends UcMap.EntriesModel>(
   schema: UcMap.Schema<TEntriesModel>,
 ): boolean {
   return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);

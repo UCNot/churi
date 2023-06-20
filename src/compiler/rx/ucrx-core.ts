@@ -12,6 +12,7 @@ export type UcrxCore = {
   readonly nls: UcrxMethod<{ reject: EsArg }>;
   readonly nul: UcrxMethod<{ reject: EsArg }>;
   readonly num: UcrxSetter;
+  readonly raw: UcrxSetter;
   readonly str: UcrxSetter;
   readonly for: UcrxMethod<{ key: EsArg; reject: EsArg }>;
   readonly map: UcrxMethod<{ reject: EsArg }>;
@@ -64,6 +65,7 @@ export const UcrxCore: UcrxCore = {
     typeName: 'null',
   }),
   num: /*#__PURE__*/ new UcrxSetter('num', { typeName: 'number' }),
+  raw: /*#__PURE__*/ new UcrxSetter('raw', { typeName: 'string' }),
   str: /*#__PURE__*/ new UcrxSetter('str', { typeName: 'string' }),
   for: /*#__PURE__*/ new UcrxMethod('for', {
     args: { key: {}, reject: {} },

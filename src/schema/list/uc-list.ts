@@ -4,9 +4,9 @@ import { ucModelName } from '../uc-model-name.js';
 import { UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
- * URI charge list represented as JavaScript array.
+ * Data list represented as JavaScript array.
  *
- * @typeParam TItem - List item value type.
+ * @typeParam TItem - Type of list item.
  */
 export type UcList<TItem = unknown> = TItem[];
 
@@ -31,20 +31,22 @@ export namespace UcList {
     readonly item: UcSchema.Of<TItemModel>;
   }
 
-  export namespace Schema {
-    /**
-     * Additional options for the {@link ucList list schema}.
-     */
-    export type Options<
-      TItem = unknown,
-      TItemModel extends UcModel<TItem> = UcModel<TItem>,
-    > = UcSchema.Extension<TItem[], Schema<TItem, TItemModel>>;
-  }
+  /**
+   * Additional options for the {@link ucList list schema}.
+   *
+   * @typeParam TItem - Type of list item.
+   * @typeParam TItemModel - Type of list item model.
+   */
+  export type Options<
+    TItem = unknown,
+    TItemModel extends UcModel<TItem> = UcModel<TItem>,
+  > = UcSchema.Extension<TItem[], Schema<TItem, TItemModel>>;
 }
 
 /**
  * Creates data schema for JavaScript {@link UcList array} serialized as list.
  *
+ * @typeParam TItem - Type of list item.
  * @typeParam TItemModel - Type of list item model.
  * @param itemModel - List item model.
  *
@@ -52,13 +54,13 @@ export namespace UcList {
  */
 export function ucList<TItem, TItemModel extends UcModel<TItem> = UcModel<TItem>>(
   itemModel: TItemModel,
-  options?: UcList.Schema.Options<TItem, TItemModel>,
+  options?: UcList.Options<TItem, TItemModel>,
 ): UcList.Schema<TItem, TItemModel>;
 
 /*#__NO_SIDE_EFFECTS__*/
 export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TItem>>(
   itemModel: UcModel<TItem, TItemSchema>,
-  options: UcList.Schema.Options<TItem, TItemSchema> = {},
+  options: UcList.Options<TItem, TItemSchema> = {},
 ): UcList.Schema<TItem, TItemSchema> {
   const item = ucSchema<TItem, TItemSchema>(itemModel) as UcSchema.Of<TItemSchema>;
 
