@@ -21,7 +21,7 @@ export namespace UcBigInt {
    *
    * [BigInt]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
    */
-  export interface Schema extends UcSchema<bigint> {
+  export interface Schema extends UcSchema<UcBigInt> {
     /**
      * BigInt schema type always refers to standard [BigInt] constructor.
      *

@@ -6,6 +6,7 @@ export * from './ucs-lib.js';
 export * from './ucs-support-bigint.js';
 export * from './ucs-support-boolean.js';
 export * from './ucs-support-defaults.js';
+export * from './ucs-support-integer.js';
 export * from './ucs-support-list.js';
 export * from './ucs-support-map.js';
 export * from './ucs-support-number.js';
