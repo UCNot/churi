@@ -7,10 +7,10 @@ import { UcsCompiler } from './ucs-compiler.js';
 
 export function ucsSupportString(
   compiler: UcsCompiler,
-  target: UcString.Schema | UcDataType<UcString>,
-): UccConfig<UcString.Variant> {
+  target: UcString.Schema | UcDataType<UcString> = String,
+): UccConfig<UcString.Variant | void> {
   return {
-    configure({ raw = 'escape' }) {
+    configure({ raw = 'escape' } = {}) {
       compiler.useUcsGenerator(target, (_fn, schema, { writer, value, asItem }) => {
         const writeString = UC_MODULE_SERIALIZER.import(
           raw === 'escape'

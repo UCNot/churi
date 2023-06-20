@@ -7,10 +7,10 @@ import { UcsCompiler } from './ucs-compiler.js';
 
 export function ucsSupportNumber(
   compiler: UcsCompiler,
-  target: UcNumber.Schema | UcDataType<UcNumber>,
-): UccConfig<UcNumber.Variant> {
+  target: UcNumber.Schema | UcDataType<UcNumber> = Number,
+): UccConfig<UcNumber.Variant | void> {
   return {
-    configure({ string = 'parse' }) {
+    configure({ string = 'parse' } = {}) {
       compiler.useUcsGenerator(target, (_fn, _schema, { writer, value }) => {
         const writeNumber = UC_MODULE_SERIALIZER.import(
           string === 'serialize' ? 'ucsWriteNumberAsString' : 'ucsWriteNumber',
