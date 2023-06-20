@@ -5,7 +5,7 @@ import { UcSerializer } from '../uc-serializer.js';
 import { ucNumber } from './uc-number.js';
 
 describe('UcNumber serializer', () => {
-  describe('bu default', () => {
+  describe('by default', () => {
     let writeValue: UcSerializer<number>;
 
     beforeEach(async () => {

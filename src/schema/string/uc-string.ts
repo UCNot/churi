@@ -57,7 +57,7 @@ export namespace UcString {
    *   I.e. string like `123` will be serialized as `'123`.
    * - `'asString'` to treat raw value as string, and do not escape the output when possible.
    *   I.e. a string like `123` will be serialized as is.
-   * - `'parse'` to parse raw value according to its syntax. This is the default policy for schema-less processing,
+   * - `'parse'` to parse raw value according to its syntax. This is the default behavior for schema-less processing,
    *   but not when string value expected by schema.
    *
    * Note that if the value is {@link UcSchema#nullable nullable}, the `--` input is always treated as `null`.

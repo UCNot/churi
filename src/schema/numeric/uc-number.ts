@@ -29,7 +29,7 @@ export namespace UcNumber {
   /**
    * Variant of number representation.
    *
-   * Different variants may treat the {@link raw} strings differently.
+   * Different variants may treat {@link string} values differently.
    */
   export interface Variant {
     /**
@@ -98,5 +98,5 @@ export function ucNumber(options?: UcNumber.Options): UcNumber.Schema {
     });
   }
 
-  return ucSchema<UcNumber>(Number, options);
+  return ucSchema<UcNumber>(Number);
 }

@@ -16,3 +16,28 @@ export async function ucsWriteBigInt(writer: UcsWriter, value: bigint): Promise<
 
   await ucsWriteAsIs(writer, string);
 }
+
+const MIN_INTEGER = /*#__PURE__*/ BigInt(Number.MIN_SAFE_INTEGER);
+const MAX_INTEGER = /*#__PURE__*/ BigInt(Number.MAX_SAFE_INTEGER);
+
+export async function ucsWriteBigIntOrNumber(writer: UcsWriter, value: bigint): Promise<void> {
+  let string: string;
+
+  if (value < 0) {
+    if (value < MIN_INTEGER) {
+      await writer.ready;
+      writer.write(UCS_NEGATIVE_BIGINT_PREFIX);
+      string = (-value).toString();
+    } else {
+      string = value.toString();
+    }
+  } else {
+    if (value > MAX_INTEGER) {
+      await writer.ready;
+      writer.write(UCS_BIGINT_PREFIX);
+    }
+    string = value.toString();
+  }
+
+  await ucsWriteAsIs(writer, string);
+}

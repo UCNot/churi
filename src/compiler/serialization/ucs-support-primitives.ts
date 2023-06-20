@@ -4,6 +4,7 @@ import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFunction } from './ucs-function.js';
+import { ucsSupportBigInt } from './ucs-support-bigint.js';
 import { ucsSupportNumber } from './ucs-support-number.js';
 import { ucsSupportString } from './ucs-support-string.js';
 import { UcsSignature } from './ucs.signature.js';
@@ -11,21 +12,12 @@ import { UcsSignature } from './ucs.signature.js';
 export function ucsSupportPrimitives(compiler: UcsCompiler): UccConfig {
   return {
     configure() {
-      compiler.useUcsGenerator(BigInt, ucsWriteBigInt).useUcsGenerator(Boolean, ucsWriteBoolean);
+      compiler.useUcsGenerator(Boolean, ucsWriteBoolean);
+      ucsSupportBigInt(compiler, BigInt).configure({});
       ucsSupportNumber(compiler, Number).configure({});
       ucsSupportString(compiler, String).configure({});
     },
   };
-}
-
-function ucsWriteBigInt(
-  _fn: UcsFunction,
-  _schema: UcSchema,
-  { writer, value }: UcsSignature.AllValues,
-): EsSnippet {
-  const writeBigInt = UC_MODULE_SERIALIZER.import('ucsWriteBigInt');
-
-  return esline`await ${writeBigInt}(${writer}, ${value});`;
 }
 
 function ucsWriteBoolean(
