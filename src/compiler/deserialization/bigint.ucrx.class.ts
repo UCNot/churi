@@ -6,8 +6,20 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature1.Args, UcBigInt, UcBigInt.Schema> {
+
+  static uccProcess(compiler: UcdCompiler.Any): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass<UcBigInt, UcBigInt.Schema>(
+          BigInt,
+          (lib, schema) => new this(lib, schema),
+        );
+      },
+    };
+  }
 
   static uccProcessSchema(
     processor: UcrxProcessor.Any,

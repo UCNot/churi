@@ -5,8 +5,20 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcdCompiler } from './ucd-compiler.js';
 
 export class StringUcrxClass extends UcrxClass<UcrxSignature1.Args, UcString, UcString.Schema> {
+
+  static uccProcess(compiler: UcdCompiler.Any): UccConfig {
+    return {
+      configure: () => {
+        compiler.useUcrxClass<UcString, UcString.Schema>(
+          String,
+          (lib, schema) => new this(lib, schema),
+        );
+      },
+    };
+  }
 
   static uccProcessSchema(
     processor: UcrxProcessor.Any,

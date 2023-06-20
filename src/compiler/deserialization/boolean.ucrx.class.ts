@@ -1,0 +1,44 @@
+import { esline } from 'esgen';
+import { UcBoolean } from '../../schema/boolean/uc-boolean.js';
+import { UccConfig } from '../processor/ucc-config.js';
+import { UcrxCore } from '../rx/ucrx-core.js';
+import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcdCompiler } from './ucd-compiler.js';
+
+export class BooleanUcrxClass extends UcrxClass<UcrxSignature1.Args, UcBoolean, UcBoolean.Schema> {
+
+  static uccProcess(processor: UcdCompiler.Any): UccConfig {
+    return {
+      configure: () => {
+        processor.useUcrxClass<UcBoolean, UcBoolean.Schema>(
+          Boolean,
+          (lib, schema) => new this(lib, schema),
+        );
+      },
+    };
+  }
+
+  constructor({ baseUcrx }: UcrxLib, schema: UcBoolean.Schema) {
+    super({
+      schema,
+      baseClass: baseUcrx,
+    });
+
+    UcrxCore.bol.overrideIn(this, {
+      body({
+        member: {
+          args: { value },
+        },
+      }) {
+        return esline`return this.set(${value});`;
+      },
+    });
+    if (schema.nullable) {
+      UcrxCore.nul.overrideIn(this, {
+        body: () => `return this.set(null);`,
+      });
+    }
+  }
+
+}
