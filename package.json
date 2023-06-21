@@ -10,7 +10,8 @@
     "schema",
     "uri",
     "uri-charge",
-    "url"
+    "url",
+    "validator"
   ],
   "homepage": "https://github.com/hatsyjs/churi",
   "repository": {
