@@ -75,7 +75,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",
-    "@proc7ts/async": "^2.0.0",
+    "@proc7ts/async": "^2.1.0",
     "@run-z/eslint-config": "^3.4.0",
     "@run-z/prettier-config": "^2.0.0",
     "@run-z/project-config": "^0.19.3",
