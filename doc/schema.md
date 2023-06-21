@@ -1,7 +1,9 @@
-# `application/uri-charge`
+# URI Charge Schema Processing
 
-This MIME type is based on [URI Charge] Notation. It has fewer limitations though, as encoded messages are not meant to be
-part of URIs:
+Apart from including into URI, the [URI Charge] Notation can be used as a data interchange format.
+
+The `application/uri-charge` MIME type is based on [URI Charge] Notation. It has fewer limitations though, as encoded
+messages are not meant to be part of URIs:
 
 - Any Unicode character allowed within `application/uri-charge`
 
@@ -24,9 +26,10 @@ part of URIs:
 
 ## Data Schema
 
-Data schema describes JavaScript data type. Schema used to generate _serializer_ and _deserializer_ for target data
-type. _Serializer_ is a function that converts data value to `application/uri-charge` message, while `deserializer`
-parses `application/uri-charge` message and reconstructs the original data value.
+Data schema describes particular JavaScript data type. The schema is used to generate _serializer_ and _deserializer_.
+_Serializer_ is a function that converts data value to `application/uri-charge` message, while _deserializer_ parses
+`application/uri-charge` message and reconstructs the original data value.
+_Deserializer_ can also _validate_ the incoming data.
 
 ## Supported Data Types
 

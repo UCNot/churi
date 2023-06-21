@@ -1,4 +1,4 @@
-# Charged URI and URI Charge Notation
+# Charged URI and URI Charge
 
 [![NPM][npm-image]][npm-url]
 [![Build Status][build-status-img]][build-status-link]
@@ -7,9 +7,9 @@
 [![GitHub Project][github-image]][github-url]
 [![API Documentation][api-docs-image]][api documentation]
 
-Charge URI (ChURI) may contain arbitrary values in [URI Charge] Notation.
+Charged URI (ChURI) may include arbitrary structured data. The data is encoded with [URI Charge] Notation.
 
-It is like JSON for GET requests, but may contain even more:
+It is like JSON for GET requests, but may include even more:
 
 ```
 https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
@@ -40,11 +40,11 @@ This package provides:
 
 - [ChURI] class, which is a read-only [URL class] that grants access to charges.
 - URI [charging] utilities.
-- [`application/uri-charge`] MIME type support:
-  - Schema-based parser, serializer and validator.
+- URI Charge Notation support:
+  - [Schema]-based parser, serializer, and validator.
   - Schema-less parser and serializer.
 
 [ChURI]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md
 [charging]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md#charging
 [URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
-[`application/uri-charge`]: https://github.com/hatsyjs/churi/blob/master/doc/schema.md
+[Schema]: https://github.com/hatsyjs/churi/blob/master/doc/schema.md
