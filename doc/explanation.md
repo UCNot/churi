@@ -8,7 +8,7 @@ Here:
 
 - `/api(!v3.0)` is a path fragment charged with `!v3.0` entity.
 
-  Entities are URI charge format extensions treated by custom handlers.
+  Entities are URI Charge Notation extensions interpreted by custom handlers.
 
 - `/user;id=0n302875106592253` is a path fragment charged with user ID specified as `user` matrix parameter.
 
@@ -37,7 +37,7 @@ Here:
   }
   ```
 
-> **[Read more about URI charge format >>>][uri charge]**
+> **[Read more about URI Charge Notation >>>][URI Charge]**
 
 [BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[URI charge]: ./uri-charge-format.md
+[URI Charge]: ./uri-charge.md

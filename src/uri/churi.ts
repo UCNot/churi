@@ -7,7 +7,7 @@ import { ChURIRoute } from './churi-route.js';
  *
  * Represents [URI] conforming to [RFC3986]. Resembles standard [URL class] in its read-only part.
  *
- * Supports [Matrix URI] format by representing {@link ChURI#pathname path} as {@link ChURI#route route}.
+ * Supports [Matrix URI] syntax by representing {@link ChURI#pathname path} as {@link ChURI#route route}.
  *
  * Allows to parse {@link URICharge URI charge} attached to various parts of the URI.
  *

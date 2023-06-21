@@ -1,6 +1,6 @@
 # `application/uri-charge`
 
-This MIME type is based on [URI charge] format. It has fewer limitations though, as encoded messages are not meant to be
+This MIME type is based on [URI Charge] Notation. It has fewer limitations though, as encoded messages are not meant to be
 part of URIs:
 
 - Any Unicode character allowed within `application/uri-charge`
@@ -20,7 +20,7 @@ part of URIs:
   )
   ```
 
-[URI charge]: ./uri-charge-format.md
+[URI Charge]: ./uri-charge.md
 
 ## Data Schema
 
@@ -62,8 +62,8 @@ const range: UcInfer<typeof rangeSchema> = {
 [Boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 [Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 [String]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
-[list]: ./uri-charge-format.md#list
-[map]: ./uri-charge-format.md#map
+[list]: ./uri-charge.md#list
+[map]: ./uri-charge.md#map
 
 ## Schema Modifiers
 

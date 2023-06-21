@@ -1,4 +1,4 @@
-# Charged URI
+# Charged URI and URI Charge Notation
 
 [![NPM][npm-image]][npm-url]
 [![Build Status][build-status-img]][build-status-link]
@@ -7,7 +7,7 @@
 [![GitHub Project][github-image]][github-url]
 [![API Documentation][api-docs-image]][api documentation]
 
-URI that may contain arbitrary JavaScript values encoded with [URI charge] micro-format.
+Charge URI (ChURI) may contain arbitrary values in [URI Charge] Notation.
 
 It is like JSON for GET requests, but may contain even more:
 
@@ -17,7 +17,7 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 
 > **[See the explanation >>>][explanation]**
 
-> **[Read more about URI charge format >>>][URI charge]**
+> **[Read more about URI Charge Notation >>>][URI Charge]**
 
 [npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
 [npm-url]: https://www.npmjs.com/package/churi
@@ -32,7 +32,7 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
 [API documentation]: https://hatsyjs.github.io/churi/
 [explanation]: https://github.com/hatsyjs/churi/blob/master/doc/explanation.md
-[URI charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge-format.md
+[URI Charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge.md
 
 ## This Package
 
@@ -41,7 +41,7 @@ This package provides:
 - [ChURI] class, which is a read-only [URL class] that grants access to charges.
 - URI [charging] utilities.
 - [`application/uri-charge`] MIME type support:
-  - Schema-based parser and serializer.
+  - Schema-based parser, serializer and validator.
   - Schema-less parser and serializer.
 
 [ChURI]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md

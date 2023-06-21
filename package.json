@@ -1,7 +1,7 @@
 {
   "name": "churi",
   "version": "0.10.0",
-  "description": "Charged URI syntax, URI Charge data interchange format, schema processor",
+  "description": "Charged URI syntax, URI Charge Notation, schema processor",
   "keywords": [
     "charged-uri",
     "matrix-uri",

@@ -1,13 +1,13 @@
-# URI Charge Format
+# URI Charge Notation
 
-URI charge format designed to encode arbitrary JavaScript object as part of URI.
+URI Charge Notation designed to encode arbitrary JavaScript values as part of URI.
 
 URI charge represents everything what JSON does, and even more. E.g. it is able to represent [BigInt] values natively.
 
-The format is extensible, so it may represent something that needs a special representation. So, the [Infinity],
+The notation is extensible, so it may represent something that needs a special representation. So, the [Infinity],
 negative [Infinity] and [NaN] values are representable within URI charge with standard extensions enabled.
 
-URI charge may be used in various parts of URI. E.g. within [query]:
+URI charge may present in various parts of URI. E.g. within [query]:
 
 ```
 ?find=includes(first_name(john))&order=first_name(asc(!))second_name(asc(!))birthday(asc(-))&range=from(10)to(20)
@@ -126,7 +126,7 @@ foo,
 ,foo,
 ```
 
-An item value is encoded in URI charge format. Thus it can be anything:
+An item value is encoded within URI charge. Thus, it can be anything:
 
 - boolean value: `!,-`
 - number: `-128,127`
@@ -181,7 +181,7 @@ represents an object like
 
 _Empty map_ has special representation: `$`
 
-An entry value is encoded in URI charge format. Thus it can be anything:
+An entry value is encoded within URI charge. Thus, it can be anything:
 
 - boolean value: `foo(!)bar(-)`
 - number: `from(-128)to(127)`
@@ -218,7 +218,7 @@ value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix
 
 ## Entities
 
-URI charge format can be extended with custom _entities_. An entity is opaque syntax construct that don't have
+URI Charge Notation can be extended with custom _entities_. An entity is opaque syntax construct that don't have
 special meaning, unless recognized by custom parser.
 
 Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by arbitrary string. It may include e.g. balanced
