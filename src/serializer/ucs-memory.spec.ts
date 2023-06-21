@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { PromiseResolver } from '@proc7ts/async';
+import { PromiseResolver, whenNextEvent } from '@proc7ts/async';
 import { UcsMemory } from './ucs-memory.js';
 
 describe('UcsMemory', () => {
@@ -32,7 +32,7 @@ describe('UcsMemory', () => {
         await resolver2.whenDone();
       });
 
-      await new Promise(resolve => setImmediate(resolve));
+      await whenNextEvent();
 
       expect(size1).toBe(2);
       expect(size2).toBe(4);
@@ -58,7 +58,7 @@ describe('UcsMemory', () => {
         await resolver2.whenDone();
       });
 
-      await new Promise(resolve => setImmediate(resolve));
+      await whenNextEvent();
 
       expect(size1).toBe(10);
       expect(size2).toBe(8);
@@ -90,7 +90,7 @@ describe('UcsMemory', () => {
         await resolver2.whenDone();
       });
 
-      await new Promise(resolve => setImmediate(resolve));
+      await whenNextEvent();
 
       expect(size1).toBe(10);
       expect(size2).toBe(10);
@@ -99,7 +99,7 @@ describe('UcsMemory', () => {
       resolver1.resolve();
       await promise1;
 
-      await new Promise(resolve => setImmediate(resolve));
+      await whenNextEvent();
 
       expect(size3).toBe(1);
 
