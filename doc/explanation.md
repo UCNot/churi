@@ -39,5 +39,5 @@ Here:
 
 > **[Read more about URI Charge Notation >>>][URI Charge]**
 
-[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[BigInt]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 [URI Charge]: ./uri-charge.md

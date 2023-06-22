@@ -21,18 +21,18 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 
 [npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
 [npm-url]: https://www.npmjs.com/package/churi
-[build-status-img]: https://github.com/hatsyjs/churi/workflows/Build/badge.svg
-[build-status-link]: https://github.com/hatsyjs/churi/actions?query=workflow:Build
-[quality-img]: https://app.codacy.com/project/badge/Grade/e0cde60880cf434f8e46f63334d86b1e
-[quality-link]: https://www.codacy.com/gh/hatsyjs/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=hatsyjs/churi&utm_campaign=Badge_Grade
-[coverage-img]: https://app.codacy.com/project/badge/Coverage/e0cde60880cf434f8e46f63334d86b1e
-[coverage-link]: https://www.codacy.com/gh/hatsyjs/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=hatsyjs/churi&utm_campaign=Badge_Coverage
+[build-status-img]: https://github.com/UCNot/churi/workflows/Build/badge.svg
+[build-status-link]: https://github.com/UCNot/churi/actions?query=workflow:Build
+[quality-img]: https://app.codacy.com/project/badge/Grade/059cf0c8e981426591b8c9df3b327e4b
+[quality-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+[coverage-img]: https://app.codacy.com/project/badge/Coverage/059cf0c8e981426591b8c9df3b327e4b
+[coverage-link]: https://www.codacy.com/gh/UCNot/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=UCNot/churi&utm_campaign=Badge_Coverage
 [github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
-[github-url]: https://github.com/hatsyjs/churi
+[github-url]: https://github.com/UCNot/churi
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
-[API documentation]: https://hatsyjs.github.io/churi/
-[explanation]: https://github.com/hatsyjs/churi/blob/master/doc/explanation.md
-[URI Charge]: https://github.com/hatsyjs/churi/blob/master/doc/uri-charge.md
+[API documentation]: https://UCNot.github.io/churi/
+[explanation]: https://github.com/UCNot/churi/blob/master/doc/explanation.md
+[URI Charge]: https://github.com/UCNot/churi/blob/master/doc/uri-charge.md
 
 ## This Package
 
@@ -44,7 +44,7 @@ This package provides:
   - [Schema]-based parser, serializer, and validator.
   - Schema-less parser and serializer.
 
-[ChURI]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md
-[charging]: https://github.com/hatsyjs/churi/blob/master/doc/churi.md#charging
-[URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
-[Schema]: https://github.com/hatsyjs/churi/blob/master/doc/schema.md
+[ChURI]: https://github.com/UCNot/churi/blob/master/doc/churi.md
+[charging]: https://github.com/UCNot/churi/blob/master/doc/churi.md#charging
+[URL class]: https://developer.mozilla.org/docs/Web/API/URL
+[Schema]: https://github.com/UCNot/churi/blob/master/doc/schema.md

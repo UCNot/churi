@@ -13,9 +13,9 @@ URI charge may present in various parts of URI. E.g. within [query]:
 ?find=includes(first_name(john))&order=first_name(asc(!))second_name(asc(!))birthday(asc(-))&range=from(10)to(20)
 ```
 
-[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[Infinity]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity
-[NaN]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN
+[BigInt]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[Infinity]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Infinity
+[NaN]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/NaN
 [query]: https://www.rfc-editor.org/rfc/rfc3986#section-3.4
 
 ## Primitive Values
@@ -23,9 +23,9 @@ URI charge may present in various parts of URI. E.g. within [query]:
 Any JavaScript [primitive], except [Symbol] and [undefined] (which stands value absence), has its representation within
 URI charge.
 
-[primitive]: https://developer.mozilla.org/en-US/docs/Glossary/Primitive
-[symbol]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
-[undefined]: https://developer.mozilla.org/en-US/docs/Glossary/undefined
+[primitive]: https://developer.mozilla.org/docs/Glossary/Primitive
+[symbol]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Symbol
+[undefined]: https://developer.mozilla.org/docs/Glossary/undefined
 
 ### Number
 
@@ -158,7 +158,7 @@ Any level of nesting supported:
 (1,(2.1,(2.1.1,2.1.2))((3.1.1,3.1.2)4.1)5)
 ```
 
-[array literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#array_literals
+[array literal]: https://developer.mozilla.org/docs/Web/JavaScript/Guide/Grammar_and_types#array_literals
 
 ## Map
 
@@ -214,7 +214,7 @@ for empty object. The `$()` has to be used for object with empty key and empty v
 A map may have _suffix_. I.e. the last entry key without value. Such suffix is treated as entry with empty string
 value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix(')`).
 
-[object literal]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
+[object literal]: https://developer.mozilla.org/docs/Web/JavaScript/Guide/Grammar_and_types#object_literals
 
 ## Entities
 

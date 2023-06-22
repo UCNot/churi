@@ -61,10 +61,10 @@ const range: UcInfer<typeof rangeSchema> = {
 };
 ```
 
-[BigInt]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
-[Boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
-[Number]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
-[String]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+[BigInt]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+[Boolean]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[Number]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[String]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 [list]: ./uri-charge.md#list
 [map]: ./uri-charge.md#map
 

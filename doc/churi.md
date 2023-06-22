@@ -84,7 +84,7 @@ console.debug(query.getCharge('range').get('from').value, query.getCharge('range
 ```
 
 [example]: ./explanation.md
-[URL class]: https://developer.mozilla.org/en-US/docs/Web/API/URL
+[URL class]: https://developer.mozilla.org/docs/Web/API/URL
 [Matrix URI]: https://www.w3.org/DesignIssues/MatrixURIs.html
 
 ## Charging
