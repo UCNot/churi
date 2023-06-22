@@ -26,7 +26,7 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 [quality-img]: https://app.codacy.com/project/badge/Grade/059cf0c8e981426591b8c9df3b327e4b
 [quality-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
 [coverage-img]: https://app.codacy.com/project/badge/Coverage/059cf0c8e981426591b8c9df3b327e4b
-[coverage-link]: https://www.codacy.com/gh/UCNot/churi/dashboard?utm_source=github.com&utm_medium=referral&utm_content=UCNot/churi&utm_campaign=Badge_Coverage
+[coverage-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
 [github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
 [github-url]: https://github.com/UCNot/churi
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
