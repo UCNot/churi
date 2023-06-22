@@ -30,7 +30,7 @@ https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-worl
 [github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
 [github-url]: https://github.com/UCNot/churi
 [api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
-[API documentation]: https://UCNot.github.io/churi/
+[API documentation]: https://ucnot.github.io/churi/
 [explanation]: https://github.com/UCNot/churi/blob/master/doc/explanation.md
 [URI Charge]: https://github.com/UCNot/churi/blob/master/doc/uri-charge.md
 
