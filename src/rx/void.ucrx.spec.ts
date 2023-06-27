@@ -22,6 +22,14 @@ describe('VoidUcrx', () => {
     });
   });
 
+  describe('met', () => {
+    it('ignores meta', () => {
+      const ucrx = new VoidUcrx(noop);
+
+      expect(ucrx.met('test', reject)).toBeUndefined();
+    });
+  });
+
   describe('str', () => {
     it('rejects value', () => {
       let assigned: unknown;

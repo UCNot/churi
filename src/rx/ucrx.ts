@@ -56,6 +56,16 @@ export interface Ucrx {
   ent(value: readonly UcToken[], reject: UcrxReject): 0 | 1;
 
   /**
+   * Charges opaque (unrecognized) metadata.
+   *
+   * @param attribute - Metadata attribute name.
+   * @param reject  - Rejection callback.
+   *
+   * @returns Either metadata receiver, or `undefined` if metadata attribute is not recognized.
+   */
+  met(attribute: string, reject: UcrxReject): Ucrx | undefined;
+
+  /**
    * Charges nested list.
    *
    * @param reject - Rejection callback.

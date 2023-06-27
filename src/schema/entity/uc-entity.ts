@@ -12,7 +12,6 @@ import { UcToken } from '../../syntax/uc-token.js';
  *
  * This representation is used when entity is not recognized by parser.
  */
-
 export class UcEntity implements Uctx {
 
   readonly #tokens: readonly UcToken[];

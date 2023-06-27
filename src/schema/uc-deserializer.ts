@@ -1,4 +1,5 @@
 import { EntityUcrx } from '../rx/entity.ucrx.js';
+import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
@@ -102,6 +103,13 @@ export namespace UcDeserializer {
      * By default, entities will be deserialized by {@link churi/compiler.js!UcdCompiler#handleEntity compiler}.
      */
     readonly onEntity?: EntityUcrx | undefined;
+
+    /**
+     * Function to call to deserialize metadata attribute.
+     *
+     * By default,
+     */
+    readonly onMeta?: MetaUcrx | undefined;
   }
 }
 

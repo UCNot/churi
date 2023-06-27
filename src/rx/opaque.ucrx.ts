@@ -12,10 +12,16 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     return ['any'];
   }
 
+  override met(attribute: string): AllUcrx | undefined;
+  override met(_attribute: string): undefined {
+    // Never process metadata.
+  }
+
   override nls(): this {
     return this;
   }
 
+  override for(key: PropertyKey): this;
   override for(_key: PropertyKey): this {
     return this;
   }
@@ -28,6 +34,7 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     return 1;
   }
 
+  override any(value: unknown): 1;
   override any(_value: unknown): 1 {
     return 1;
   }

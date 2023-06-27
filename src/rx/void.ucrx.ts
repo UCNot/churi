@@ -33,6 +33,11 @@ export class VoidUcrx implements Ucrx {
     return this.any(new UcEntity(value)) || reject(ucrxRejectEntity(value));
   }
 
+  met(attribute: string, reject: UcrxReject): Ucrx | undefined;
+  met(_attribute: string, _reject: UcrxReject): Ucrx | undefined {
+    return;
+  }
+
   nls(reject: UcrxReject): Ucrx | undefined {
     reject(ucrxRejectType('nested list', this));
 

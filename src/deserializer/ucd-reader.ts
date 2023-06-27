@@ -1,4 +1,5 @@
 import { EntityUcrx } from '../rx/entity.ucrx.js';
+import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { OpaqueUcrx } from '../rx/opaque.ucrx.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { UcrxReject } from '../rx/ucrx-rejection.js';
@@ -12,17 +13,20 @@ export abstract class UcdReader implements UcrxContext {
   readonly #opaqueRx: Ucrx;
   readonly #onError: (error: UcErrorInfo) => void;
   readonly #onEntity: EntityUcrx;
+  readonly #onMeta: MetaUcrx;
 
   constructor(options?: UcDeserializer.Options);
 
   constructor({
     onError = UcdReader$throwOnError,
     onEntity = UcdReader$noEntity,
+    onMeta = UcdReader$noMeta,
     opaqueRx = OPAQUE_UCRX,
   }: UcdReader.Options = {}) {
     this.#opaqueRx = opaqueRx;
     this.#onError = onError;
     this.#onEntity = onEntity;
+    this.#onMeta = onMeta;
   }
 
   get opaqueRx(): Ucrx {
@@ -45,6 +49,10 @@ export abstract class UcdReader implements UcrxContext {
 
   entity(rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1 {
     return this.#onEntity(this, rx, entity, reject);
+  }
+
+  meta(rx: Ucrx, attribute: string, reject: UcrxReject): Ucrx | undefined {
+    return this.#onMeta(this, rx, attribute, reject);
   }
 
   abstract next(): Promise<UcToken | undefined> | UcToken | undefined;
@@ -75,8 +83,22 @@ function UcdReader$throwOnError(error: unknown): never {
   throw UcError.create(error);
 }
 
-function UcdReader$noEntity(_context: UcrxContext, _rx: Ucrx, _entity: readonly UcToken[]): 0 {
+function UcdReader$noEntity(
+  _context: UcrxContext,
+  _rx: Ucrx,
+  _entity: readonly UcToken[],
+  _reject: UcrxReject,
+): 0 {
   return 0;
+}
+
+function UcdReader$noMeta(
+  _context: UcrxContext,
+  _rx: Ucrx,
+  _attribute: string,
+  _reject: UcrxReject,
+): undefined {
+  // Unrecognized meta attribute.
 }
 
 const OPAQUE_UCRX = /*#__PURE__*/ new OpaqueUcrx();
