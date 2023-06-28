@@ -89,8 +89,8 @@ describe('UcEntity deserializer', () => {
     });
     const { readString } = await compiler.evaluate();
 
-    await expect(readString(readTokens('!plain(bar(item1,item2)baz('))).resolves.toBe(
-      '!plain(bar(item1,item2)baz())',
+    await expect(readString(readTokens("!plain'(bar(item1,item2)baz("))).resolves.toBe(
+      "!plain'(bar(item1,item2)baz())",
     );
   });
   it('extends base ucrx', async () => {

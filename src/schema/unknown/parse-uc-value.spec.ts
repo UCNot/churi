@@ -211,9 +211,9 @@ describe('parseUcValue', () => {
       expect(parseUcValue(',!bar%20baz,')).toEqual([new UcEntity('!bar%20baz')]);
     });
     it('closes hanging parentheses', () => {
-      const { raw } = parseUcValue('!foo(bar(item1,item2)baz(') as UcEntity;
+      const { raw } = parseUcValue("!foo'(bar(item1,item2)baz(") as UcEntity;
 
-      expect(raw).toBe('!foo(bar(item1,item2)baz())');
+      expect(raw).toBe("!foo'(bar(item1,item2)baz())");
     });
   });
 

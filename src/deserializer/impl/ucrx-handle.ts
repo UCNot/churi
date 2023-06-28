@@ -38,6 +38,12 @@ export class UcrxHandle {
     this.#rx = this.#reader.opaqueRx;
   }
 
+  att(attributeName: string): UcrxHandle {
+    const attrRx = this.#rx.att(attributeName, this.#reject) ?? this.#reader.opaqueRx;
+
+    return new UcrxHandle(this.#reader, attrRx, this.#path);
+  }
+
   bol(value: boolean): void {
     this.#rx.bol(value, this.#reject);
   }

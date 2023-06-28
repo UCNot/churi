@@ -41,7 +41,7 @@ export async function ucdReadValue(
     return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
-    await ucdReadEntityOrTrue(reader, rx);
+    await ucdReadMetaOrEntityOrTrue(reader, rx);
 
     if (single) {
       return;
@@ -168,8 +168,43 @@ export async function ucdReadValue(
   return await ucdReadItems(reader, rx);
 }
 
-async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
-  const tokens = await ucdReadTokens(reader, rx, true);
+async function ucdReadMetaOrEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+  const found = await reader.find(token => {
+    if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
+      return true;
+    }
+
+    return;
+  });
+
+  let tokens: readonly UcToken[];
+
+  if (!found) {
+    // Everything up to the end of input is either entity or `true`.
+    tokens = reader.consume();
+  } else {
+    switch (found) {
+      case UC_TOKEN_CLOSING_PARENTHESIS:
+        // Everything up to the closing parenthesis is either entity or `true`.
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_COMMA:
+        // Everything up to the comma is either entity or `true`
+        rx.and(true);
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_APOSTROPHE:
+        // Parameterized entity.
+        tokens = await ucdReadTokens(reader, rx, true);
+
+        break;
+      default:
+        // Metadata attribute.
+        return await ucdReadMetaAndValue(reader, rx);
+    }
+  }
 
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
@@ -178,6 +213,19 @@ async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Prom
     // Process entity.
     rx.ent(tokens);
   }
+}
+
+async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev().slice(1)));
+
+  reader.skip(); // Skip opening parenthesis.
+
+  await ucdReadValue(reader, rx.att(attributeName), rx => rx.end());
+
+  reader.skip(); // Skip closing parenthesis.
+
+  // Read single value following the attribute.
+  await ucdReadValue(reader, rx, rx => rx.end(), true);
 }
 
 async function ucdReadTokens(

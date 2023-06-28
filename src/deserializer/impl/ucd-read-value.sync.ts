@@ -49,7 +49,7 @@ export function ucdReadValueSync(
     return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
-    ucdReadEntityOrTrueSync(reader, rx);
+    ucdReadMetaOrEntityOrTrueSync(reader, rx);
 
     if (single) {
       return;
@@ -176,8 +176,43 @@ export function ucdReadValueSync(
   return ucdReadItemsSync(reader, rx);
 }
 
-function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
-  const tokens = ucdReadTokensSync(reader, rx, true);
+function ucdReadMetaOrEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+  const found = reader.find(token => {
+    if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
+      return true;
+    }
+
+    return;
+  });
+
+  let tokens: readonly UcToken[];
+
+  if (!found) {
+    // Everything up to the end of input is either entity or `true`.
+    tokens = reader.consume();
+  } else {
+    switch (found) {
+      case UC_TOKEN_CLOSING_PARENTHESIS:
+        // Everything up to the closing parenthesis is either entity or `true`.
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_COMMA:
+        // Everything up to the comma is either entity or `true`
+        rx.and(true);
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_APOSTROPHE:
+        // Parameterized entity.
+        tokens = ucdReadTokensSync(reader, rx, true);
+
+        break;
+      default:
+        // Metadata attribute.
+        return ucdReadMetaAndValueSync(reader, rx);
+    }
+  }
 
   if (trimUcTokensTail(tokens).length === 1) {
     // Process single exclamation mark.
@@ -186,6 +221,19 @@ function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
     // Process entity.
     rx.ent(tokens);
   }
+}
+
+function ucdReadMetaAndValueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev().slice(1)));
+
+  reader.skip(); // Skip opening parenthesis.
+
+  ucdReadValueSync(reader, rx.att(attributeName), rx => rx.end());
+
+  reader.skip(); // Skip closing parenthesis.
+
+  // Read single value following the attribute.
+  ucdReadValueSync(reader, rx, rx => rx.end(), true);
 }
 
 function ucdReadTokensSync(
