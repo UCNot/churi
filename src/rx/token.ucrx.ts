@@ -59,7 +59,6 @@ export class TokenUcrx implements AllUcrx {
   bol(value: boolean): 1 {
     this.#addItem();
     this.#add(value ? UC_TOKEN_EXCLAMATION_MARK : '-');
-    this.#endItem();
 
     return 1;
   }
@@ -67,7 +66,6 @@ export class TokenUcrx implements AllUcrx {
   big(value: bigint): 1 {
     this.#addItem();
     this.#add(value < 0n ? `-0n${-value}` : `0n${value}`);
-    this.#endItem();
 
     return 1;
   }
@@ -75,7 +73,6 @@ export class TokenUcrx implements AllUcrx {
   ent(value: readonly UcToken[]): 1 {
     this.#addItem();
     value.forEach(this.#add);
-    this.#endItem();
 
     return 1;
   }
@@ -84,7 +81,6 @@ export class TokenUcrx implements AllUcrx {
     this.#addItem();
     this.#mode = TokenUcrx$startMeta(this.#mode);
 
-    this.#add(UC_TOKEN_EXCLAMATION_MARK);
     this.#add(UC_TOKEN_EXCLAMATION_MARK);
     this.#add(attribute);
     this.#add(UC_TOKEN_OPENING_PARENTHESIS);
@@ -101,7 +97,6 @@ export class TokenUcrx implements AllUcrx {
   nul(): 1 {
     this.#addItem();
     this.#add('--');
-    this.#endItem();
 
     return 1;
   }
@@ -118,7 +113,6 @@ export class TokenUcrx implements AllUcrx {
         this.#add(value > 0 ? 'Infinity' : '-Infinity');
       }
     }
-    this.#endItem();
 
     return 1;
   }
@@ -127,7 +121,6 @@ export class TokenUcrx implements AllUcrx {
     if (value) {
       this.#addItem();
       this.#add(value);
-      this.#endItem();
     } else {
       this.#mode = this.#mode.empty(this.#add);
     }
@@ -147,7 +140,6 @@ export class TokenUcrx implements AllUcrx {
     } else {
       this.#mode = this.#mode.empty(this.#add);
     }
-    this.#endItem();
 
     return 1;
   }
@@ -191,10 +183,6 @@ export class TokenUcrx implements AllUcrx {
     this.#mode = this.#mode.addItem(this.#add);
   }
 
-  #endItem(): void {
-    this.#mode = this.#mode.endItem(this.#add);
-  }
-
 }
 
 interface TokenUcrx$Mode {
@@ -203,7 +191,6 @@ interface TokenUcrx$Mode {
   empty(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   nls(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   entry(addToken: (token: UcToken) => void): TokenUcrx$Mode;
-  endItem(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   endMap(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   end(addToken: (token: UcToken) => void): TokenUcrx$Mode;
 }
@@ -214,7 +201,6 @@ const TokenUcrx$Invalid: TokenUcrx$Mode = {
   empty: TokenUcrx$error,
   nls: TokenUcrx$error,
   entry: TokenUcrx$error,
-  endItem: TokenUcrx$endItem,
   endMap: TokenUcrx$error,
   end: TokenUcrx$error,
 };
@@ -235,7 +221,6 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
   entry(_addToken) {
     return TokenUcrx$startMap(this);
   },
-  endItem: TokenUcrx$endItem,
   endMap(addToken) {
     addToken(UC_TOKEN_DOLLAR_SIGN);
 
@@ -263,13 +248,9 @@ function TokenUcrx$startMeta(prev: TokenUcrx$Mode): TokenUcrx$Mode {
     },
     endMap(addToken) {
       addToken(UC_TOKEN_DOLLAR_SIGN);
-
-      return prev;
-    },
-    endItem(addToken) {
       addToken(UC_TOKEN_CLOSING_PARENTHESIS);
 
-      return prev.endItem(addToken);
+      return prev;
     },
     end(addToken) {
       addToken(UC_TOKEN_CLOSING_PARENTHESIS);
@@ -325,7 +306,6 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
 
       return TokenUcrx$startMap(this);
     },
-    endItem: TokenUcrx$endItem,
     endMap(addToken) {
       addToken(UC_TOKEN_DOLLAR_SIGN);
 
@@ -349,7 +329,7 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
         addToken(UC_TOKEN_COMMA);
       }
 
-      return prev.endItem(addToken);
+      return prev;
     },
   };
 }
@@ -365,11 +345,10 @@ function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
 
       return this;
     },
-    endItem: TokenUcrx$endItem,
     endMap(addToken) {
       addToken(UC_TOKEN_CLOSING_PARENTHESIS);
 
-      return prev.endItem(addToken);
+      return prev;
     },
     end: TokenUcrx$end,
   };
@@ -377,13 +356,6 @@ function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
 
 function TokenUcrx$error(): never {
   throw new TypeError('Invalid charge');
-}
-
-function TokenUcrx$endItem(
-  this: TokenUcrx$Mode,
-  _addToken: (token: UcToken) => void,
-): TokenUcrx$Mode {
-  return this;
 }
 
 function TokenUcrx$end(_addToken: (token: UcToken) => void): TokenUcrx$Mode {

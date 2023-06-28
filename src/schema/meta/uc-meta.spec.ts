@@ -98,36 +98,37 @@ describe('UcMeta', () => {
 
   describe('toString', () => {
     it('builds metadata representation', () => {
-      expect(new UcMeta({ foo: ['bar', 'baz'] }).toString()).toBe('!!foo(bar)!!foo(baz)');
-      expect(new UcMeta({ foo: [''] }).toString()).toBe('!!foo()');
+      expect(new UcMeta({ foo: ['bar', 'baz'] }).toString()).toBe('!foo(bar)!foo(baz)');
+      expect(new UcMeta({ foo: [''] }).toString()).toBe('!foo()');
     });
     it('builds metadata list representation', () => {
-      expect(new UcMeta({ foo: [['bar', 'baz']] }).toString()).toBe('!!foo(bar,baz)');
-      expect(new UcMeta({ foo: [['bar', '']] }).toString()).toBe('!!foo(bar,,)');
-      expect(new UcMeta({ foo: [['', 'baz']] }).toString()).toBe('!!foo(,,baz)');
-      expect(new UcMeta({ foo: [['bar']] }).toString()).toBe('!!foo(bar,)');
-      expect(new UcMeta({ foo: [['']] }).toString()).toBe('!!foo(,,)');
-      expect(new UcMeta({ foo: [[['bar'], 'baz']] }).toString()).toBe('!!foo((bar),baz)');
-      expect(new UcMeta({ foo: [[['bar'], 'baz']] }).toString()).toBe('!!foo((bar),baz)');
+      expect(new UcMeta({ foo: [['bar', 'baz']] }).toString()).toBe('!foo(bar,baz)');
+      expect(new UcMeta({ foo: [['bar', '']] }).toString()).toBe('!foo(bar,,)');
+      expect(new UcMeta({ foo: [['', 'baz']] }).toString()).toBe('!foo(,,baz)');
+      expect(new UcMeta({ foo: [['bar']] }).toString()).toBe('!foo(bar,)');
+      expect(new UcMeta({ foo: [['']] }).toString()).toBe('!foo(,,)');
+      expect(new UcMeta({ foo: [[['bar'], 'baz']] }).toString()).toBe('!foo((bar),baz)');
+      expect(new UcMeta({ foo: [[['bar'], 'baz']] }).toString()).toBe('!foo((bar),baz)');
     });
     it('builds metadata map representation', () => {
-      expect(new UcMeta({ foo: [{ bar: 'baz' }] }).toString()).toBe('!!foo(bar(baz))');
+      expect(new UcMeta({ foo: [{ bar: 'baz' }] }).toString()).toBe('!foo(bar(baz))');
       expect(new UcMeta({ foo: [{ bar: { baz: [1, 2, 3] } }] }).toString()).toBe(
-        '!!foo(bar(baz(1,2,3)))',
+        '!foo(bar(baz(1,2,3)))',
       );
+      expect(new UcMeta({ foo: [{}] }).toString()).toBe('!foo($)');
     });
     it('builds nested metadata representation', () => {
       expect(
         new UcMeta({ foo: [new UcMeta({ bar: [new UcMeta({ baz: [13] })] })] }).toString(),
-      ).toBe('!!foo(!!bar(!!baz(13)))');
+      ).toBe('!foo(!bar(!baz(13)))');
       expect(
         new UcMeta({
           foo: [[new UcMeta({ bar: [[1, 2]] }), new UcMeta({ baz: [[3, 4]] })]],
         }).toString(),
-      ).toBe('!!foo(!!bar(1,2),!!baz(3,4))');
+      ).toBe('!foo(!bar(1,2),!baz(3,4))');
     });
     it('builds empty metadata representation', () => {
-      expect(new UcMeta({}).toString()).toBe('!!()');
+      expect(new UcMeta({}).toString()).toBe('!()');
     });
   });
 });

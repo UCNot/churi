@@ -120,6 +120,7 @@ export class UcMeta {
 
         if (attrRx) {
           uctxValue(attrRx, value);
+          attrRx.end();
         }
       });
     }
@@ -131,7 +132,7 @@ export class UcMeta {
    * @returns The {@link chargeURI encoded} entity.
    */
   toString(): string {
-    return chargeURI(this) ?? '!!()';
+    return chargeURI(this) ?? '!()';
   }
 
 }
