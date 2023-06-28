@@ -1,11 +1,13 @@
 import { EsArg, EsCode, EsMethodDeclaration, esStringLiteral, esline } from 'esgen';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { UcrxAttrSetter } from './ucrx-attr-setter.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxProperty } from './ucrx-property.js';
 import { UcrxSetter } from './ucrx-setter.js';
 
 export type UcrxCore = {
   readonly types: UcrxProperty;
+  readonly att: UcrxMethod<{ attr: EsArg; reject: EsArg }>;
   readonly bol: UcrxSetter;
   readonly big: UcrxSetter;
   readonly ent: UcrxSetter;
@@ -27,6 +29,7 @@ export const UcrxCore: UcrxCore = {
       get: () => `return ['void'];`,
     },
   }),
+  att: /*#__PURE__*/ new UcrxAttrSetter('att'),
   bol: /*#__PURE__*/ new UcrxSetter('bol', { typeName: 'boolean' }),
   big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint' }),
   ent: /*#__PURE__*/ new UcrxSetter('ent', {

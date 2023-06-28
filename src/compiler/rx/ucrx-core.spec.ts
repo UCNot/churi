@@ -18,6 +18,18 @@ class TestClass {
     });
   });
 
+  describe('att', () => {
+    it('has empty stub', async () => {
+      await expect(generate(UcrxCore.att)).resolves.toContain(
+        `
+class TestClass {
+  att(attr, reject) {
+  }
+}`.trimStart(),
+      );
+    });
+  });
+
   describe('ent', () => {
     it('has stub creating UcEntity instance', async () => {
       await expect(generate(UcrxCore.ent)).resolves.toContain(

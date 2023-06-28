@@ -33,9 +33,9 @@ export class VoidUcrx implements Ucrx {
     return this.any(new UcEntity(value)) || reject(ucrxRejectEntity(value));
   }
 
-  att(attribute: string, reject: UcrxReject): Ucrx | undefined;
-  att(_attribute: string, _reject: UcrxReject): Ucrx | undefined {
-    return;
+  att(attr: string, reject: UcrxReject): Ucrx | undefined;
+  att(_attr: string, _reject: UcrxReject): undefined {
+    // Ignore metadata.
   }
 
   nls(reject: UcrxReject): Ucrx | undefined {

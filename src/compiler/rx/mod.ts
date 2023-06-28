@@ -1,3 +1,4 @@
+export * from './ucrx-attr-setter.js';
 export * from './ucrx-core.js';
 export * from './ucrx-lib.js';
 export * from './ucrx-method.js';

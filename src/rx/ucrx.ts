@@ -20,12 +20,12 @@ export interface Ucrx {
   /**
    * Charges metadata attribute.
    *
-   * @param attribute - Metadata attribute name.
+   * @param attr - Metadata attribute name.
    * @param reject  - Rejection callback.
    *
    * @returns Either metadata receiver, or `undefined` if metadata attribute is not recognized.
    */
-  att(attribute: string, reject: UcrxReject): Ucrx | undefined;
+  att(attr: string, reject: UcrxReject): Ucrx | undefined;
 
   /**
    * Charges boolean value.
