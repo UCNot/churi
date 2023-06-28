@@ -26,7 +26,7 @@ describe('VoidUcrx', () => {
     it('ignores meta', () => {
       const ucrx = new VoidUcrx(noop);
 
-      expect(ucrx.met('test', reject)).toBeUndefined();
+      expect(ucrx.att('test', reject)).toBeUndefined();
     });
   });
 

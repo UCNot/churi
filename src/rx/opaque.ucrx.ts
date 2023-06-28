@@ -12,8 +12,8 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     return ['any'];
   }
 
-  override met(attribute: string): AllUcrx | undefined;
-  override met(_attribute: string): undefined {
+  override att(attribute: string): AllUcrx | undefined;
+  override att(_attribute: string): undefined {
     // Never process metadata.
   }
 

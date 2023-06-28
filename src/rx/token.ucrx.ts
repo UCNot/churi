@@ -56,6 +56,17 @@ export class TokenUcrx implements AllUcrx {
     return ['any'];
   }
 
+  att(attribute: string): AllUcrx {
+    this.#addItem();
+    this.#mode = TokenUcrx$startMeta(this.#mode);
+
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(attribute);
+    this.#add(UC_TOKEN_OPENING_PARENTHESIS);
+
+    return this;
+  }
+
   bol(value: boolean): 1 {
     this.#addItem();
     this.#add(value ? UC_TOKEN_EXCLAMATION_MARK : '-');
@@ -75,17 +86,6 @@ export class TokenUcrx implements AllUcrx {
     value.forEach(this.#add);
 
     return 1;
-  }
-
-  met(attribute: string): AllUcrx {
-    this.#addItem();
-    this.#mode = TokenUcrx$startMeta(this.#mode);
-
-    this.#add(UC_TOKEN_EXCLAMATION_MARK);
-    this.#add(attribute);
-    this.#add(UC_TOKEN_OPENING_PARENTHESIS);
-
-    return this;
   }
 
   nls(): this {

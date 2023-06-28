@@ -18,6 +18,16 @@ export interface Ucrx {
   get types(): readonly string[];
 
   /**
+   * Charges metadata attribute.
+   *
+   * @param attribute - Metadata attribute name.
+   * @param reject  - Rejection callback.
+   *
+   * @returns Either metadata receiver, or `undefined` if metadata attribute is not recognized.
+   */
+  att(attribute: string, reject: UcrxReject): Ucrx | undefined;
+
+  /**
    * Charges boolean value.
    *
    * Called directly for `true` value (`!`), or from {@link raw} when the raw value interpreted as `false`,
@@ -54,16 +64,6 @@ export interface Ucrx {
    * @returns Either `1` if charge succeed, or `0` for unexpected entity.
    */
   ent(value: readonly UcToken[], reject: UcrxReject): 0 | 1;
-
-  /**
-   * Charges opaque (unrecognized) metadata.
-   *
-   * @param attribute - Metadata attribute name.
-   * @param reject  - Rejection callback.
-   *
-   * @returns Either metadata receiver, or `undefined` if metadata attribute is not recognized.
-   */
-  met(attribute: string, reject: UcrxReject): Ucrx | undefined;
 
   /**
    * Charges nested list.

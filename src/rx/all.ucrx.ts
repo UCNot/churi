@@ -5,10 +5,10 @@ import { Ucrx } from './ucrx.js';
  * Charge receiver that always accepts all values.
  */
 export interface AllUcrx extends Ucrx {
+  att(attribute: string): AllUcrx | undefined;
   bol(value: boolean): 1;
   big(value: bigint): 1;
   ent(value: readonly UcToken[]): 1;
-  met(attribute: string): AllUcrx | undefined;
   nls(): AllUcrx;
   nul(): 1;
   num(value: number): 1;

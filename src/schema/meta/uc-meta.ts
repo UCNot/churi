@@ -116,7 +116,7 @@ export class UcMeta {
   toUC(rx: AllUcrx, _mode: UctxMode): void {
     for (const attribute of this.#names()) {
       this.#attributes[attribute]?.forEach(value => {
-        const attrRx = rx.met(attribute);
+        const attrRx = rx.att(attribute);
 
         if (attrRx) {
           uctxValue(attrRx, value);
