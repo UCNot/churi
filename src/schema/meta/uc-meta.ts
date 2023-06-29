@@ -1,7 +1,8 @@
 import { AllUcrx } from '../../rx/all.ucrx.js';
 import { chargeURI } from '../../rx/charge-uri.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
-import { uctxValue } from '../../rx/uctx-value.js';
+import { UcAttr } from './uc-attr.js';
+import { UcMetaAttr } from './uc-meta-attr.js';
 
 /**
  * Charge metadata consisting of attributes and their values.
@@ -56,49 +57,109 @@ export class UcMeta {
   }
 
   /**
-   * Obtains the value of the given `attribute`.
+   * Obtains the value of the named `attribute`.
    *
    * If attribute has multiple values, then returns the last one.
    *
-   * @param attribute - Target attribute.
+   * @param attribute - Target attribute name.
    *
    * @returns Either attribute value, or `undefined` if there is no such attribute.
    */
-  get(attribute: string): unknown | undefined {
-    const values = this.#state.attrs.get(attribute);
+  get(attribute: string): unknown | undefined;
 
-    return values?.[values.length - 1];
+  /**
+   * Extracts the typed value of the `attribute`.
+   *
+   * @typeParam T - Attribute value type.
+   * @param attribute - Target attribute.
+   *
+   * @returns Either attribute value, or `undefined` if attribute value can not be {@link UcMeteAttr#extract extracted}.
+   */
+  get<T>(attribute: UcMetaAttr<T>): T | undefined;
+
+  get<T>(attribute: string | UcMetaAttr<T>): unknown | undefined {
+    const uid = this.#attrUid(attribute);
+    const store = this.#state.attrs.get(uid);
+
+    if (!store) {
+      return typeof attribute === 'string' ? undefined : attribute.extract(undefined, this);
+    }
+
+    const [attr, data] = store;
+
+    return attr.extract(data, this);
+  }
+
+  #attrUid(attribute: string | UcMetaAttr): unknown {
+    return typeof attribute === 'string' ? attribute : attribute.uid;
   }
 
   /**
-   * Obtains all values of the given `attribute`.
+   * Obtains all values of the named `attribute`.
    *
+   * @param attribute - Target attribute name.
+   *
+   * @returns Either array of attribute values, or empty array if there is no such attribute.
+   */
+  getAll(attribute: string): unknown[];
+
+  /**
+   * Extracts all typed values of the `attribute`.
+   *
+   * @param T - Attribute value type.
    * @param attribute - Target attribute.
    *
-   * @readonly Either array of attribute values, or empty array if there is no such attribute.
+   * @returns Either array of attribute values, or empty array attribute values can not be
+   * {@link UcMeteAttr#extractAll extracted}.
    */
-  getAll(attribute: string): unknown[] {
-    const values = this.#state.attrs.get(attribute);
+  getAll<T>(attribute: UcMetaAttr<T>): T[];
 
-    return values ? values.slice() : [];
+  getAll(attribute: string | UcMetaAttr): unknown[] {
+    const uid = this.#attrUid(attribute);
+    const store = this.#state.attrs.get(uid);
+
+    if (!store) {
+      return typeof attribute === 'string' ? [] : attribute.extractAll(undefined, this);
+    }
+
+    const [attr, data] = store;
+
+    return attr.extractAll(data, this);
   }
 
   /**
    * Iterates over attributes.
+   *
+   * @returns Iterable iterator of attributes.
    */
-  attributes(): IterableIterator<string> {
-    return this.#state.attrs.keys();
+  *attributes(): IterableIterator<UcMetaAttr> {
+    for (const [attr] of this.#state.attrs.values()) {
+      yield attr;
+    }
   }
 
   /**
-   * Adds `attribute` value to this metadata.
+   * Adds named `attribute` value to this metadata.
    *
+   * @param attribute - Target attribute name.
+   * @param value - Value to add.
+   *
+   * @returns Modified metadata instance containing both attributes of this instance and the added ones.
+   */
+  add(attribute: string, value: unknown): UcMeta.Mutable;
+
+  /**
+   * Adds typed `attribute` value to this metadata.
+   *
+   * @param TInput - Attribute input type.
    * @param attribute - Target attribute.
    * @param value - Value to add.
    *
-   * @returns {@link modify Modified} metadata instance containing both attributes of this instance and the added ones.
+   * @returns Modified metadata instance containing both attributes of this instance and the added ones.
    */
-  add(attribute: string, value: unknown): UcMeta.Mutable {
+  add<TInput>(attribute: UcMetaAttr<unknown, TInput>, value: TInput): UcMeta.Mutable;
+
+  add(attribute: string | UcMetaAttr, value: unknown): UcMeta.Mutable {
     const clone = this.#modify();
 
     clone.#add(attribute, value);
@@ -106,13 +167,18 @@ export class UcMeta {
     return clone;
   }
 
-  #add(attribute: string, value: unknown): void {
-    const values = this.#state.attrs.get(attribute);
+  #add(attribute: string | UcMetaAttr, value: unknown): void {
+    const uid = this.#attrUid(attribute);
+    const store = this.#state.attrs.get(uid);
 
-    if (values) {
-      values.push(value);
+    if (store) {
+      const [attr, data] = store;
+
+      store[1] = attr.store(data, value, this);
     } else {
-      this.#state.attrs.set(attribute, [value]);
+      const attr = typeof attribute === 'string' ? new UcAttr(attribute, attribute) : attribute;
+
+      this.#state.attrs.set(uid, [attr, attr.store(undefined, value, this)]);
     }
   }
 
@@ -137,7 +203,10 @@ export class UcMeta {
 
     return {
       attrs: new Map(
-        [...this.#state.attrs].map(([attribute, values]) => [attribute, values.slice()]),
+        [...this.#state.attrs].map(([attribute, [attr, data]]) => [
+          attribute,
+          [attr, attr.clone(data)],
+        ]),
       ),
       clones: 0,
     };
@@ -148,7 +217,7 @@ export class UcMeta {
    *
    * @param other - Metadata to add attributes from.
    *
-   * @returns {@link modify Modified} metadata instance containing both attributes of this instance and the added ones.
+   * @returns Modified metadata instance containing both attributes of this instance and the added ones.
    */
   addAll(other: UcMeta): UcMeta.Mutable {
     const clone = this.#modify();
@@ -159,13 +228,15 @@ export class UcMeta {
   }
 
   #addAll(other: UcMeta): void {
-    for (const [attribute, values] of other.#state.attrs) {
-      const prevValues = this.#state.attrs.get(attribute);
+    for (const [uid, [attr, data]] of other.#state.attrs) {
+      const prevStore = this.#state.attrs.get(uid);
 
-      if (prevValues) {
-        prevValues.push(...values);
+      if (prevStore) {
+        const [prevAttr, prevData] = prevStore;
+
+        prevStore[1] = prevAttr.merge(prevData, data);
       } else {
-        this.#state.attrs.set(attribute, values);
+        this.#state.attrs.set(uid, [attr, attr.clone(data)]);
       }
     }
   }
@@ -209,15 +280,8 @@ export class UcMeta {
    */
   toUC(rx: AllUcrx, mode: UctxMode): void;
   toUC(rx: AllUcrx, _mode: UctxMode): void {
-    for (const [attribute, values] of this.#state.attrs) {
-      for (const value of values) {
-        const attrRx = rx.att(attribute);
-
-        if (attrRx) {
-          uctxValue(attrRx, value);
-          attrRx.end();
-        }
-      }
+    for (const [attr, data] of this.#state.attrs.values()) {
+      attr.charge(rx, data, this);
     }
   }
 
@@ -240,6 +304,7 @@ export namespace UcMeta {
     isMutable(): true;
     isFreezed(): false;
     add(attribute: string, value: unknown): this;
+    add<TInput>(attribute: UcMetaAttr<unknown, TInput>, value: TInput): this;
     addAll(other: UcMeta): this;
     clone(): this;
     unfreeze(): this;
@@ -256,6 +321,6 @@ export namespace UcMeta {
 }
 
 interface UcMeta$State {
-  readonly attrs: Map<string, unknown[]>;
+  readonly attrs: Map<unknown, [UcMetaAttr, unknown]>;
   clones: number;
 }

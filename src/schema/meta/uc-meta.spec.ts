@@ -14,10 +14,11 @@ describe('UcMeta', () => {
   describe('attributes', () => {
     it('iterates over all attribute names', () => {
       expect([...new UcMeta().attributes()]).toEqual([]);
-      expect([...new UcMeta().add('foo', 1).add('bar', 1).add('bar', 2).attributes()]).toEqual([
-        'foo',
-        'bar',
-      ]);
+      expect(
+        [...new UcMeta().add('foo', 1).add('bar', 1).add('bar', 2).attributes()].map(
+          ({ name }) => name,
+        ),
+      ).toEqual(['foo', 'bar']);
     });
   });
 
