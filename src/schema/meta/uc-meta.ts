@@ -107,7 +107,7 @@ export class UcMeta {
   }
 
   /**
-   * Represents this entity as charge and transfers it to the given charge receiver.
+   * Represents this metadata as charge and transfers it to the given charge receiver.
    *
    * @param rx - Charge receiver.
    * @param mode - Transfer mode.
@@ -127,9 +127,9 @@ export class UcMeta {
   }
 
   /**
-   * String representation of metadata.
+   * Represents this metadata as string.
    *
-   * @returns The {@link chargeURI encoded} entity.
+   * @returns The {@link toUC encoded} metadata.
    */
   toString(): string {
     return chargeURI(this) ?? '!()';

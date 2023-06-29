@@ -8,7 +8,7 @@ import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 
 /**
- * Opaque URI charge entity.
+ * Opaque charge entity.
  *
  * This representation is used when entity is not recognized by parser.
  */
@@ -64,7 +64,7 @@ export class UcEntity implements Uctx {
   }
 
   /**
-   * String representation of the entity.
+   * Represents this entity as string.
    *
    * @returns The {@link chargeURI encoded} entity.
    */
