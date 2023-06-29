@@ -83,7 +83,7 @@ export abstract class UcMetaAttr<out T = unknown, in TInput = unknown, out TData
   /**
    * Clones attribute data.
    *
-   * Called when metadata actually {@link UcMeta#cloned cloned}. This happens when one of the clones modified.
+   * Called when metadata actually {@link UcMeta#clone cloned}. This happens when one of the clones modified.
    *
    * @param data - Data to clone.
    *
@@ -94,7 +94,7 @@ export abstract class UcMetaAttr<out T = unknown, in TInput = unknown, out TData
   /**
    * Merges two attribute data instances.
    *
-   * Called when metadata instances {@link UcMeta#mergeAll merged}.
+   * Called when metadata instances {@link UcMeta#addAll merged}.
    *
    * @param first - First attribute data instance to merge.
    * @param second - Second attribute data instance to merge.

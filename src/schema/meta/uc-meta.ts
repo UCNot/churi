@@ -73,7 +73,7 @@ export class UcMeta {
    * @typeParam T - Attribute value type.
    * @param attribute - Target attribute.
    *
-   * @returns Either attribute value, or `undefined` if attribute value can not be {@link UcMeteAttr#extract extracted}.
+   * @returns Either attribute value, or `undefined` if attribute value can not be {@link UcMetaAttr#extract extracted}.
    */
   get<T>(attribute: UcMetaAttr<T>): T | undefined;
 
@@ -110,7 +110,7 @@ export class UcMeta {
    * @param attribute - Target attribute.
    *
    * @returns Either array of attribute values, or empty array attribute values can not be
-   * {@link UcMeteAttr#extractAll extracted}.
+   * {@link UcMetaAttr#extractAll extracted}.
    */
   getAll<T>(attribute: UcMetaAttr<T>): T[];
 
