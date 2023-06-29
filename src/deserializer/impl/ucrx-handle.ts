@@ -1,38 +1,15 @@
 import { UcrxContext } from '../../rx/ucrx-context.js';
-import { UcrxReject, ucrxRejectType } from '../../rx/ucrx-rejection.js';
+import { UcrxReject, UcrxRejection, ucrxRejectType } from '../../rx/ucrx-rejection.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
-abstract class UcdContext implements UcrxContext {
+export class UcrxHandle implements UcrxContext {
 
-  constructor(protected readonly reader: UcdReader) {
-    this.reader = reader;
-  }
-
-  get opaqueRx(): Ucrx {
-    return this.reader.opaqueRx;
-  }
-
-  abstract get reject(): UcrxReject;
-
-  onEntity(entity: readonly UcToken[]): 0 | 1 {
-    return this.reader.onEntity(this, this.rx, entity);
-  }
-
-  onMeta(attribute: string): Ucrx | undefined {
-    return this.reader.onMeta(this, this.rx, attribute);
-  }
-
-  protected abstract get rx(): Ucrx;
-
-}
-
-export class UcrxHandle extends UcdContext implements UcrxContext {
-
+  #reader: UcdReader;
   #rx: Ucrx;
-  #reject?: UcrxReject;
+  #_reject: UcrxReject | undefined;
 
   #path: UcError$Path;
   #nextPath: UcError$Path | undefined;
@@ -40,22 +17,36 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
   #isList: -1 | 0 | 1 = -1;
 
   constructor(reader: UcdReader, rx: Ucrx, path: UcError$Path) {
-    super(reader);
+    this.#reader = reader;
     this.#rx = rx;
     this.#path = path;
   }
 
-  override get reject(): UcrxReject {
-    return (this.#reject ??= rejection => {
-      const path = (this.#nextPath ?? this.#path).slice() as UcError$Path;
+  get opaqueRx(): Ucrx {
+    return this.#reader.opaqueRx;
+  }
 
-      if (this.#beforeComma) {
-        path[path.length - 1].index = 1;
-      }
-      this.reader.error({ ...rejection, path });
+  get reject(): UcrxReject {
+    return (this.#_reject ??= rejection => this.#reject(rejection));
+  }
 
-      return 0;
-    });
+  #reject(rejection: UcrxRejection): 0 {
+    const path = (this.#nextPath ?? this.#path).slice() as UcError$Path;
+
+    if (this.#beforeComma) {
+      path[path.length - 1].index = 1;
+    }
+    this.#reader.error({ ...rejection, path });
+
+    return 0;
+  }
+
+  onEntity(entity: readonly UcToken[]): 0 | 1 {
+    return this.#reader.onEntity(this, this.#rx, entity);
+  }
+
+  onMeta(attribute: string): Ucrx | undefined {
+    return this.#reader.onMeta(this, this.#rx, attribute);
   }
 
   decode(input: string): void {
@@ -69,7 +60,7 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
   att(attributeName: string): UcrxHandle {
     const attrRx = this.#rx.att(attributeName, this) ?? this.opaqueRx;
 
-    return new UcrxHandle(this.reader, attrRx, this.#path);
+    return new UcrxHandle(this.#reader, attrRx, this.#path);
   }
 
   bol(value: boolean): void {
@@ -97,7 +88,7 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
 
     itemPath.push({ index: 0 });
 
-    const itemHandle = new UcrxHandle(this.reader, itemsRx ?? this.opaqueRx, itemPath);
+    const itemHandle = new UcrxHandle(this.#reader, itemsRx ?? this.opaqueRx, itemPath);
 
     itemHandle.and();
 
@@ -133,13 +124,13 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
     this.#nextPath = undefined;
 
     if (entryRx) {
-      return new UcrxHandle(this.reader, entryRx, path);
+      return new UcrxHandle(this.#reader, entryRx, path);
     }
     if (entryRx != null) {
       this.makeOpaque();
     }
 
-    return new UcrxHandle(this.reader, this.opaqueRx, path);
+    return new UcrxHandle(this.#reader, this.opaqueRx, path);
   }
 
   nextEntry(key: PropertyKey): UcrxHandle {
@@ -155,7 +146,7 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
 
     this.#nextPath = undefined;
 
-    return new UcrxHandle(this.reader, entryRx, path);
+    return new UcrxHandle(this.#reader, entryRx, path);
   }
 
   suffix(key: string): void {
@@ -183,16 +174,18 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
     if (this.#isList < 0) {
       this.#firstItem();
       this.#beforeComma = beforeComma;
-      this.#isList = this.#rx.and(
-        new UcrxContext$WithReject(this.reader, this.#rx, rejection => {
-          if (rejection.code === 'unexpectedType' && rejection.details?.type === 'list') {
-            // Replace "unexpected list" with "unexpected nested list".
-            rejection = ucrxRejectType('nested list', this.#rx);
-          }
 
-          return this.reject(rejection);
-        }),
-      );
+      this.#_reject = rejection => {
+        if (rejection.code === 'unexpectedType' && rejection.details?.type === 'list') {
+          // Replace "unexpected list" with "unexpected nested list".
+          rejection = ucrxRejectType('nested list', this.#rx);
+        }
+
+        return this.#reject(rejection);
+      };
+      this.#isList = this.#rx.and(this);
+      this.#_reject = undefined;
+
       this.#beforeComma = false;
 
       if (!this.#isList) {
@@ -221,10 +214,6 @@ export class UcrxHandle extends UcdContext implements UcrxContext {
     }
   }
 
-  protected override get rx(): Ucrx {
-    return this.#rx;
-  }
-
 }
 
 type UcError$Path = [UcErrorPath$Head, ...UcErrorPath$Fragment[]];
@@ -236,24 +225,3 @@ type UcErrorPath$Head = {
 type UcErrorPath$Fragment = {
   -readonly [key in keyof URIChargePath.Fragment]?: URIChargePath.Fragment[key];
 };
-
-class UcrxContext$WithReject extends UcdContext {
-
-  readonly #reject: UcrxReject;
-  readonly #rx: Ucrx;
-
-  constructor(reader: UcdReader, rx: Ucrx, reject: UcrxReject) {
-    super(reader);
-    this.#reject = reject;
-    this.#rx = rx;
-  }
-
-  override get reject(): UcrxReject {
-    return this.#reject;
-  }
-
-  protected override get rx(): Ucrx {
-    return this.#rx;
-  }
-
-}
