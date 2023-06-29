@@ -29,7 +29,7 @@ export interface UcrxContext {
    *
    * @returns Either `1` if entity recognized, or `0` for unrecognized entity.
    */
-  readonly onEntity: (this: void, entity: readonly UcToken[]) => 0 | 1;
+  onEntity(entity: readonly UcToken[]): 0 | 1;
 
   /**
    * Processes metadata attribute.
@@ -38,5 +38,5 @@ export interface UcrxContext {
    *
    * @returns Either metadata argument receiver, or `undefined` if metadata attribute can not be recognized.
    */
-  readonly onMeta: (this: void, attribute: string) => Ucrx | undefined;
+  onMeta(attribute: string): Ucrx | undefined;
 }
