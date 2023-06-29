@@ -5,7 +5,7 @@ export class UcrxAttrSetter extends UcrxMethod<UcrxAttrSetterSignature.Args> {
 
   constructor(requestedName: string) {
     super(requestedName, {
-      args: { attr: {}, reject: {} },
+      args: { attr: {}, cx: {} },
       stub: {
         body: () => EsCode.none,
       },
@@ -19,7 +19,7 @@ export type UcrxAttrSetterSignature = EsSignature<UcrxAttrSetterSignature.Args>;
 export namespace UcrxAttrSetterSignature {
   export type Args = {
     readonly attr: EsArg;
-    readonly reject: EsArg;
+    readonly cx: EsArg;
   };
   export type Values = EsSignature.ValuesOf<Args>;
 }

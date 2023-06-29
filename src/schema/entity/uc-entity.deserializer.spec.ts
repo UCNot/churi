@@ -116,7 +116,7 @@ describe('UcEntity deserializer', () => {
     });
 
     await expect(compiler.evaluate()).rejects.toThrow(
-      new ReferenceError(`.date(value, reject) is not available in VoidUcrx /* [Class] */`),
+      new ReferenceError(`.date(value, cx) is not available in VoidUcrx /* [Class] */`),
     );
   });
 });

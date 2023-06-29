@@ -1,28 +1,29 @@
-import { UcrxReject, ucrxRejectType } from '../rx/ucrx-rejection.js';
+import { UcrxContext } from '../rx/ucrx-context.js';
+import { ucrxRejectType } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 
-export function ucdDecodeInteger(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
+export function ucdDecodeInteger(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
   // eslint-disable-next-line radix
   const value = parseInt(input);
 
   if (Number.isNaN(value)) {
-    return reject(ucrxRejectType(input === '--' ? 'null' : 'string', rx));
+    return context.reject(ucrxRejectType(input === '--' ? 'null' : 'string', rx));
   }
 
-  return rx.num(value, reject);
+  return rx.num(value, context);
 }
 
-export function ucdDecodeIntegerOrNull(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
+export function ucdDecodeIntegerOrNull(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
   if (input === '--') {
-    return rx.nul(reject);
+    return rx.nul(context);
   }
 
   // eslint-disable-next-line radix
   const value = parseInt(input);
 
   if (Number.isNaN(value)) {
-    return reject(ucrxRejectType('string', rx));
+    return context.reject(ucrxRejectType('string', rx));
   }
 
-  return rx.num(value, reject);
+  return rx.num(value, context);
 }

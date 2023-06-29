@@ -46,10 +46,9 @@ export class UnknownUcrxClass extends UcrxClass {
   readonly #listClass: () => UcrxClass;
   readonly #mapClass: () => UcrxClass;
 
-  readonly #context: EsFieldHandle;
   readonly #listRx: EsFieldHandle;
   readonly #mapRx: EsFieldHandle;
-  readonly #setMap: EsMethodHandle<{ map: EsArg; reject: EsArg }>;
+  readonly #setMap: EsMethodHandle<{ map: EsArg; cx: EsArg }>;
 
   constructor(lib: UcrxLib, schema: UcSchema) {
     super({
@@ -60,9 +59,6 @@ export class UnknownUcrxClass extends UcrxClass {
         args: UcrxSignature,
       },
     });
-    this.#context = new EsField('context', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-    );
     this.#listRx = new EsField('listRx', { visibility: EsMemberVisibility.Private }).declareIn(
       this,
     );
@@ -102,25 +98,23 @@ export class UnknownUcrxClass extends UcrxClass {
       body:
         ({
           member: {
-            args: { set, context },
+            args: { set },
           },
         }) => code => {
-          code
-            .line('super', this.baseClass!.classConstructor.signature.call({ set, context }), ';')
-            .line(this.#context.set('this', context), ';');
+          code.line('super', this.baseClass!.classConstructor.signature.call({ set }), ';');
         },
     });
   }
 
-  #declareSetMap(): EsMethodHandle<{ map: EsArg; reject: EsArg }> {
+  #declareSetMap(): EsMethodHandle<{ map: EsArg; cx: EsArg }> {
     return new EsMethod('setMap', {
       visibility: EsMemberVisibility.Private,
-      args: { map: {}, reject: {} },
+      args: { map: {}, cx: {} },
     }).declareIn(this, {
       body:
         ({
           member: {
-            args: { map, reject },
+            args: { map, cx },
           },
         }) => code => {
           const listRx = this.#listRx.get('this');
@@ -132,7 +126,7 @@ export class UnknownUcrxClass extends UcrxClass {
               code
                 .write(esline`if (${mapRx} === ${listRx}) {`)
                 // Existing list receiver used as map receiver.
-                .indent(esline`${listRx}.map(${reject});`)
+                .indent(esline`${listRx}.map(${cx});`)
                 .write(`} else {`)
                 // List charge started _after_ the map charge start.
                 // Add created map to list.
@@ -153,9 +147,9 @@ export class UnknownUcrxClass extends UcrxClass {
     UcrxCore.nls.overrideIn(this, {
       body: ({
         member: {
-          args: { reject },
+          args: { cx },
         },
-      }) => esline`return ${this.#listRx.get('this')}.nls(${reject});`,
+      }) => esline`return ${this.#listRx.get('this')}.nls(${cx});`,
     });
   }
 
@@ -167,12 +161,12 @@ export class UnknownUcrxClass extends UcrxClass {
         body:
           ({
             member: {
-              args: { reject },
+              args: { cx },
             },
           }) => code => {
             const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');
 
-            code.write(esline`return ${reject}(${ucrxRejectNull}(this));`);
+            code.write(esline`return ${cx}.reject(${ucrxRejectNull}(this));`);
           },
       });
     }
@@ -183,7 +177,7 @@ export class UnknownUcrxClass extends UcrxClass {
       body:
         ({
           member: {
-            args: { key, reject },
+            args: { key, cx },
           },
         }) => code => {
           const listRx = this.#listRx.get('this');
@@ -196,12 +190,11 @@ export class UnknownUcrxClass extends UcrxClass {
               listRx,
               ' ?? ',
               this.#mapClass().instantiate({
-                set: esline`map => ${this.#setMap.call('this', { map: 'map', reject })}`,
-                context: this.#context.get('this'),
+                set: esline`map => ${this.#setMap.call('this', { map: 'map', cx })}`,
               }),
               ';',
             )
-            .write(esline`return ${mapRx}.for(${key}, ${reject});`);
+            .write(esline`return ${mapRx}.for(${key}, ${cx});`);
         },
     });
   }
@@ -211,7 +204,7 @@ export class UnknownUcrxClass extends UcrxClass {
       body:
         ({
           member: {
-            args: { reject },
+            args: { cx },
           },
         }) => code => {
           const listRx = this.#listRx.get('this');
@@ -221,19 +214,18 @@ export class UnknownUcrxClass extends UcrxClass {
           code
             .write(esline`if (${mapRx}) {`)
             .indent(
-              res.declare({ value: () => esline`${mapRx}.map(${reject})` }),
+              res.declare({ value: () => esline`${mapRx}.map(${cx})` }),
               esline`${this.#mapRx.set('this', 'undefined')};`,
               esline`return ${res};`,
             )
             .write(`}`)
             .write(esline`if (${listRx}) {`)
-            .indent(esline`return ${listRx}.map(${reject});`)
+            .indent(esline`return ${listRx}.map(${cx});`)
             .write(`}`)
             .write(
               esline`return ${this.#mapClass().instantiate({
                 set: `this.set.bind(this)`,
-                context: this.#context.get('this'),
-              })}.map(${reject});`,
+              })}.map(${cx});`,
             );
         },
     });
@@ -244,7 +236,7 @@ export class UnknownUcrxClass extends UcrxClass {
       body:
         ({
           member: {
-            args: { reject },
+            args: { cx },
           },
         }) => code => {
           const listRx = this.#listRx.get('this');
@@ -258,12 +250,11 @@ export class UnknownUcrxClass extends UcrxClass {
                     'this',
                     this.#listClass().instantiate({
                       set: `this.set.bind(this)`,
-                      context: this.#context.get('this'),
                     }),
                   ),
                   ';',
                 )
-                .write(esline`${listRx}.and(${reject});`);
+                .write(esline`${listRx}.and(${cx});`);
             })
             .write(`}`)
             .write('return 1;');
@@ -275,9 +266,9 @@ export class UnknownUcrxClass extends UcrxClass {
     UcrxCore.end.overrideIn(this, {
       body: ({
         member: {
-          args: { reject },
+          args: { cx },
         },
-      }) => esline`${this.#listRx.get('this')}?.end(${reject});`,
+      }) => esline`${this.#listRx.get('this')}?.end(${cx});`,
     });
   }
 

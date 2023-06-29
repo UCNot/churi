@@ -115,13 +115,13 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     throw new TypeError(`Unsupported URICharge method: ${method}`);
   }
 
-  #setValue(setter: UcrxSetter, { value, reject }: UcrxSetterSignature.Values): EsSnippet {
+  #setValue(setter: UcrxSetter, { value, cx }: UcrxSetterSignature.Values): EsSnippet {
     const type = esStringLiteral(setter.typeName);
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
     return esline`return ${this.member(setter).call('super', {
       value: esline`new ${URICharge$Single}(${value}, ${type})`,
-      reject,
+      cx,
     })};`;
   }
 
@@ -172,8 +172,8 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet;
 
-  #addAttr(listRx: EsSnippet, { attr, reject }: { attr: EsSnippet; reject: EsSnippet }): EsSnippet {
-    return esline`return ${listRx}.att(${attr}, ${reject});`;
+  #addAttr(listRx: EsSnippet, { attr, cx }: UcrxAttrSetterSignature.Values): EsSnippet {
+    return esline`return ${listRx}.att(${attr}, ${cx});`;
   }
 
   #addNull<TArgs extends EsSignature.Args>(
@@ -181,8 +181,8 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet;
 
-  #addNull(listRx: EsSnippet, { reject }: { reject: EsSnippet }): EsSnippet {
-    return esline`return ${listRx}.nul(${reject});`;
+  #addNull(listRx: EsSnippet, { cx }: { cx: EsSnippet }): EsSnippet {
+    return esline`return ${listRx}.nul(${cx});`;
   }
 
 }

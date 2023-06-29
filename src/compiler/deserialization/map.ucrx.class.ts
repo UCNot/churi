@@ -45,7 +45,6 @@ export class MapUcrxClass<
   readonly #lib: UcrxLib;
   readonly #entries: EsSymbol | undefined;
   readonly #extra: EsSymbol | undefined;
-  readonly #context: EsFieldHandle;
   readonly #counter: MapUcrxStore$Counter | undefined;
   readonly #store: MapUcrxStore;
   readonly #slot: EsFieldHandle;
@@ -64,9 +63,6 @@ export class MapUcrxClass<
 
     this.#entries = this.#declareEntries();
     this.#extra = this.#declareExtra();
-    this.#context = new EsField('context', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-    );
     this.#counter = this.#declareCounter();
     this.#store = this.allocateStore();
     this.#slot = new EsField('slot', { visibility: EsMemberVisibility.Private }).declareIn(this);
@@ -234,14 +230,14 @@ export class MapUcrxClass<
   }
 
   #createEntryRx({ key }: { key: EsSnippet }, entry: EsSnippet): EsSnippet {
-    return esline`${entry}.rx(${this.#context.get('this')}, ${this.#slot.get('this')}, ${key})`;
+    return esline`${entry}.rx(${this.#slot.get('this')}, ${key})`;
   }
 
-  #rejectEntry({ key, reject }: { key: EsSnippet; reject: EsSnippet }): EsSnippet {
+  #rejectEntry({ key, cx }: { key: EsSnippet; cx: EsSnippet }): EsSnippet {
     const ucrxRejectEntry = UC_MODULE_CHURI.import('ucrxRejectEntry');
 
     return code => {
-      code.write(esline`${reject}(${ucrxRejectEntry}(${key}));`, 'return;');
+      code.write(esline`${cx}.reject(${ucrxRejectEntry}(${key}));`, 'return;');
     };
   }
 
@@ -258,13 +254,13 @@ export class MapUcrxClass<
         body:
           ({
             member: {
-              args: { reject },
+              args: { cx },
             },
           }) => code => {
             code
               .write(esline`if (${missingCount.get('this')}) {`)
               .indent(
-                esline`${reject}(${ucrxRejectMissingEntries}(${assigned.get('this')}, ${
+                esline`${cx}.reject(${ucrxRejectMissingEntries}(${assigned.get('this')}, ${
                   this.#entries! // Won't be accessed without entries
                 }));`,
                 'return 0;',
@@ -301,12 +297,11 @@ export class MapUcrxClass<
       body:
         ({
           member: {
-            args: { set, context },
+            args: { set },
           },
         }) => code => {
           code
-            .line('super', this.baseClass!.classConstructor.signature.call({ set, context }), ';')
-            .line(this.#context.set('this', context), ';')
+            .line('super', this.baseClass!.classConstructor.signature.call({ set }), ';')
             .line(this.#slot.set('this', esline`[${this.#store.init()}]`), ';');
         },
     });

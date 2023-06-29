@@ -1,10 +1,10 @@
 import { EsClass, EsField, esImportClass } from 'esgen';
 import { VoidUcrx } from '../../rx/void.ucrx.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcrxSignature } from '../rx/ucrx.class.js';
 import { UC_MODULE_CHURI } from './uc-modules.js';
 
-export class VoidUcrxClass extends EsClass<UcrxSignature1.Args> {
+export class VoidUcrxClass extends EsClass<UcrxSignature.Args> {
 
   static #instance: VoidUcrxClass | undefined;
 

@@ -4,10 +4,10 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
-export class StringUcrxClass extends UcrxClass<UcrxSignature1.Args, UcString, UcString.Schema> {
+export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcString.Schema> {
 
   static uccProcess(compiler: UcdCompiler.Any): UccConfig {
     return {
@@ -44,18 +44,18 @@ export class StringUcrxClass extends UcrxClass<UcrxSignature1.Args, UcString, Uc
       UcrxCore.raw.overrideIn(this, {
         body({
           member: {
-            args: { value, reject },
+            args: { value, cx },
           },
         }) {
           return code => {
             if (schema.nullable) {
               code
                 .write(esline`if (${value} === '--') {`)
-                .indent(esline`return this.nul(${reject});`)
+                .indent(esline`return this.nul(${cx});`)
                 .write('}');
             }
 
-            code.write(esline`return this.str(${value}, ${reject});`);
+            code.write(esline`return this.str(${value}, ${cx});`);
           };
         },
       });

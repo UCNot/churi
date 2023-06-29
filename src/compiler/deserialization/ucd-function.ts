@@ -125,7 +125,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .indent(
           esline`${mode === 'async' ? 'await ' : ''}${reader}.read(${this.ucrxClass.instantiate({
             set: esline`$ => { ${result} = $; }`,
-            context: reader,
           })});`,
         )
         .write(`} finally {`)
@@ -152,7 +151,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             .indent(
               esline`${syncReader}.read(${this.ucrxClass.instantiate({
                 set,
-                context: syncReader,
               })});`,
             )
             .write(`} finally {`)
@@ -165,7 +163,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(
           esline`return ${reader}.read(${this.ucrxClass.instantiate({
             set,
-            context: reader,
           })})`,
         )
         .indent(esline`.then(() => ${result})`, esline`.finally(() => ${reader}.done());`);

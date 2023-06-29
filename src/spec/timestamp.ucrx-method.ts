@@ -14,10 +14,10 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   stub: {
     body({
       member: {
-        args: { value, reject },
+        args: { value, cx },
       },
     }) {
-      return esline`return this.num(${value}.getTime(), ${reject});`;
+      return esline`return this.num(${value}.getTime(), ${cx});`;
     },
   },
   typeName: 'date',
@@ -34,16 +34,15 @@ export function ucdSupportTimestampEntity(compiler: UcdCompiler.Any): UccConfig 
 const readTimestampEntityFn = new EsFunction(
   'readTimestampEntity',
   {
-    reader: {},
+    context: {},
     rx: {},
     prefix: {},
     args: {},
-    reject: {},
   },
   {
     declare: {
       at: 'bundle',
-      body({ args: { rx, args, reject } }) {
+      body({ args: { context, rx, args } }) {
         return (code, scope) => {
           const lib = scope.get(UcrxLib);
           const date = new EsVarSymbol('date');
@@ -52,7 +51,7 @@ const readTimestampEntityFn = new EsFunction(
 
           code
             .line(date.declare({ value: () => esline`new Date(${printTokens}(${args}))` }), ';')
-            .line('return ', setDate.call(rx, { value: date, reject }), ';');
+            .line('return ', setDate.call(rx, { value: date, cx: context }), ';');
         };
       },
     },

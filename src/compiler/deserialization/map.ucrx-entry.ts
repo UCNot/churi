@@ -69,15 +69,11 @@ export class MapUcrxEntry {
 
   instantiate(store: MapUcrxStore, args: MapUcrxEntrySignature.Values): EsSnippet;
 
-  instantiate(
-    store: MapUcrxStore,
-    { slot, key, context }: MapUcrxEntrySignature.Values,
-  ): EsSnippet {
+  instantiate(store: MapUcrxStore, { slot, key }: MapUcrxEntrySignature.Values): EsSnippet {
     const setEntry = new EsFunction('setEntry', { value: {} });
 
     return this.ucrxClass.instantiate({
       set: setEntry.lambda(({ args: { value } }) => store.setEntry(esline`${slot}[0]`, key, value)),
-      context,
     });
   }
 
@@ -113,7 +109,6 @@ export class MapUcrxEntry {
 }
 
 export const MapUcrxEntrySignature: MapUcrxEntrySignature = /*#__PURE__*/ new EsSignature({
-  context: {},
   slot: {},
   key: {},
 });
@@ -122,7 +117,6 @@ export type MapUcrxEntrySignature = EsSignature<MapUcrxEntrySignature.Args>;
 
 export namespace MapUcrxEntrySignature {
   export type Args = {
-    readonly context: EsArg;
     readonly slot: EsArg;
     readonly key: EsArg;
   };

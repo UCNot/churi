@@ -1,5 +1,4 @@
 import { UcrxContext } from './ucrx-context.js';
-import { UcrxReject } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 
 /**
@@ -12,9 +11,4 @@ import { Ucrx } from './ucrx.js';
  *
  * @returns Either metadata argument receiver, or `undefined` if metadata attribute can not be recognized.
  */
-export type MetaUcrx = (
-  context: UcrxContext,
-  rx: Ucrx,
-  attribute: string,
-  reject: UcrxReject,
-) => Ucrx | undefined;
+export type MetaUcrx = (context: UcrxContext, rx: Ucrx, attribute: string) => Ucrx | undefined;

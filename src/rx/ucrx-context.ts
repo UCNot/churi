@@ -14,24 +14,29 @@ export interface UcrxContext {
   readonly opaqueRx: Ucrx;
 
   /**
+   * Charge rejection callback.
+   *
+   *  @param rejection - Rejection reason.
+   *
+   * @returns Always `0` to be able to return it from receiver's method.
+   */
+  readonly reject: UcrxReject;
+
+  /**
    * Processes entity.
    *
-   * @param rx - Charge receiver to add processed entity to.
    * @param entity - Entity to process represented as array of tokens.
-   * @param reject - Rejection callback.
    *
    * @returns Either `1` if entity recognized, or `0` for unrecognized entity.
    */
-  entity(rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1;
+  readonly onEntity: (this: void, entity: readonly UcToken[]) => 0 | 1;
 
   /**
    * Processes metadata attribute.
    *
-   * @param rx - Charge receiver to add processed metadata to.
    * @param attribute - Metadata attribute name.
-   * @param reject - Rejection callback.
    *
    * @returns Either metadata argument receiver, or `undefined` if metadata attribute can not be recognized.
    */
-  meta(rx: Ucrx, attribute: string, reject: UcrxReject): Ucrx | undefined;
+  readonly onMeta: (this: void, attribute: string) => Ucrx | undefined;
 }

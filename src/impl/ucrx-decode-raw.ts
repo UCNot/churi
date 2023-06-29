@@ -1,42 +1,43 @@
 import { asis } from '@proc7ts/primitives';
-import { UcrxReject, ucrxRejectSyntax } from '../rx/ucrx-rejection.js';
+import { UcrxContext } from '../rx/ucrx-context.js';
+import { ucrxRejectSyntax } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { negate } from './numeric.js';
 
 export function ucrxDecodeRaw(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   decodeString: UcrxStringDecoder,
   decodePositive: UcrxStringDecoder,
   decodeNumeric: UcrxNumericDecoder,
 ): 0 | 1 {
   if (!input) {
-    return decodeString(rx, '', reject);
+    return decodeString(context, rx, '');
   }
 
   const decoder = UCRX_VALUE_DECODERS[input[0]];
 
   return decoder
-    ? decoder(rx, input, reject, decodeString, decodePositive, decodeNumeric)
-    : decodeString(rx, input, reject);
+    ? decoder(context, rx, input, decodeString, decodePositive, decodeNumeric)
+    : decodeString(context, rx, input);
 }
 
 type UcrxRawDecoder = (
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   decodeString: UcrxStringDecoder,
   decodePositive: UcrxStringDecoder,
   decodeNumeric: UcrxNumericDecoder,
 ) => 0 | 1;
 
-type UcrxStringDecoder = (rx: Ucrx, value: string, reject: UcrxReject) => 0 | 1;
+type UcrxStringDecoder = (context: UcrxContext, rx: Ucrx, value: string) => 0 | 1;
 
 type UcrxNumericDecoder = (
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ) => 0 | 1;
@@ -58,65 +59,65 @@ const UCRX_VALUE_DECODERS: {
 };
 
 function ucrxDecodeMinusSigned(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   decodeString: UcrxStringDecoder,
   _decodePositive: UcrxStringDecoder,
   decodeNumeric: UcrxNumericDecoder,
 ): 0 | 1 {
   if (input.length < 3) {
     if (input.length < 2) {
-      return rx.bol(false, reject);
+      return rx.bol(false, context);
     }
     if (input === '--') {
-      return rx.nul(reject);
+      return rx.nul(context);
     }
   }
 
   const secondChar = input[1];
 
   if (secondChar >= '0' && secondChar <= '9') {
-    return decodeNumeric(rx, input, reject, 1, negate);
+    return decodeNumeric(context, rx, input, 1, negate);
   }
 
-  return decodeString(rx, input, reject);
+  return decodeString(context, rx, input);
 }
 
 function ucrxDecodeZeroPrefixed(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   _decodeString: UcrxStringDecoder,
   _decodePositive: UcrxStringDecoder,
   decodeNumeric: UcrxNumericDecoder,
 ): 0 | 1 {
-  return decodeNumeric(rx, input, reject, 0, asis);
+  return decodeNumeric(context, rx, input, 0, asis);
 }
 
 function ucrxDecodeUnsigned(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   _decodeString: UcrxStringDecoder,
   decodePositive: UcrxStringDecoder,
   _decodeNumeric: UcrxNumericDecoder,
 ): 0 | 1 {
-  return decodePositive(rx, input, reject);
+  return decodePositive(context, rx, input);
 }
 
-export function ucrxDecodeString(rx: Ucrx, value: string, reject: UcrxReject): 0 | 1 {
-  return rx.str(value, reject);
+export function ucrxDecodeString(context: UcrxContext, rx: Ucrx, value: string): 0 | 1 {
+  return rx.str(value, context);
 }
 
-export function ucrxDecodePositive(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
-  return rx.num(Number(input), reject);
+export function ucrxDecodePositive(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
+  return rx.num(Number(input), context);
 }
 
 export function ucrxDecodeNumeric(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): 0 | 1 {
@@ -126,17 +127,17 @@ export function ucrxDecodeNumeric(
     try {
       value = input.length < offset + 3 ? 0n : BigInt(input.slice(offset + 2));
     } catch (cause) {
-      return reject(ucrxRejectSyntax('bigint', cause));
+      return context.reject(ucrxRejectSyntax('bigint', cause));
     }
 
-    return rx.big(sign(value), reject);
+    return rx.big(sign(value), context);
   }
 
   const value = input.length < offset + 3 ? 0 : Number(input.slice(offset));
 
   if (Number.isFinite(value)) {
-    return rx.num(sign(value), reject);
+    return rx.num(sign(value), context);
   }
 
-  return reject(ucrxRejectSyntax('number', 'Not a number'));
+  return context.reject(ucrxRejectSyntax('number', 'Not a number'));
 }

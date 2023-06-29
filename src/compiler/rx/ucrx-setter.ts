@@ -64,7 +64,7 @@ export interface UcrxSetterInit
 
 export const UcrxSetterSignature: UcrxSetterSignature = /*#__PURE__*/ new EsSignature({
   value: {},
-  reject: {},
+  cx: {},
 });
 
 export type UcrxSetterSignature = EsSignature<UcrxSetterSignature.Args>;
@@ -72,7 +72,7 @@ export type UcrxSetterSignature = EsSignature<UcrxSetterSignature.Args>;
 export namespace UcrxSetterSignature {
   export type Args = {
     readonly value: EsArg;
-    readonly reject: EsArg;
+    readonly cx: EsArg;
   };
   export type Values = EsSignature.ValuesOf<Args>;
 }
@@ -85,12 +85,12 @@ function UcrxSetter$createStub(typeName: string): EsMethodDeclaration<UcrxSetter
   return {
     body({
       member: {
-        args: { value, reject },
+        args: { value, cx },
       },
     }) {
       const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
 
-      return esline`return this.any(${value}) || ${reject}(${ucrxRejectType}(${esStringLiteral(
+      return esline`return this.any(${value}) || ${cx}.reject(${ucrxRejectType}(${esStringLiteral(
         typeName,
       )}, this));`;
     },

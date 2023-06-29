@@ -5,10 +5,10 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
-export class BigIntUcrxClass extends UcrxClass<UcrxSignature1.Args, UcBigInt, UcBigInt.Schema> {
+export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
   static uccProcess(compiler: UcdCompiler.Any): UccConfig {
     return {
@@ -55,12 +55,12 @@ export class BigIntUcrxClass extends UcrxClass<UcrxSignature1.Args, UcBigInt, Uc
       UcrxCore.raw.overrideIn(this, {
         body({
           member: {
-            args: { value, reject },
+            args: { value, cx },
           },
         }) {
           const decodeBigInt = UC_MODULE_DESERIALIZER.import('ucdDecodeBigInt');
 
-          return esline`return ${decodeBigInt}(this, ${value}, ${reject});`;
+          return esline`return ${decodeBigInt}(${cx}, this, ${value});`;
         },
       });
     }
@@ -68,14 +68,14 @@ export class BigIntUcrxClass extends UcrxClass<UcrxSignature1.Args, UcBigInt, Uc
       UcrxCore.str.overrideIn(this, {
         body({
           member: {
-            args: { value, reject },
+            args: { value, cx },
           },
         }) {
           const parseBigInt = UC_MODULE_DESERIALIZER.import(
             number === 'reject' ? 'ucdParseBigInt' : 'ucdParseNumericAsBigInt',
           );
 
-          return esline`return ${parseBigInt}(this, ${value}, ${reject});`;
+          return esline`return ${parseBigInt}(${cx}, this, ${value});`;
         },
       });
     }

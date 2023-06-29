@@ -2,19 +2,17 @@ import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
 import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
-import { UcrxReject } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
 
 export function readPlainEntity(
-  _context: UcrxContext,
+  context: UcrxContext,
   rx: Ucrx,
   prefix: readonly UcToken[],
   args: readonly UcToken[],
-  reject: UcrxReject,
 ): 0 | 1 {
-  return rx.str(printUcTokens([...prefix, ...args]), reject);
+  return rx.str(printUcTokens([...prefix, ...args]), context);
 }
 
 export function ucdSupportPlainEntity(compiler: UcdCompiler.Any): UccConfig {

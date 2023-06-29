@@ -27,8 +27,8 @@ describe('UcrxSetter', () => {
       await expect(compiler.generate()).resolves.toContain(
         `
 class BaseUcrx extends VoidUcrx {
-  test(value, reject) {
-    return this.any(value) || reject(ucrxRejectType('test-type', this));
+  test(value, cx) {
+    return this.any(value) || cx.reject(ucrxRejectType('test-type', this));
   }
 }`.trimStart(),
       );

@@ -21,7 +21,7 @@ export type UcrxRejection = Omit<UcErrorInfo, 'path'>;
  *
  * @returns Always `0` to be able to return it from receiver's method.
  */
-export type UcrxReject = (rejection: UcrxRejection) => 0;
+export type UcrxReject = (this: void, rejection: UcrxRejection) => 0;
 
 export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcrxRejection {
   return {
