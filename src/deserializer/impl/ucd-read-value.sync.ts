@@ -33,9 +33,10 @@ import { UcrxHandle } from './ucrx-handle.js';
 export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
-  end?: (rx: UcrxHandle) => void,
-  single = false, // Never set for the first item of the list, unless it is non-empty.
+  end?: (rx: UcrxHandle) => void, // Never set for the first item of the list, unless it is non-empty.
 ): void {
+  const single = !end;
+
   ucdSkipWhitespaceSync(reader);
 
   const firstToken = reader.current();
@@ -233,7 +234,7 @@ function ucdReadMetaAndValueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
   reader.skip(); // Skip closing parenthesis.
 
   // Read single value following the attribute.
-  ucdReadValueSync(reader, rx, undefined, true);
+  ucdReadValueSync(reader, rx);
 }
 
 function ucdReadTokensSync(
@@ -338,7 +339,7 @@ function ucdReadItemsSync(
     } else {
       rx.nextItem();
     }
-    ucdReadValueSync(reader, rx, undefined, true);
+    ucdReadValueSync(reader, rx);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.

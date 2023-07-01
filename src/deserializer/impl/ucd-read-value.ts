@@ -25,9 +25,10 @@ import { UcrxHandle } from './ucrx-handle.js';
 export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
-  end?: (rx: UcrxHandle) => void,
-  single = false, // Never set for the first item of the list, unless it is non-empty.
+  end?: (rx: UcrxHandle) => void, // Never set for the first item of the list, unless it is non-empty.
 ): Promise<void> {
+  const single = !end;
+
   await ucdSkipWhitespace(reader);
 
   const firstToken = reader.current();
@@ -225,7 +226,7 @@ async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Prom
   reader.skip(); // Skip closing parenthesis.
 
   // Read single value following the attribute.
-  await ucdReadValue(reader, rx, undefined, true);
+  await ucdReadValue(reader, rx);
 }
 
 async function ucdReadTokens(
@@ -330,7 +331,7 @@ async function ucdReadItems(
     } else {
       rx.nextItem();
     }
-    await ucdReadValue(reader, rx, undefined, true);
+    await ucdReadValue(reader, rx);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.
