@@ -188,6 +188,12 @@ describe('UcMeta', () => {
       });
     });
 
+    describe('freeze', () => {
+      it('returns empty constant when empty', () => {
+        expect(new UcMeta().clone().freeze()).toBe(UcMeta.empty);
+      });
+    });
+
     describe('unfreeze', () => {
       it('returns the same instance', () => {
         const meta = new UcMeta().add('foo', 1);

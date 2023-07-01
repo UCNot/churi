@@ -48,16 +48,16 @@ export class URIChargeCompiler extends UcdCompiler<
 
 class URIChargeListUcrxClass extends ListUcrxClass {
 
-  protected override createNullItem(): EsSnippet {
+  protected override createNullItem(cx: EsSnippet): EsSnippet {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return esline`new ${URICharge$Single}(null, 'null')`;
+    return esline`new ${URICharge$Single}(null, 'null', ${cx}.meta)`;
   }
 
-  protected override createList(): EsSnippet {
+  protected override createList(cx: EsSnippet): EsSnippet {
     const URICharge$List = UC_MODULE_URI_CHARGE.import('URICharge$List');
 
-    return esline`new ${URICharge$List}(${super.createList()})`;
+    return esline`new ${URICharge$List}(${super.createList(cx)})`;
   }
 
 }
@@ -80,10 +80,10 @@ class URIChargeMapUcrxStore implements MapUcrxStore {
     return esline`${map}.set(${key}, ${value});`;
   }
 
-  store(map: EsSnippet): EsSnippet {
+  store(map: EsSnippet, cx: EsSnippet): EsSnippet {
     const URICharge$Map = UC_MODULE_URI_CHARGE.import('URICharge$Map');
 
-    return esline`new ${URICharge$Map}(${map})`;
+    return esline`new ${URICharge$Map}(${map}, ${cx}.meta)`;
   }
 
   reclaim(_map: EsSnippet): EsSnippet {
@@ -104,7 +104,7 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
       case UcrxCore.ent:
         return this.#setEntity(UcrxCore.ent, args as UcrxSetterSignature.Values);
       case UcrxCore.nul:
-        return this.#setNull();
+        return this.#setNull(args as { cx: EsSnippet });
       default:
         if (isUcrxSetter(method)) {
           return this.#setValue(method, args as UcrxSetterSignature.Values);
@@ -120,7 +120,7 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
     return esline`return ${this.member(setter).call('super', {
-      value: esline`new ${URICharge$Single}(${value}, ${type})`,
+      value: esline`new ${URICharge$Single}(${value}, ${type}, ${cx}.meta)`,
       cx,
     })};`;
   }
@@ -129,18 +129,18 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     return EsCode.none;
   }
 
-  #setEntity(method: UcrxSetter, { value }: UcrxSetterSignature.Values): EsSnippet {
+  #setEntity(method: UcrxSetter, { value, cx }: UcrxSetterSignature.Values): EsSnippet {
     const type = esStringLiteral(method.typeName);
     const UcEntity = UC_MODULE_CHURI.import('UcEntity');
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return esline`return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}));`;
+    return esline`return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}, ${cx}.meta));`;
   }
 
-  #setNull(): EsSnippet {
+  #setNull({ cx }: { cx: EsSnippet }): EsSnippet {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return esline`return this.any(new ${URICharge$Single}(null, 'null'));`;
+    return esline`return this.any(new ${URICharge$Single}(null, 'null', ${cx}.meta));`;
   }
 
   protected override addItem<TArgs extends EsSignature.Args>(

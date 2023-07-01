@@ -44,7 +44,7 @@ export class UcrxHandle implements UcrxContext {
   }
 
   get meta(): UcMeta.Mutable {
-    return (this.#meta ??= new UcMeta().unfreeze());
+    return (this.#meta ??= UcMeta.create());
   }
 
   onEntity(entity: readonly UcToken[]): 0 | 1 {
@@ -63,8 +63,8 @@ export class UcrxHandle implements UcrxContext {
     this.#rx = this.opaqueRx;
   }
 
-  att(attributeName: string): UcrxHandle {
-    const attrRx = this.#rx.att(attributeName, this) ?? this.opaqueRx;
+  att(attr: string): UcrxHandle {
+    const attrRx = this.#rx.att(attr, this) ?? this.onMeta(attr) ?? this.opaqueRx;
 
     return new UcrxHandle(this.#reader, attrRx, this.#path);
   }

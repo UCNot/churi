@@ -1,6 +1,7 @@
 import { AllUcrx } from '../../rx/all.ucrx.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
+import { UcMeta } from '../meta/uc-meta.js';
 import { UcUnknown } from '../unknown/uc-unknown.js';
 
 /**
@@ -33,6 +34,11 @@ export abstract class URICharge implements Uctx {
    * `undefined` when the charge has no value.
    */
   abstract get type(): string | undefined;
+
+  /**
+   * Metadata associated with this value.
+   */
+  abstract get meta(): UcMeta.Freezed;
 
   /**
    * The number of items this value has.
@@ -286,6 +292,10 @@ class URICharge$None extends URICharge implements URICharge.None {
 
   get type(): undefined {
     return;
+  }
+
+  get meta(): UcMeta.Freezed {
+    return UcMeta.empty;
   }
 
   get length(): 0 {

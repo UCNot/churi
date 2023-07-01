@@ -14,6 +14,26 @@ import { UcMetaAttr } from './uc-meta-attr.js';
  */
 export class UcMeta {
 
+  static #empty: UcMeta.Freezed | undefined;
+
+  /**
+   * Metadata instance that is freezed to be empty.
+   */
+  static get empty(): UcMeta.Freezed {
+    return (UcMeta.#empty ??= new UcMeta(undefined, true) as UcMeta.Freezed);
+  }
+
+  /**
+   * Creates new mutable metadata instance.
+   *
+   * @param source - Source metadata to clone the contents of to created metadata.
+   *
+   * @returns New mutable metadata instance.
+   */
+  static create(source?: UcMeta): UcMeta.Mutable {
+    return new UcMeta(source) as UcMeta.Mutable;
+  }
+
   #state: UcMeta$State;
   readonly #freezed: boolean;
 
@@ -24,7 +44,7 @@ export class UcMeta {
    * @param freeze - Whether to freeze constructed metadata. `false` by default.
    */
   constructor(source?: UcMeta, freeze = false) {
-    if (!source) {
+    if (!source?.size) {
       this.#state = { attrs: new Map(), clones: 0 };
     } else {
       this.#state = source.#state;
@@ -45,6 +65,13 @@ export class UcMeta {
    */
   isMutable(): this is UcMeta.Mutable {
     return !this.isFreezed();
+  }
+
+  /**
+   * The number of attributes this metadata instance contains.
+   */
+  get size(): number {
+    return this.#state.attrs.size;
   }
 
   /**
@@ -258,6 +285,10 @@ export class UcMeta {
   freeze(): UcMeta.Freezed {
     if (this.isFreezed()) {
       return this;
+    }
+    if (!this.size) {
+      // Avoid empty metadata instantiation.
+      return UcMeta.empty;
     }
 
     return new (this.constructor as typeof UcMeta)(this, true) as UcMeta.Freezed;

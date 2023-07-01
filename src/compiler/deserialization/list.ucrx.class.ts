@@ -184,15 +184,17 @@ export class ListUcrxClass<
     return false;
   }
 
-  protected createNullItem(): EsSnippet {
+  protected createNullItem(cx: EsSnippet): EsSnippet;
+  protected createNullItem(_cx: EsSnippet): EsSnippet {
     return 'null';
   }
 
-  protected createList(): EsSnippet {
+  protected createList(_cx: EsSnippet): EsSnippet {
     return this.#items.get('this');
   }
 
-  protected createNullList(): EsSnippet {
+  protected createNullList(cx: EsSnippet): EsSnippet;
+  protected createNullList(_cx: EsSnippet): EsSnippet {
     return 'null';
   }
 
@@ -262,14 +264,14 @@ export class ListUcrxClass<
           if (isNull) {
             code
               .write(esline`if (${isNull.get('this')}) {`)
-              .indent(esline`${this.#setList}(${this.createNullList()});`)
+              .indent(esline`${this.#setList}(${this.createNullList(cx)});`)
               .write(esline`} else if (${listCreated.get('this')}) {`);
           } else {
             code.write(esline`if (${listCreated.get('this')}) {`);
           }
 
           code
-            .indent(esline`${this.#setList}(${this.createList()});`)
+            .indent(esline`${this.#setList}(${this.createList(cx)});`)
             .write(`} else {`)
             .indent(esline`${cx}.reject(${ucrxRejectSingleItem}(this));`)
             .write(`}`);
@@ -292,17 +294,22 @@ export class ListUcrxClass<
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
     UcrxCore.end.overrideIn(this, {
-      body: () => code => {
-        if (isNull) {
-          code
-            .write(esline`if (${isNull.get('this')}) {`)
-            .indent(esline`${this.#setList}(${this.createNullList()});`)
-            .write(esline`} else if (${listCreated.get('this')}) {`);
-        } else {
-          code.write(esline`if (${listCreated.get('this')}) {`);
-        }
-        code.indent(esline`${this.#setList}(${this.createList()});`).write(`}`);
-      },
+      body:
+        ({
+          member: {
+            args: { cx },
+          },
+        }) => code => {
+          if (isNull) {
+            code
+              .write(esline`if (${isNull.get('this')}) {`)
+              .indent(esline`${this.#setList}(${this.createNullList(cx)});`)
+              .write(esline`} else if (${listCreated.get('this')}) {`);
+          } else {
+            code.write(esline`if (${listCreated.get('this')}) {`);
+          }
+          code.indent(esline`${this.#setList}(${this.createList(cx)});`).write(`}`);
+        },
     });
     if (this.#isNullable) {
       UcrxCore.nul.overrideIn(this, {
@@ -317,7 +324,7 @@ export class ListUcrxClass<
               .indent(code => {
                 if (this.#isNullableItem) {
                   code
-                    .line(this.#addItem.call('this', { item: this.createNullItem() }), ';')
+                    .line(this.#addItem.call('this', { item: this.createNullItem(cx) }), ';')
                     .write(`return 1;`);
                 } else {
                   const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');

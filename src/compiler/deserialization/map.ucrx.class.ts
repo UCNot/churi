@@ -266,7 +266,7 @@ export class MapUcrxClass<
                 'return 0;',
               )
               .write(`} else {`)
-              .indent(esline`this.set(${store.store(map)});`)
+              .indent(esline`this.set(${store.store(map, cx)});`)
               .write(`}`)
               .line(missingCount.set('this', `${requiredCount}`), ';')
               .line(esline`${map} = ${store.reclaim(map)};`)
@@ -276,12 +276,17 @@ export class MapUcrxClass<
       });
     } else {
       UcrxCore.map.overrideIn(this, {
-        body: () => code => {
-          code
-            .line('this.set(', this.#store.store(map), ');')
-            .line(esline`${map} = ${store.reclaim(map)};`)
-            .write('return 1;');
-        },
+        body:
+          ({
+            member: {
+              args: { cx },
+            },
+          }) => code => {
+            code
+              .line('this.set(', this.#store.store(map, cx), ');')
+              .line(esline`${map} = ${store.reclaim(map)};`)
+              .write('return 1;');
+          },
       });
     }
   }
@@ -324,7 +329,7 @@ export class MapUcrxClass<
 export interface MapUcrxStore {
   init(): EsSnippet;
   setEntry(map: EsSnippet, key: EsSnippet, value: EsSnippet): EsSnippet;
-  store(map: EsSnippet): EsSnippet;
+  store(map: EsSnippet, cx: EsSnippet): EsSnippet;
   reclaim(map: EsSnippet): EsSnippet;
 }
 
