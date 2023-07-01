@@ -176,7 +176,7 @@ describe('UcdCompiler', () => {
           `
 export async function readValue(
   stream,
-  { onError, onEntity = onEntity$byDefault } = {},
+  { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
 ) {
 `.trimStart(),
         );
@@ -195,7 +195,7 @@ export async function readValue(
           `
 export function readValue(
   input,
-  { onError, onEntity = onEntity$byDefault } = {},
+  { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
 ) {
 `.trimStart(),
         );
@@ -213,7 +213,7 @@ export function readValue(
           `
 export function readValue(
   input,
-  { onError, onEntity = onEntity$byDefault } = {},
+  { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
 ) {
 `.trimStart(),
         );
@@ -235,7 +235,7 @@ export function readValue(
           `
   async function readValue(
     stream,
-    { onError, onEntity = onEntity$byDefault } = {},
+    { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
   ) {
 `.trimStart(),
         );
@@ -254,7 +254,7 @@ export function readValue(
           `
   function readValue(
     input,
-    { onError, onEntity = onEntity$byDefault } = {},
+    { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
   ) {
 `.trimStart(),
         );
@@ -272,7 +272,7 @@ export function readValue(
           `
   function readValue(
     input,
-    { onError, onEntity = onEntity$byDefault } = {},
+    { onError, onEntity = onEntity$byDefault, onMeta = onMeta$byDefault } = {},
   ) {
 `.trimStart(),
         );

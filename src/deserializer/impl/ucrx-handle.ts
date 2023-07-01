@@ -1,6 +1,7 @@
 import { UcrxContext } from '../../rx/ucrx-context.js';
 import { UcrxReject, UcrxRejection, ucrxRejectType } from '../../rx/ucrx-rejection.js';
 import { Ucrx } from '../../rx/ucrx.js';
+import { UcMeta } from '../../schema/meta/uc-meta.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
@@ -10,6 +11,7 @@ export class UcrxHandle implements UcrxContext {
   #reader: UcdReader;
   #rx: Ucrx;
   #_reject: UcrxReject | undefined;
+  #meta: UcMeta.Mutable | undefined;
 
   #path: UcError$Path;
   #nextPath: UcError$Path | undefined;
@@ -39,6 +41,10 @@ export class UcrxHandle implements UcrxContext {
     this.#reader.error({ ...rejection, path });
 
     return 0;
+  }
+
+  get meta(): UcMeta.Mutable {
+    return (this.#meta ??= new UcMeta().unfreeze());
   }
 
   onEntity(entity: readonly UcToken[]): 0 | 1 {
@@ -206,6 +212,7 @@ export class UcrxHandle implements UcrxContext {
     const last = this.#path[this.#path.length - 1];
 
     this.#path[this.#path.length - 1] = { ...last, index: last.index! + 1 };
+    this.#meta = undefined;
   }
 
   end(): void {

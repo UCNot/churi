@@ -1,3 +1,4 @@
+import { UcMeta } from '../schema/meta/uc-meta.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxReject } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
@@ -21,6 +22,11 @@ export interface UcrxContext {
    * @returns Always `0` to be able to return it from receiver's method.
    */
   readonly reject: UcrxReject;
+
+  /**
+   * Metadata for currently charged value.
+   */
+  readonly meta: UcMeta.Mutable;
 
   /**
    * Processes entity.

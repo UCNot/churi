@@ -47,7 +47,7 @@
       "types": "./dist/churi.compiler.d.ts",
       "default": "./dist/churi.compiler.js"
     },
-    "./default-entities.js": "./dist/churi.default-entities.js",
+    "./defaults.js": "./dist/churi.defaults.js",
     "./deserializer.js": {
       "types": "./dist/churi.deserializer.d.ts",
       "default": "./dist/churi.deserializer.js"

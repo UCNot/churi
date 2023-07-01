@@ -11,7 +11,7 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UcLexer } from '../../syntax/uc-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
-import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.js';
+import { UC_MODULE_CHURI, UC_MODULE_DEFAULTS } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
@@ -81,7 +81,7 @@ export class UcdLib<
 
     if (!entities) {
       // Use precompiled entity handler.
-      return UC_MODULE_DEFAULT_ENTITIES.import('onEntity$byDefault');
+      return UC_MODULE_DEFAULTS.import('onEntity$byDefault');
     }
 
     if (!entities.length) {

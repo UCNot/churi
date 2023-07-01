@@ -4,6 +4,7 @@ import {
   EsEvaluationOptions,
   EsGenerationOptions,
   EsScopeSetup,
+  EsSnippet,
   esEvaluate,
   esGenerate,
 } from 'esgen';
@@ -121,28 +122,39 @@ export class UcdCompiler<
    * Generates deserialization code.
    *
    * @param options - Code generation options.
+   * @param snippets - Additional code snippets.
    *
    * @returns Promise resolved to deserializer module text.
    */
-  async generate(options: EsGenerationOptions = {}): Promise<string> {
-    return await esGenerate({
-      ...options,
-      setup: [...asArray(options.setup), await this.bootstrap()],
-    });
+  async generate(options: EsGenerationOptions = {}, ...snippets: EsSnippet[]): Promise<string> {
+    return await esGenerate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      ...snippets,
+    );
   }
 
   /**
    * Generates serialization code and evaluates it.
    *
    * @param options - Code evaluation options.
+   * @param snippets - Additional code snippets.
    *
    * @returns Promise resolved to deserializers exported from generated module.
    */
-  async evaluate(options: EsEvaluationOptions = {}): Promise<UcdExports<TModels, TMode>> {
-    return (await esEvaluate({
-      ...options,
-      setup: [...asArray(options.setup), await this.bootstrap()],
-    })) as UcdExports<TModels, TMode>;
+  async evaluate(
+    options: EsEvaluationOptions = {},
+    ...snippets: EsSnippet[]
+  ): Promise<UcdExports<TModels, TMode>> {
+    return (await esEvaluate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      ...snippets,
+    )) as UcdExports<TModels, TMode>;
   }
 
   /**

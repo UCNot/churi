@@ -107,7 +107,7 @@ export namespace UcDeserializer {
     /**
      * Function to call to deserialize metadata attribute.
      *
-     * By default,
+     * By default, metadata attribute value will be deserialized as {@link churi!ucUnknown unknown}.
      */
     readonly onMeta?: MetaUcrx | undefined;
   }
