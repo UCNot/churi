@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
-import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
+import { ucdSupportPlainEntity } from '../../spec/plain.entity.js';
+import { ucdSupportTimestampEntity } from '../../spec/timestamp.entity.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcNullable, ucNullable } from '../uc-nullable.js';

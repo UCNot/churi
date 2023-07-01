@@ -233,7 +233,7 @@ function ucdReadMetaAndValueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
   reader.skip(); // Skip closing parenthesis.
 
   // Read single value following the attribute.
-  ucdReadValueSync(reader, rx, rx => rx.end(), true);
+  ucdReadValueSync(reader, rx, undefined, true);
 }
 
 function ucdReadTokensSync(

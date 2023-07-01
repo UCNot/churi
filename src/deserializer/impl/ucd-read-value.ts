@@ -225,7 +225,7 @@ async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Prom
   reader.skip(); // Skip closing parenthesis.
 
   // Read single value following the attribute.
-  await ucdReadValue(reader, rx, rx => rx.end(), true);
+  await ucdReadValue(reader, rx, undefined, true);
 }
 
 async function ucdReadTokens(

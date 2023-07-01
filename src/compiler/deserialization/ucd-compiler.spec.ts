@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
+import { ucdSupportTimestampEntity } from '../../spec/timestamp.entity.js';
 import { UcdCompiler } from './ucd-compiler.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 

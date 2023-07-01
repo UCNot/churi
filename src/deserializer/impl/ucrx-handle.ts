@@ -64,7 +64,8 @@ export class UcrxHandle implements UcrxContext {
   }
 
   att(attr: string): UcrxHandle {
-    const attrRx = this.#rx.att(attr, this) ?? this.onMeta(attr) ?? this.opaqueRx;
+    const attrRx =
+      this.#rx.att(attr, this) ?? this.onMeta(attr) ?? /* istanbul ignore next */ this.opaqueRx;
 
     return new UcrxHandle(this.#reader, attrRx, this.#path);
   }
