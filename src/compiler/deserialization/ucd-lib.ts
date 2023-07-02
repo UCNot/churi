@@ -9,7 +9,7 @@ import {
 } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_DEFAULTS } from '../impl/uc-modules.js';
+import { UC_MODULE_DESERIALIZER_DEFAULTS } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
@@ -92,7 +92,7 @@ export class UcdLib<
 
     if (!defaults) {
       // Use precompiled entity handler.
-      return UC_MODULE_DEFAULTS.import(name);
+      return UC_MODULE_DESERIALIZER_DEFAULTS.import(name);
     }
 
     if (!defaults.length) {

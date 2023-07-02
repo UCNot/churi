@@ -47,11 +47,11 @@
       "types": "./dist/churi.compiler.d.ts",
       "default": "./dist/churi.compiler.js"
     },
-    "./defaults.js": "./dist/churi.defaults.js",
     "./deserializer.js": {
       "types": "./dist/churi.deserializer.d.ts",
       "default": "./dist/churi.deserializer.js"
     },
+    "./deserializer/defaults.js": "./dist/churi.deserializer.defaults.js",
     "./serializer.js": {
       "types": "./dist/churi.serializer.d.ts",
       "default": "./dist/churi.serializer.js"

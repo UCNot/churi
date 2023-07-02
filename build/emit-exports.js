@@ -10,7 +10,7 @@ const scriptPath = fileURLToPath(import.meta.url);
 const distDir = path.resolve(path.dirname(scriptPath), '..', 'dist');
 
 await Promise.all([
-  emitDefaults(),
+  emitDeserializerDefaults(),
   emitUcValueDeserializer(),
   emitUcValueDeserializerTypes(),
   emitURIChargeDeserializer(),
@@ -19,7 +19,7 @@ await Promise.all([
   emitMainModuleTypes(),
 ]);
 
-async function emitDefaults() {
+async function emitDeserializerDefaults() {
   const compiler = new UcdCompiler({
     models: {},
     exportDefaults: true,
@@ -30,7 +30,7 @@ async function emitDefaults() {
   });
 
   await fs.writeFile(
-    path.join(distDir, 'churi.defaults.js'),
+    path.join(distDir, 'churi.deserializer.defaults.js'),
     await compiler.generate(
       {},
       `export { onMeta$byDefault } from '#churi/uc-value/deserializer.js';`,

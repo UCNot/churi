@@ -1,7 +1,7 @@
 import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_DEFAULTS, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UC_MODULE_DESERIALIZER, UC_MODULE_DESERIALIZER_DEFAULTS } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -105,7 +105,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
               : undefined,
           options: {
             declare: () => code => {
-              const onMeta$byDefault = UC_MODULE_DEFAULTS.import('onMeta$byDefault');
+              const onMeta$byDefault = UC_MODULE_DESERIALIZER_DEFAULTS.import('onMeta$byDefault');
 
               code.multiLine(code => {
                 code
