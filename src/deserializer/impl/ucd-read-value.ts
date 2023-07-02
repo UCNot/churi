@@ -170,6 +170,8 @@ export async function ucdReadValue(
 }
 
 async function ucdReadMetaOrEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+  reader.skip(); // Skip exclamation mark.
+
   const found = await reader.find(token => {
     if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
       return true;
@@ -197,27 +199,41 @@ async function ucdReadMetaOrEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle)
 
         break;
       case UC_TOKEN_APOSTROPHE:
-        // Parameterized entity.
-        tokens = await ucdReadTokens(reader, rx, true);
-
-        break;
+        // Formatted data.
+        return await ucdReadFormatted(
+          reader,
+          rx,
+          printUcTokens(trimUcTokensTail(reader.consumePrev())),
+        );
       default:
         // Metadata attribute.
         return await ucdReadMetaAndValue(reader, rx);
     }
   }
 
-  if (trimUcTokensTail(tokens).length === 1) {
+  const trimmed = trimUcTokensTail(tokens);
+
+  if (!trimmed.length) {
     // Process single exclamation mark.
     rx.bol(true);
   } else {
     // Process entity.
-    rx.ent(tokens);
+    rx.ent(printUcTokens(trimmed));
   }
 }
 
+async function ucdReadFormatted(
+  reader: AsyncUcdReader,
+  rx: UcrxHandle,
+  format: string,
+): Promise<void> {
+  reader.skip(); // Skip apostrophe.
+
+  rx.fmt(format, await ucdReadTokens(reader, rx, true));
+}
+
 async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
-  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev().slice(1)));
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev()));
 
   reader.skip(); // Skip opening parenthesis.
 

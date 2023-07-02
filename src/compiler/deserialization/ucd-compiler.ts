@@ -10,12 +10,11 @@ import {
 } from 'esgen';
 import { UcDeserializer } from '../../mod.js';
 import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UcToken } from '../../syntax/uc-token.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcdEntityFeature } from './ucd-entity-feature.js';
+import { UcdDefaultsFeature } from './ucd-defaults-feature.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
@@ -32,8 +31,15 @@ export class UcdCompiler<
 > extends UcrxProcessor<UcdCompiler.Any> {
 
   readonly #options: UcdCompiler.Options<TModels, TMode>;
-  #defaultEntities: UcdLib.EntityConfig[] | undefined;
-  #entities: UcdLib.EntityConfig[] | undefined = [];
+
+  #defaultEntities: UcdLib.HandlerConfig[] | undefined;
+  #entities: UcdLib.HandlerConfig[] | undefined = [];
+
+  #defaultFormats: UcdLib.HandlerConfig[] | undefined;
+  #formats: UcdLib.HandlerConfig[] | undefined = [];
+
+  #defaultMeta: UcdLib.HandlerConfig[] | undefined;
+  #meta: UcdLib.HandlerConfig[] | undefined = [];
 
   /**
    * Constructs deserializer compiler.
@@ -69,18 +75,25 @@ export class UcdCompiler<
   }
 
   #enableDefault(): UccConfig {
-    const config = ucdSupportDefaults(this);
+    const defaultConfig = ucdSupportDefaults(this);
 
-    if (this.#entities?.length) {
-      // Custom entities registered already.
-      return config;
+    if (this.#entities?.length || this.#formats?.length || this.#meta?.length) {
+      // Custom handlers registered already.
+      return defaultConfig;
     }
 
-    // Stop registering default entities.
+    // Stop registering default handlers.
     // Start registering custom ones.
-    config.configure();
+    defaultConfig.configure();
+
     this.#defaultEntities = this.#entities;
     this.#entities = undefined;
+
+    this.#defaultFormats = this.#formats;
+    this.#formats = [];
+
+    this.#defaultMeta = this.#meta;
+    this.#meta = [];
 
     return { configure: noop };
   }
@@ -88,34 +101,55 @@ export class UcdCompiler<
   /**
    * Configures entity handler.
    *
-   * @param entity - Matching entity. Either string or array of entity tokens.
+   * @param entity - Matching entity name.
    * @param feature - Entity support feature.
    *
    * @returns `this` instance.
    */
-  handleEntity(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#initEntities().push({ entity, feature });
+  handleEntity(entity: string, feature: UcdDefaultsFeature): this {
+    this.#initEntities().push({ key: entity, feature });
 
     return this;
+  }
+
+  #initEntities(): UcdLib.HandlerConfig[] {
+    return (this.#entities ??= this.#defaultEntities)!;
   }
 
   /**
-   * Configures entity prefix handler.
+   * Configures data format handler.
    *
-   * @param prefix - Matching entity prefix. Either string or array of entity tokens.
-   * @param feature - Entity support feature.
+   * @param format - Matching format name.
+   * @param feature - Format support feature.
    *
    * @returns `this` instance.
    */
-  handleEntityPrefix(prefix: string | readonly UcToken[], feature: UcdEntityFeature): this;
-  handleEntityPrefix(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#initEntities().push({ entity, feature, prefix: true });
+  handleFormat(format: string, feature: UcdDefaultsFeature): this {
+    this.#initFormats().push({ key: format, feature });
 
     return this;
   }
 
-  #initEntities(): UcdLib.EntityConfig[] {
-    return (this.#entities ??= this.#defaultEntities)!;
+  #initFormats(): UcdLib.HandlerConfig[] {
+    return (this.#formats ??= this.#defaultFormats)!;
+  }
+
+  /**
+   * Configures metadata attribute handler.
+   *
+   * @param attribute - Matching metadata attribute name.
+   * @param feature - Metadata support feature.
+   *
+   * @returns `this` instance.
+   */
+  handleMeta(attribute: string, feature: UcdDefaultsFeature): this {
+    this.#initMeta().push({ key: attribute, feature });
+
+    return this;
+  }
+
+  #initMeta(): UcdLib.HandlerConfig[] {
+    return (this.#meta ??= this.#defaultMeta)!;
   }
 
   /**
@@ -197,6 +231,8 @@ export class UcdCompiler<
       schemaIndex: this.schemaIndex,
       mode,
       entities: this.#entities,
+      formats: this.#formats,
+      meta: this.#meta,
     };
   }
 
@@ -246,7 +282,7 @@ export namespace UcdCompiler {
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
-    readonly exportEntityHandler?: boolean | undefined;
+    readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,

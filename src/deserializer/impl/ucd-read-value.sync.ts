@@ -178,6 +178,8 @@ export function ucdReadValueSync(
 }
 
 function ucdReadMetaOrEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+  reader.skip(); // Skip exclamation mark.
+
   const found = reader.find(token => {
     if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
       return true;
@@ -205,27 +207,41 @@ function ucdReadMetaOrEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): v
 
         break;
       case UC_TOKEN_APOSTROPHE:
-        // Parameterized entity.
-        tokens = ucdReadTokensSync(reader, rx, true);
-
-        break;
+        // Formatted data.
+        return ucdReadFormattedSync(
+          reader,
+          rx,
+          printUcTokens(trimUcTokensTail(reader.consumePrev())),
+        );
       default:
         // Metadata attribute.
         return ucdReadMetaAndValueSync(reader, rx);
     }
   }
 
-  if (trimUcTokensTail(tokens).length === 1) {
+  const trimmed = trimUcTokensTail(tokens);
+
+  if (!trimmed.length) {
     // Process single exclamation mark.
     rx.bol(true);
   } else {
     // Process entity.
-    rx.ent(tokens);
+    rx.ent(printUcTokens(trimmed));
   }
 }
 
+function ucdReadFormattedSync(
+  reader: SyncUcdReader,
+  rx: UcrxHandle,
+  format: string,
+): void {
+  reader.skip(); // Skip apostrophe.
+
+  rx.fmt(format, ucdReadTokensSync(reader, rx, true));
+}
+
 function ucdReadMetaAndValueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
-  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev().slice(1)));
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev()));
 
   reader.skip(); // Skip opening parenthesis.
 

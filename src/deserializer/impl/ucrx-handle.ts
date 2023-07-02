@@ -47,8 +47,12 @@ export class UcrxHandle implements UcrxContext {
     return (this.#meta ??= UcMeta.create());
   }
 
-  onEntity(entity: readonly UcToken[]): 0 | 1 {
-    return this.#reader.onEntity(this, this.#rx, entity);
+  onEntity(entity: string): 0 | 1 {
+    return this.#reader.entities[entity]?.(this, this.#rx, entity) ?? 0;
+  }
+
+  onFormat(format: string, data: readonly UcToken[]): 0 | 1 {
+    return this.#reader.formats[format]?.(this, this.#rx, format, data) ?? 0;
   }
 
   onMeta(attribute: string): Ucrx | undefined {
@@ -74,10 +78,16 @@ export class UcrxHandle implements UcrxContext {
     this.#rx.bol(value, this);
   }
 
-  ent(entity: readonly UcToken[]): void {
+  ent(entity: string): void {
     if (!this.onEntity(entity)) {
       // Process entity.
       this.#rx.ent(entity, this);
+    }
+  }
+
+  fmt(format: string, data: readonly UcToken[]): void {
+    if (!this.onFormat(format, data)) {
+      this.#rx.fmt(format, data, this);
     }
   }
 

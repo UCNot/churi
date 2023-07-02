@@ -1,6 +1,8 @@
 import { EsArg, EsCode, EsMethodDeclaration, esStringLiteral, esline } from 'esgen';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UcrxAttrSetter, UcrxAttrSetterSignature } from './ucrx-attr-setter.js';
+import { UcrxEntitySetter } from './ucrx-entity-setter.js';
+import { UcrxFormattedSetter } from './ucrx-formatted-setter.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxProperty } from './ucrx-property.js';
 import { UcrxSetter } from './ucrx-setter.js';
@@ -10,7 +12,8 @@ export type UcrxCore = {
   readonly att: UcrxMethod<UcrxAttrSetterSignature.Args>;
   readonly bol: UcrxSetter;
   readonly big: UcrxSetter;
-  readonly ent: UcrxSetter;
+  readonly ent: UcrxEntitySetter;
+  readonly fmt: UcrxFormattedSetter;
   readonly nls: UcrxMethod<{ cx: EsArg }>;
   readonly nul: UcrxMethod<{ cx: EsArg }>;
   readonly num: UcrxSetter;
@@ -32,21 +35,8 @@ export const UcrxCore: UcrxCore = {
   att: /*#__PURE__*/ new UcrxAttrSetter('att'),
   bol: /*#__PURE__*/ new UcrxSetter('bol', { typeName: 'boolean' }),
   big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint' }),
-  ent: /*#__PURE__*/ new UcrxSetter('ent', {
-    stub: {
-      body({
-        member: {
-          args: { value, cx },
-        },
-      }) {
-        const UcEntity = UC_MODULE_CHURI.import('UcEntity');
-        const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
-
-        return esline`return this.any(new ${UcEntity}(${value})) || ${cx}.reject(${ucrxRejectType}('entity', this));`;
-      },
-    },
-    typeName: 'entity',
-  }),
+  ent: /*#__PURE__*/ new UcrxEntitySetter('ent'),
+  fmt: /*#__PURE__*/ new UcrxFormattedSetter('fmt'),
   nls: /*#__PURE__*/ new UcrxMethod('nls', {
     args: { cx: {} },
     stub: UcrxCore$rejectType('nested list'),

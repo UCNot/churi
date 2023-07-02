@@ -67,7 +67,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     externalName: string,
     signature: UcdExportSignature,
   ): EsFunction<UcdExportSignature.Args> {
-    const { mode, opaqueUcrx, entityHandler } = this.lib;
+    const { mode, opaqueUcrx, defaultEntities, defaultFormats, defaultMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -75,7 +75,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
           .write('{')
           .indent(
             'onError,',
-            'onEntity,',
+            defaultEntities !== 'undefined' ? 'entities,' : EsCode.none,
+            defaultFormats !== 'undefined' ? 'formats,' : EsCode.none,
             'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
           )
@@ -106,9 +107,33 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             declare: () => code => {
               const onMeta$byDefault = UC_MODULE_DEFAULTS.import('onMeta$byDefault');
 
-              code.write(
-                esline`{ onError, onEntity = ${entityHandler}, onMeta = ${onMeta$byDefault} } = {}`,
-              );
+              code.multiLine(code => {
+                code
+                  .write('{')
+                  .indent(
+                    'onError,',
+                    defaultEntities !== 'undefined'
+                      ? esline`entities = ${defaultEntities},`
+                      : EsCode.none,
+                    defaultFormats !== 'undefined'
+                      ? esline`formats = ${defaultFormats},`
+                      : EsCode.none,
+                    code => {
+                      if (defaultMeta === 'undefined') {
+                        code.line('onMeta = ', onMeta$byDefault, ',');
+                      } else {
+                        code.line(
+                          `onMeta = (cx, rx, attr) =>`,
+                          defaultMeta,
+                          '[attr]?.(cx, rx, attr) ?? ',
+                          onMeta$byDefault,
+                          '(cx, rx, attr),',
+                        );
+                      }
+                    },
+                  )
+                  .write('} = {}');
+              });
             },
           },
         },

@@ -58,12 +58,23 @@ export interface Ucrx {
    *
    * Called for unhandled entities.
    *
-   * @param value - Charged entity tokens.
+   * @param name - Charged entity name.
    * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected entity.
    */
-  ent(value: readonly UcToken[], cx: UcrxContext): 0 | 1;
+  ent(name: string, cx: UcrxContext): 0 | 1;
+
+  /**
+   * Charges opaque (unrecognized) formatted data.
+   *
+   * @param format - Charged data format name.
+   * @param data - Charged data tokens.
+   * @param cx - Charge processing context.
+   *
+   * @returns Either `1` if charge succeed, or `0` for unexpected data.
+   */
+  fmt(format: string, data: readonly UcToken[], cx: UcrxContext): 0 | 1;
 
   /**
    * Charges nested list.

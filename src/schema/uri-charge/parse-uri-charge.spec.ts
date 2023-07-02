@@ -170,19 +170,19 @@ describe('parseURICharge', () => {
       const charge = parse('!bar%20baz');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ entity: 'bar baz' });
     });
     it('recognized as map entry value', () => {
       const charge = parse('foo(!bar%20baz)').get('foo');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ entity: 'bar baz' });
     });
     it('recognized as list item value', () => {
       const list = parse(',!bar%20baz');
 
       expect(list).toBeURIChargeList(1, 'entity');
-      expect(list).toHaveURIChargeItems({ raw: '!bar%20baz' });
+      expect(list).toHaveURIChargeItems({ entity: 'bar baz' });
     });
   });
 

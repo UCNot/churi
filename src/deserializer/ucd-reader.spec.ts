@@ -12,10 +12,10 @@ describe('UcdReader', () => {
     reader.done();
   });
 
-  describe('onEntity', () => {
+  describe('entities', () => {
     it('ignores entity by default', () => {
       reader = readChunks('abc');
-      expect(reader.onEntity(null!, null!, [])).toBe(0);
+      expect(reader.entities).toEqual({});
     });
   });
 

@@ -1,11 +1,7 @@
-import { encodeURIPart } from 'httongue';
 import { AllUcrx } from '../../rx/all.ucrx.js';
 import { chargeURI } from '../../rx/charge-uri.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
-import { printUcTokens } from '../../syntax/print-uc-token.js';
-import { UcLexer } from '../../syntax/uc-lexer.js';
-import { UcToken } from '../../syntax/uc-token.js';
 
 /**
  * Opaque charge entity.
@@ -14,42 +10,26 @@ import { UcToken } from '../../syntax/uc-token.js';
  */
 export class UcEntity implements Uctx {
 
-  readonly #tokens: readonly UcToken[];
-  #raw?: string;
+  readonly #name: string;
 
   /**
    * Constructs unrecognized entity.
    *
-   * @param tokens - The entity entity tokens. When string is given, it will be {@link UcLexer.scan scanned} for tokens.
+   * @param name - Entity name.
    */
-  constructor(tokens: string | readonly UcToken[]) {
-    this.#tokens = typeof tokens === 'string' ? UcLexer.scan(tokens) : tokens;
+  constructor(name: string) {
+    this.#name = name;
   }
 
   /**
-   * Entity tokens.
+   * Entity name.
    */
-  get tokens(): readonly UcToken[] {
-    return this.#tokens;
-  }
-
-  /**
-   * The entity as is.
-   */
-  get raw(): string {
-    return (this.#raw ??= printUcTokens(this.tokens, encodeURIPart));
+  get name(): string {
+    return this.#name;
   }
 
   get [Symbol.toStringTag](): string {
     return 'UcEntity';
-  }
-
-  [Symbol.toPrimitive](): string {
-    return this.raw;
-  }
-
-  valueOf(): string {
-    return this.raw;
   }
 
   /**
@@ -60,7 +40,7 @@ export class UcEntity implements Uctx {
    */
   toUC(rx: AllUcrx, mode: UctxMode): void;
   toUC(rx: AllUcrx, _mode: UctxMode): void {
-    rx.ent(this.tokens);
+    rx.ent(this.name);
   }
 
   /**

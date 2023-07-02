@@ -5,9 +5,15 @@ import {
   ucrxDecodeString,
 } from '../impl/ucrx-decode-raw.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
+import { UcFormatted } from '../schema/entity/uc-formatted.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
-import { ucrxRejectEntity, ucrxRejectNull, ucrxRejectType } from './ucrx-rejection.js';
+import {
+  ucrxRejectEntity,
+  ucrxRejectFormat,
+  ucrxRejectNull,
+  ucrxRejectType,
+} from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 
 export class VoidUcrx implements Ucrx {
@@ -30,8 +36,12 @@ export class VoidUcrx implements Ucrx {
     return this.any(value) || cx.reject(ucrxRejectType('bigint', this));
   }
 
-  ent(value: readonly UcToken[], cx: UcrxContext): 0 | 1 {
-    return this.any(new UcEntity(value)) || cx.reject(ucrxRejectEntity(value));
+  ent(name: string, cx: UcrxContext): 0 | 1 {
+    return this.any(new UcEntity(name)) || cx.reject(ucrxRejectEntity(name));
+  }
+
+  fmt(format: string, data: readonly UcToken[], cx: UcrxContext): 0 | 1 {
+    return this.any(new UcFormatted(format, data)) || cx.reject(ucrxRejectFormat(format, data));
   }
 
   att(attr: string, cx: UcrxContext): Ucrx | undefined;

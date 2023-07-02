@@ -35,7 +35,17 @@ export interface UcrxContext {
    *
    * @returns Either `1` if entity recognized, or `0` for unrecognized entity.
    */
-  onEntity(entity: readonly UcToken[]): 0 | 1;
+  onEntity(entity: string): 0 | 1;
+
+  /**
+   * Processes formatted data.
+   *
+   * @param format - Name of format to process.
+   * @param data - Formatted data tokens.
+   *
+   * @returns Either `1` if format and its data recognized, or `0` otherwise.
+   */
+  onFormat(format: string, data: readonly UcToken[]): 0 | 1;
 
   /**
    * Processes metadata attribute.

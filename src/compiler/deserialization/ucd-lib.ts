@@ -4,19 +4,17 @@ import {
   EsNamespace,
   EsSnippet,
   EsVarSymbol,
-  esEscapeString,
+  esMemberAccessor,
   esline,
 } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UcLexer } from '../../syntax/uc-lexer.js';
-import { UcToken } from '../../syntax/uc-token.js';
-import { UC_MODULE_CHURI, UC_MODULE_DEFAULTS } from '../impl/uc-modules.js';
+import { UC_MODULE_DEFAULTS } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdModels } from './ucd-compiler.js';
-import { UcdEntityFeature } from './ucd-entity-feature.js';
+import { UcdDefaultsFeature } from './ucd-defaults-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
 
@@ -36,14 +34,18 @@ export class UcdLib<
   };
 
   readonly #options: UcdLib.Options<TModels, TMode>;
-  readonly #entities: UcdLib.EntityConfig[] | undefined;
+  readonly #entities: UcdLib.HandlerConfig[] | undefined;
+  readonly #formats: UcdLib.HandlerConfig[] | undefined = [];
+  readonly #meta: UcdLib.HandlerConfig[] | undefined = [];
   readonly #createDeserializer: Exclude<
     UcdLib.Options<TModels, TMode>['createDeserializer'],
     undefined
   >;
 
   readonly #deserializers = new Map<string, UcdFunction>();
-  readonly #entityHandler: EsSnippet;
+  readonly #defaultEntities: EsSnippet;
+  readonly #defaultFormats: EsSnippet;
+  readonly #defaultMeta: EsSnippet;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
@@ -51,6 +53,8 @@ export class UcdLib<
       schemaIndex,
       models,
       entities,
+      formats,
+      meta,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
@@ -59,9 +63,13 @@ export class UcdLib<
     this.#schemaIndex = schemaIndex;
     this.#options = options;
     this.#entities = entities;
+    this.#formats = formats;
+    this.#meta = meta;
     this.#models = this.#createModels(models);
     this.#createDeserializer = createDeserializer;
-    this.#entityHandler = this.#createEntityHandler(ns);
+    this.#defaultEntities = this.#createDefaults('defaultEntities', this.#entities, ns);
+    this.#defaultFormats = this.#createDefaults('defaultFormats', this.#formats, ns);
+    this.#defaultMeta = this.#createDefaults('defaultMeta', this.#meta, ns);
     this.#declareDeserializers(ns);
   }
 
@@ -75,61 +83,55 @@ export class UcdLib<
     };
   }
 
-  #createEntityHandler(ns: EsNamespace): EsSnippet {
-    const { exportEntityHandler } = this.#options;
-    const entities = this.#entities;
+  #createDefaults(
+    name: string,
+    defaults: readonly UcdLib.HandlerConfig[] | undefined,
+    ns: EsNamespace,
+  ): EsSnippet {
+    const { exportDefaults } = this.#options;
 
-    if (!entities) {
+    if (!defaults) {
       // Use precompiled entity handler.
-      return UC_MODULE_DEFAULTS.import('onEntity$byDefault');
+      return UC_MODULE_DEFAULTS.import(name);
     }
 
-    if (!entities.length) {
+    if (!defaults.length) {
       // No entities supported.
       return 'undefined';
     }
 
     // Generate custom entity handler.
-    const entityHandler = new EsVarSymbol('onEntity$byDefault', {
+    const defaultEntities = new EsVarSymbol(name, {
       declare: {
-        at: exportEntityHandler ? 'exports' : 'bundle',
-        value: context => code => {
-          code.write(this.#registerEntities(context));
-        },
+        at: exportDefaults ? 'exports' : 'bundle',
+        value: context => this.#registerDefaults(defaults, context),
       },
     });
 
-    return exportEntityHandler ? ns.refer(entityHandler) : entityHandler;
+    return exportDefaults ? ns.refer(defaultEntities) : defaultEntities;
   }
 
-  #registerEntities({ refer }: EsDeclarationContext): EsSnippet {
-    const EntityUcrxHandler = UC_MODULE_CHURI.import('EntityUcrxHandler');
-
+  #registerDefaults(
+    defaults: readonly UcdLib.HandlerConfig[],
+    { refer }: EsDeclarationContext,
+  ): EsSnippet {
     return code => {
-      code.write(esline`new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entities!.forEach(({ entity, feature, prefix }) => {
-          if (typeof entity === 'string') {
-            entity = UcLexer.scan(entity);
-          }
-
-          const tokenArray =
-            '['
-            + entity
-              .map(token => typeof token === 'number' ? token.toString() : `'${esEscapeString(token)}'`)
-              .join(', ')
-            + ']';
-
-          code.write(
-            feature({
-              lib: this,
-              register: entityRx => code => {
-                code.line(prefix ? '.addPrefix(' : '.addEntity(', tokenArray, ', ', entityRx, ')');
-              },
-              refer,
-            }),
-          );
-        });
-      }, '.toRx()');
+      code.multiLine(code => {
+        code
+          .write(`{`)
+          .indent(code => {
+            defaults.forEach(({ key, feature }) => {
+              code.write(
+                feature({
+                  lib: this,
+                  register: handler => esline`${esMemberAccessor(key).key}: ${handler},`,
+                  refer,
+                }),
+              );
+            });
+          })
+          .write('}');
+      });
     };
   }
 
@@ -145,8 +147,16 @@ export class UcdLib<
     return this.#options.mode;
   }
 
-  get entityHandler(): EsSnippet {
-    return this.#entityHandler;
+  get defaultEntities(): EsSnippet {
+    return this.#defaultEntities;
+  }
+
+  get defaultFormats(): EsSnippet {
+    return this.#defaultFormats;
+  }
+
+  get defaultMeta(): EsSnippet {
+    return this.#defaultMeta;
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -180,8 +190,10 @@ export namespace UcdLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
     readonly mode: TMode;
-    readonly entities?: EntityConfig[] | undefined;
-    readonly exportEntityHandler?: boolean | undefined;
+    readonly entities?: HandlerConfig[] | undefined;
+    readonly formats?: HandlerConfig[] | undefined;
+    readonly meta?: HandlerConfig[] | undefined;
+    readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -189,9 +201,8 @@ export namespace UcdLib {
     ): UcdFunction<T, TSchema>;
   }
 
-  export interface EntityConfig {
-    readonly entity: string | readonly UcToken[];
-    readonly feature: UcdEntityFeature;
-    readonly prefix?: boolean;
+  export interface HandlerConfig {
+    readonly key: string;
+    readonly feature: UcdDefaultsFeature;
   }
 }

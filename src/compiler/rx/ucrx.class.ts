@@ -3,7 +3,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
-import { UcrxMethod } from './ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 
 export abstract class UcrxClass<
   out TArgs extends UcrxSignature.Args = UcrxSignature.Args,
@@ -13,7 +13,7 @@ export abstract class UcrxClass<
 
   readonly #schema: TSchema;
   readonly #typeName: string;
-  readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, unknown>, unknown[]>();
+  readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
@@ -68,13 +68,13 @@ export abstract class UcrxClass<
     return !!this.baseUcrx?.isMemberOverridden(member);
   }
 
-  methodModifiersOf<TArgs extends EsSignature.Args, TMod>(
+  methodModifiersOf<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
   ): readonly TMod[] {
     return (this.#methodMods.get(method) ?? []) as TMod[];
   }
 
-  modifyMethod<TArgs extends EsSignature.Args, TMod>(
+  modifyMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
   ): void {

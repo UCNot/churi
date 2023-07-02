@@ -1,6 +1,8 @@
 import { parseUcValue } from '#churi/uc-value/deserializer.js';
 import { describe, expect, it } from '@jest/globals';
+import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { UcEntity } from '../entity/uc-entity.js';
+import { UcFormatted } from '../entity/uc-formatted.js';
 
 describe('parseUcValue', () => {
   describe('string value', () => {
@@ -210,10 +212,14 @@ describe('parseUcValue', () => {
       expect(parseUcValue('!bar%20baz,')).toEqual([new UcEntity('!bar%20baz')]);
       expect(parseUcValue(',!bar%20baz,')).toEqual([new UcEntity('!bar%20baz')]);
     });
-    it('closes hanging parentheses', () => {
-      const { raw } = parseUcValue("!foo'(bar(item1,item2)baz(") as UcEntity;
+  });
 
-      expect(raw).toBe("!foo'(bar(item1,item2)baz())");
+  describe('formatted data', () => {
+    it('closes hanging parentheses', () => {
+      const { format, data } = parseUcValue("!foo'(bar(item1,item2)baz(") as UcFormatted;
+
+      expect(format).toBe('foo');
+      expect(printUcTokens(data)).toBe('(bar(item1,item2)baz())');
     });
   });
 

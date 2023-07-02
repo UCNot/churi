@@ -23,26 +23,26 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   typeName: 'date',
 });
 
-export function ucdSupportTimestampEntity(compiler: UcdCompiler.Any): UccConfig {
+export function ucdSupportTimestampFormat(compiler: UcdCompiler.Any): UccConfig {
   return {
     configure() {
-      compiler.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampEntityOnly);
+      compiler.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampFormatOnly);
     },
   };
 }
 
 const readTimestampEntityFn = new EsFunction(
-  'readTimestampEntity',
+  'readTimestampFormat',
   {
-    context: {},
+    cx: {},
     rx: {},
-    prefix: {},
-    args: {},
+    format: {},
+    data: {},
   },
   {
     declare: {
       at: 'bundle',
-      body({ args: { context, rx, args } }) {
+      body({ args: { cx, rx, data } }) {
         return (code, scope) => {
           const lib = scope.get(UcrxLib);
           const date = new EsVarSymbol('date');
@@ -50,18 +50,18 @@ const readTimestampEntityFn = new EsFunction(
           const setDate = lib.baseUcrx.member(TimestampUcrxMethod);
 
           code
-            .line(date.declare({ value: () => esline`new Date(${printTokens}(${args}))` }), ';')
-            .line('return ', setDate.call(rx, { value: date, cx: context }), ';');
+            .line(date.declare({ value: () => esline`new Date(${printTokens}(${data}))` }), ';')
+            .line('return ', setDate.call(rx, { value: date, cx }), ';');
         };
       },
     },
   },
 );
 
-export function ucdSupportTimestampEntityOnly(compiler: UcdCompiler.Any): UccConfig {
+export function ucdSupportTimestampFormatOnly(compiler: UcdCompiler.Any): UccConfig {
   return {
     configure() {
-      compiler.handleEntityPrefix("!timestamp'", ({ register, refer }) => code => {
+      compiler.handleFormat('timestamp', ({ register, refer }) => code => {
         refer(readTimestampEntityFn);
 
         code.write(register(readTimestampEntityFn.symbol));
@@ -75,7 +75,7 @@ export const UcdSupportTimestamp: UccFeature.Object<UcdCompiler.Any> = {
     return {
       configure() {
         compiler
-          .enable(ucdSupportTimestampEntity)
+          .enable(ucdSupportTimestampFormat)
           .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
       },
     };

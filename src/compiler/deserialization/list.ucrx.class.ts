@@ -20,7 +20,7 @@ import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdCompiler } from './ucd-compiler.js';
@@ -359,7 +359,7 @@ export class ListUcrxClass<
     }
   }
 
-  #delegate<TArgs extends EsSignature.Args, TMod>(
+  #delegate<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     itemRx: EsPropertyHandle,
   ): void {

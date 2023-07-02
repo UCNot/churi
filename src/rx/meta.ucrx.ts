@@ -4,11 +4,10 @@ import { Ucrx } from './ucrx.js';
 /**
  * Charge metadata receiver.
  *
- * @param context - Charge processing context.
+ * @param cx - Charge processing context.
  * @param rx - Charge receiver.
- * @param attribute - Metadata attribute name.
- * @param reject - Rejection callback.
+ * @param attr - Metadata attribute name.
  *
  * @returns Either metadata argument receiver, or `undefined` if metadata attribute can not be recognized.
  */
-export type MetaUcrx = (context: UcrxContext, rx: Ucrx, attribute: string) => Ucrx | undefined;
+export type MetaUcrx = (cx: UcrxContext, rx: Ucrx, attr: string) => Ucrx | undefined;

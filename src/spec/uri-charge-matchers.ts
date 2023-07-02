@@ -2,6 +2,7 @@
 import { expect } from '@jest/globals';
 import { ExpectationResult, MatcherContext } from 'expect';
 import { UcEntity } from '../schema/entity/uc-entity.js';
+import { UcFormatted } from '../schema/entity/uc-formatted.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
 
 expect.extend({
@@ -190,7 +191,10 @@ function extractURIChargeValue(charge: URICharge): unknown {
   const { value } = charge;
 
   if (value instanceof UcEntity) {
-    return { raw: value.raw };
+    return { entity: value.name };
+  }
+  if (value instanceof UcFormatted) {
+    return { format: value.format, data: value.data };
   }
 
   return value;

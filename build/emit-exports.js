@@ -22,9 +22,9 @@ await Promise.all([
 async function emitDefaults() {
   const compiler = new UcdCompiler({
     models: {},
-    exportEntityHandler: true,
+    exportDefaults: true,
     features(compiler) {
-      // Call explicitly rather enable to force entity handler generation.
+      // Call explicitly rather enable to force default handlers generation.
       return ucdSupportDefaults(compiler);
     },
   });

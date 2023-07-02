@@ -3,7 +3,7 @@ import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from './ucrx-lib.js';
-import { UcrxMethod } from './ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 import { UcrxClass, UcrxProto } from './ucrx.class.js';
 
 /**
@@ -52,7 +52,9 @@ export abstract class UcrxProcessor<
    *
    * @returns `this` instance.
    */
-  declareUcrxMethod<TArgs extends EsSignature.Args, TMod>(method: UcrxMethod<TArgs, TMod>): this {
+  declareUcrxMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
+    method: UcrxMethod<TArgs, TMod>,
+  ): this {
     this.#methods.add(method);
 
     return this;
@@ -69,7 +71,7 @@ export abstract class UcrxProcessor<
    *
    * @returns `this` instance.
    */
-  modifyUcrxMethod<TArgs extends EsSignature.Args, TMod>(
+  modifyUcrxMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     schema: UcSchema,
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
@@ -131,7 +133,7 @@ class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<
     return this.#schemaEntryFor(schema).proto(this.#proto);
   }
 
-  modifyMethodOf<TArgs extends EsSignature.Args, TMod>(
+  modifyMethodOf<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     schema: TSchema,
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
@@ -187,7 +189,7 @@ class UcrxSchemaEntry<out T, out TSchema extends UcSchema<T>> {
     };
   }
 
-  modifyMethod<TArgs extends EsSignature.Args, TMod>(
+  modifyMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
   ): void {

@@ -7,7 +7,7 @@ export * from './map.ucrx.class.js';
 export * from './number.ucrx.class.js';
 export * from './string.ucrx.class.js';
 export * from './ucd-compiler.js';
-export * from './ucd-entity-feature.js';
+export * from './ucd-defaults-feature.js';
 export * from './ucd-export.signature.js';
 export * from './ucd-function.js';
 export * from './ucd-lib.js';

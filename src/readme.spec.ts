@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { chargeURI } from './rx/charge-uri.js';
 import { churi } from './rx/churi.tag.js';
 import { UcEntity } from './schema/entity/uc-entity.js';
+import { UcFormatted } from './schema/entity/uc-formatted.js';
 
 const DOC_EXAMPLE =
   'https://example.com/api(!v3.0)/user;id=0n302875106592253'
@@ -12,13 +13,13 @@ describe('README.md', () => {
     it('is correct', () => {
       expect(churi`
         https://example.com
-          /api(${new UcEntity('!v3.0')})
+          /api(${new UcEntity('v3.0')})
           /user;id=${302875106592253n}
           /article;slug=${'hello-world'}
           /comments
             ?date=${{
-              since: new UcEntity("!date'1970-01-01"),
-              till: new UcEntity('!now'),
+              since: new UcFormatted('date', '1970-01-01'),
+              till: new UcEntity('now'),
             }}
             &range=${{
               from: 10,
@@ -32,13 +33,13 @@ describe('README.md', () => {
     it('is correct', () => {
       expect(
         `https://example.com`
-          + `/api(${chargeURI(new UcEntity('!v3.0'))})`
+          + `/api(${chargeURI(new UcEntity('v3.0'))})`
           + `/user;id=${chargeURI(302875106592253n)}`
           + `/article;slug=${chargeURI('hello-world')}`
           + `/comments`
           + `?date=${chargeURI({
-            since: new UcEntity("!date'1970-01-01"),
-            till: new UcEntity('!now'),
+            since: new UcFormatted('date', '1970-01-01'),
+            till: new UcEntity('now'),
           })}`
           + `&range=${chargeURI({
             from: 10,

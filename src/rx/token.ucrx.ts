@@ -81,9 +81,20 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
-  ent(value: readonly UcToken[]): 1 {
+  ent(name: string): 1 {
     this.#addItem();
-    value.forEach(this.#add);
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(name);
+
+    return 1;
+  }
+
+  fmt(format: string, data: readonly UcToken[]): 1 {
+    this.#addItem();
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(format);
+    this.#add(UC_TOKEN_APOSTROPHE);
+    data.forEach(this.#add);
 
     return 1;
   }

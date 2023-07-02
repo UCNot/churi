@@ -111,13 +111,24 @@ export function ucrxRejectEntry(key: string): UcrxRejection {
   };
 }
 
-export function ucrxRejectEntity(entity: readonly UcToken[]): UcrxRejection {
+export function ucrxRejectEntity(entity: string): UcrxRejection {
   return {
     code: 'unrecognizedEntity',
     details: {
       entity,
     },
-    message: `Unrecognized entity: ${printUcTokens(entity)}`,
+    message: `Unrecognized entity: !${entity}`,
+  };
+}
+
+export function ucrxRejectFormat(format: string, data: readonly UcToken[]): UcrxRejection {
+  return {
+    code: 'unrecognizedFormat',
+    details: {
+      format,
+      data,
+    },
+    message: `Unrecognized data format: !${format}'${printUcTokens(data)}`,
   };
 }
 

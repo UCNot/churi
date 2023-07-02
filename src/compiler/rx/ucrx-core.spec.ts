@@ -35,8 +35,21 @@ class TestClass {
       await expect(generate(UcrxCore.ent)).resolves.toContain(
         `
 class TestClass {
-  ent(value, cx) {
-    return this.any(new UcEntity(value)) || cx.reject(ucrxRejectType('entity', this));
+  ent(name, cx) {
+    return this.any(new UcEntity(name)) || cx.reject(ucrxRejectEntity(name));
+  }
+}`.trimStart(),
+      );
+    });
+  });
+
+  describe('fmt', () => {
+    it('has stub creating UcFormatted instance', async () => {
+      await expect(generate(UcrxCore.fmt)).resolves.toContain(
+        `
+class TestClass {
+  fmt(format, data, cx) {
+    return this.any(new UcFormatted(format, data)) || cx.reject(ucrxRejectFormat(format, data));
   }
 }`.trimStart(),
       );

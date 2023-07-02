@@ -18,7 +18,7 @@ import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
@@ -282,7 +282,9 @@ export class UnknownUcrxClass extends UcrxClass {
     });
   }
 
-  #declareMethod<TArgs extends EsSignature.Args>(method: UcrxMethod<TArgs>): void {
+  #declareMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
+    method: UcrxMethod<TArgs, TMod>,
+  ): void {
     method.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
@@ -316,7 +318,7 @@ export class UnknownUcrxClass extends UcrxClass {
     }
   }
 
-  protected addItem<TArgs extends EsSignature.Args, TMod>(
+  protected addItem<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     listRx: EsSnippet,
     args: EsSignature.ValuesOf<TArgs>,
@@ -324,8 +326,8 @@ export class UnknownUcrxClass extends UcrxClass {
     return esline`return ${this.member(method).call(listRx, args)};`;
   }
 
-  protected setValue<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  protected setValue<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
+    method: UcrxMethod<TArgs, TMod>,
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet {
     return esline`return ${this.member(method).call('super', args)};`;

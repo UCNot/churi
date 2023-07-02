@@ -28,7 +28,7 @@ export function readMetaMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
 export function ucdSupportMetaMapEntity(compiler: UcdCompiler.Any): UccConfig {
   return {
     configure() {
-      compiler.handleEntity('!meta-map', ({ register }) => code => {
+      compiler.handleEntity('meta-map', ({ register }) => code => {
         code.write(register(UC_MODULE_SPEC.import('readMetaMap')));
       });
     },

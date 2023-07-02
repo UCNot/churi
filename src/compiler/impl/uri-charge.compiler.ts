@@ -9,9 +9,10 @@ import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js
 import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
-import { UcrxAttrSetter, UcrxAttrSetterSignature } from '../rx/ucrx-attr-setter.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxEntitySetterSignature } from '../rx/ucrx-entity-setter.js';
+import { UcrxFormattedSetterSignature } from '../rx/ucrx-formatted-setter.js';
+import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UC_MODULE_CHURI, UC_MODULE_URI_CHARGE } from './uc-modules.js';
 
@@ -94,15 +95,17 @@ class URIChargeMapUcrxStore implements MapUcrxStore {
 
 class URIChargeUcrxClass extends UnknownUcrxClass {
 
-  protected override setValue<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  protected override setValue<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
+    method: UcrxMethod<TArgs, TMod>,
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet {
     switch (method as UcrxMethod<any>) {
       case UcrxCore.att:
-        return this.#setAttr(UcrxCore.att, args as UcrxAttrSetterSignature.Values);
+        return EsCode.none;
       case UcrxCore.ent:
-        return this.#setEntity(UcrxCore.ent, args as UcrxSetterSignature.Values);
+        return this.#setEntity(args as UcrxEntitySetterSignature.Values);
+      case UcrxCore.fmt:
+        return this.#setFormatted(args as UcrxFormattedSetterSignature.Values);
       case UcrxCore.nul:
         return this.#setNull(args as { cx: EsSnippet });
       default:
@@ -125,64 +128,36 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
     })};`;
   }
 
-  #setAttr(_method: UcrxAttrSetter, _args: UcrxAttrSetterSignature.Values): EsSnippet {
-    return EsCode.none;
-  }
-
-  #setEntity(method: UcrxSetter, { value, cx }: UcrxSetterSignature.Values): EsSnippet {
-    const type = esStringLiteral(method.typeName);
+  #setEntity({ name, cx }: UcrxEntitySetterSignature.Values): EsSnippet {
     const UcEntity = UC_MODULE_CHURI.import('UcEntity');
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return esline`return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}, ${cx}.meta));`;
+    return code => {
+      code.line(
+        'return this.any(',
+        esline`new ${URICharge$Single}(new ${UcEntity}(${name}), 'entity', ${cx}.meta)`,
+        ');',
+      );
+    };
+  }
+
+  #setFormatted({ format, data, cx }: UcrxFormattedSetterSignature.Values): EsSnippet {
+    const UcFormatted = UC_MODULE_CHURI.import('UcFormatted');
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
+
+    return code => {
+      code.line(
+        'return this.any(',
+        esline`new ${URICharge$Single}(new ${UcFormatted}(${format}, ${data}), 'formatted', ${cx}.meta)`,
+        ');',
+      );
+    };
   }
 
   #setNull({ cx }: { cx: EsSnippet }): EsSnippet {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
     return esline`return this.any(new ${URICharge$Single}(null, 'null', ${cx}.meta));`;
-  }
-
-  protected override addItem<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
-    listRx: EsSnippet,
-    args: EsSignature.ValuesOf<TArgs>,
-  ): EsSnippet {
-    switch (method as UcrxMethod<any>) {
-      case UcrxCore.nul:
-        return this.#addNull(listRx, args);
-      case UcrxCore.att:
-        return this.#addAttr(listRx, args);
-      default:
-        if (isUcrxSetter(method)) {
-          return this.#addValue(method, listRx, args as UcrxSetterSignature.Values);
-        }
-    }
-
-    // istanbul ignore next
-    throw new TypeError(`Unsupported URICharge method: ${method}`);
-  }
-
-  #addValue(method: UcrxSetter, listRx: EsSnippet, args: UcrxSetterSignature.Values): EsSnippet {
-    return esline`return ${this.member(method).call(listRx, args)};`;
-  }
-
-  #addAttr<TArgs extends EsSignature.Args>(
-    listRx: EsSnippet,
-    args: EsSignature.ValuesOf<TArgs>,
-  ): EsSnippet;
-
-  #addAttr(listRx: EsSnippet, { attr, cx }: UcrxAttrSetterSignature.Values): EsSnippet {
-    return esline`return ${listRx}.att(${attr}, ${cx});`;
-  }
-
-  #addNull<TArgs extends EsSignature.Args>(
-    listRx: EsSnippet,
-    args: EsSignature.ValuesOf<TArgs>,
-  ): EsSnippet;
-
-  #addNull(listRx: EsSnippet, { cx }: { cx: EsSnippet }): EsSnippet {
-    return esline`return ${listRx}.nul(${cx});`;
   }
 
 }
