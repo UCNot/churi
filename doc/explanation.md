@@ -1,24 +1,34 @@
 # Example Explained
 
 ```
-https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
+https://example.com/!v(3)api/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
 Here:
 
-- `/api(!v3.0)` is a path fragment charged with `!v3.0` entity.
+- `/!v(3)api` is an `/api` path fragment charged with `!v(3)` _metadata attribute_.
 
-  Entities are URI Charge Notation extensions interpreted by custom handlers.
+  _Metadata_ extends URI Charge Notation. Any number of metadata attributes may precede the value. Attribute has a name
+  immediately following the exclamation mark (`!v`), and value enclosed in parentheses (`(3)`).
 
-- `/user;id=0n302875106592253` is a path fragment charged with user ID specified as `user` matrix parameter.
+  Metadata can be used by charge processors.
+
+- `/user;id=0n302875106592253` is a `/user` path fragment charged with user ID specified as `id` matrix parameter.
 
   Notice the `0n` prefix preceding [BigInt] value (unsupported by JSON).
 
-- `/article;slug=hello-world` is a path fragment with simple string matrix parameter.
+- `/article;slug=hello-world` is an `/article` path fragment with simple string matrix parameter.
 
-- `?date=since(!date'1970-01-01)till(!now)` is a query parameter charged with map value.
+- `?date=since(!date'1970-01-01)till(!now)` is a `date` query parameter charged with map value.
 
-  Notice the `!date'1970-01-01` and `!now` entities.
+  Notice the `!date'1970-01-01` _formatted data_ and `!now` _entity_.
+
+  _Formatted data_ is another URI Charge Notation extension. It consists of format name following the exclamation mark
+  (`!data`), and data specific to the named format following the apostrophe (`'1970-01-01`). Formatted data interpreted
+  by custom handlers. It can be used to represent values non-standard to URI Charge Notation, e.g. date or base64.
+
+  _Entity_ is the third URI Charge Notation extension that represents simple values or constants. Entities recognized
+  by custom handlers. Standard entities include `!Infinity`, `!-Infinity`, and `!NaN`.
 
   The `date` parameter charge corresponds to JavaScript object literal like:
 
