@@ -68,21 +68,8 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
       charge = raw.slice(0, matrixStart);
     }
 
-    const nameEnd = charge.search(CHURI_NAME_DELIMITER_PATTERN);
-    let name: string;
-
-    if (nameEnd < 0) {
-      name = charge.startsWith('$') || charge.startsWith("'") ? charge.slice(1) : charge;
-    } else if (charge.startsWith('$')) {
-      name = charge.slice(1, nameEnd);
-    } else {
-      const nameDelimiter = charge[nameEnd];
-
-      name = charge.slice(nameDelimiter !== '(' && charge.startsWith("'") ? 1 : 0, nameEnd);
-    }
-
     return {
-      name: decodeURIComponent(name),
+      name: ChURIRoute$extractName(ChURIRoute$stripMeta(charge)),
       raw,
     };
   }
@@ -251,8 +238,6 @@ export namespace ChURIRoute {
   }
 }
 
-const CHURI_NAME_DELIMITER_PATTERN = /[,()]/;
-
 interface UcRoute$Parts {
   readonly name: string;
   readonly raw: string;
@@ -336,6 +321,58 @@ class ChURIRoute$Data<out TMatrix> {
     this.#parts[index] = route;
   }
 
+}
+
+const CHURI_NAME_DELIMITER_PATTERN = /[(),]/;
+
+function ChURIRoute$extractName(charge: string): string {
+  const nameEnd = charge.search(CHURI_NAME_DELIMITER_PATTERN);
+  let name: string;
+
+  if (nameEnd < 0) {
+    name = charge.startsWith('$') || charge.startsWith("'") ? charge.slice(1) : charge;
+  } else if (charge.startsWith('$')) {
+    name = charge.slice(1, nameEnd);
+  } else {
+    const nameDelimiter = charge[nameEnd];
+
+    name = charge.slice(nameDelimiter !== '(' && charge.startsWith("'") ? 1 : 0, nameEnd);
+  }
+
+  return decodeURIComponent(name);
+}
+
+const CHURI_NAME_META_PATTERN = /^![^'(),]*\(/;
+const CHURI_NAME_PARENTHESES_PATTERN = /[()]/;
+
+function ChURIRoute$stripMeta(charge: string): string {
+  for (;;) {
+    const match = CHURI_NAME_META_PATTERN.exec(charge);
+
+    if (!match) {
+      return charge;
+    }
+
+    charge = charge.slice(match[0].length);
+
+    let openParentheses = 1;
+
+    do {
+      const parenthesesIdx = charge.search(CHURI_NAME_PARENTHESES_PATTERN);
+
+      if (parenthesesIdx < 0) {
+        return ''; // Unbalanced parentheses.
+      }
+
+      if (charge[parenthesesIdx] === '(') {
+        ++openParentheses;
+      } else {
+        --openParentheses;
+      }
+
+      charge = charge.slice(parenthesesIdx + 1);
+    } while (openParentheses > 0);
+  }
 }
 
 function ChURIRoute$normalizeFragments(fragments: string[]): void {

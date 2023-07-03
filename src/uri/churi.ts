@@ -113,7 +113,7 @@ export class ChURI<
     this.#scheme = this.#protocol.slice(0, -1); // Without trailing colon.
     this.#rawUser = result[2] ?? '';
 
-    this.#Route = Route as new (path: string) => TRoute;
+    this.#Route = Route as ChURI.CustomRouteOptions<TRoute>['Route'];
     this.#Query = Query as new (search: string) => TQuery;
     this.#Anchor = Anchor as new (search: string) => TAnchor;
     this.#Auth = Auth as new (search: string) => TAuth;
