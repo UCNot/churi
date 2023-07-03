@@ -1,20 +1,10 @@
-import {
-  EsBundle,
-  EsDeclarationContext,
-  EsNamespace,
-  EsSnippet,
-  EsVarSymbol,
-  esMemberAccessor,
-  esline,
-} from 'esgen';
+import { EsBundle, EsNamespace, EsSnippet } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_DESERIALIZER_DEFAULTS } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdModels } from './ucd-compiler.js';
-import { UcdDefaultsFeature } from './ucd-defaults-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
 
@@ -34,9 +24,6 @@ export class UcdLib<
   };
 
   readonly #options: UcdLib.Options<TModels, TMode>;
-  readonly #entities: UcdLib.HandlerConfig[] | undefined;
-  readonly #formats: UcdLib.HandlerConfig[] | undefined = [];
-  readonly #meta: UcdLib.HandlerConfig[] | undefined = [];
   readonly #createDeserializer: Exclude<
     UcdLib.Options<TModels, TMode>['createDeserializer'],
     undefined
@@ -52,6 +39,7 @@ export class UcdLib<
     const {
       schemaIndex,
       models,
+      exportDefaults,
       entities,
       formats,
       meta,
@@ -62,14 +50,15 @@ export class UcdLib<
 
     this.#schemaIndex = schemaIndex;
     this.#options = options;
-    this.#entities = entities;
-    this.#formats = formats;
-    this.#meta = meta;
     this.#models = this.#createModels(models);
     this.#createDeserializer = createDeserializer;
-    this.#defaultEntities = this.#createDefaults('defaultEntities', this.#entities, ns);
-    this.#defaultFormats = this.#createDefaults('defaultFormats', this.#formats, ns);
-    this.#defaultMeta = this.#createDefaults('defaultMeta', this.#meta, ns);
+
+    const exportNs = exportDefaults ? ns : undefined;
+
+    this.#defaultEntities = entities(exportNs);
+    this.#defaultFormats = formats(exportNs);
+    this.#defaultMeta = meta(exportNs);
+
     this.#declareDeserializers(ns);
   }
 
@@ -83,63 +72,15 @@ export class UcdLib<
     };
   }
 
-  #createDefaults(
-    name: string,
-    defaults: readonly UcdLib.HandlerConfig[] | undefined,
-    ns: EsNamespace,
-  ): EsSnippet {
-    const { exportDefaults } = this.#options;
-
-    if (!defaults) {
-      // Use precompiled entity handler.
-      return UC_MODULE_DESERIALIZER_DEFAULTS.import(name);
-    }
-
-    if (!defaults.length) {
-      // No entities supported.
-      return 'undefined';
-    }
-
-    // Generate custom entity handler.
-    const defaultEntities = new EsVarSymbol(name, {
-      declare: {
-        at: exportDefaults ? 'exports' : 'bundle',
-        value: context => this.#registerDefaults(defaults, context),
-      },
-    });
-
-    return exportDefaults ? ns.refer(defaultEntities) : defaultEntities;
-  }
-
-  #registerDefaults(
-    defaults: readonly UcdLib.HandlerConfig[],
-    { refer }: EsDeclarationContext,
-  ): EsSnippet {
-    return code => {
-      code.multiLine(code => {
-        code
-          .write(`{`)
-          .indent(code => {
-            defaults.forEach(({ key, feature }) => {
-              code.write(
-                feature({
-                  lib: this,
-                  register: handler => esline`${esMemberAccessor(key).key}: ${handler},`,
-                  refer,
-                }),
-              );
-            });
-          })
-          .write('}');
-      });
-    };
-  }
-
   #declareDeserializers(ns: EsNamespace): void {
     for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
       const fn = this.deserializerFor(schema);
 
       ns.refer(fn.exportFn(externalName, UcdExportSignature));
+    }
+
+    for (const { schema, whenCompiled } of this.#options.internalModels) {
+      whenCompiled(this.deserializerFor(schema).ucrxClass);
     }
   }
 
@@ -189,10 +130,11 @@ export namespace UcdLib {
     extends UcrxLib.Options {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
+    readonly internalModels: InternalModel[];
     readonly mode: TMode;
-    readonly entities?: HandlerConfig[] | undefined;
-    readonly formats?: HandlerConfig[] | undefined;
-    readonly meta?: HandlerConfig[] | undefined;
+    entities(this: void, exportNs?: EsNamespace): EsSnippet;
+    formats(this: void, exportNs?: EsNamespace): EsSnippet;
+    meta(this: void, exportNs?: EsNamespace): EsSnippet;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
@@ -201,8 +143,8 @@ export namespace UcdLib {
     ): UcdFunction<T, TSchema>;
   }
 
-  export interface HandlerConfig {
-    readonly key: string;
-    readonly feature: UcdDefaultsFeature;
+  export interface InternalModel<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+    readonly schema: UcSchema;
+    whenCompiled(this: void, ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>): void;
   }
 }

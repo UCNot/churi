@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { esline } from 'esgen';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../../compiler/deserialization/ucd-support-defaults.js';
 import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
 import { ucdSupportMetaMapEntity } from '../../spec/meta-map.entity.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import '../../spec/uri-charge-matchers.js';
+import { ucString } from '../string/uc-string.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { ucUnknown } from '../unknown/uc-unknown.js';
 import { URICharge } from '../uri-charge/uri-charge.js';
@@ -112,6 +114,54 @@ describe('UcMeta deserializer', () => {
           test: ['value2'],
         },
       });
+    });
+  });
+
+  describe('with custom handler and meta setter', () => {
+    let parse: UcDeserializer.Sync<unknown>;
+
+    beforeEach(async () => {
+      const compiler = new UcdCompiler({
+        models: { parse: ucUnknown() },
+        features: [
+          ucdSupportDefaults,
+          compiler => ({
+            configure() {
+              compiler.parseMetaValue('comment', ucString(), ({ cx, rx, value }) => code => {
+                code.write(esline`${rx}.for('comment', ${cx}).str(${value}, ${cx})`);
+              });
+            },
+          }),
+        ],
+      });
+
+      ({ parse } = await compiler.evaluate());
+    });
+
+    it('recognizes meta', () => {
+      expect(parse('!comment(Test comment) text(Test value)')).toEqual({
+        comment: 'Test comment',
+        text: 'Test value',
+      });
+    });
+  });
+
+  describe('with custom handler and default meta setter', () => {
+    let parse: UcDeserializer.Sync<URICharge>;
+
+    beforeEach(async () => {
+      const compiler = new URIChargeCompiler();
+
+      compiler.parseMetaValue('comment', ucString());
+
+      ({ parseURICharge: parse } = await compiler.evaluate());
+    });
+
+    it('recognizes meta', () => {
+      const charge = parse('!comment(Test comment) Test value');
+
+      expect(charge).toHaveURIChargeValue('Test value');
+      expect(charge.meta.get('comment')).toBe('Test comment');
     });
   });
 });

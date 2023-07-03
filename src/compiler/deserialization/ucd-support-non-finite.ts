@@ -1,7 +1,7 @@
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcdCompiler } from './ucd-compiler.js';
-import { UcdDefaultsFeature, UcdDefaultsSetup } from './ucd-defaults-feature.js';
+import { UcdHandlerFeature, UcdHandlerSetup } from './ucd-handler-feature.js';
 
 export function ucdSupportNonFinite(compiler: UcdCompiler.Any): UccConfig {
   return {
@@ -14,8 +14,8 @@ export function ucdSupportNonFinite(compiler: UcdCompiler.Any): UccConfig {
   };
 }
 
-function handleUcdNonFinite(reader: string): UcdDefaultsFeature {
-  return ({ register, refer }: UcdDefaultsSetup) => {
+function handleUcdNonFinite(reader: string): UcdHandlerFeature {
+  return ({ register, refer }: UcdHandlerSetup) => {
     const readEntity = UC_MODULE_DESERIALIZER.import(reader);
 
     refer(readEntity);

@@ -1,21 +1,30 @@
-import { asArray, noop } from '@proc7ts/primitives';
+import { asArray, asis } from '@proc7ts/primitives';
 import {
   EsBundle,
+  EsCode,
+  EsDeclarationContext,
   EsEvaluationOptions,
+  EsFunction,
   EsGenerationOptions,
   EsScopeSetup,
   EsSnippet,
+  EsSymbol,
   esEvaluate,
   esGenerate,
+  esStringLiteral,
+  esline,
 } from 'esgen';
+import { capitalize } from 'httongue';
 import { UcDeserializer } from '../../mod.js';
 import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcdDefaultsFeature } from './ucd-defaults-feature.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';
+import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
@@ -32,14 +41,11 @@ export class UcdCompiler<
 
   readonly #options: UcdCompiler.Options<TModels, TMode>;
 
-  #defaultEntities: UcdLib.HandlerConfig[] | undefined;
-  #entities: UcdLib.HandlerConfig[] | undefined = [];
+  readonly #entities: UcdHandlerRegistry;
+  readonly #formats: UcdHandlerRegistry;
+  readonly #meta: UcdHandlerRegistry;
 
-  #defaultFormats: UcdLib.HandlerConfig[] | undefined;
-  #formats: UcdLib.HandlerConfig[] | undefined = [];
-
-  #defaultMeta: UcdLib.HandlerConfig[] | undefined;
-  #meta: UcdLib.HandlerConfig[] | undefined = [];
+  readonly #internalModels: UcdLib.InternalModel[] = [];
 
   /**
    * Constructs deserializer compiler.
@@ -62,6 +68,9 @@ export class UcdCompiler<
     });
 
     this.#options = options;
+    this.#entities = new UcdHandlerRegistry('defaultEntities');
+    this.#formats = new UcdHandlerRegistry('defaultFormats');
+    this.#meta = new UcdHandlerRegistry('defaultMeta');
   }
 
   protected override createConfig<TOptions>(
@@ -75,27 +84,50 @@ export class UcdCompiler<
   }
 
   #enableDefault(): UccConfig {
+    return {
+      configure: () => this.#configureDefaults(),
+    };
+  }
+
+  #configureDefaults(): void {
     const defaultConfig = ucdSupportDefaults(this);
 
-    if (this.#entities?.length || this.#formats?.length || this.#meta?.length) {
-      // Custom handlers registered already.
-      return defaultConfig;
-    }
+    this.#entities.configureDefaults();
+    this.#formats.configureDefaults();
+    this.#meta.configureDefaults();
 
     // Stop registering default handlers.
     // Start registering custom ones.
     defaultConfig.configure();
 
-    this.#defaultEntities = this.#entities;
-    this.#entities = undefined;
+    this.#entities.makeDefault();
+    this.#formats.makeDefault();
+    this.#meta.makeDefault();
+  }
 
-    this.#defaultFormats = this.#formats;
-    this.#formats = [];
+  /**
+   * Requests the given `schema` to be compiled.
+   *
+   * Once compiled, an {@link UcrxClass} will be reported to the given `whenCompiled` callback. It can be used
+   * to generated parser code for the input matching the schema.
+   *
+   * @param schema - Schema to compile.
+   * @param whenCompiled - Callback function to call when schema compiled.
+   *
+   * @returns `this` instance.
+   */
+  compileSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+    whenCompiled: (
+      /**
+       * Compiled charge receiver class.
+       */
+      ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>,
+    ) => void,
+  ): this {
+    this.#internalModels.push({ schema, whenCompiled });
 
-    this.#defaultMeta = this.#meta;
-    this.#meta = [];
-
-    return { configure: noop };
+    return this;
   }
 
   /**
@@ -106,14 +138,10 @@ export class UcdCompiler<
    *
    * @returns `this` instance.
    */
-  handleEntity(entity: string, feature: UcdDefaultsFeature): this {
-    this.#initEntities().push({ key: entity, feature });
+  handleEntity(entity: string, feature: UcdHandlerFeature): this {
+    this.#entities.addHandler(entity, feature);
 
     return this;
-  }
-
-  #initEntities(): UcdLib.HandlerConfig[] {
-    return (this.#entities ??= this.#defaultEntities)!;
   }
 
   /**
@@ -124,14 +152,10 @@ export class UcdCompiler<
    *
    * @returns `this` instance.
    */
-  handleFormat(format: string, feature: UcdDefaultsFeature): this {
-    this.#initFormats().push({ key: format, feature });
+  handleFormat(format: string, feature: UcdHandlerFeature): this {
+    this.#formats.addHandler(format, feature);
 
     return this;
-  }
-
-  #initFormats(): UcdLib.HandlerConfig[] {
-    return (this.#formats ??= this.#defaultFormats)!;
   }
 
   /**
@@ -142,14 +166,82 @@ export class UcdCompiler<
    *
    * @returns `this` instance.
    */
-  handleMeta(attribute: string, feature: UcdDefaultsFeature): this {
-    this.#initMeta().push({ key: attribute, feature });
+  handleMeta(attribute: string, feature: UcdHandlerFeature): this {
+    this.#meta.addHandler(attribute, feature);
 
     return this;
   }
 
-  #initMeta(): UcdLib.HandlerConfig[] {
-    return (this.#meta ??= this.#defaultMeta)!;
+  /**
+   * Requests the given `attribute` value to be parsed with the given `schema`.
+   *
+   * @param attribute - Target attribute.
+   * @param schema - Attribute value schema.
+   * @param set - Emits code for attribute value assignment.
+   *
+   * By default, attribute will be added to metadata.
+   *
+   * @returns `this` instance.
+   */
+  parseMetaValue<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    attribute: string,
+    schema: TSchema,
+    set: (
+      this: void,
+      /**
+       * Attribute value assignment arguments.
+       */
+      args: {
+        /**
+         * Charge processing context.
+         */
+        readonly cx: EsSnippet;
+
+        /**
+         * Charge receiver.
+         */
+        readonly rx: EsSnippet;
+
+        /**
+         * Attribute value.
+         */
+        readonly value: EsSnippet;
+      },
+      /**
+       * Declaration context of attribute handler function.
+       */
+      context: EsDeclarationContext,
+    ) => EsSnippet = ({ cx, value }) => esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
+  ): this {
+    const ucrxRef = new EsCode();
+    const handleAttr = new EsFunction(
+      `handle${capitalize(attribute)}Attr`,
+      {
+        cx: {},
+        rx: {},
+        attr: {},
+      },
+      {
+        declare: {
+          at: 'bundle',
+          body:
+            ({ args: { cx, rx } }, context) => (code, { ns }) => {
+              const value = ns.addSymbol(new EsSymbol('$'), asis);
+
+              code
+                .write(esline`return new ${ucrxRef}(${value} => {`)
+                .indent(set({ cx, rx, value }, context))
+                .write('});');
+            },
+        },
+      },
+    );
+
+    this.compileSchema(schema, ucrxClass => {
+      ucrxRef.write(ucrxClass);
+    });
+
+    return this.handleMeta(attribute, setup => setup.register(handleAttr));
   }
 
   /**
@@ -229,10 +321,11 @@ export class UcdCompiler<
       ...this.#options,
       ...this.createUcrxLibOptions(),
       schemaIndex: this.schemaIndex,
+      internalModels: this.#internalModels,
       mode,
-      entities: this.#entities,
-      formats: this.#formats,
-      meta: this.#meta,
+      entities: this.#entities.declare(),
+      formats: this.#formats.declare(),
+      meta: this.#meta.declare(),
     };
   }
 

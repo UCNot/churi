@@ -123,7 +123,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
                         code.line('onMeta = ', onMeta$byDefault, ',');
                       } else {
                         code.line(
-                          `onMeta = (cx, rx, attr) =>`,
+                          `onMeta = (cx, rx, attr) => `,
                           defaultMeta,
                           '[attr]?.(cx, rx, attr) ?? ',
                           onMeta$byDefault,

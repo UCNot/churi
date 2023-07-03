@@ -278,7 +278,7 @@ export class UnknownUcrxClass extends UcrxClass {
         member: {
           args: { value },
         },
-      }) => esline`return this.set(${value})`,
+      }) => esline`return this.set(${value});`,
     });
   }
 
