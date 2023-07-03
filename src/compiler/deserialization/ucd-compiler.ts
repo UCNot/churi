@@ -1,7 +1,7 @@
+import { PromiseResolver } from '@proc7ts/async';
 import { asArray, asis } from '@proc7ts/primitives';
 import {
   EsBundle,
-  EsCode,
   EsDeclarationContext,
   EsEvaluationOptions,
   EsFunction,
@@ -213,7 +213,7 @@ export class UcdCompiler<
       context: EsDeclarationContext,
     ) => EsSnippet = ({ cx, value }) => esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
   ): this {
-    const ucrxRef = new EsCode();
+    const whenUcrxClass = new PromiseResolver<UcrxClass>();
     const handleAttr = new EsFunction(
       `handle${capitalize(attribute)}Attr`,
       {
@@ -225,11 +225,12 @@ export class UcdCompiler<
         declare: {
           at: 'bundle',
           body:
-            ({ args: { cx, rx } }, context) => (code, { ns }) => {
+            ({ args: { cx, rx } }, context) => async (code, { ns }) => {
               const value = ns.addSymbol(new EsSymbol('$'), asis);
+              const ucrxClass = await whenUcrxClass.whenDone();
 
               code
-                .write(esline`return new ${ucrxRef}(${value} => {`)
+                .write(esline`return new ${ucrxClass}(${value} => {`)
                 .indent(set({ cx, rx, value }, context))
                 .write('});');
             },
@@ -238,7 +239,7 @@ export class UcdCompiler<
     );
 
     this.compileSchema(schema, ucrxClass => {
-      ucrxRef.write(ucrxClass);
+      whenUcrxClass.resolve(ucrxClass);
     });
 
     return this.handleMeta(attribute, setup => setup.register(handleAttr));
