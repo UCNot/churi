@@ -75,8 +75,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
           .write('{')
           .indent(
             'onError,',
-            defaultEntities !== 'undefined' ? 'entities,' : EsCode.none,
-            defaultFormats !== 'undefined' ? 'formats,' : EsCode.none,
+            'entities,',
+            'formats,',
             'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
           )
@@ -114,10 +114,10 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
                     'onError,',
                     defaultEntities !== 'undefined'
                       ? esline`entities = ${defaultEntities},`
-                      : EsCode.none,
+                      : `entities,`,
                     defaultFormats !== 'undefined'
                       ? esline`formats = ${defaultFormats},`
-                      : EsCode.none,
+                      : `formats,`,
                     code => {
                       if (defaultMeta === 'undefined') {
                         code.line('onMeta = ', onMeta$byDefault, ',');
