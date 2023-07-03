@@ -1,4 +1,5 @@
 import { AllUcrx } from '../../rx/all.ucrx.js';
+import { TokenUcrx } from '../../rx/token.ucrx.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
 import { Uctx } from '../../rx/uctx.js';
 import { UcMeta } from '../meta/uc-meta.js';
@@ -154,6 +155,15 @@ export abstract class URICharge implements Uctx {
    * @param mode - Transfer mode.
    */
   abstract toUC(rx: AllUcrx, mode: UctxMode): void;
+
+  /**
+   * Builds string representation of URI charge.
+   *
+   * @returns String representation.
+   */
+  toString(): string {
+    return TokenUcrx.print(this)!;
+  }
 
 }
 

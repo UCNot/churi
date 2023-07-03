@@ -1,5 +1,5 @@
 import { AllUcrx } from '../../../rx/all.ucrx.js';
-import { TokenUcrx } from '../../../rx/token.ucrx.js';
+import { UctxMode$Default } from '../../../rx/uctx-mode.impl.js';
 import { UctxMode } from '../../../rx/uctx-mode.js';
 import { uctxArray, uctxMap, uctxValue } from '../../../rx/uctx-value.js';
 import { UcMeta } from '../../meta/uc-meta.js';
@@ -14,10 +14,6 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
 
   override isSome(): true {
     return true;
-  }
-
-  override toString(): string {
-    return TokenUcrx.print(this)!;
   }
 
 }
@@ -90,6 +86,12 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
   }
 
   override toUC(rx: AllUcrx, mode: UctxMode): void {
+    const meta = this.#meta;
+
+    if (meta.size) {
+      meta.toUC(rx, mode);
+    }
+
     uctxValue(rx, this.#value, mode);
   }
 
@@ -161,6 +163,12 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
   }
 
   override toUC(rx: AllUcrx, _mode: UctxMode): void {
+    const meta = this.#meta;
+
+    if (meta.size) {
+      meta.toUC(rx, UctxMode$Default);
+    }
+
     uctxMap(rx, this.#map);
   }
 

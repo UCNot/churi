@@ -70,11 +70,14 @@ export function uctxArray(rx: AllUcrx, list: unknown[], { asItem }: UctxMode): v
   if (asItem) {
     rx = rx.nls();
   }
-  rx.and();
+  rx.and(); // In case of empty list this has to be called.
 
-  for (const item of list) {
+  list.forEach((item, index) => {
+    if (index) {
+      rx.and(); // Already called for the first item.
+    }
     uctxValue(rx, item ?? null, UctxMode$AsItem);
-  }
+  });
 
   rx.end();
 }

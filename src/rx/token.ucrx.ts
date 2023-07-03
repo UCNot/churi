@@ -57,7 +57,7 @@ export class TokenUcrx implements AllUcrx {
   }
 
   att(attribute: string): AllUcrx {
-    this.#addItem();
+    this.#mode = this.#mode.addMeta(this.#add);
     this.#mode = TokenUcrx$startMeta(this.#mode);
 
     this.#add(UC_TOKEN_EXCLAMATION_MARK);
@@ -199,6 +199,7 @@ export class TokenUcrx implements AllUcrx {
 interface TokenUcrx$Mode {
   and(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   addItem(addToken: (token: UcToken) => void): TokenUcrx$Mode;
+  addMeta(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   empty(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   nls(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   entry(addToken: (token: UcToken) => void): TokenUcrx$Mode;
@@ -209,6 +210,7 @@ interface TokenUcrx$Mode {
 const TokenUcrx$Invalid: TokenUcrx$Mode = {
   and: TokenUcrx$error,
   addItem: TokenUcrx$error,
+  addMeta: TokenUcrx$error,
   empty: TokenUcrx$error,
   nls: TokenUcrx$error,
   entry: TokenUcrx$error,
@@ -221,6 +223,9 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
     return TokenUcrx$startList(this, false);
   },
   addItem(_addToken): TokenUcrx$Mode {
+    return this;
+  },
+  addMeta(_addToken): TokenUcrx$Mode {
     return this;
   },
   empty(addToken): TokenUcrx$Mode {
@@ -246,6 +251,9 @@ function TokenUcrx$startMeta(prev: TokenUcrx$Mode): TokenUcrx$Mode {
       return TokenUcrx$startList(this, false);
     },
     addItem(_addToken): TokenUcrx$Mode {
+      return this;
+    },
+    addMeta(_addToken): TokenUcrx$Mode {
       return this;
     },
     empty(addToken): TokenUcrx$Mode {
@@ -275,29 +283,42 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
   let itemCount = 0;
   let lastEmpty = false;
   let lastNls = false;
+  let afterMeta = false;
 
   const add = (addToken: (token: UcToken) => void, empty: boolean, nls: boolean): void => {
-    if (itemCount) {
-      if (lastEmpty && itemCount === 1) {
-        addToken(UC_TOKEN_COMMA);
+    if (afterMeta) {
+      afterMeta = false;
+    } else {
+      if (itemCount) {
+        if (lastEmpty && itemCount === 1) {
+          addToken(UC_TOKEN_COMMA);
+        }
+        if (!nls || !lastNls) {
+          // Add commas between items, unless items are nested lists.
+          addToken(UC_TOKEN_COMMA);
+        }
       }
-      if (!nls || !lastNls) {
-        // Add commas between items, unless items are nested lists.
-        addToken(UC_TOKEN_COMMA);
-      }
-    }
 
-    ++itemCount;
-    lastEmpty = empty;
-    lastNls = nls;
+      ++itemCount;
+      lastEmpty = empty;
+      lastNls = nls;
+    }
   };
 
   return {
     and(_addToken) {
+      afterMeta = false;
+
       return this;
     },
     addItem(addToken): TokenUcrx$Mode {
       add(addToken, false, false);
+
+      return this;
+    },
+    addMeta(addToken): TokenUcrx$Mode {
+      add(addToken, false, false);
+      afterMeta = true;
 
       return this;
     },
@@ -349,6 +370,7 @@ function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
   return {
     and: TokenUcrx$error,
     addItem: TokenUcrx$error,
+    addMeta: TokenUcrx$error,
     empty: TokenUcrx$error,
     nls: TokenUcrx$error,
     entry(addToken) {
