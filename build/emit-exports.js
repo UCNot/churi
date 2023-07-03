@@ -29,13 +29,12 @@ async function emitDeserializerDefaults() {
     },
   });
 
-  await fs.writeFile(
-    path.join(distDir, 'churi.deserializer.defaults.js'),
+  await writeDistFile(
+    'churi.deserializer.defaults.js',
     await compiler.generate(
       {},
       `export { onMeta$byDefault } from '#churi/uc-value/deserializer.js';`,
     ),
-    'utf-8',
   );
 }
 
@@ -56,66 +55,58 @@ async function emitUcValueDeserializer() {
     },
   );
 
-  await fs.writeFile(
-    path.join(distDir, 'churi.uc-value.deserializer.js'),
+  await writeDistFile(
+    'churi.uc-value.deserializer.js',
     await compiler.generate({}, (_, { ns }) => {
       ns.refer(onMeta$byDefault);
     }),
-    'utf-8',
   );
 }
 
 async function emitUcValueDeserializerTypes() {
-  await fs.writeFile(
-    path.join(distDir, 'churi.uc-value.deserializer.d.ts'),
+  await writeDistFile(
+    'churi.uc-value.deserializer.d.ts',
     `
 /// <reference path="churi.core.d.ts" />
 import type { UcDeserializer } from 'churi';
 
 export const parseUcValue: UcDeserializer.Sync<unknown>;
-`.trimStart(),
-    'utf-8',
+`,
   );
 }
 
 async function emitURIChargeDeserializer() {
   const compiler = new URIChargeCompiler();
 
-  await fs.writeFile(
-    path.join(distDir, 'churi.uri-charge.deserializer.js'),
-    await compiler.generate(),
-    'utf-8',
-  );
+  await writeDistFile('churi.uri-charge.deserializer.js', await compiler.generate());
 }
 
 async function emitURIChargeDeserializerTypes() {
-  await fs.writeFile(
-    path.join(distDir, 'churi.uri-charge.deserializer.d.ts'),
+  await writeDistFile(
+    'churi.uri-charge.deserializer.d.ts',
     `
 /// <reference path="churi.core.d.ts" />
 import type { UcDeserializer, URICharge } from 'churi';
 
 export const parseURICharge: UcDeserializer.Sync<URICharge>;
-`.trimStart(),
-    'utf-8',
+`,
   );
 }
 
 async function emitMainModule() {
-  await fs.writeFile(
-    path.join(distDir, 'churi.js'),
+  await writeDistFile(
+    'churi.js',
     `
 export * from './churi.core.js';
 export { parseUcValue } from './churi.uc-value.deserializer.js';
 export { parseURICharge } from './churi.uri-charge.deserializer.js';
-`.trimStart(),
-    'utf-8',
+`,
   );
 }
 
 async function emitMainModuleTypes() {
-  await fs.writeFile(
-    path.join(distDir, 'churi.d.ts'),
+  await writeDistFile(
+    'churi.d.ts',
     `
 /// <reference path="churi.core.d.ts" />
 /// <reference path="churi.uc-value.deserializer.d.ts" />
@@ -123,7 +114,14 @@ async function emitMainModuleTypes() {
 
 export { parseUcValue } from './churi.uc-value.deserializer.js';
 export { parseURICharge } from './churi.uri-charge.deserializer.js';
-`.trimStart(),
-    'utf-8',
+`,
   );
+}
+
+async function writeDistFile(name, contents) {
+  const distFile = path.join(distDir, name);
+
+  await fs.writeFile(distFile, contents.trimStart(), 'utf-8');
+
+  console.info('Generated', path.relative('..', distFile));
 }

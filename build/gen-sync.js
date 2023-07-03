@@ -43,7 +43,9 @@ async function genSync(sourceFile, targetFile, ...replacements) {
     && targetStat.mtimeMs > sourceStat.mtimeMs
     && targetStat.mtimeMs > scriptStat.mtimeMs
   ) {
-    return; // No modified.
+    console.info('Skipped  ', path.relative('..', targetFile));
+
+    return; // Not modified.
   }
 
   const sourceName = path.relative(path.dirname(targetFile), sourceFile);
@@ -66,4 +68,6 @@ async function genSync(sourceFile, targetFile, ...replacements) {
   }
 
   await fs.writeFile(targetFile, `${banner}${targetCode}`);
+
+  console.info('Generated', path.relative('..', targetFile));
 }
