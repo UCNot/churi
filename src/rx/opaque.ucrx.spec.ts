@@ -18,6 +18,12 @@ describe('OpaqueUcrx', () => {
     });
   });
 
+  describe('att', () => {
+    it('returns undefined', () => {
+      expect(new OpaqueUcrx().att('name')).toBeUndefined();
+    });
+  });
+
   describe('set', () => {
     it('has no effect', () => {
       class TestUcrx extends OpaqueUcrx {

@@ -190,7 +190,7 @@ An entry value is encoded within URI charge. Thus, it can be anything:
 - nested empty map: `foo($)`
 - list: `foo(bar,baz)`
 - empty list: `foo(,)`
-- multi-dimensional list: `foo((item1.1,item1.2)(item2.1,item2.2))
+- multidimensional list: `foo((item1.1,item1.2)(item2.1,item2.2))
 - empty string: `foo()`
 
 Map entry may be specified multiple times. However, it is up to parser (or data schema) how to interpret this.
@@ -218,37 +218,42 @@ value. So, `foo(bar)suffix` is the same as `foo(bar)suffix()` or `foo(bar)suffix
 
 ## Entities
 
-URI Charge Notation can be extended with custom _entities_. An entity is opaque syntax construct that don't have
-special meaning, unless recognized by custom parser.
+URI Charge Notation can be extended with custom _entities_. An entity is an opaque syntax construct that don't have
+special meaning, unless recognized by custom handler.
 
-Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by arbitrary string. It may include e.g. balanced
-set of parentheses, just like a _quoted string_.
+Entity starts with _exclamation mark_ (`"!" (U+0021)`) followed by entity name. Entity name should not include
+_apostrophe_ (`"'" (U+0027)`) or other delimiters.
 
-For example, the following entities supported by standard "Non-Finite Numbers" extension:
+The following entities supported by standard "Non-Finite Numbers" extension:
 
 - `!Infinity` is treated as `Infinity` (positive infinity) numeric value.
 - `!-Infinity` is treated as `-Infinity` (negative infinity) numeric value.
 - `!NaN` is treated as `NaN` (not-a-number) value.
 
-Entities either recognized by their names, or may have arbitrary syntax. E.g. they may have parameters:
+## Formatted Data
+
+_Formatted data_ extends URI Charge Notation with additional data formats, such as base64.
+
+Formatted data starts with _exclamation mark_ (`"!" (U+0021)`) followed by format name, _apostrophe_ (`"'" (U+0027)`),
+and arbitrary data in the named format. The data may include e.g. balanced set of parentheses, just like a _quoted string_.
+
+Example formatted data:
 
 ```
-!error(invalid-email,too-short,invalid-syntax)
+!base64'SGVsbG8sIFdvcmxkIQ
 ```
 
-It is up to parser implementation of how to treat the entity content. It may or may not strictly follow the URI charge
-syntax.
+## Metadata
 
-Parameterized entity is called _directive_. Typically, it has one of three forms:
+Metadata can be attached to any value. For that, any number of _metadata attributes_ may precede the value.
 
-1. Directive with value:
+Metadata attribute starts with _exclamation mark_ (`"!" (U+0021)`) followed by attribute name and value enclosed into
+parentheses.
 
-   `!base64'SGVsbG8sIFdvcmxkIQ`
+Unlike entities and formatted data, metadata attribute don't have to be recognized.
 
-2. Directive with attributes:
+Charge processor may use metadata e.g. as data processing parameter:
 
-   `!error(code(invalid-email)message(Invalid%20email),too-short,invalid-syntax)`
-
-3. Directive with attributes and value:
-
-   `!data(base64(!)content-type(text,plain)charset(utf-8))SGVsbG8sIFdvcmxkIQ`
+```
+content-type(text,plain)charset(utf-8)base64'SGVsbG8sIFdvcmxkIQ
+```

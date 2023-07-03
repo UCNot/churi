@@ -2,6 +2,7 @@ export * from './boolean/mod.js';
 export * from './entity/mod.js';
 export * from './list/mod.js';
 export * from './map/mod.js';
+export * from './meta/mod.js';
 export * from './numeric/mod.js';
 export * from './string/mod.js';
 export * from './uc-constraints.js';

@@ -2,7 +2,6 @@ import { parseURICharge } from '#churi/uri-charge/deserializer.js';
 import { describe, expect, it } from '@jest/globals';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { UC_TOKEN_EXCLAMATION_MARK } from '../syntax/uc-token.js';
 import { chargeURI } from './charge-uri.js';
 import { Uctx } from './uctx.js';
 
@@ -42,7 +41,7 @@ describe('chargeURI', () => {
     it('uses custom encoder', () => {
       const fn: Uctx = () => 1;
 
-      fn.toUC = rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'fn']);
+      fn.toUC = rx => rx.ent('fn');
       fn.toJSON = () => '!fn.json';
 
       expect(chargeURI(fn)).toBe('!fn');
@@ -170,7 +169,7 @@ describe('chargeURI', () => {
     });
     it('uses custom charge transfer', () => {
       const obj: Uctx = {
-        toUC: rx => rx.ent([UC_TOKEN_EXCLAMATION_MARK, 'obj']),
+        toUC: rx => rx.ent('obj'),
         toJSON: () => '!obj.json',
       };
 
@@ -324,13 +323,13 @@ describe('chargeURI', () => {
 
   describe('opaque entity', () => {
     it('encoded as top-level value', () => {
-      expect(chargeURI(new UcEntity('!test'))).toBe('!test');
+      expect(chargeURI(new UcEntity('test'))).toBe('!test');
     });
     it('encoded as map entry value', () => {
-      expect(chargeURI({ foo: new UcEntity('!test') })).toBe('foo(!test)');
+      expect(chargeURI({ foo: new UcEntity('test') })).toBe('foo(!test)');
     });
     it('encoded as list item value', () => {
-      expect(chargeURI([new UcEntity('!test')])).toBe('!test,');
+      expect(chargeURI([new UcEntity('test')])).toBe('!test,');
     });
   });
 

@@ -5,10 +5,10 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
-export class NumberUcrxClass extends UcrxClass<UcrxSignature1.Args, UcNumber, UcNumber.Schema> {
+export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcNumber.Schema> {
 
   static uccProcess(compiler: UcdCompiler.Any): UccConfig {
     return {
@@ -55,7 +55,7 @@ export class NumberUcrxClass extends UcrxClass<UcrxSignature1.Args, UcNumber, Uc
       UcrxCore.str.overrideIn(this, {
         body({
           member: {
-            args: { value, reject },
+            args: { value, cx },
           },
         }) {
           return code => {
@@ -65,10 +65,10 @@ export class NumberUcrxClass extends UcrxClass<UcrxSignature1.Args, UcNumber, Uc
             code
               .write(number.declare({ value: () => esline`Number(${value})` }))
               .write(esline`if (Number.isNaN(${number}) && ${value} !== 'NaN') {`)
-              .indent(esline`return ${reject}(${ucrxRejectType}('string', this));`)
+              .indent(esline`return ${cx}.reject(${ucrxRejectType}('string', this));`)
               .write('}');
 
-            code.write(esline`return this.num(${number}, ${reject});`);
+            code.write(esline`return this.num(${number}, ${cx});`);
           };
         },
       });

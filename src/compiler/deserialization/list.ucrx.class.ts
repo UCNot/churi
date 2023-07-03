@@ -20,7 +20,7 @@ import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdCompiler } from './ucd-compiler.js';
@@ -42,7 +42,6 @@ export class ListUcrxClass<
   readonly #itemClass: UcrxClass;
   readonly #isMatrix: boolean;
 
-  readonly #context: EsFieldHandle;
   readonly #items: EsFieldHandle;
   readonly #addItem: EsMethodHandle<{ item: EsArg }>;
   readonly #listCreated: EsFieldHandle;
@@ -82,9 +81,6 @@ export class ListUcrxClass<
     this.#itemClass = itemClass;
     this.#isMatrix = isMatrix;
 
-    this.#context = new EsField('context', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-    );
     this.#items = new EsField('items', { visibility: EsMemberVisibility.Private }).declareIn(this, {
       initializer: () => '[]',
     });
@@ -155,7 +151,6 @@ export class ListUcrxClass<
     return new EsProperty('itemRx', { visibility: EsMemberVisibility.Private }).declareIn(this, {
       get: () => esline`return ${itemRxState.get('this')} ??= ${this.itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
-          context: this.#context.get('this'),
         })};`,
     });
   }
@@ -165,7 +160,7 @@ export class ListUcrxClass<
       body:
         ({
           member: {
-            args: { set, context },
+            args: { set },
           },
         }) => code => {
           code.line(
@@ -174,12 +169,9 @@ export class ListUcrxClass<
               set: this.#isMatrix
                 ? set
                 : esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
-              context,
             }),
             ';',
           );
-
-          code.line(this.#context.set('this', context), ';');
 
           if (this.#setListField) {
             code.line(this.#setListField.set('this', set), ';');
@@ -192,15 +184,17 @@ export class ListUcrxClass<
     return false;
   }
 
-  protected createNullItem(): EsSnippet {
+  protected createNullItem(cx: EsSnippet): EsSnippet;
+  protected createNullItem(_cx: EsSnippet): EsSnippet {
     return 'null';
   }
 
-  protected createList(): EsSnippet {
+  protected createList(_cx: EsSnippet): EsSnippet {
     return this.#items.get('this');
   }
 
-  protected createNullList(): EsSnippet {
+  protected createNullList(cx: EsSnippet): EsSnippet;
+  protected createNullList(_cx: EsSnippet): EsSnippet {
     return 'null';
   }
 
@@ -241,7 +235,7 @@ export class ListUcrxClass<
         body:
           ({
             member: {
-              args: { reject },
+              args: { cx },
             },
           }) => code => {
             code
@@ -249,9 +243,9 @@ export class ListUcrxClass<
               .indent(code => {
                 code.line(isNull.set('this', '0'), ';');
                 if (this.#isNullableItem) {
-                  code.write(esline`return super.nul(${reject});`);
+                  code.write(esline`return super.nul(${cx});`);
                 } else {
-                  code.write(esline`return ${reject}(${ucrxRejectNull}(this));`);
+                  code.write(esline`return ${cx}.reject(${ucrxRejectNull}(this));`);
                 }
               })
               .write(`}`)
@@ -264,22 +258,22 @@ export class ListUcrxClass<
       body:
         ({
           member: {
-            args: { reject },
+            args: { cx },
           },
         }) => code => {
           if (isNull) {
             code
               .write(esline`if (${isNull.get('this')}) {`)
-              .indent(esline`${this.#setList}(${this.createNullList()});`)
+              .indent(esline`${this.#setList}(${this.createNullList(cx)});`)
               .write(esline`} else if (${listCreated.get('this')}) {`);
           } else {
             code.write(esline`if (${listCreated.get('this')}) {`);
           }
 
           code
-            .indent(esline`${this.#setList}(${this.createList()});`)
+            .indent(esline`${this.#setList}(${this.createList(cx)});`)
             .write(`} else {`)
-            .indent(esline`${reject}(${ucrxRejectSingleItem}(this));`)
+            .indent(esline`${cx}.reject(${ucrxRejectSingleItem}(this));`)
             .write(`}`);
         },
     });
@@ -287,7 +281,6 @@ export class ListUcrxClass<
 
   #declareMatrixMethods(): void {
     const { itemClass } = this;
-    const context = this.#context;
     const listCreated = this.#listCreated;
     const isNull = this.#isNull;
     const itemRx = this.#itemRx;
@@ -295,31 +288,35 @@ export class ListUcrxClass<
     UcrxCore.nls.overrideIn(this, {
       body: () => esline`return ${itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
-          context: context.get('this'),
         })};`,
     });
     UcrxCore.and.overrideIn(this, {
       body: () => esline`return ${listCreated.set('this', '1')};`,
     });
     UcrxCore.end.overrideIn(this, {
-      body: () => code => {
-        if (isNull) {
-          code
-            .write(esline`if (${isNull.get('this')}) {`)
-            .indent(esline`${this.#setList}(${this.createNullList()});`)
-            .write(esline`} else if (${listCreated.get('this')}) {`);
-        } else {
-          code.write(esline`if (${listCreated.get('this')}) {`);
-        }
-        code.indent(esline`${this.#setList}(${this.createList()});`).write(`}`);
-      },
+      body:
+        ({
+          member: {
+            args: { cx },
+          },
+        }) => code => {
+          if (isNull) {
+            code
+              .write(esline`if (${isNull.get('this')}) {`)
+              .indent(esline`${this.#setList}(${this.createNullList(cx)});`)
+              .write(esline`} else if (${listCreated.get('this')}) {`);
+          } else {
+            code.write(esline`if (${listCreated.get('this')}) {`);
+          }
+          code.indent(esline`${this.#setList}(${this.createList(cx)});`).write(`}`);
+        },
     });
     if (this.#isNullable) {
       UcrxCore.nul.overrideIn(this, {
         body:
           ({
             member: {
-              args: { reject },
+              args: { cx },
             },
           }) => code => {
             code
@@ -327,12 +324,12 @@ export class ListUcrxClass<
               .indent(code => {
                 if (this.#isNullableItem) {
                   code
-                    .line(this.#addItem.call('this', { item: this.createNullItem() }), ';')
+                    .line(this.#addItem.call('this', { item: this.createNullItem(cx) }), ';')
                     .write(`return 1;`);
                 } else {
                   const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');
 
-                  code.write(esline`return ${reject}(${ucrxRejectNull}(this));`);
+                  code.write(esline`return ${cx}.reject(${ucrxRejectNull}(this));`);
                 }
               })
               .write(`}`)
@@ -342,7 +339,7 @@ export class ListUcrxClass<
                 } else {
                   const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');
 
-                  code.write(esline`return ${reject}(${ucrxRejectNull}(this));`);
+                  code.write(esline`return ${cx}.reject(${ucrxRejectNull}(this));`);
                 }
               });
           },
@@ -362,7 +359,7 @@ export class ListUcrxClass<
     }
   }
 
-  #delegate<TArgs extends EsSignature.Args, TMod>(
+  #delegate<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     itemRx: EsPropertyHandle,
   ): void {

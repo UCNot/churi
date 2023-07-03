@@ -1,28 +1,33 @@
-import { EntityUcrx } from '../rx/entity.ucrx.js';
+import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { OpaqueUcrx } from '../rx/opaque.ucrx.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
-import { UcrxReject } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
 
-export abstract class UcdReader implements UcrxContext {
+export abstract class UcdReader {
 
   readonly #opaqueRx: Ucrx;
   readonly #onError: (error: UcErrorInfo) => void;
-  readonly #onEntity: EntityUcrx;
+  readonly #entities: Exclude<UcdReader.Options['entities'], undefined>;
+  readonly #formats: Exclude<UcdReader.Options['formats'], undefined>;
+  readonly #onMeta: MetaUcrx;
 
   constructor(options?: UcDeserializer.Options);
 
   constructor({
     onError = UcdReader$throwOnError,
-    onEntity = UcdReader$noEntity,
+    entities = {},
+    formats = {},
+    onMeta = UcdReader$noMeta,
     opaqueRx = OPAQUE_UCRX,
   }: UcdReader.Options = {}) {
     this.#opaqueRx = opaqueRx;
     this.#onError = onError;
-    this.#onEntity = onEntity;
+    this.#entities = entities;
+    this.#formats = formats;
+    this.#onMeta = onMeta;
   }
 
   get opaqueRx(): Ucrx {
@@ -43,8 +48,16 @@ export abstract class UcdReader implements UcrxContext {
 
   abstract read(rx: Ucrx): Promise<void> | void;
 
-  entity(rx: Ucrx, entity: readonly UcToken[], reject: UcrxReject): 0 | 1 {
-    return this.#onEntity(this, rx, entity, reject);
+  get entities(): Exclude<UcdReader.Options['entities'], undefined> {
+    return this.#entities;
+  }
+
+  get formats(): Exclude<UcdReader.Options['formats'], undefined> {
+    return this.#formats;
+  }
+
+  get onMeta(): MetaUcrx {
+    return this.#onMeta;
   }
 
   abstract next(): Promise<UcToken | undefined> | UcToken | undefined;
@@ -75,8 +88,8 @@ function UcdReader$throwOnError(error: unknown): never {
   throw UcError.create(error);
 }
 
-function UcdReader$noEntity(_context: UcrxContext, _rx: Ucrx, _entity: readonly UcToken[]): 0 {
-  return 0;
+function UcdReader$noMeta(_cx: UcrxContext, _rx: Ucrx, _attr: string): undefined {
+  // Unrecognized meta attribute.
 }
 
 const OPAQUE_UCRX = /*#__PURE__*/ new OpaqueUcrx();

@@ -5,9 +5,9 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcrxClass, UcrxSignature1 } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
-export class IntegerUcrxClass extends UcrxClass<UcrxSignature1.Args, UcInteger, UcInteger.Schema> {
+export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
   static uccProcessSchema(
     processor: UcrxProcessor.Any,
@@ -33,7 +33,7 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature1.Args, UcInteger, 
     UcrxCore.num.overrideIn(this, {
       body({
         member: {
-          args: { value, reject },
+          args: { value, cx },
         },
       }) {
         return code => {
@@ -41,16 +41,16 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature1.Args, UcInteger, 
 
           code
             .write(esline`if (!Number.isFinite(${value})) {`)
-            .indent(esline`return ${reject}(${ucrxRejectType}('float', this));`)
+            .indent(esline`return ${cx}.reject(${ucrxRejectType}('float', this));`)
             .write('}')
-            .write(esline`return this.set(Math.floor(${value}), ${reject});`);
+            .write(esline`return this.set(Math.floor(${value}), ${cx});`);
         };
       },
     });
     UcrxCore.raw.overrideIn(this, {
       body({
         member: {
-          args: { value, reject },
+          args: { value, cx },
         },
       }) {
         return code => {
@@ -58,7 +58,7 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature1.Args, UcInteger, 
             schema.nullable ? 'ucdDecodeIntegerOrNull' : 'ucdDecodeInteger',
           );
 
-          code.write(esline`return ${ucdDecodeInteger}(this, ${value}, ${reject});`);
+          code.write(esline`return ${ucdDecodeInteger}(${cx}, this, ${value});`);
         };
       },
     });
@@ -66,10 +66,10 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature1.Args, UcInteger, 
       UcrxCore.str.overrideIn(this, {
         body({
           member: {
-            args: { value, reject },
+            args: { value, cx },
           },
         }) {
-          return esline`return this.raw(${value}, ${reject});`;
+          return esline`return this.raw(${value}, ${cx});`;
         },
       });
     }

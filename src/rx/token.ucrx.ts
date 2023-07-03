@@ -56,6 +56,17 @@ export class TokenUcrx implements AllUcrx {
     return ['any'];
   }
 
+  att(attribute: string): AllUcrx {
+    this.#mode = this.#mode.addMeta(this.#add);
+    this.#mode = TokenUcrx$startMeta(this.#mode);
+
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(attribute);
+    this.#add(UC_TOKEN_OPENING_PARENTHESIS);
+
+    return this;
+  }
+
   bol(value: boolean): 1 {
     this.#addItem();
     this.#add(value ? UC_TOKEN_EXCLAMATION_MARK : '-');
@@ -70,9 +81,20 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
-  ent(value: readonly UcToken[]): 1 {
+  ent(name: string): 1 {
     this.#addItem();
-    value.forEach(this.#add);
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(name);
+
+    return 1;
+  }
+
+  fmt(format: string, data: readonly UcToken[]): 1 {
+    this.#addItem();
+    this.#add(UC_TOKEN_EXCLAMATION_MARK);
+    this.#add(format);
+    this.#add(UC_TOKEN_APOSTROPHE);
+    data.forEach(this.#add);
 
     return 1;
   }
@@ -169,14 +191,15 @@ export class TokenUcrx implements AllUcrx {
   }
 
   #addItem(): void {
-    this.#mode = this.#mode.add(this.#add);
+    this.#mode = this.#mode.addItem(this.#add);
   }
 
 }
 
 interface TokenUcrx$Mode {
   and(addToken: (token: UcToken) => void): TokenUcrx$Mode;
-  add(addToken: (token: UcToken) => void): TokenUcrx$Mode;
+  addItem(addToken: (token: UcToken) => void): TokenUcrx$Mode;
+  addMeta(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   empty(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   nls(addToken: (token: UcToken) => void): TokenUcrx$Mode;
   entry(addToken: (token: UcToken) => void): TokenUcrx$Mode;
@@ -186,7 +209,8 @@ interface TokenUcrx$Mode {
 
 const TokenUcrx$Invalid: TokenUcrx$Mode = {
   and: TokenUcrx$error,
-  add: TokenUcrx$error,
+  addItem: TokenUcrx$error,
+  addMeta: TokenUcrx$error,
   empty: TokenUcrx$error,
   nls: TokenUcrx$error,
   entry: TokenUcrx$error,
@@ -198,8 +222,11 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
   and(_addToken) {
     return TokenUcrx$startList(this, false);
   },
-  add(_addToken): TokenUcrx$Mode {
-    return TokenUcrx$Invalid;
+  addItem(_addToken): TokenUcrx$Mode {
+    return this;
+  },
+  addMeta(_addToken): TokenUcrx$Mode {
+    return this;
   },
   empty(addToken): TokenUcrx$Mode {
     addToken('');
@@ -218,33 +245,80 @@ const TokenUcrx$Single: TokenUcrx$Mode = {
   end: TokenUcrx$end,
 };
 
+function TokenUcrx$startMeta(prev: TokenUcrx$Mode): TokenUcrx$Mode {
+  return {
+    and(_addToken) {
+      return TokenUcrx$startList(this, false);
+    },
+    addItem(_addToken): TokenUcrx$Mode {
+      return this;
+    },
+    addMeta(_addToken): TokenUcrx$Mode {
+      return this;
+    },
+    empty(addToken): TokenUcrx$Mode {
+      addToken(UC_TOKEN_CLOSING_PARENTHESIS);
+
+      return prev;
+    },
+    nls: TokenUcrx$error,
+    entry(_addToken) {
+      return TokenUcrx$startMap(this);
+    },
+    endMap(addToken) {
+      addToken(UC_TOKEN_DOLLAR_SIGN);
+      addToken(UC_TOKEN_CLOSING_PARENTHESIS);
+
+      return prev;
+    },
+    end(addToken) {
+      addToken(UC_TOKEN_CLOSING_PARENTHESIS);
+
+      return prev;
+    },
+  };
+}
+
 function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$Mode {
   let itemCount = 0;
   let lastEmpty = false;
   let lastNls = false;
+  let afterMeta = false;
 
   const add = (addToken: (token: UcToken) => void, empty: boolean, nls: boolean): void => {
-    if (itemCount) {
-      if (lastEmpty && itemCount === 1) {
-        addToken(UC_TOKEN_COMMA);
+    if (afterMeta) {
+      afterMeta = false;
+    } else {
+      if (itemCount) {
+        if (lastEmpty && itemCount === 1) {
+          addToken(UC_TOKEN_COMMA);
+        }
+        if (!nls || !lastNls) {
+          // Add commas between items, unless items are nested lists.
+          addToken(UC_TOKEN_COMMA);
+        }
       }
-      if (!nls || !lastNls) {
-        // Add commas between items, unless items are nested lists.
-        addToken(UC_TOKEN_COMMA);
-      }
-    }
 
-    ++itemCount;
-    lastEmpty = empty;
-    lastNls = nls;
+      ++itemCount;
+      lastEmpty = empty;
+      lastNls = nls;
+    }
   };
 
   return {
     and(_addToken) {
+      afterMeta = false;
+
       return this;
     },
-    add(addToken): TokenUcrx$Mode {
+    addItem(addToken): TokenUcrx$Mode {
       add(addToken, false, false);
+
+      return this;
+    },
+    addMeta(addToken): TokenUcrx$Mode {
+      add(addToken, false, false);
+      afterMeta = true;
 
       return this;
     },
@@ -295,7 +369,8 @@ function TokenUcrx$startList(prev: TokenUcrx$Mode, nested: boolean): TokenUcrx$M
 function TokenUcrx$startMap(prev: TokenUcrx$Mode): TokenUcrx$Mode {
   return {
     and: TokenUcrx$error,
-    add: TokenUcrx$error,
+    addItem: TokenUcrx$error,
+    addMeta: TokenUcrx$error,
     empty: TokenUcrx$error,
     nls: TokenUcrx$error,
     entry(addToken) {

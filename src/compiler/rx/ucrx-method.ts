@@ -1,16 +1,18 @@
 import {
   EsClass,
+  EsMemberRef,
   EsMethod,
   EsMethodDeclaration,
   EsMethodHandle,
   EsMethodInit,
   EsSignature,
+  EsSnippet,
 } from 'esgen';
 import { UcrxClass } from './ucrx.class.js';
 
 export class UcrxMethod<
   out TArgs extends EsSignature.Args = EsSignature.Args,
-  out TMod = unknown,
+  out TMod extends UcrxBeforeMod<TArgs> = UcrxBeforeMod<TArgs>,
 > extends EsMethod<TArgs> {
 
   readonly #stub: EsMethodDeclaration<TArgs>;
@@ -41,14 +43,27 @@ export class UcrxMethod<
     ucrxClass: UcrxClass.Any,
     declaration: EsMethodDeclaration<TArgs>,
   ): EsMethodHandle<TArgs> {
-    return this.declareIn(ucrxClass, declaration);
+    return this.declareIn(ucrxClass, {
+      ...declaration,
+      body: (member, hostClass) => code => {
+        const mods = ucrxClass.methodModifiersOf(this);
+
+        for (const { before } of mods) {
+          code.write(
+            before(member as EsMemberRef<UcrxMethod<TArgs>, EsMethodHandle<TArgs>>, ucrxClass),
+          );
+        }
+
+        code.write(declaration.body(member, hostClass));
+      },
+    });
   }
 
 }
 
 export interface UcrxMethod<
   out TArgs extends EsSignature.Args = EsSignature.Args,
-  out TMod = unknown,
+  out TMod extends UcrxBeforeMod<TArgs> = UcrxBeforeMod<TArgs>,
 > extends EsMethod<TArgs> {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   __applyMod__?(mod: TMod): TMod;
@@ -58,4 +73,11 @@ export interface UcrxMethodInit<out TArgs extends EsSignature.Args = EsSignature
   extends EsMethodInit<TArgs> {
   readonly stub: EsMethodDeclaration<TArgs>;
   readonly typeName?: string | undefined;
+}
+
+export interface UcrxBeforeMod<TArgs extends EsSignature.Args> {
+  before(
+    member: EsMemberRef<UcrxMethod<TArgs>, EsMethodHandle<TArgs>>,
+    ucrxClass: UcrxClass.Any,
+  ): EsSnippet;
 }

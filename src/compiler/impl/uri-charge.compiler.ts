@@ -1,4 +1,4 @@
-import { EsSignature, EsSnippet, esStringLiteral, esline } from 'esgen';
+import { EsCode, EsSignature, EsSnippet, esStringLiteral, esline } from 'esgen';
 import { UcList } from '../../schema/list/uc-list.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
@@ -10,7 +10,9 @@ import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxEntitySetterSignature } from '../rx/ucrx-entity-setter.js';
+import { UcrxFormattedSetterSignature } from '../rx/ucrx-formatted-setter.js';
+import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
 import { UC_MODULE_CHURI, UC_MODULE_URI_CHARGE } from './uc-modules.js';
 
@@ -47,16 +49,16 @@ export class URIChargeCompiler extends UcdCompiler<
 
 class URIChargeListUcrxClass extends ListUcrxClass {
 
-  protected override createNullItem(): EsSnippet {
+  protected override createNullItem(cx: EsSnippet): EsSnippet {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-    return esline`new ${URICharge$Single}(null, 'null')`;
+    return esline`new ${URICharge$Single}(null, 'null', ${cx}.meta)`;
   }
 
-  protected override createList(): EsSnippet {
+  protected override createList(cx: EsSnippet): EsSnippet {
     const URICharge$List = UC_MODULE_URI_CHARGE.import('URICharge$List');
 
-    return esline`new ${URICharge$List}(${super.createList()})`;
+    return esline`new ${URICharge$List}(${super.createList(cx)})`;
   }
 
 }
@@ -79,10 +81,10 @@ class URIChargeMapUcrxStore implements MapUcrxStore {
     return esline`${map}.set(${key}, ${value});`;
   }
 
-  store(map: EsSnippet): EsSnippet {
+  store(map: EsSnippet, cx: EsSnippet): EsSnippet {
     const URICharge$Map = UC_MODULE_URI_CHARGE.import('URICharge$Map');
 
-    return esline`new ${URICharge$Map}(${map})`;
+    return esline`new ${URICharge$Map}(${map}, ${cx}.meta)`;
   }
 
   reclaim(_map: EsSnippet): EsSnippet {
@@ -93,76 +95,69 @@ class URIChargeMapUcrxStore implements MapUcrxStore {
 
 class URIChargeUcrxClass extends UnknownUcrxClass {
 
-  protected override setValue<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
+  protected override setValue<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
+    method: UcrxMethod<TArgs, TMod>,
     args: EsSignature.ValuesOf<TArgs>,
   ): EsSnippet {
     switch (method as UcrxMethod<any>) {
+      case UcrxCore.att:
+        return EsCode.none;
       case UcrxCore.ent:
-        return this.#setEntity(UcrxCore.ent, args as UcrxSetterSignature.Values);
+        return this.#setEntity(args as UcrxEntitySetterSignature.Values);
+      case UcrxCore.fmt:
+        return this.#setFormatted(args as UcrxFormattedSetterSignature.Values);
       case UcrxCore.nul:
-        return this.#setNull();
+        return this.#setNull(args as { cx: EsSnippet });
       default:
         if (isUcrxSetter(method)) {
           return this.#setValue(method, args as UcrxSetterSignature.Values);
         }
-
-        // istanbul ignore next
-        throw new TypeError(`Unsupported URICharge method: ${method}`);
-    }
-  }
-
-  #setValue(setter: UcrxSetter, { value, reject }: UcrxSetterSignature.Values): EsSnippet {
-    const type = esStringLiteral(setter.typeName);
-    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
-
-    return esline`return ${this.member(setter).call('super', {
-      value: esline`new ${URICharge$Single}(${value}, ${type})`,
-      reject,
-    })};`;
-  }
-
-  #setEntity(method: UcrxSetter, { value }: UcrxSetterSignature.Values): EsSnippet {
-    const type = esStringLiteral(method.typeName);
-    const UcEntity = UC_MODULE_CHURI.import('UcEntity');
-    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
-
-    return esline`return this.any(new ${URICharge$Single}(new ${UcEntity}(${value}), ${type}));`;
-  }
-
-  #setNull(): EsSnippet {
-    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
-
-    return esline`return this.any(new ${URICharge$Single}(null, 'null'));`;
-  }
-
-  protected override addItem<TArgs extends EsSignature.Args>(
-    method: UcrxMethod<TArgs>,
-    listRx: EsSnippet,
-    args: EsSignature.ValuesOf<TArgs>,
-  ): EsSnippet {
-    if ((method as UcrxMethod<any>) === UcrxCore.nul) {
-      return this.#addNull(listRx, args);
-    }
-    if (isUcrxSetter(method)) {
-      return this.#addValue(method, listRx, args as UcrxSetterSignature.Values);
     }
 
     // istanbul ignore next
     throw new TypeError(`Unsupported URICharge method: ${method}`);
   }
 
-  #addValue(method: UcrxSetter, listRx: EsSnippet, args: UcrxSetterSignature.Values): EsSnippet {
-    return esline`return ${this.member(method).call(listRx, args)};`;
+  #setValue(setter: UcrxSetter, { value, cx }: UcrxSetterSignature.Values): EsSnippet {
+    const type = esStringLiteral(setter.typeName);
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
+
+    return esline`return ${this.member(setter).call('super', {
+      value: esline`new ${URICharge$Single}(${value}, ${type}, ${cx}.meta)`,
+      cx,
+    })};`;
   }
 
-  #addNull<TArgs extends EsSignature.Args>(
-    listRx: EsSnippet,
-    args: EsSignature.ValuesOf<TArgs>,
-  ): EsSnippet;
+  #setEntity({ name, cx }: UcrxEntitySetterSignature.Values): EsSnippet {
+    const UcEntity = UC_MODULE_CHURI.import('UcEntity');
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
-  #addNull(listRx: EsSnippet, { reject }: { reject: EsSnippet }): EsSnippet {
-    return esline`return ${listRx}.nul(${reject});`;
+    return code => {
+      code.line(
+        'return this.any(',
+        esline`new ${URICharge$Single}(new ${UcEntity}(${name}), 'entity', ${cx}.meta)`,
+        ');',
+      );
+    };
+  }
+
+  #setFormatted({ format, data, cx }: UcrxFormattedSetterSignature.Values): EsSnippet {
+    const UcFormatted = UC_MODULE_CHURI.import('UcFormatted');
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
+
+    return code => {
+      code.line(
+        'return this.any(',
+        esline`new ${URICharge$Single}(new ${UcFormatted}(${format}, ${data}), 'formatted', ${cx}.meta)`,
+        ');',
+      );
+    };
+  }
+
+  #setNull({ cx }: { cx: EsSnippet }): EsSnippet {
+    const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
+
+    return esline`return this.any(new ${URICharge$Single}(null, 'null', ${cx}.meta));`;
   }
 
 }

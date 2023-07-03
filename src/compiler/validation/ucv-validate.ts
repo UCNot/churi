@@ -57,7 +57,7 @@ class UcvValidationSnippet {
             validate({
               value: this.#args.value,
               reject: reason => code => {
-                code.write(esline`${this.#args.reject}(${reason});`, esline`${invalid} = 1;`);
+                code.write(esline`${this.#args.cx}.reject(${reason});`, esline`${invalid} = 1;`);
               },
             }),
           );
@@ -74,7 +74,7 @@ class UcvValidationSnippet {
           validate({
             value: this.#args.value,
             reject: reason => code => {
-              code.write(esline`return ${this.#args.reject}(${reason});`);
+              code.write(esline`return ${this.#args.cx}.reject(${reason});`);
             },
           }),
         );

@@ -33,9 +33,10 @@ import { UcrxHandle } from './ucrx-handle.js';
 export function ucdReadValueSync(
   reader: SyncUcdReader,
   rx: UcrxHandle,
-  end?: (rx: UcrxHandle) => void,
-  single = false, // Never set for the first item of the list, unless it is non-empty.
+  end?: (rx: UcrxHandle) => void, // Never set for the first item of the list, unless it is non-empty.
 ): void {
+  const single = !end;
+
   ucdSkipWhitespaceSync(reader);
 
   const firstToken = reader.current();
@@ -49,7 +50,7 @@ export function ucdReadValueSync(
     return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
-    ucdReadEntityOrTrueSync(reader, rx);
+    ucdReadMetaOrEntityOrTrueSync(reader, rx);
 
     if (single) {
       return;
@@ -176,16 +177,80 @@ export function ucdReadValueSync(
   return ucdReadItemsSync(reader, rx);
 }
 
-function ucdReadEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
-  const tokens = ucdReadTokensSync(reader, rx, true);
+function ucdReadMetaOrEntityOrTrueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+  reader.skip(); // Skip exclamation mark.
 
-  if (trimUcTokensTail(tokens).length === 1) {
+  const found = reader.find(token => {
+    if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
+      return true;
+    }
+
+    return;
+  });
+
+  let tokens: readonly UcToken[];
+
+  if (!found) {
+    // Everything up to the end of input is either entity or `true`.
+    tokens = reader.consume();
+  } else {
+    switch (found) {
+      case UC_TOKEN_CLOSING_PARENTHESIS:
+        // Everything up to the closing parenthesis is either entity or `true`.
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_COMMA:
+        // Everything up to the comma is either entity or `true`
+        rx.and(true);
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_APOSTROPHE:
+        // Formatted data.
+        return ucdReadFormattedSync(
+          reader,
+          rx,
+          printUcTokens(trimUcTokensTail(reader.consumePrev())),
+        );
+      default:
+        // Metadata attribute.
+        return ucdReadMetaAndValueSync(reader, rx);
+    }
+  }
+
+  const trimmed = trimUcTokensTail(tokens);
+
+  if (!trimmed.length) {
     // Process single exclamation mark.
     rx.bol(true);
   } else {
     // Process entity.
-    rx.ent(tokens);
+    rx.ent(printUcTokens(trimmed));
   }
+}
+
+function ucdReadFormattedSync(
+  reader: SyncUcdReader,
+  rx: UcrxHandle,
+  format: string,
+): void {
+  reader.skip(); // Skip apostrophe.
+
+  rx.fmt(format, ucdReadTokensSync(reader, rx, true));
+}
+
+function ucdReadMetaAndValueSync(reader: SyncUcdReader, rx: UcrxHandle): void {
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev()));
+
+  reader.skip(); // Skip opening parenthesis.
+
+  ucdReadValueSync(reader, rx.att(attributeName), rx => rx.end());
+
+  reader.skip(); // Skip closing parenthesis.
+
+  // Read single value following the attribute.
+  ucdReadValueSync(reader, rx);
 }
 
 function ucdReadTokensSync(
@@ -290,7 +355,7 @@ function ucdReadItemsSync(
     } else {
       rx.nextItem();
     }
-    ucdReadValueSync(reader, rx, undefined, true);
+    ucdReadValueSync(reader, rx);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.

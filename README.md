@@ -12,7 +12,7 @@ Charged URI (ChURI) may include arbitrary structured data. The data is encoded w
 It is like JSON for GET requests, but may include even more:
 
 ```
-https://example.com/api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
+https://example.com/!v(3)api/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date'1970-01-01)till(!now)&range=from(10)to(20)
 ```
 
 > **[See the explanation >>>][explanation]**

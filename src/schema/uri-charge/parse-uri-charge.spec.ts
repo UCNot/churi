@@ -62,6 +62,12 @@ describe('parseURICharge', () => {
       expect(charge.at(0)).toBe(charge);
       expect(charge.at(1)).toBeURIChargeNone();
     });
+    it('recognizes meta', () => {
+      const input = '!test1(1)!test2(2)test';
+      const charge = parse(input);
+
+      expect(charge.toString()).toBe(input);
+    });
   });
 
   describe('bigint value', () => {
@@ -170,19 +176,19 @@ describe('parseURICharge', () => {
       const charge = parse('!bar%20baz');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ entity: 'bar baz' });
     });
     it('recognized as map entry value', () => {
       const charge = parse('foo(!bar%20baz)').get('foo');
 
       expect(charge).toBeURIChargeSingle('entity');
-      expect(charge).toHaveURIChargeValue({ raw: '!bar%20baz' });
+      expect(charge).toHaveURIChargeValue({ entity: 'bar baz' });
     });
     it('recognized as list item value', () => {
       const list = parse(',!bar%20baz');
 
       expect(list).toBeURIChargeList(1, 'entity');
-      expect(list).toHaveURIChargeItems({ raw: '!bar%20baz' });
+      expect(list).toHaveURIChargeItems({ entity: 'bar baz' });
     });
   });
 
@@ -261,6 +267,18 @@ describe('parseURICharge', () => {
       expect(charge.at(1)).toBeURIChargeList(3);
       expect(charge.at(1)).toHaveURIChargeItems([2], ['baz'], [false]);
     });
+    it('recognizes item meta', () => {
+      const input = '!test1(1)foo,!test2(2)bar';
+      const list = parse(input);
+
+      expect(list.toString()).toBe(input);
+    });
+    it('recognizes map item meta', () => {
+      const input = '!test1(1)!test2(2)foo(bar),';
+      const map = parse(input);
+
+      expect(map.toString()).toBe(input);
+    });
   });
 
   describe('map value', () => {
@@ -282,6 +300,12 @@ describe('parseURICharge', () => {
       expect(parse('foo(bar(baz(13)))')).toHaveURIChargeEntries({
         foo: { bar: { baz: 13 } },
       });
+    });
+    it('recognizes map meta', () => {
+      const input = '!test1(1)foo(bar(!test2(2)baz))';
+      const map = parse(input);
+
+      expect(map.toString()).toBe(input);
     });
   });
 

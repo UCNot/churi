@@ -1,7 +1,7 @@
 import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UC_MODULE_DESERIALIZER, UC_MODULE_DESERIALIZER_DEFAULTS } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -67,7 +67,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     externalName: string,
     signature: UcdExportSignature,
   ): EsFunction<UcdExportSignature.Args> {
-    const { mode, opaqueUcrx, entityHandler } = this.lib;
+    const { mode, opaqueUcrx, defaultEntities, defaultFormats, defaultMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -75,7 +75,9 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
           .write('{')
           .indent(
             'onError,',
-            'onEntity,',
+            'entities,',
+            'formats,',
+            'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
           )
           .write('}');
@@ -101,7 +103,39 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             mode === 'async'
               ? { declare: () => stream.declareSymbol({ as: ({ naming }) => [naming, naming] }) }
               : undefined,
-          options: { declare: () => esline`{ onError, onEntity = ${entityHandler} } = {}` },
+          options: {
+            declare: () => code => {
+              const onMeta$byDefault = UC_MODULE_DESERIALIZER_DEFAULTS.import('onMeta$byDefault');
+
+              code.multiLine(code => {
+                code
+                  .write('{')
+                  .indent(
+                    'onError,',
+                    defaultEntities !== 'undefined'
+                      ? esline`entities = ${defaultEntities},`
+                      : `entities,`,
+                    defaultFormats !== 'undefined'
+                      ? esline`formats = ${defaultFormats},`
+                      : `formats,`,
+                    code => {
+                      if (defaultMeta === 'undefined') {
+                        code.line('onMeta = ', onMeta$byDefault, ',');
+                      } else {
+                        code.line(
+                          `onMeta = (cx, rx, attr) => `,
+                          defaultMeta,
+                          '[attr]?.(cx, rx, attr) ?? ',
+                          onMeta$byDefault,
+                          '(cx, rx, attr),',
+                        );
+                      }
+                    },
+                  )
+                  .write('} = {}');
+              });
+            },
+          },
         },
       },
     });
@@ -125,7 +159,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .indent(
           esline`${mode === 'async' ? 'await ' : ''}${reader}.read(${this.ucrxClass.instantiate({
             set: esline`$ => { ${result} = $; }`,
-            context: reader,
           })});`,
         )
         .write(`} finally {`)
@@ -152,7 +185,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             .indent(
               esline`${syncReader}.read(${this.ucrxClass.instantiate({
                 set,
-                context: syncReader,
               })});`,
             )
             .write(`} finally {`)
@@ -165,7 +197,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(
           esline`return ${reader}.read(${this.ucrxClass.instantiate({
             set,
-            context: reader,
           })})`,
         )
         .indent(esline`.then(() => ${result})`, esline`.finally(() => ${reader}.done());`);

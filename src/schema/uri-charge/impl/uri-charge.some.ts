@@ -1,7 +1,8 @@
 import { AllUcrx } from '../../../rx/all.ucrx.js';
-import { TokenUcrx } from '../../../rx/token.ucrx.js';
+import { UctxMode$Default } from '../../../rx/uctx-mode.impl.js';
 import { UctxMode } from '../../../rx/uctx-mode.js';
 import { uctxArray, uctxMap, uctxValue } from '../../../rx/uctx-value.js';
+import { UcMeta } from '../../meta/uc-meta.js';
 import { UcUnknown } from '../../unknown/uc-unknown.js';
 import { URICharge } from '../uri-charge.js';
 
@@ -15,21 +16,19 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
     return true;
   }
 
-  override toString(): string {
-    return TokenUcrx.print(this)!;
-  }
-
 }
 
 export class URICharge$Single extends URICharge$Some implements URICharge.Single {
 
   readonly #value: UcUnknown | null;
   readonly #type: string;
+  readonly #meta: UcMeta.Freezed;
 
-  constructor(value: UcUnknown | null, type: string) {
+  constructor(value: UcUnknown | null, type: string, meta: UcMeta.Freezed) {
     super();
     this.#value = value;
     this.#type = type;
+    this.#meta = meta.freeze();
   }
 
   override get value(): UcUnknown | null {
@@ -38,6 +37,10 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
 
   override get type(): string {
     return this.#type;
+  }
+
+  override get meta(): UcMeta.Freezed {
+    return this.#meta;
   }
 
   override get length(): 1 {
@@ -83,6 +86,12 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
   }
 
   override toUC(rx: AllUcrx, mode: UctxMode): void {
+    const meta = this.#meta;
+
+    if (meta.size) {
+      meta.toUC(rx, mode);
+    }
+
     uctxValue(rx, this.#value, mode);
   }
 
@@ -91,10 +100,12 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
 export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
   readonly #map: Map<string, URICharge.Some>;
+  readonly #meta: UcMeta.Freezed;
 
-  constructor(map: Map<string, URICharge.Some>) {
+  constructor(map: Map<string, URICharge.Some>, meta: UcMeta) {
     super();
     this.#map = map;
+    this.#meta = meta.freeze();
   }
 
   override get value(): undefined {
@@ -103,6 +114,10 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
   override get type(): undefined {
     return;
+  }
+
+  override get meta(): UcMeta.Freezed {
+    return this.#meta;
   }
 
   override get length(): 0 {
@@ -148,6 +163,12 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
   }
 
   override toUC(rx: AllUcrx, _mode: UctxMode): void {
+    const meta = this.#meta;
+
+    if (meta.size) {
+      meta.toUC(rx, UctxMode$Default);
+    }
+
     uctxMap(rx, this.#map);
   }
 
@@ -164,6 +185,10 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
 
   override get value(): UcUnknown | null | undefined {
     return this.at(0).value;
+  }
+
+  override get meta(): UcMeta.Freezed {
+    return this.at(0).meta;
   }
 
   override get type(): string | undefined {

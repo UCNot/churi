@@ -1,81 +1,82 @@
 import { ucrxDecodeRaw, ucrxDecodeString } from '../impl/ucrx-decode-raw.js';
-import { UcrxReject, ucrxRejectSyntax, ucrxRejectType } from '../rx/ucrx-rejection.js';
+import { UcrxContext } from '../rx/ucrx-context.js';
+import { ucrxRejectSyntax, ucrxRejectType } from '../rx/ucrx-rejection.js';
 import { Ucrx } from '../rx/ucrx.js';
 
-export function ucdDecodeBigInt(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
+export function ucdDecodeBigInt(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
   return ucrxDecodeRaw(
+    context,
     rx,
     input,
-    reject,
     ucrxDecodeString,
     ucdDecodePositiveAsBigInt,
     ucdDecodeNumericAsBigInt,
   );
 }
 
-export function ucdParseBigInt(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
-  return ucrxDecodeRaw(rx, input, reject, ucdRejectString, ucdRejectString, ucdParseBigIntNumeric);
+export function ucdParseBigInt(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
+  return ucrxDecodeRaw(context, rx, input, ucdRejectString, ucdRejectString, ucdParseBigIntNumeric);
 }
 
-export function ucdParseNumericAsBigInt(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
+export function ucdParseNumericAsBigInt(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
   return ucrxDecodeRaw(
+    context,
     rx,
     input,
-    reject,
     ucdRejectString,
     ucdDecodePositiveAsBigInt,
     ucdDecodeNumericAsBigInt,
   );
 }
 
-function ucdRejectString(rx: Ucrx, _value: string, reject: UcrxReject): 0 {
+function ucdRejectString({ reject }: UcrxContext, rx: Ucrx, _value: string): 0 {
   return reject(ucrxRejectType('string', rx));
 }
 
-function ucdDecodePositiveAsBigInt(rx: Ucrx, input: string, reject: UcrxReject): 0 | 1 {
+function ucdDecodePositiveAsBigInt(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {
   let value: bigint;
 
   try {
     value = BigInt(input);
   } catch (cause) {
-    return reject(ucrxRejectSyntax('bigint', cause));
+    return context.reject(ucrxRejectSyntax('bigint', cause));
   }
 
-  return rx.big(value, reject);
+  return rx.big(value, context);
 }
 
 function ucdParseBigIntNumeric(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): 0 | 1 {
   return input[offset + 1] === 'n'
-    ? ucdDecodeBigIntAtOffset(rx, input, reject, offset + 2, sign)
-    : reject(ucrxRejectType('string', rx));
+    ? ucdDecodeBigIntAtOffset(context, rx, input, offset + 2, sign)
+    : context.reject(ucrxRejectType('string', rx));
 }
 
 function ucdDecodeNumericAsBigInt(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): 0 | 1 {
   return ucdDecodeBigIntAtOffset(
+    context,
     rx,
     input,
-    reject,
     input[offset + 1] === 'n' ? offset + 2 : offset,
     sign,
   );
 }
 
 function ucdDecodeBigIntAtOffset(
+  context: UcrxContext,
   rx: Ucrx,
   input: string,
-  reject: UcrxReject,
   offset: number,
   sign: <T extends number | bigint>(value: T) => T,
 ): 0 | 1 {
@@ -84,8 +85,8 @@ function ucdDecodeBigIntAtOffset(
   try {
     value = input.length > offset ? BigInt(input.slice(offset)) : 0n;
   } catch (cause) {
-    return reject(ucrxRejectSyntax('bigint', cause));
+    return context.reject(ucrxRejectSyntax('bigint', cause));
   }
 
-  return rx.big(sign(value), reject);
+  return rx.big(sign(value), context);
 }

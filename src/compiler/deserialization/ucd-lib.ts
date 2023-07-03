@@ -1,22 +1,10 @@
-import {
-  EsBundle,
-  EsDeclarationContext,
-  EsNamespace,
-  EsSnippet,
-  EsVarSymbol,
-  esEscapeString,
-  esline,
-} from 'esgen';
+import { EsBundle, EsNamespace, EsSnippet } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UcLexer } from '../../syntax/uc-lexer.js';
-import { UcToken } from '../../syntax/uc-token.js';
-import { UC_MODULE_CHURI, UC_MODULE_DEFAULT_ENTITIES } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxClass } from '../rx/ucrx.class.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdModels } from './ucd-compiler.js';
-import { UcdEntityFeature } from './ucd-entity-feature.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdFunction } from './ucd-function.js';
 
@@ -36,21 +24,25 @@ export class UcdLib<
   };
 
   readonly #options: UcdLib.Options<TModels, TMode>;
-  readonly #entities: UcdLib.EntityConfig[] | undefined;
   readonly #createDeserializer: Exclude<
     UcdLib.Options<TModels, TMode>['createDeserializer'],
     undefined
   >;
 
   readonly #deserializers = new Map<string, UcdFunction>();
-  readonly #entityHandler: EsSnippet;
+  readonly #defaultEntities: EsSnippet;
+  readonly #defaultFormats: EsSnippet;
+  readonly #defaultMeta: EsSnippet;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
     const {
       schemaIndex,
       models,
+      exportDefaults,
       entities,
+      formats,
+      meta,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
@@ -58,10 +50,15 @@ export class UcdLib<
 
     this.#schemaIndex = schemaIndex;
     this.#options = options;
-    this.#entities = entities;
     this.#models = this.#createModels(models);
     this.#createDeserializer = createDeserializer;
-    this.#entityHandler = this.#createEntityHandler(ns);
+
+    const exportNs = exportDefaults ? ns : undefined;
+
+    this.#defaultEntities = entities(exportNs);
+    this.#defaultFormats = formats(exportNs);
+    this.#defaultMeta = meta(exportNs);
+
     this.#declareDeserializers(ns);
   }
 
@@ -75,69 +72,15 @@ export class UcdLib<
     };
   }
 
-  #createEntityHandler(ns: EsNamespace): EsSnippet {
-    const { exportEntityHandler } = this.#options;
-    const entities = this.#entities;
-
-    if (!entities) {
-      // Use precompiled entity handler.
-      return UC_MODULE_DEFAULT_ENTITIES.import('onEntity$byDefault');
-    }
-
-    if (!entities.length) {
-      // No entities supported.
-      return 'undefined';
-    }
-
-    // Generate custom entity handler.
-    const entityHandler = new EsVarSymbol('onEntity$byDefault', {
-      declare: {
-        at: exportEntityHandler ? 'exports' : 'bundle',
-        value: context => code => {
-          code.write(this.#registerEntities(context));
-        },
-      },
-    });
-
-    return exportEntityHandler ? ns.refer(entityHandler) : entityHandler;
-  }
-
-  #registerEntities({ refer }: EsDeclarationContext): EsSnippet {
-    const EntityUcrxHandler = UC_MODULE_CHURI.import('EntityUcrxHandler');
-
-    return code => {
-      code.write(esline`new ${EntityUcrxHandler}()`).indent(code => {
-        this.#entities!.forEach(({ entity, feature, prefix }) => {
-          if (typeof entity === 'string') {
-            entity = UcLexer.scan(entity);
-          }
-
-          const tokenArray =
-            '['
-            + entity
-              .map(token => typeof token === 'number' ? token.toString() : `'${esEscapeString(token)}'`)
-              .join(', ')
-            + ']';
-
-          code.write(
-            feature({
-              lib: this,
-              register: entityRx => code => {
-                code.line(prefix ? '.addPrefix(' : '.addEntity(', tokenArray, ', ', entityRx, ')');
-              },
-              refer,
-            }),
-          );
-        });
-      }, '.toRx()');
-    };
-  }
-
   #declareDeserializers(ns: EsNamespace): void {
     for (const [externalName, schema] of Object.entries<UcSchema>(this.#models)) {
       const fn = this.deserializerFor(schema);
 
       ns.refer(fn.exportFn(externalName, UcdExportSignature));
+    }
+
+    for (const { schema, whenCompiled } of this.#options.internalModels) {
+      whenCompiled(this.deserializerFor(schema).ucrxClass);
     }
   }
 
@@ -145,8 +88,16 @@ export class UcdLib<
     return this.#options.mode;
   }
 
-  get entityHandler(): EsSnippet {
-    return this.#entityHandler;
+  get defaultEntities(): EsSnippet {
+    return this.#defaultEntities;
+  }
+
+  get defaultFormats(): EsSnippet {
+    return this.#defaultFormats;
+  }
+
+  get defaultMeta(): EsSnippet {
+    return this.#defaultMeta;
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -179,9 +130,12 @@ export namespace UcdLib {
     extends UcrxLib.Options {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
+    readonly internalModels: InternalModel[];
     readonly mode: TMode;
-    readonly entities?: EntityConfig[] | undefined;
-    readonly exportEntityHandler?: boolean | undefined;
+    entities(this: void, exportNs?: EsNamespace): EsSnippet;
+    formats(this: void, exportNs?: EsNamespace): EsSnippet;
+    meta(this: void, exportNs?: EsNamespace): EsSnippet;
+    readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -189,9 +143,8 @@ export namespace UcdLib {
     ): UcdFunction<T, TSchema>;
   }
 
-  export interface EntityConfig {
-    readonly entity: string | readonly UcToken[];
-    readonly feature: UcdEntityFeature;
-    readonly prefix?: boolean;
+  export interface InternalModel<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+    readonly schema: UcSchema;
+    whenCompiled(this: void, ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>): void;
   }
 }

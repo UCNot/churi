@@ -63,6 +63,16 @@ describe('ChURIRoute', () => {
     it('omits matrix parameters', () => {
       expect(new ChURIRoute('name;p=bar').name).toBe('name');
     });
+    it('strips meta', () => {
+      expect(new ChURIRoute('!meta1(1)!meta2(foo(bar,baz))name').name).toBe('name');
+    });
+    it('strips unbalanced meta', () => {
+      expect(new ChURIRoute('!meta1(1)!meta2(foo(name)').name).toBe('');
+    });
+    it('does not omit exclamation mark', () => {
+      expect(new ChURIRoute('!meta1(1)!path').name).toBe('!path');
+      expect(new ChURIRoute("!meta1(1)!path'some,other").name).toBe("!path'some");
+    });
   });
 
   describe('path', () => {
@@ -168,6 +178,12 @@ describe('ChURIRoute', () => {
           path: 'foo',
           bar: 'baz',
         });
+      });
+      it('recognizes metadata', () => {
+        const { meta } = new ChURIRoute('/!v(1)!stage(beta)path').matrix.arg;
+
+        expect(meta.get('v')).toBe(1);
+        expect(meta.get('stage')).toBe('beta');
       });
     });
   });

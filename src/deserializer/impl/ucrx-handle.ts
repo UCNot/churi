@@ -1,51 +1,93 @@
-import { UcrxReject, ucrxRejectType } from '../../rx/ucrx-rejection.js';
+import { UcrxContext } from '../../rx/ucrx-context.js';
+import { UcrxReject, UcrxRejection, ucrxRejectType } from '../../rx/ucrx-rejection.js';
 import { Ucrx } from '../../rx/ucrx.js';
+import { UcMeta } from '../../schema/meta/uc-meta.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
-export class UcrxHandle {
+export class UcrxHandle implements UcrxContext {
 
-  readonly #reader: UcdReader;
+  #reader: UcdReader;
   #rx: Ucrx;
+  #_reject: UcrxReject | undefined;
+  #meta: UcMeta.Mutable | undefined;
+
   #path: UcError$Path;
   #nextPath: UcError$Path | undefined;
   #beforeComma = false;
-  #reject: UcrxReject;
   #isList: -1 | 0 | 1 = -1;
 
   constructor(reader: UcdReader, rx: Ucrx, path: UcError$Path) {
     this.#reader = reader;
     this.#rx = rx;
     this.#path = path;
-    this.#reject = rejection => {
-      const path = (this.#nextPath ?? this.#path).slice() as UcError$Path;
+  }
 
-      if (this.#beforeComma) {
-        path[path.length - 1].index = 1;
-      }
-      reader.error({ ...rejection, path });
+  get opaqueRx(): Ucrx {
+    return this.#reader.opaqueRx;
+  }
 
-      return 0;
-    };
+  get reject(): UcrxReject {
+    return (this.#_reject ??= rejection => this.#reject(rejection));
+  }
+
+  #reject(rejection: UcrxRejection): 0 {
+    const path = (this.#nextPath ?? this.#path).slice() as UcError$Path;
+
+    if (this.#beforeComma) {
+      path[path.length - 1].index = 1;
+    }
+    this.#reader.error({ ...rejection, path });
+
+    return 0;
+  }
+
+  get meta(): UcMeta.Mutable {
+    return (this.#meta ??= UcMeta.create());
+  }
+
+  onEntity(entity: string): 0 | 1 {
+    return this.#reader.entities[entity]?.(this, this.#rx, entity) ?? 0;
+  }
+
+  onFormat(format: string, data: readonly UcToken[]): 0 | 1 {
+    return this.#reader.formats[format]?.(this, this.#rx, format, data) ?? 0;
+  }
+
+  onMeta(attribute: string): Ucrx | undefined {
+    return this.#reader.onMeta(this, this.#rx, attribute);
   }
 
   decode(input: string): void {
-    this.#rx.raw(input, this.#reject);
+    this.#rx.raw(input, this);
   }
 
   makeOpaque(): void {
-    this.#rx = this.#reader.opaqueRx;
+    this.#rx = this.opaqueRx;
+  }
+
+  att(attr: string): UcrxHandle {
+    const attrRx =
+      this.#rx.att(attr, this) ?? this.onMeta(attr) ?? /* istanbul ignore next */ this.opaqueRx;
+
+    return new UcrxHandle(this.#reader, attrRx, this.#path);
   }
 
   bol(value: boolean): void {
-    this.#rx.bol(value, this.#reject);
+    this.#rx.bol(value, this);
   }
 
-  ent(entity: readonly UcToken[]): void {
-    if (!this.#reader.entity(this.#rx, entity, this.#reject)) {
+  ent(entity: string): void {
+    if (!this.onEntity(entity)) {
       // Process entity.
-      this.#rx.ent(entity, this.#reject);
+      this.#rx.ent(entity, this);
+    }
+  }
+
+  fmt(format: string, data: readonly UcToken[]): void {
+    if (!this.onFormat(format, data)) {
+      this.#rx.fmt(format, data, this);
     }
   }
 
@@ -55,7 +97,7 @@ export class UcrxHandle {
 
     if (isList > 0) {
       this.#beforeComma = beforeComma;
-      itemsRx = this.#rx.nls(this.#reject);
+      itemsRx = this.#rx.nls(this);
       this.#beforeComma = false;
     }
 
@@ -63,7 +105,7 @@ export class UcrxHandle {
 
     itemPath.push({ index: 0 });
 
-    const itemHandle = new UcrxHandle(this.#reader, itemsRx ?? this.#reader.opaqueRx, itemPath);
+    const itemHandle = new UcrxHandle(this.#reader, itemsRx ?? this.opaqueRx, itemPath);
 
     itemHandle.and();
 
@@ -71,15 +113,15 @@ export class UcrxHandle {
   }
 
   str(value: string): void {
-    this.#rx.str(value, this.#reject);
+    this.#rx.str(value, this);
   }
 
   emptyStr(): void {
-    this.#rx.raw('', this.#reject);
+    this.#rx.raw('', this);
   }
 
   emptyMap(): void {
-    this.#rx.map(this.#reject);
+    this.#rx.map(this);
   }
 
   onlySuffix(key: string): void {
@@ -94,7 +136,7 @@ export class UcrxHandle {
 
     this.#nextPath = path;
 
-    const entryRx = this.#rx.for(key, this.#reject);
+    const entryRx = this.#rx.for(key, this);
 
     this.#nextPath = undefined;
 
@@ -105,7 +147,7 @@ export class UcrxHandle {
       this.makeOpaque();
     }
 
-    return new UcrxHandle(this.#reader, this.#reader.opaqueRx, path);
+    return new UcrxHandle(this.#reader, this.opaqueRx, path);
   }
 
   nextEntry(key: PropertyKey): UcrxHandle {
@@ -117,7 +159,7 @@ export class UcrxHandle {
 
     // Called for subsequent entries.
     // Should never return `0`.
-    const entryRx = (this.#rx.for(key, this.#reject) as Ucrx | undefined) ?? this.#reader.opaqueRx;
+    const entryRx = (this.#rx.for(key, this) as Ucrx | undefined) ?? this.opaqueRx;
 
     this.#nextPath = undefined;
 
@@ -129,14 +171,14 @@ export class UcrxHandle {
   }
 
   endMap(): void {
-    this.#rx.map(this.#reject);
+    this.#rx.map(this);
   }
 
   and(beforeComma = false): void {
     if (this.#isList < 0) {
       this.#firstItem();
       this.#beforeComma = beforeComma;
-      this.#isList = this.#rx.and(this.#reject);
+      this.#isList = this.#rx.and(this);
       this.#beforeComma = false;
 
       if (!this.#isList) {
@@ -149,14 +191,18 @@ export class UcrxHandle {
     if (this.#isList < 0) {
       this.#firstItem();
       this.#beforeComma = beforeComma;
-      this.#isList = this.#rx.and(rejection => {
+
+      this.#_reject = rejection => {
         if (rejection.code === 'unexpectedType' && rejection.details?.type === 'list') {
           // Replace "unexpected list" with "unexpected nested list".
           rejection = ucrxRejectType('nested list', this.#rx);
         }
 
         return this.#reject(rejection);
-      });
+      };
+      this.#isList = this.#rx.and(this);
+      this.#_reject = undefined;
+
       this.#beforeComma = false;
 
       if (!this.#isList) {
@@ -177,11 +223,12 @@ export class UcrxHandle {
     const last = this.#path[this.#path.length - 1];
 
     this.#path[this.#path.length - 1] = { ...last, index: last.index! + 1 };
+    this.#meta = undefined;
   }
 
   end(): void {
     if (this.#isList) {
-      this.#rx.end(this.#reject);
+      this.#rx.end(this);
     }
   }
 

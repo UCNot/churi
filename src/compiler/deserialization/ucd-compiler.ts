@@ -1,21 +1,30 @@
-import { asArray, noop } from '@proc7ts/primitives';
+import { asArray, asis } from '@proc7ts/primitives';
 import {
   EsBundle,
+  EsCode,
+  EsDeclarationContext,
   EsEvaluationOptions,
+  EsFunction,
   EsGenerationOptions,
   EsScopeSetup,
+  EsSnippet,
+  EsSymbol,
   esEvaluate,
   esGenerate,
+  esStringLiteral,
+  esline,
 } from 'esgen';
+import { capitalize } from 'httongue';
 import { UcDeserializer } from '../../mod.js';
 import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UcToken } from '../../syntax/uc-token.js';
+import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
-import { UcdEntityFeature } from './ucd-entity-feature.js';
+import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';
+import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
@@ -31,8 +40,12 @@ export class UcdCompiler<
 > extends UcrxProcessor<UcdCompiler.Any> {
 
   readonly #options: UcdCompiler.Options<TModels, TMode>;
-  #defaultEntities: UcdLib.EntityConfig[] | undefined;
-  #entities: UcdLib.EntityConfig[] | undefined = [];
+
+  readonly #entities: UcdHandlerRegistry;
+  readonly #formats: UcdHandlerRegistry;
+  readonly #meta: UcdHandlerRegistry;
+
+  readonly #internalModels: UcdLib.InternalModel[] = [];
 
   /**
    * Constructs deserializer compiler.
@@ -55,6 +68,9 @@ export class UcdCompiler<
     });
 
     this.#options = options;
+    this.#entities = new UcdHandlerRegistry('defaultEntities');
+    this.#formats = new UcdHandlerRegistry('defaultFormats');
+    this.#meta = new UcdHandlerRegistry('defaultMeta');
   }
 
   protected override createConfig<TOptions>(
@@ -68,81 +84,203 @@ export class UcdCompiler<
   }
 
   #enableDefault(): UccConfig {
-    const config = ucdSupportDefaults(this);
+    return {
+      configure: () => this.#configureDefaults(),
+    };
+  }
 
-    if (this.#entities?.length) {
-      // Custom entities registered already.
-      return config;
-    }
+  #configureDefaults(): void {
+    const defaultConfig = ucdSupportDefaults(this);
 
-    // Stop registering default entities.
+    this.#entities.configureDefaults();
+    this.#formats.configureDefaults();
+    this.#meta.configureDefaults();
+
+    // Stop registering default handlers.
     // Start registering custom ones.
-    config.configure();
-    this.#defaultEntities = this.#entities;
-    this.#entities = undefined;
+    defaultConfig.configure();
 
-    return { configure: noop };
+    this.#entities.makeDefault();
+    this.#formats.makeDefault();
+    this.#meta.makeDefault();
+  }
+
+  /**
+   * Requests the given `schema` to be compiled.
+   *
+   * Once compiled, an {@link UcrxClass} will be reported to the given `whenCompiled` callback. It can be used
+   * to generated parser code for the input matching the schema.
+   *
+   * @param schema - Schema to compile.
+   * @param whenCompiled - Callback function to call when schema compiled.
+   *
+   * @returns `this` instance.
+   */
+  compileSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+    whenCompiled: (
+      /**
+       * Compiled charge receiver class.
+       */
+      ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>,
+    ) => void,
+  ): this {
+    this.#internalModels.push({ schema, whenCompiled });
+
+    return this;
   }
 
   /**
    * Configures entity handler.
    *
-   * @param entity - Matching entity. Either string or array of entity tokens.
+   * @param entity - Matching entity name.
    * @param feature - Entity support feature.
    *
    * @returns `this` instance.
    */
-  handleEntity(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#initEntities().push({ entity, feature });
+  handleEntity(entity: string, feature: UcdHandlerFeature): this {
+    this.#entities.addHandler(entity, feature);
 
     return this;
   }
 
   /**
-   * Configures entity prefix handler.
+   * Configures data format handler.
    *
-   * @param prefix - Matching entity prefix. Either string or array of entity tokens.
-   * @param feature - Entity support feature.
+   * @param format - Matching format name.
+   * @param feature - Format support feature.
    *
    * @returns `this` instance.
    */
-  handleEntityPrefix(prefix: string | readonly UcToken[], feature: UcdEntityFeature): this;
-  handleEntityPrefix(entity: string | readonly UcToken[], feature: UcdEntityFeature): this {
-    this.#initEntities().push({ entity, feature, prefix: true });
+  handleFormat(format: string, feature: UcdHandlerFeature): this {
+    this.#formats.addHandler(format, feature);
 
     return this;
   }
 
-  #initEntities(): UcdLib.EntityConfig[] {
-    return (this.#entities ??= this.#defaultEntities)!;
+  /**
+   * Configures metadata attribute handler.
+   *
+   * @param attribute - Matching metadata attribute name.
+   * @param feature - Metadata support feature.
+   *
+   * @returns `this` instance.
+   */
+  handleMeta(attribute: string, feature: UcdHandlerFeature): this {
+    this.#meta.addHandler(attribute, feature);
+
+    return this;
+  }
+
+  /**
+   * Requests the given `attribute` value to be parsed with the given `schema`.
+   *
+   * @param attribute - Target attribute.
+   * @param schema - Attribute value schema.
+   * @param set - Emits code for attribute value assignment.
+   *
+   * By default, attribute will be added to metadata.
+   *
+   * @returns `this` instance.
+   */
+  parseMetaValue<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    attribute: string,
+    schema: TSchema,
+    set: (
+      this: void,
+      /**
+       * Attribute value assignment arguments.
+       */
+      args: {
+        /**
+         * Charge processing context.
+         */
+        readonly cx: EsSnippet;
+
+        /**
+         * Charge receiver.
+         */
+        readonly rx: EsSnippet;
+
+        /**
+         * Attribute value.
+         */
+        readonly value: EsSnippet;
+      },
+      /**
+       * Declaration context of attribute handler function.
+       */
+      context: EsDeclarationContext,
+    ) => EsSnippet = ({ cx, value }) => esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
+  ): this {
+    const ucrxRef = new EsCode();
+    const handleAttr = new EsFunction(
+      `handle${capitalize(attribute)}Attr`,
+      {
+        cx: {},
+        rx: {},
+        attr: {},
+      },
+      {
+        declare: {
+          at: 'bundle',
+          body:
+            ({ args: { cx, rx } }, context) => (code, { ns }) => {
+              const value = ns.addSymbol(new EsSymbol('$'), asis);
+
+              code
+                .write(esline`return new ${ucrxRef}(${value} => {`)
+                .indent(set({ cx, rx, value }, context))
+                .write('});');
+            },
+        },
+      },
+    );
+
+    this.compileSchema(schema, ucrxClass => {
+      ucrxRef.write(ucrxClass);
+    });
+
+    return this.handleMeta(attribute, setup => setup.register(handleAttr));
   }
 
   /**
    * Generates deserialization code.
    *
    * @param options - Code generation options.
+   * @param snippets - Additional code snippets.
    *
    * @returns Promise resolved to deserializer module text.
    */
-  async generate(options: EsGenerationOptions = {}): Promise<string> {
-    return await esGenerate({
-      ...options,
-      setup: [...asArray(options.setup), await this.bootstrap()],
-    });
+  async generate(options: EsGenerationOptions = {}, ...snippets: EsSnippet[]): Promise<string> {
+    return await esGenerate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      ...snippets,
+    );
   }
 
   /**
    * Generates serialization code and evaluates it.
    *
    * @param options - Code evaluation options.
+   * @param snippets - Additional code snippets.
    *
    * @returns Promise resolved to deserializers exported from generated module.
    */
-  async evaluate(options: EsEvaluationOptions = {}): Promise<UcdExports<TModels, TMode>> {
-    return (await esEvaluate({
-      ...options,
-      setup: [...asArray(options.setup), await this.bootstrap()],
-    })) as UcdExports<TModels, TMode>;
+  async evaluate(
+    options: EsEvaluationOptions = {},
+    ...snippets: EsSnippet[]
+  ): Promise<UcdExports<TModels, TMode>> {
+    return (await esEvaluate(
+      {
+        ...options,
+        setup: [...asArray(options.setup), await this.bootstrap()],
+      },
+      ...snippets,
+    )) as UcdExports<TModels, TMode>;
   }
 
   /**
@@ -183,8 +321,11 @@ export class UcdCompiler<
       ...this.#options,
       ...this.createUcrxLibOptions(),
       schemaIndex: this.schemaIndex,
+      internalModels: this.#internalModels,
       mode,
-      entities: this.#entities,
+      entities: this.#entities.declare(),
+      formats: this.#formats.declare(),
+      meta: this.#meta.declare(),
     };
   }
 
@@ -234,7 +375,7 @@ export namespace UcdCompiler {
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
-    readonly exportEntityHandler?: boolean | undefined;
+    readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
       this: void,

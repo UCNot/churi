@@ -56,7 +56,7 @@ import { ChURI } from 'churi';
 
 const { route, searchParams: query } = new ChURI(
   'https://example.com' +
-    '/api(!v3.0)' +
+    '/!v(3)api' +
     '/user;id=0n302875106592253' +
     '/article;slug=hello-world' +
     '/comments' +
@@ -65,10 +65,10 @@ const { route, searchParams: query } = new ChURI(
 );
 
 console.debug(route.path);
-// /api(!v3.0)/user;id=0n302875106592253/article;slug=hello-world/comments
+// /!v(3)api/user;id=0n302875106592253/article;slug=hello-world/comments
 
-console.debug(route.name, route.matrix.arg.get('api').value);
-// api !v3.0
+console.debug(route.name, route.matrix.arg.meta.get('v').value);
+// api 3
 
 console.debug(route.at(1).name, route.at(1).matrix.getCharge('id').value);
 // user 302875106592253n
@@ -96,17 +96,17 @@ To build Charged URI a tagged template can be used.
 The following code reconstructs the URI from example above:
 
 ```typescript
-import { churi, UcEntity } from 'churi';
+import { churi, UcEntity, UcFormatted, UcMeta } from 'churi';
 
 console.debug(churi`
   https://example.com
-    /api(${new UcEntity('!v3.0')})
+    /${new UcMeta().add('v', 3)}api
     /user;id=${302875106592253n}
     /article;slug=${'hello-world'}
     /comments
       ?date=${{
-        since: new UcEntity("!date'1970-01-01"),
-        till: new UcEntity('!now'),
+        since: new UcFormatted('date', '1970-01-01'),
+        till: new UcEntity('now'),
       }}
       &range=${{
         from: 10,
@@ -120,17 +120,17 @@ The `UcEntity` above used to add parts to URI as they are. It should be used wit
 Instead, a Charged URI string can be built with `chargeURI()` function.
 
 ```typescript
-import { chargeURI, UcEntity } from 'churi';
+import { chargeURI, UcEntity, UcFormatted, UcMeta } from 'churi';
 
 console.debug(
   `https://example.com` +
-    `/api(${chargeURI(new UcEntity('!v3.0'))})` +
+    `/${chargeURI(new UcMeta().add('v', 3))}api` +
     `/user;id=${chargeURI(302875106592253n)}` +
     `/article;slug=${chargeURI('hello-world')}` +
     `/comments` +
     `?date=${chargeURI({
-      since: new UcEntity("!date'1970-01-01"),
-      till: new UcEntity('!now'),
+      since: new UcFormatted('date', '1970-01-01'),
+      till: new UcEntity('now'),
     })}` +
     `&range=${chargeURI({
       from: 10,

@@ -25,9 +25,10 @@ import { UcrxHandle } from './ucrx-handle.js';
 export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
-  end?: (rx: UcrxHandle) => void,
-  single = false, // Never set for the first item of the list, unless it is non-empty.
+  end?: (rx: UcrxHandle) => void, // Never set for the first item of the list, unless it is non-empty.
 ): Promise<void> {
+  const single = !end;
+
   await ucdSkipWhitespace(reader);
 
   const firstToken = reader.current();
@@ -41,7 +42,7 @@ export async function ucdReadValue(
     return;
   }
   if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
-    await ucdReadEntityOrTrue(reader, rx);
+    await ucdReadMetaOrEntityOrTrue(reader, rx);
 
     if (single) {
       return;
@@ -168,16 +169,80 @@ export async function ucdReadValue(
   return await ucdReadItems(reader, rx);
 }
 
-async function ucdReadEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
-  const tokens = await ucdReadTokens(reader, rx, true);
+async function ucdReadMetaOrEntityOrTrue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+  reader.skip(); // Skip exclamation mark.
 
-  if (trimUcTokensTail(tokens).length === 1) {
+  const found = await reader.find(token => {
+    if (token === UC_TOKEN_APOSTROPHE || isUcBoundToken(token)) {
+      return true;
+    }
+
+    return;
+  });
+
+  let tokens: readonly UcToken[];
+
+  if (!found) {
+    // Everything up to the end of input is either entity or `true`.
+    tokens = reader.consume();
+  } else {
+    switch (found) {
+      case UC_TOKEN_CLOSING_PARENTHESIS:
+        // Everything up to the closing parenthesis is either entity or `true`.
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_COMMA:
+        // Everything up to the comma is either entity or `true`
+        rx.and(true);
+        tokens = reader.consumePrev();
+
+        break;
+      case UC_TOKEN_APOSTROPHE:
+        // Formatted data.
+        return await ucdReadFormatted(
+          reader,
+          rx,
+          printUcTokens(trimUcTokensTail(reader.consumePrev())),
+        );
+      default:
+        // Metadata attribute.
+        return await ucdReadMetaAndValue(reader, rx);
+    }
+  }
+
+  const trimmed = trimUcTokensTail(tokens);
+
+  if (!trimmed.length) {
     // Process single exclamation mark.
     rx.bol(true);
   } else {
     // Process entity.
-    rx.ent(tokens);
+    rx.ent(printUcTokens(trimmed));
   }
+}
+
+async function ucdReadFormatted(
+  reader: AsyncUcdReader,
+  rx: UcrxHandle,
+  format: string,
+): Promise<void> {
+  reader.skip(); // Skip apostrophe.
+
+  rx.fmt(format, await ucdReadTokens(reader, rx, true));
+}
+
+async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Promise<void> {
+  const attributeName = printUcTokens(trimUcTokensTail(reader.consumePrev()));
+
+  reader.skip(); // Skip opening parenthesis.
+
+  await ucdReadValue(reader, rx.att(attributeName), rx => rx.end());
+
+  reader.skip(); // Skip closing parenthesis.
+
+  // Read single value following the attribute.
+  await ucdReadValue(reader, rx);
 }
 
 async function ucdReadTokens(
@@ -282,7 +347,7 @@ async function ucdReadItems(
     } else {
       rx.nextItem();
     }
-    await ucdReadValue(reader, rx, undefined, true);
+    await ucdReadValue(reader, rx);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.

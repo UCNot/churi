@@ -3,17 +3,17 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxCore } from './ucrx-core.js';
 import { UcrxLib } from './ucrx-lib.js';
-import { UcrxMethod } from './ucrx-method.js';
+import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 
 export abstract class UcrxClass<
-  out TArgs extends UcrxSignature1.Args = UcrxSignature.Args,
+  out TArgs extends UcrxSignature.Args = UcrxSignature.Args,
   out T = unknown,
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > extends EsClass<TArgs> {
 
   readonly #schema: TSchema;
   readonly #typeName: string;
-  readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, unknown>, unknown[]>();
+  readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
@@ -68,13 +68,13 @@ export abstract class UcrxClass<
     return !!this.baseUcrx?.isMemberOverridden(member);
   }
 
-  methodModifiersOf<TArgs extends EsSignature.Args, TMod>(
+  methodModifiersOf<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
   ): readonly TMod[] {
     return (this.#methodMods.get(method) ?? []) as TMod[];
   }
 
-  modifyMethod<TArgs extends EsSignature.Args, TMod>(
+  modifyMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     mod: TMod,
   ): void {
@@ -117,10 +117,10 @@ export abstract class UcrxClass<
 }
 
 export namespace UcrxClass {
-  export type Any = UcrxClass<UcrxSignature1.Args>;
+  export type Any = UcrxClass<UcrxSignature.Args>;
 
   export type Init<
-    TArgs extends UcrxSignature1.Args,
+    TArgs extends UcrxSignature.Args,
     T = unknown,
     TSchema extends UcSchema<T> = UcSchema<T>,
   > = EsClassInit<TArgs> & {
@@ -135,24 +135,11 @@ export type UcrxProto<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
 
 export const UcrxSignature: UcrxSignature = /*#__PURE__*/ new EsSignature({
   set: {},
-  context: {},
-});
-
-export const UcrxSignature1: UcrxSignature1 = /*#__PURE__*/ new EsSignature({
-  set: {},
 });
 
 export type UcrxSignature = EsSignature<UcrxSignature.Args>;
-export type UcrxSignature1 = EsSignature<UcrxSignature1.Args>;
 
 export namespace UcrxSignature {
-  export type Args = {
-    readonly set: EsArg;
-    readonly context: EsArg;
-  };
-}
-
-export namespace UcrxSignature1 {
   export type Args = {
     readonly set: EsArg;
   };

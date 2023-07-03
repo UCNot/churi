@@ -1,5 +1,5 @@
 import { UcToken } from '../syntax/uc-token.js';
-import { UcrxReject } from './ucrx-rejection.js';
+import { UcrxContext } from './ucrx-context.js';
 
 /**
  * Charge receiver interface.
@@ -18,17 +18,27 @@ export interface Ucrx {
   get types(): readonly string[];
 
   /**
+   * Charges metadata attribute.
+   *
+   * @param attr - Metadata attribute name.
+   * @param cx - Charge processing context.
+   *
+   * @returns Either metadata receiver, or `undefined` if metadata attribute is not recognized.
+   */
+  att(attr: string, cx: UcrxContext): Ucrx | undefined;
+
+  /**
    * Charges boolean value.
    *
    * Called directly for `true` value (`!`), or from {@link raw} when the raw value interpreted as `false`,
    * i.e. it is `-`.
    *
    * @param value - Charged value.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected boolean.
    */
-  bol(value: boolean, reject: UcrxReject): 0 | 1;
+  bol(value: boolean, cx: UcrxContext): 0 | 1;
 
   /**
    * Charges big integer value.
@@ -37,32 +47,43 @@ export interface Ucrx {
    * `-0n` prefix.
    *
    * @param value - Charged value.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected big integer.
    */
-  big(value: bigint, reject: UcrxReject): 0 | 1;
+  big(value: bigint, cx: UcrxContext): 0 | 1;
 
   /**
    * Charges opaque (unrecognized) entity.
    *
    * Called for unhandled entities.
    *
-   * @param value - Charged entity tokens.
-   * @param reject - Rejection callback.
+   * @param name - Charged entity name.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected entity.
    */
-  ent(value: readonly UcToken[], reject: UcrxReject): 0 | 1;
+  ent(name: string, cx: UcrxContext): 0 | 1;
+
+  /**
+   * Charges opaque (unrecognized) formatted data.
+   *
+   * @param format - Charged data format name.
+   * @param data - Charged data tokens.
+   * @param cx - Charge processing context.
+   *
+   * @returns Either `1` if charge succeed, or `0` for unexpected data.
+   */
+  fmt(format: string, data: readonly UcToken[], cx: UcrxContext): 0 | 1;
 
   /**
    * Charges nested list.
    *
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either nested list charge receiver, or `undefined` for unexpected nested list.
    */
-  nls(reject: UcrxReject): Ucrx | undefined;
+  nls(cx: UcrxContext): Ucrx | undefined;
 
   /**
    * Charges `null` value.
@@ -71,7 +92,7 @@ export interface Ucrx {
    *
    * @returns Either `1` if charge succeed, or ``0` for unexpected `null`.
    */
-  nul(reject: UcrxReject): 0 | 1;
+  nul(cx: UcrxContext): 0 | 1;
 
   /**
    * Charges number value.
@@ -79,11 +100,11 @@ export interface Ucrx {
    * Typically called from {@link raw} when the raw value interpreted as number, i.e. when it starts with digit.
    *
    * @param value - Charged value.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected number.
    */
-  num(value: number, reject: UcrxReject): 0 | 1;
+  num(value: number, cx: UcrxContext): 0 | 1;
 
   /**
    * Charges raw value.
@@ -94,11 +115,11 @@ export interface Ucrx {
    * By default, calls {@link big}, {@link bol}, {@link nul}, {@link num}, or {@link str} depending on `value` prefix.
    *
    * @param value - Charged value.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected number.
    */
-  raw(value: string, reject: UcrxReject): 0 | 1;
+  raw(value: string, cx: UcrxContext): 0 | 1;
 
   /**
    * Charges string value.
@@ -107,21 +128,21 @@ export interface Ucrx {
    * otherwise.
    *
    * @param value - Charged value.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either `1` if charge succeed, or `0` for unexpected number.
    */
-  str(value: string, reject: UcrxReject): 0 | 1;
+  str(value: string, cx: UcrxContext): 0 | 1;
 
   /**
    * Starts charging of map entry.
    *
    * @param key - Target entry key.
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns Either entry receiver, `0` for unexpected map, or `undefined` for unexpected entry.
    */
-  for(key: PropertyKey, reject: UcrxReject): Ucrx | 0 | undefined;
+  for(key: PropertyKey, cx: UcrxContext): Ucrx | 0 | undefined;
 
   /**
    * Finishes map charge.
@@ -131,11 +152,11 @@ export interface Ucrx {
    * The returned `0` makes sense for empty maps only. Otherwise, a preceding call to {@link for} has to return 0,
    * which prevents the map charge.
    *
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns `1` if charge succeed, or `0` for unexpected map.
    */
-  map(reject: UcrxReject): 0 | 1;
+  map(cx: UcrxContext): 0 | 1;
 
   /**
    * Starts charging of list.
@@ -143,11 +164,11 @@ export interface Ucrx {
    * Always called _before_ the first item charge. In case of map item, always called _before_ {@link map map charge
    * finished}, but not necessarily before {@link for entries charged}.
    *
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    *
    * @returns `1` if charge succeed, or `0` for unexpected list.
    */
-  and(reject: UcrxReject): 0 | 1;
+  and(cx: UcrxContext): 0 | 1;
 
   /**
    * Finishes list charge.
@@ -156,7 +177,7 @@ export interface Ucrx {
    *
    * May also be called for single values. I.e. without preceding call to {@link and}. This is not guaranteed though.
    *
-   * @param reject - Rejection callback.
+   * @param cx - Charge processing context.
    */
-  end(reject: UcrxReject): void;
+  end(cx: UcrxContext): void;
 }

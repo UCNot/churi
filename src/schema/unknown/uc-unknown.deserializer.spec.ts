@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { ucdSupportPlainEntity } from '../../spec/read-plain-entity.js';
-import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
+import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
+import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcNullable, ucNullable } from '../uc-nullable.js';
@@ -143,7 +143,7 @@ describe('UcUnknown deserializer', () => {
     beforeEach(async () => {
       compiler = new UcdCompiler({
         models: { readValue: ucUnknown() },
-        features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampEntity],
+        features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampFormat],
       });
       ({ readValue } = await compiler.evaluate());
     });

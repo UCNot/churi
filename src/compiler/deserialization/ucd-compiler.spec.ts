@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { ucdSupportTimestampEntity } from '../../spec/timestamp.ucrx-method.js';
+import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcdCompiler } from './ucd-compiler.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
@@ -19,7 +19,7 @@ describe('UcdCompiler', () => {
             uccProcess(compiler) {
               return {
                 configure() {
-                  compiler.enable(ucdSupportTimestampEntity);
+                  compiler.enable(ucdSupportTimestampFormat);
                 },
               };
             },
@@ -35,18 +35,22 @@ describe('UcdCompiler', () => {
     });
   });
 
-  describe('exportEntityHandler', () => {
+  describe('exportDefaults', () => {
     it('exports default entity handler', async () => {
       const compiler = new UcdCompiler({
         models: {},
-        exportEntityHandler: true,
+        exportDefaults: true,
         features(compiler) {
           return ucdSupportDefaults(compiler);
         },
       });
 
       await expect(compiler.evaluate()).resolves.toEqual({
-        onEntity$byDefault: expect.any(Function),
+        defaultEntities: expect.objectContaining({
+          Infinity: expect.any(Function),
+          '-Infinity': expect.any(Function),
+          NaN: expect.any(Function),
+        }),
       });
     });
   });
@@ -176,7 +180,12 @@ describe('UcdCompiler', () => {
           `
 export async function readValue(
   stream,
-  { onError, onEntity = onEntity$byDefault } = {},
+  {
+    onError,
+    entities = defaultEntities,
+    formats,
+    onMeta = onMeta$byDefault,
+  } = {},
 ) {
 `.trimStart(),
         );
@@ -195,7 +204,12 @@ export async function readValue(
           `
 export function readValue(
   input,
-  { onError, onEntity = onEntity$byDefault } = {},
+  {
+    onError,
+    entities = defaultEntities,
+    formats,
+    onMeta = onMeta$byDefault,
+  } = {},
 ) {
 `.trimStart(),
         );
@@ -213,7 +227,12 @@ export function readValue(
           `
 export function readValue(
   input,
-  { onError, onEntity = onEntity$byDefault } = {},
+  {
+    onError,
+    entities = defaultEntities,
+    formats,
+    onMeta = onMeta$byDefault,
+  } = {},
 ) {
 `.trimStart(),
         );
@@ -235,7 +254,12 @@ export function readValue(
           `
   async function readValue(
     stream,
-    { onError, onEntity = onEntity$byDefault } = {},
+    {
+      onError,
+      entities = defaultEntities,
+      formats,
+      onMeta = onMeta$byDefault,
+    } = {},
   ) {
 `.trimStart(),
         );
@@ -254,7 +278,12 @@ export function readValue(
           `
   function readValue(
     input,
-    { onError, onEntity = onEntity$byDefault } = {},
+    {
+      onError,
+      entities = defaultEntities,
+      formats,
+      onMeta = onMeta$byDefault,
+    } = {},
   ) {
 `.trimStart(),
         );
@@ -272,7 +301,12 @@ export function readValue(
           `
   function readValue(
     input,
-    { onError, onEntity = onEntity$byDefault } = {},
+    {
+      onError,
+      entities = defaultEntities,
+      formats,
+      onMeta = onMeta$byDefault,
+    } = {},
   ) {
 `.trimStart(),
         );

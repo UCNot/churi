@@ -12,6 +12,20 @@ describe('UcdReader', () => {
     reader.done();
   });
 
+  describe('entities', () => {
+    it('ignores entity by default', () => {
+      reader = readChunks('abc');
+      expect(reader.entities).toEqual({});
+    });
+  });
+
+  describe('onMeta', () => {
+    it('ignores meta by default', () => {
+      reader = readChunks('abc');
+      expect(reader.onMeta(null!, null!, 'test')).toBeUndefined();
+    });
+  });
+
   describe('error', () => {
     it('throws by default', () => {
       reader = readChunks('abc', 'def');

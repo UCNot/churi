@@ -21,7 +21,7 @@ export type UcrxRejection = Omit<UcErrorInfo, 'path'>;
  *
  * @returns Always `0` to be able to return it from receiver's method.
  */
-export type UcrxReject = (rejection: UcrxRejection) => 0;
+export type UcrxReject = (this: void, rejection: UcrxRejection) => 0;
 
 export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcrxRejection {
   return {
@@ -111,13 +111,24 @@ export function ucrxRejectEntry(key: string): UcrxRejection {
   };
 }
 
-export function ucrxRejectEntity(entity: readonly UcToken[]): UcrxRejection {
+export function ucrxRejectEntity(entity: string): UcrxRejection {
   return {
     code: 'unrecognizedEntity',
     details: {
       entity,
     },
-    message: `Unrecognized entity: ${printUcTokens(entity)}`,
+    message: `Unrecognized entity: !${entity}`,
+  };
+}
+
+export function ucrxRejectFormat(format: string, data: readonly UcToken[]): UcrxRejection {
+  return {
+    code: 'unrecognizedFormat',
+    details: {
+      format,
+      data,
+    },
+    message: `Unrecognized data format: !${format}'${printUcTokens(data)}`,
   };
 }
 

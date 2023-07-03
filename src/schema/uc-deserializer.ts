@@ -1,4 +1,6 @@
 import { EntityUcrx } from '../rx/entity.ucrx.js';
+import { FormatUcrx } from '../rx/format.ucrx.js';
+import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
@@ -90,18 +92,32 @@ export namespace UcDeserializer {
     /**
      * Function to call to report deserialization error.
      *
-     * By default, throw an {@link churi!UcError} with the given `error` info.
+     * By default, throws an {@link churi!UcError} with the given `error` info.
      *
      * @param error - Error info.
      */
     readonly onError?: ((this: void, error: UcErrorInfo) => void) | undefined;
 
     /**
-     * Function to call to deserialize entities.
+     * Map of recognized {@link churi!EntityUcrx entity} receivers.
      *
      * By default, entities will be deserialized by {@link churi/compiler.js!UcdCompiler#handleEntity compiler}.
      */
-    readonly onEntity?: EntityUcrx | undefined;
+    readonly entities?: { readonly [entity: string]: EntityUcrx | undefined } | undefined;
+
+    /**
+     * Map of recognized {@link churi!FormatUcrx formatted data} receivers.
+     *
+     * By default, formatted data will be deserialized by {@link churi/compiler.js!UcdCompiler#handleFormat compiler}.
+     */
+    readonly formats?: { readonly [entity: string]: FormatUcrx | undefined } | undefined;
+
+    /**
+     * Function to call to deserialize metadata attribute.
+     *
+     * By default, metadata attribute value will be deserialized as {@link churi!ucUnknown unknown}.
+     */
+    readonly onMeta?: MetaUcrx;
   }
 }
 
