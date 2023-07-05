@@ -1,7 +1,7 @@
 import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_DESERIALIZER, UC_MODULE_DESERIALIZER_DEFAULTS } from '../impl/uc-modules.js';
+import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
@@ -67,7 +67,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     externalName: string,
     signature: UcdExportSignature,
   ): EsFunction<UcdExportSignature.Args> {
-    const { mode, opaqueUcrx, defaultEntities, defaultFormats, defaultMeta } = this.lib;
+    const { mode, opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -105,8 +105,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
               : undefined,
           options: {
             declare: () => code => {
-              const onMeta$byDefault = UC_MODULE_DESERIALIZER_DEFAULTS.import('onMeta$byDefault');
-
               code.multiLine(code => {
                 code
                   .write('{')
@@ -118,19 +116,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
                     defaultFormats !== 'undefined'
                       ? esline`formats = ${defaultFormats},`
                       : `formats,`,
-                    code => {
-                      if (defaultMeta === 'undefined') {
-                        code.line('onMeta = ', onMeta$byDefault, ',');
-                      } else {
-                        code.line(
-                          `onMeta = (cx, rx, attr) => `,
-                          defaultMeta,
-                          '[attr]?.(cx, rx, attr) ?? ',
-                          onMeta$byDefault,
-                          '(cx, rx, attr),',
-                        );
-                      }
-                    },
+                    esline`onMeta = ${onMeta},`,
                   )
                   .write('} = {}');
               });

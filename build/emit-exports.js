@@ -1,16 +1,17 @@
-import { ucUnknown } from '#churi/core.js';
+import { UcValueCompiler } from '#churi/uc-value/compiler.js';
 import { URIChargeCompiler } from '#churi/uri-charge/compiler.js';
 import { UcdCompiler, ucdSupportDefaults } from 'churi/compiler.js';
-import { EsFunction, esline } from 'esgen';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = fileURLToPath(import.meta.url);
 const distDir = path.resolve(path.dirname(scriptPath), '..', 'dist');
+const UC_VALUE_DESERIALIZER = 'churi.uc-value.deserializer.js';
 
 await Promise.all([
   emitDeserializerDefaults(),
+  emitDeserializerMeta(),
   emitUcValueDeserializer(),
   emitUcValueDeserializerTypes(),
   emitURIChargeDeserializer(),
@@ -29,38 +30,22 @@ async function emitDeserializerDefaults() {
     },
   });
 
+  await writeDistFile('churi.deserializer.defaults.js', await compiler.generate());
+}
+
+async function emitDeserializerMeta() {
   await writeDistFile(
-    'churi.deserializer.defaults.js',
-    await compiler.generate(
-      {},
-      `export { onMeta$byDefault } from '#churi/uc-value/deserializer.js';`,
-    ),
+    'churi.deserializer.meta.js',
+    `
+export { onMeta$byDefault } from './${UC_VALUE_DESERIALIZER}';
+`,
   );
 }
 
 async function emitUcValueDeserializer() {
-  const compiler = new UcdCompiler({
-    models: { parseUcValue: ucUnknown() },
-    mode: 'sync',
-  });
+  const compiler = new UcValueCompiler();
 
-  const onMeta$byDefault = new EsFunction(
-    'onMeta$byDefault',
-    { cx: {}, rx: {}, attr: {} },
-    {
-      declare: {
-        at: 'exports',
-        body: ({ args: { cx, attr } }) => esline`return new AnyUcrx($ => ${cx}.meta.add(${attr}, $));`,
-      },
-    },
-  );
-
-  await writeDistFile(
-    'churi.uc-value.deserializer.js',
-    await compiler.generate({}, (_, { ns }) => {
-      ns.refer(onMeta$byDefault);
-    }),
-  );
+  await writeDistFile(UC_VALUE_DESERIALIZER, await compiler.generate());
 }
 
 async function emitUcValueDeserializerTypes() {

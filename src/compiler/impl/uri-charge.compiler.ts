@@ -7,6 +7,7 @@ import { URICharge } from '../../schema/uri-charge/uri-charge.js';
 import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
 import { UcdCompiler } from '../deserialization/ucd-compiler.js';
+import { UcdLib } from '../deserialization/ucd-lib.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -14,7 +15,11 @@ import { UcrxEntitySetterSignature } from '../rx/ucrx-entity-setter.js';
 import { UcrxFormattedSetterSignature } from '../rx/ucrx-formatted-setter.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
-import { UC_MODULE_CHURI, UC_MODULE_URI_CHARGE } from './uc-modules.js';
+import {
+  UC_MODULE_CHURI,
+  UC_MODULE_UC_VALUE_DESERIALIZER,
+  UC_MODULE_URI_CHARGE,
+} from './uc-modules.js';
 
 export class URIChargeCompiler extends UcdCompiler<
   { parseURICharge: UcSchema<URICharge> },
@@ -43,6 +48,17 @@ export class URIChargeCompiler extends UcdCompiler<
         };
       },
     });
+  }
+
+  override async bootstrapOptions(): Promise<
+    UcdLib.Options<{ parseURICharge: UcSchema<URICharge> }, 'sync'>
+  > {
+    const options = await super.bootstrapOptions();
+
+    return {
+      ...options,
+      onMeta: UC_MODULE_UC_VALUE_DESERIALIZER.import('onMeta$byDefault'),
+    };
   }
 
 }

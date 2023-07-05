@@ -1,6 +1,7 @@
-import { EsBundle, EsNamespace, EsSnippet } from 'esgen';
+import { EsBundle, EsCallable, EsNamespace, EsSnippet, esline } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UC_MODULE_DESERIALIZER_META } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
@@ -33,6 +34,7 @@ export class UcdLib<
   readonly #defaultEntities: EsSnippet;
   readonly #defaultFormats: EsSnippet;
   readonly #defaultMeta: EsSnippet;
+  #onMeta: EsSnippet | undefined;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
@@ -43,6 +45,7 @@ export class UcdLib<
       entities,
       formats,
       meta,
+      onMeta,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
@@ -58,6 +61,7 @@ export class UcdLib<
     this.#defaultEntities = entities(exportNs);
     this.#defaultFormats = formats(exportNs);
     this.#defaultMeta = meta(exportNs);
+    this.#onMeta = onMeta;
 
     this.#declareDeserializers(ns);
   }
@@ -100,6 +104,29 @@ export class UcdLib<
     return this.#defaultMeta;
   }
 
+  get onMeta(): EsSnippet {
+    if (!this.#onMeta) {
+      const { defaultMeta } = this;
+      const onMeta$byDefault = UC_MODULE_DESERIALIZER_META.import('onMeta$byDefault');
+
+      if (defaultMeta === 'undefined') {
+        return onMeta$byDefault;
+      }
+
+      this.#onMeta = new EsCallable({ cx: {}, rx: {}, attr: {} }).lambda(
+        ({ args: { cx, rx, attr } }) => code => {
+            code.line(
+              esline`${defaultMeta}[${attr}]?.(${cx}, ${rx}, ${attr}})`,
+              ` ?? `,
+              esline`${onMeta$byDefault}(${cx}, ${rx}, ${attr})`,
+            );
+          },
+      );
+    }
+
+    return this.#onMeta;
+  }
+
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcdFunction<T, TSchema> {
@@ -135,6 +162,7 @@ export namespace UcdLib {
     entities(this: void, exportNs?: EsNamespace): EsSnippet;
     formats(this: void, exportNs?: EsNamespace): EsSnippet;
     meta(this: void, exportNs?: EsNamespace): EsSnippet;
+    onMeta?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
