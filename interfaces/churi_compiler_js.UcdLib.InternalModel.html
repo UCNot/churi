@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>UcdEntitySetup | Charged URI</title><meta name="description" content="Documentation for Charged URI"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>InternalModel | Charged URI</title><meta name="description" content="Documentation for Charged URI"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,19 +14,22 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Charged URI</a></li>
 <li><a href="../modules/churi_compiler_js.html">churi/compiler.js</a></li>
-<li><a href="churi_compiler_js.UcdEntitySetup.html">UcdEntitySetup</a></li></ul>
-<h1>Interface UcdEntitySetup</h1></div>
-<section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Entity deserialization setup.</p>
-<p>Passed to <a href="../types/churi_compiler_js.UcdEntityFeature.html" class="tsd-kind-type-alias">entity deserialization support feature</a> when the latter enabled.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></section>
+<li><a href="../modules/churi_compiler_js.UcdLib.html">UcdLib</a></li>
+<li><a href="churi_compiler_js.UcdLib.InternalModel.html">InternalModel</a></li></ul>
+<h1>Interface InternalModel&lt;T, TSchema&gt;</h1></div> 
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li>
+<h4>out <span class="tsd-kind-type-parameter">T</span> = <span class="tsd-signature-type">unknown</span></h4></li>
+<li>
+<h4>out <span class="tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol"> extends </span><a href="churi.UcSchema-1.html" class="tsd-signature-type tsd-kind-interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span> = <a href="churi.UcSchema-1.html" class="tsd-signature-type tsd-kind-interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><span class="target">UcdEntitySetup</span></li></ul></section><aside class="tsd-sources">
+<li><span class="target">InternalModel</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/c7ed352/src/compiler/deserialization/ucd-entity-feature.ts#L20">ucnot/churi/src/compiler/deserialization/ucd-entity-feature.ts:20</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/96e81b8/src/compiler/deserialization/ucd-lib.ts#L173">ucnot/churi/src/compiler/deserialization/ucd-lib.ts:173</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -34,69 +37,36 @@
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="churi_compiler_js.UcdEntitySetup.html#lib" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>lib</span></a>
+<div class="tsd-index-list"><a href="churi_compiler_js.UcdLib.InternalModel.html#schema" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-1024"><rect fill="var(--color-icon-background)" stroke="#FF984D" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.354 16V7.24H12.174C12.99 7.24 13.638 7.476 14.118 7.948C14.606 8.412 14.85 9.036 14.85 9.82C14.85 10.604 14.606 11.232 14.118 11.704C13.638 12.168 12.99 12.4 12.174 12.4H10.434V16H9.354ZM10.434 11.428H12.174C12.646 11.428 13.022 11.284 13.302 10.996C13.59 10.7 13.734 10.308 13.734 9.82C13.734 9.324 13.59 8.932 13.302 8.644C13.022 8.356 12.646 8.212 12.174 8.212H10.434V11.428Z" fill="var(--color-text)"></path></g></svg><span>schema</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="churi_compiler_js.UcdEntitySetup.html#refer" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-2048"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)"></path></g></svg><span>refer</span></a>
-<a href="churi_compiler_js.UcdEntitySetup.html#register" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>register</span></a>
+<div class="tsd-index-list"><a href="churi_compiler_js.UcdLib.InternalModel.html#whenCompiled" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-2048"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)"></path></g></svg><span>when<wbr/>Compiled</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
-<section class="tsd-panel tsd-member"><a id="lib" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>lib</span><a href="#lib" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">lib</span><span class="tsd-signature-symbol">:</span> <a href="../modules/churi_compiler_js.UcdLib.html" class="tsd-signature-type tsd-kind-namespace">UcdLib</a><span class="tsd-signature-symbol">.</span><a href="../types/churi_compiler_js.UcdLib.Any.html" class="tsd-signature-type tsd-kind-type-alias">Any</a><span class="tsd-signature-symbol">&lt;</span><a href="churi_compiler_js.UcdModels.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a><span class="tsd-signature-symbol">&gt;</span></div>
-<div class="tsd-comment tsd-typography"><p>Configured deserializer library.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<section class="tsd-panel tsd-member"><a id="schema" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>schema</span><a href="#schema" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">schema</span><span class="tsd-signature-symbol">:</span> <a href="churi.UcSchema-1.html" class="tsd-signature-type tsd-kind-interface">UcSchema</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/c7ed352/src/compiler/deserialization/ucd-entity-feature.ts#L24">ucnot/churi/src/compiler/deserialization/ucd-entity-feature.ts:24</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/96e81b8/src/compiler/deserialization/ucd-lib.ts#L174">ucnot/churi/src/compiler/deserialization/ucd-lib.ts:174</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
-<section class="tsd-panel tsd-member"><a id="refer" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>refer</span><a href="#refer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<section class="tsd-panel tsd-member"><a id="whenCompiled" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>when<wbr/>Compiled</span><a href="#whenCompiled" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="refer.refer-1"><span class="tsd-kind-call-signature">refer</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span>, <span class="tsd-kind-parameter">ref</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#refer.refer-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="whenCompiled.whenCompiled-1"><span class="tsd-kind-call-signature">when<wbr/>Compiled</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span>, <span class="tsd-kind-parameter">ucrxClass</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#whenCompiled.whenCompiled-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Makes entity handler refer the given symbol.</p>
-<p>The referenced symbol will be declared before the entity handler.</p>
-</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">this</span>: <span class="tsd-signature-type">void</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">ref</span>: <span class="tsd-signature-type ">EsReference</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">EsNaming</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">EsSymbol</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">EsNaming</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>Referred symbol.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<h5><span class="tsd-kind-parameter">ucrxClass</span>: <a href="../classes/churi_compiler_js.UcrxClass-1.html" class="tsd-signature-type tsd-kind-class">UcrxClass</a><span class="tsd-signature-symbol">&lt;</span><a href="../modules/churi_compiler_js.UcrxSignature.html" class="tsd-signature-type tsd-kind-namespace">UcrxSignature</a><span class="tsd-signature-symbol">.</span><a href="../types/churi_compiler_js.UcrxSignature.Args.html" class="tsd-signature-type tsd-kind-type-alias">Args</a><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/c7ed352/src/compiler/deserialization/ucd-entity-feature.ts#L42">ucnot/churi/src/compiler/deserialization/ucd-entity-feature.ts:42</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="register" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>register</span><a href="#register" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="register.register-1"><span class="tsd-kind-call-signature">register</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">this</span>, <span class="tsd-kind-parameter">entityRx</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">EsSnippet</span><a href="#register.register-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Builds code that registers created entity receiver.</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5><span class="tsd-kind-parameter">this</span>: <span class="tsd-signature-type">void</span></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">entityRx</span>: <span class="tsd-signature-type ">EsSnippet</span></h5>
-<div class="tsd-comment tsd-typography"><p>Entity receiver expression.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">EsSnippet</span></h4><p>Code snippet containing entity registration.</p>
-
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/c7ed352/src/compiler/deserialization/ucd-entity-feature.ts#L33">ucnot/churi/src/compiler/deserialization/ucd-entity-feature.ts:33</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/96e81b8/src/compiler/deserialization/ucd-lib.ts#L175">ucnot/churi/src/compiler/deserialization/ucd-lib.ts:175</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -115,9 +85,8 @@
 <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <ul>
-<li><a href="#lib" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>lib</span></a></li>
-<li><a href="#refer" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>refer</span></a></li>
-<li><a href="#register" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>register</span></a></li></ul></div></details></div>
+<li><a href="#schema" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>schema</span></a></li>
+<li><a href="#whenCompiled" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Compiled</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Charged URI</span></a>
 <ul class="tsd-small-nested-navigation">
@@ -133,13 +102,21 @@
 <li><a href="../modules/churi_compiler_js.UcdCompiler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Compiler</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcdExportSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcdFunction.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Function</span></a></li>
-<li><a href="../modules/churi_compiler_js.UcdLib.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Lib</span></a></li>
+<li>
+<details class="tsd-index-accordion" open data-key="churi/compiler.js.UcdLib"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/churi_compiler_js.UcdLib.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Lib</span></a></summary>
+<div class="tsd-accordion-details">
+<ul class="tsd-nested-navigation">
+<li><a href="churi_compiler_js.UcdLib.InternalModel.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Internal<wbr/>Model</span></a></li>
+<li><a href="churi_compiler_js.UcdLib.Options.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Options</span></a></li>
+<li><a href="../types/churi_compiler_js.UcdLib.Any.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Any</span></a></li></ul></div></details></li>
+<li><a href="../modules/churi_compiler_js.UcrxAttrSetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Attr<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxClass.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Class</span></a></li>
+<li><a href="../modules/churi_compiler_js.UcrxEntitySetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Entity<wbr/>Setter<wbr/>Signature</span></a></li>
+<li><a href="../modules/churi_compiler_js.UcrxFormattedSetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Formatted<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxLib.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Lib</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxProcessor.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Processor</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxSetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Signature</span></a></li>
-<li><a href="../modules/churi_compiler_js.UcrxSignature1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Signature1</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcsCompiler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucs<wbr/>Compiler</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcsExportSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucs<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcsFunction.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucs<wbr/>Function</span></a></li>
@@ -159,7 +136,10 @@
 <li><a href="../classes/churi_compiler_js.UcdCompiler-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucd<wbr/>Compiler</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcdFunction-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucd<wbr/>Function</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcdLib-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucd<wbr/>Lib</span></a></li>
+<li><a href="../classes/churi_compiler_js.UcrxAttrSetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Attr<wbr/>Setter</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcrxClass-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Class</span></a></li>
+<li><a href="../classes/churi_compiler_js.UcrxEntitySetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Entity<wbr/>Setter</span></a></li>
+<li><a href="../classes/churi_compiler_js.UcrxFormattedSetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Formatted<wbr/>Setter</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcrxLib-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Lib</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcrxMethod.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Method</span></a></li>
 <li><a href="../classes/churi_compiler_js.UcrxProcessor-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucrx<wbr/>Processor</span></a></li>
@@ -170,31 +150,33 @@
 <li><a href="../classes/churi_compiler_js.UcsLib-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Ucs<wbr/>Lib</span></a></li>
 <li><a href="../classes/churi_compiler_js.UnknownUcrxClass.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Unknown<wbr/>Ucrx<wbr/>Class</span></a></li>
 <li><a href="../classes/churi_compiler_js.UnsupportedUcSchemaError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Unsupported<wbr/>Uc<wbr/>Schema<wbr/>Error</span></a></li>
-<li><a href="churi_compiler_js.MapUcrxStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>Map<wbr/>Ucrx<wbr/>Store</span></a></li>
+<li><a href="churi_compiler_js.MapUcrxStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Map<wbr/>Ucrx<wbr/>Store</span></a></li>
 <li><a href="churi_compiler_js.UccConfig.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucc<wbr/>Config</span></a></li>
 <li><a href="churi_compiler_js.UccProcessorInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucc<wbr/>Processor<wbr/>Init</span></a></li>
-<li><a href="churi_compiler_js.UcdEntitySetup.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Entity<wbr/>Setup</span></a></li>
+<li><a href="churi_compiler_js.UcdHandlerSetup.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Handler<wbr/>Setup</span></a></li>
 <li><a href="churi_compiler_js.UcdModels.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Models</span></a></li>
+<li><a href="churi_compiler_js.UcrxBeforeMod.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Before<wbr/>Mod</span></a></li>
 <li><a href="churi_compiler_js.UcrxMethodInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Method<wbr/>Init</span></a></li>
 <li><a href="churi_compiler_js.UcrxPropertyInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Property<wbr/>Init</span></a></li>
 <li><a href="churi_compiler_js.UcrxSetterInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Setter<wbr/>Init</span></a></li>
-<li><a href="churi_compiler_js.UcrxSetterMod.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Setter<wbr/>Mod</span></a></li>
 <li><a href="churi_compiler_js.UcsModels.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucs<wbr/>Models</span></a></li>
 <li><a href="churi_compiler_js.UcvValidationContext.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucv<wbr/>Validation<wbr/>Context</span></a></li>
-<li><a href="../types/churi_compiler_js.MapUcrxEntrySignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Map<wbr/>Ucrx<wbr/>Entry<wbr/>Signature</span></a></li>
+<li><a href="../types/churi_compiler_js.MapUcrxEntrySignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Map<wbr/>Ucrx<wbr/>Entry<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UccFeature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucc<wbr/>Feature</span></a></li>
 <li><a href="../types/churi_compiler_js.UccSchemaFeature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucc<wbr/>Schema<wbr/>Feature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdAsyncExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Async<wbr/>Exports</span></a></li>
-<li><a href="../types/churi_compiler_js.UcdEntityFeature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Entity<wbr/>Feature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdExportSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Exports</span></a></li>
+<li><a href="../types/churi_compiler_js.UcdHandlerFeature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Handler<wbr/>Feature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdSyncExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Sync<wbr/>Exports</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdUniversalExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Universal<wbr/>Exports</span></a></li>
+<li><a href="../types/churi_compiler_js.UcrxAttrSetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Attr<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxCore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Core</span></a></li>
+<li><a href="../types/churi_compiler_js.UcrxEntitySetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Entity<wbr/>Setter<wbr/>Signature</span></a></li>
+<li><a href="../types/churi_compiler_js.UcrxFormattedSetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Formatted<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxProto.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Proto</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxSetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Signature</span></a></li>
-<li><a href="../types/churi_compiler_js.UcrxSignature1-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Signature1</span></a></li>
 <li><a href="../types/churi_compiler_js.UcsExportSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucs<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcsExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucs<wbr/>Exports</span></a></li>
 <li><a href="../types/churi_compiler_js.UcsGenerator.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucs<wbr/>Generator</span></a></li>
@@ -208,7 +190,6 @@
 <li><a href="../variables/churi_compiler_js.UcrxCore-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucrx<wbr/>Core</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcrxSetterSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucrx<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcrxSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucrx<wbr/>Signature</span></a></li>
-<li><a href="../variables/churi_compiler_js.UcrxSignature1-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucrx<wbr/>Signature1</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcsExportSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcsSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Signature</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcsWriterClass.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Writer<wbr/>Class</span></a></li>
