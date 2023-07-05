@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
 import '../../spec/uri-charge-matchers.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -7,7 +7,7 @@ import { URICharge } from './uri-charge.js';
 describe('parseURICharge', () => {
   let parse: UcDeserializer.Sync<URICharge>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const compiler = new URIChargeCompiler();
 
     ({ parseURICharge: parse } = await compiler.evaluate());

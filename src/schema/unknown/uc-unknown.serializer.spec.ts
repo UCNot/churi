@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcModel } from '../uc-schema.js';
@@ -8,7 +8,7 @@ import { ucUnknown } from './uc-unknown.js';
 describe('UcUnknown serializer', () => {
   let writeValue: UcSerializer<unknown>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const compiler = new UcsCompiler<{ writeValue: UcModel }>({
       models: { writeValue: ucUnknown() },
     });

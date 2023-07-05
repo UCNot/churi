@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
+import { UcValueCompiler } from '../../compiler/impl/uc-value.compiler.js';
 import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
 import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -19,12 +20,12 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for nullable', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.Sync<unknown>;
 
-    beforeEach(async () => {
-      const compiler = new UcdCompiler({ models: { readValue: ucUnknown() } });
+    beforeAll(async () => {
+      const compiler = new UcValueCompiler();
 
-      ({ readValue } = await compiler.evaluate());
+      ({ parseUcValue: readValue } = await compiler.evaluate());
     });
 
     it('recognizes boolean', () => {
@@ -112,7 +113,7 @@ describe('UcUnknown deserializer', () => {
   describe('for non-nullable', () => {
     let readValue: UcDeserializer<UcUnknown>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: { readValue: ucNullable(ucUnknown(), false) },
       });
@@ -140,7 +141,7 @@ describe('UcUnknown deserializer', () => {
     let compiler: UcdCompiler<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
     let readValue: UcDeserializer<unknown>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       compiler = new UcdCompiler({
         models: { readValue: ucUnknown() },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampFormat],
