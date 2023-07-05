@@ -1,24 +1,32 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
-import { esline } from 'esgen';
+import { beforeAll, describe, expect, it } from '@jest/globals';
+import { EsEvaluationError, esline } from 'esgen';
+import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
+import { UcDeserializer } from '../uc-deserializer.js';
+import { URICharge } from '../uri-charge/uri-charge.js';
+
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../../compiler/deserialization/ucd-support-defaults.js';
-import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
 import { ucdSupportMetaMapEntity } from '../../spec/meta-map.entity.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import '../../spec/uri-charge-matchers.js';
 import { ucString } from '../string/uc-string.js';
-import { UcDeserializer } from '../uc-deserializer.js';
 import { ucUnknown } from '../unknown/uc-unknown.js';
-import { URICharge } from '../uri-charge/uri-charge.js';
 
 describe('UcMeta deserializer', () => {
   describe('within URI charge', () => {
     let parse: UcDeserializer.Sync<URICharge>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new URIChargeCompiler();
 
-      ({ parseURICharge: parse } = await compiler.evaluate());
+      try {
+        ({ parseURICharge: parse } = await compiler.evaluate());
+      } catch (error) {
+        if (error instanceof EsEvaluationError) {
+          console.error(1, error.evaluatedCode, error);
+        }
+        throw error;
+      }
     });
 
     it('attached to single value', () => {
@@ -75,7 +83,7 @@ describe('UcMeta deserializer', () => {
   describe('within unknown input', () => {
     let parse: UcDeserializer.Async<unknown>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           parse: ucUnknown(),
@@ -83,7 +91,14 @@ describe('UcMeta deserializer', () => {
         features: [ucdSupportDefaults, ucdSupportMetaMapEntity],
       });
 
-      ({ parse } = await compiler.evaluate());
+      try {
+        ({ parse } = await compiler.evaluate());
+      } catch (error) {
+        if (error instanceof EsEvaluationError) {
+          console.error(2, error.evaluatedCode, error);
+        }
+        throw error;
+      }
     });
 
     it('attached to single value', async () => {
@@ -120,7 +135,7 @@ describe('UcMeta deserializer', () => {
   describe('with custom handler and meta setter', () => {
     let parse: UcDeserializer.Sync<unknown>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: { parse: ucUnknown() },
         features: [
@@ -135,7 +150,14 @@ describe('UcMeta deserializer', () => {
         ],
       });
 
-      ({ parse } = await compiler.evaluate());
+      try {
+        ({ parse } = await compiler.evaluate());
+      } catch (error) {
+        if (error instanceof EsEvaluationError) {
+          console.error(3, error.evaluatedCode, error);
+        }
+        throw error;
+      }
     });
 
     it('recognizes meta', () => {
@@ -149,12 +171,19 @@ describe('UcMeta deserializer', () => {
   describe('with custom handler and default meta setter', () => {
     let parse: UcDeserializer.Sync<URICharge>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new URIChargeCompiler();
 
       compiler.parseMetaValue('comment', ucString());
 
-      ({ parseURICharge: parse } = await compiler.evaluate());
+      try {
+        ({ parseURICharge: parse } = await compiler.evaluate());
+      } catch (error) {
+        if (error instanceof EsEvaluationError) {
+          console.error(4, error.evaluatedCode, error);
+        }
+        throw error;
+      }
     });
 
     it('recognizes meta', () => {

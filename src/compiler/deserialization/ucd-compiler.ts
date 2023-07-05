@@ -47,6 +47,8 @@ export class UcdCompiler<
 
   readonly #internalModels: UcdLib.InternalModel[] = [];
 
+  #bootstrapped = false;
+
   /**
    * Constructs deserializer compiler.
    *
@@ -313,8 +315,7 @@ export class UcdCompiler<
    * @returns Promise resolved to deserializer library options.
    */
   async bootstrapOptions(): Promise<UcdLib.Options<TModels, TMode>> {
-    this.#enableDefaultFeatures();
-    await this.processInstructions();
+    await this.#bootstrap();
 
     const { mode = 'universal' as TMode } = this.#options;
 
@@ -328,6 +329,16 @@ export class UcdCompiler<
       formats: this.#formats.declare(),
       meta: this.#meta.declare(),
     };
+  }
+
+  async #bootstrap(): Promise<void> {
+    if (this.#bootstrapped) {
+      return;
+    }
+
+    this.#bootstrapped = true;
+    this.#enableDefaultFeatures();
+    await this.processInstructions();
   }
 
   #enableDefaultFeatures(): void {

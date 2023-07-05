@@ -191,6 +191,7 @@ export async function readValue(
         );
         expect(text).toMatch(/\bAsyncUcdReader\b/);
         expect(text).not.toMatch(/\bSyncUcdReader\b/);
+        await expect(compiler.generate()).resolves.toBe(text);
       });
       it('compiles sync module', async () => {
         const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'sync'>({
@@ -238,6 +239,7 @@ export function readValue(
         );
         expect(text).toMatch(/\bcreateSyncUcdReader\b/);
         expect(text).toMatch(/\bAsyncUcdReader\b/);
+        await expect(compiler.generate()).resolves.toBe(text);
       });
     });
 
@@ -265,6 +267,7 @@ export function readValue(
         );
         expect(text).toMatch(/\bAsyncUcdReader\b/);
         expect(text).not.toMatch(/\bcreateSyncUcdReader\b/);
+        await expect(compiler.generate({ format: EsBundleFormat.IIFE })).resolves.toBe(text);
       });
       it('creates sync factory', async () => {
         const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'sync'>({
@@ -289,6 +292,7 @@ export function readValue(
         );
         expect(text).toMatch(/\bcreateSyncUcdReader\b/);
         expect(text).not.toMatch(/\bAsyncUcdReader\b/);
+        await expect(compiler.generate({ format: EsBundleFormat.IIFE })).resolves.toBe(text);
       });
       it('creates universal factory', async () => {
         const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'universal'>({
@@ -312,6 +316,7 @@ export function readValue(
         );
         expect(text).toMatch(/\bcreateSyncUcdReader\b/);
         expect(text).toMatch(/\bAsyncUcdReader\b/);
+        await expect(compiler.generate({ format: EsBundleFormat.IIFE })).resolves.toBe(text);
       });
     });
   });

@@ -28,6 +28,8 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #perType = new Map<string | UcDataType, UcsTypeEntry>();
 
+  #bootstrapped = false;
+
   /**
    * Starts serializer setup.
    *
@@ -141,8 +143,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
    * @returns Promise resolved to serializer library options.
    */
   async bootstrapOptions(): Promise<UcsLib.Options<TModels>> {
-    this.#enableDefaultFeatures();
-    await this.processInstructions();
+    await this.#bootstrap();
 
     const { createSerializer = options => new UcsFunction(options) } = this.#options;
 
@@ -152,6 +153,16 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
       generatorFor: this.#generatorFor.bind(this),
       createSerializer,
     };
+  }
+
+  async #bootstrap(): Promise<void> {
+    if (this.#bootstrapped) {
+      return;
+    }
+
+    this.#bootstrapped = true;
+    this.#enableDefaultFeatures();
+    await this.processInstructions();
   }
 
   #enableDefaultFeatures(): void {

@@ -34,7 +34,7 @@ export class UcdLib<
   readonly #defaultEntities: EsSnippet;
   readonly #defaultFormats: EsSnippet;
   readonly #defaultMeta: EsSnippet;
-  #onMeta: EsSnippet | undefined;
+  #onMeta?: EsSnippet;
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels, TMode>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels, TMode>) {
@@ -45,7 +45,6 @@ export class UcdLib<
       entities,
       formats,
       meta,
-      onMeta,
       createDeserializer = options => new UcdFunction(options),
     } = options;
 
@@ -61,7 +60,6 @@ export class UcdLib<
     this.#defaultEntities = entities(exportNs);
     this.#defaultFormats = formats(exportNs);
     this.#defaultMeta = meta(exportNs);
-    this.#onMeta = onMeta;
 
     this.#declareDeserializers(ns);
   }
@@ -107,18 +105,19 @@ export class UcdLib<
   get onMeta(): EsSnippet {
     if (!this.#onMeta) {
       const { defaultMeta } = this;
-      const onMeta$byDefault = UC_MODULE_DESERIALIZER_META.import('onMeta$byDefault');
+      const { onMeta = UC_MODULE_DESERIALIZER_META.import('onMeta$byDefault') } = this.#options;
 
       if (defaultMeta === 'undefined') {
-        return onMeta$byDefault;
+        return onMeta;
       }
 
       this.#onMeta = new EsCallable({ cx: {}, rx: {}, attr: {} }).lambda(
         ({ args: { cx, rx, attr } }) => code => {
             code.line(
-              esline`${defaultMeta}[${attr}]?.(${cx}, ${rx}, ${attr}})`,
+              'return ',
+              esline`${defaultMeta}[${attr}]?.(${cx}, ${rx}, ${attr})`,
               ` ?? `,
-              esline`${onMeta$byDefault}(${cx}, ${rx}, ${attr})`,
+              esline`${onMeta}(${cx}, ${rx}, ${attr})`,
             );
           },
       );
