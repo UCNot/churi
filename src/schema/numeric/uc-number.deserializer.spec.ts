@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
@@ -21,7 +21,7 @@ describe('UcNumber deserializer', () => {
   describe('by default', () => {
     let readValue: UcDeserializer<number>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: Number as UcDataType<UcNumber>,
@@ -149,7 +149,7 @@ describe('UcNumber deserializer', () => {
   describe('when strings rejected', () => {
     let readValue: UcDeserializer<number>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucNumber({ string: 'reject' }),

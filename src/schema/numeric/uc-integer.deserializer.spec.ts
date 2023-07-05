@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
@@ -18,7 +18,7 @@ describe('UcInteger deserializer', () => {
   describe('by default', () => {
     let readValue: UcDeserializer<UcInteger>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucInteger(),
@@ -124,7 +124,7 @@ describe('UcInteger deserializer', () => {
   describe('when string parsed', () => {
     let readValue: UcDeserializer<UcInteger>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucInteger({}),
@@ -144,7 +144,7 @@ describe('UcInteger deserializer', () => {
   describe('when nullable', () => {
     let readValue: UcDeserializer<number | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucNullable(ucInteger()),
@@ -237,7 +237,7 @@ describe('UcInteger deserializer', () => {
   describe('when strings rejected', () => {
     let readValue: UcDeserializer<number>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucInteger({ string: 'reject' }),

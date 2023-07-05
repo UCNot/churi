@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -20,7 +20,7 @@ describe('UcString deserializer', () => {
   describe('by default', () => {
     let readValue: UcDeserializer<string>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler<{ readValue: UcModel<string> }>({
         models: {
           readValue: String,
@@ -132,7 +132,7 @@ describe('UcString deserializer', () => {
     describe('when nullable', () => {
       let readValue: UcDeserializer<string | null>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcdCompiler<{ readValue: UcNullable<UcString> }>({
           models: {
             readValue: ucNullable<UcString>(String),
@@ -151,7 +151,7 @@ describe('UcString deserializer', () => {
   describe('when raw values parsed', () => {
     let readValue: UcDeserializer<string>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler<{ readValue: UcString.Schema }>({
         models: {
           readValue: ucString({
@@ -252,7 +252,7 @@ describe('UcString deserializer', () => {
     describe('when nullable', () => {
       let readValue: UcDeserializer<string | null>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcdCompiler<{ readValue: UcNullable<UcString, UcString.Schema> }>({
           models: {
             readValue: ucNullable(

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucNullable } from '../uc-nullable.js';
@@ -7,15 +7,15 @@ import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcBoolean serializer', () => {
-  let compiler: UcsCompiler<{ writeValue: UcModel<boolean> }>;
   let writeValue: UcSerializer<boolean>;
 
-  beforeEach(async () => {
-    compiler = new UcsCompiler({
+  beforeAll(async () => {
+    const compiler = new UcsCompiler<{ writeValue: UcModel<boolean> }>({
       models: {
         writeValue: Boolean,
       },
     });
+
     ({ writeValue } = await compiler.evaluate());
   });
 

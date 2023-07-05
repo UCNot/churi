@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcSerializer } from '../uc-serializer.js';
@@ -8,7 +8,7 @@ describe('UcInteger serializer', () => {
   describe('by default', () => {
     let writeValue: UcSerializer<number>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: ucInteger(),
@@ -27,7 +27,7 @@ describe('UcInteger serializer', () => {
   describe('when converted to string', () => {
     let writeValue: UcSerializer<number>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: ucInteger({ string: 'serialize' }),

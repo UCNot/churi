@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -19,7 +19,7 @@ describe('UcBigInt deserializer', () => {
   describe('by default', () => {
     let readValue: UcDeserializer<bigint>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: BigInt,
@@ -129,7 +129,7 @@ describe('UcBigInt deserializer', () => {
     describe('when strings rejected', () => {
       let readValue: UcDeserializer<bigint>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
             readValue: ucBigInt({ string: 'reject' }),
@@ -169,7 +169,7 @@ describe('UcBigInt deserializer', () => {
   describe('when nullable', () => {
     let readValue: UcDeserializer<bigint | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucNullable(BigInt),
@@ -191,7 +191,7 @@ describe('UcBigInt deserializer', () => {
   describe('when numbers rejected', () => {
     let readValue: UcDeserializer<bigint>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: ucBigInt({ number: 'reject' }),
@@ -289,7 +289,7 @@ describe('UcBigInt deserializer', () => {
     describe('when strings rejected', () => {
       let readValue: UcDeserializer<bigint>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
             readValue: ucBigInt({ string: 'reject', number: 'reject' }),

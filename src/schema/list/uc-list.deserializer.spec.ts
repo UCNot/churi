@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
@@ -22,7 +22,7 @@ describe('UcList deserializer', () => {
 
   let readList: UcDeserializer<number[]>;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const compiler = new UcdCompiler({
       models: {
         readList: ucList<number>(Number),
@@ -95,7 +95,7 @@ describe('UcList deserializer', () => {
   describe('of booleans', () => {
     let readList: UcDeserializer<boolean[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readList: ucList<boolean>(Boolean),
@@ -113,7 +113,7 @@ describe('UcList deserializer', () => {
   describe('of strings', () => {
     let readList: UcDeserializer<string[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readList: ucList<string>(String),
@@ -136,7 +136,7 @@ describe('UcList deserializer', () => {
   describe('of maps', () => {
     let readList: UcDeserializer<{ foo: string }[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
@@ -216,7 +216,7 @@ describe('UcList deserializer', () => {
   describe('with nullable items', () => {
     let readList: UcDeserializer<(number | null)[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
       const compiler = new UcdCompiler({
         models: {
@@ -253,7 +253,7 @@ describe('UcList deserializer', () => {
   describe('nullable', () => {
     let readList: UcDeserializer<number[] | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcdCompiler<{ readList: UcNullable<number[]> }>({
         models: {
           readList: ucNullable(ucList<number>(Number)),
@@ -306,7 +306,7 @@ describe('UcList deserializer', () => {
   describe('nullable with nullable items', () => {
     let readList: UcDeserializer<(number | null)[] | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
       const compiler = new UcdCompiler<{ readList: UcNullable<(number | null)[]> }>({
         models: {
@@ -332,12 +332,15 @@ describe('UcList deserializer', () => {
   });
 
   describe('nested', () => {
-    let readMatrix: UcDeserializer<number[][]>;
     let errors: UcErrorInfo[];
 
-    beforeEach(async () => {
+    beforeEach(() => {
       errors = [];
+    });
 
+    let readMatrix: UcDeserializer<number[][]>;
+
+    beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
           readMatrix: ucList<number[]>(ucList<number>(Number)),
@@ -410,7 +413,7 @@ describe('UcList deserializer', () => {
   describe('nested or null', () => {
     let readMatrix: UcDeserializer<(number[] | null)[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const list = ucList<number>(Number);
       const compiler = new UcdCompiler({
         models: {
@@ -449,7 +452,7 @@ describe('UcList deserializer', () => {
   describe('nullable with nested', () => {
     let readMatrix: UcDeserializer<number[][] | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
       const compiler = new UcdCompiler({
         models: {
@@ -496,7 +499,7 @@ describe('UcList deserializer', () => {
   describe('nullable with nested or null', () => {
     let readMatrix: UcDeserializer<(number[] | null)[] | null>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const list = ucList<number>(Number);
       const matrix = ucList<number[] | null>(ucNullable(list));
       const compiler = new UcdCompiler({

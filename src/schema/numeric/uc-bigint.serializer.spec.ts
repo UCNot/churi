@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { UcSerializer } from '../uc-serializer.js';
@@ -8,7 +8,7 @@ describe('UcBigInt serializer', () => {
   describe('by default', () => {
     let writeValue: UcSerializer<bigint>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: BigInt,
@@ -29,7 +29,7 @@ describe('UcBigInt serializer', () => {
     describe('when converted to string', () => {
       let writeValue: UcSerializer<bigint>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
             writeValue: ucBigInt({ string: 'serialize' }),
@@ -56,7 +56,7 @@ describe('UcBigInt serializer', () => {
   describe('when converted to number', () => {
     let writeValue: UcSerializer<bigint>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: ucBigInt({ number: 'serialize' }),
@@ -81,7 +81,7 @@ describe('UcBigInt serializer', () => {
     describe('when converted to string', () => {
       let writeValue: UcSerializer<bigint>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
             writeValue: ucBigInt({ string: 'serialize', number: 'serialize' }),
@@ -112,7 +112,7 @@ describe('UcBigInt serializer', () => {
   describe('when auto-converted to number', () => {
     let writeValue: UcSerializer<bigint>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: ucBigInt({ number: 'auto' }),
@@ -147,7 +147,7 @@ describe('UcBigInt serializer', () => {
     describe('when converted to string', () => {
       let writeValue: UcSerializer<bigint>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
             writeValue: ucBigInt({ string: 'serialize', number: 'auto' }),

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
 import { UC_MODULE_SPEC } from '../../compiler/impl/uc-modules.js';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
@@ -13,7 +13,7 @@ describe('UcString serializer', () => {
   describe('by default', () => {
     let writeValue: UcSerializer<string>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: String,
@@ -91,7 +91,7 @@ describe('UcString serializer', () => {
   describe('with raw strings', () => {
     let writeValue: UcSerializer<string>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeValue: ucString({ raw: 'asString' }),
@@ -125,7 +125,7 @@ describe('UcString serializer', () => {
     describe('when nullable', () => {
       let writeValue: UcSerializer<string | null>;
 
-      beforeEach(async () => {
+      beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
             writeValue: ucNullable(ucString({ raw: 'asString' })),

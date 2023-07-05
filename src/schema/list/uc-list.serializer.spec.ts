@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
@@ -65,7 +65,7 @@ describe('UcList serializer', () => {
   describe('of strings', () => {
     let writeList: UcSerializer<string[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeList: ucList<UcString>(String),
@@ -85,7 +85,7 @@ describe('UcList serializer', () => {
   describe('of raw strings', () => {
     let writeList: UcSerializer<string[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeList: ucList<UcString>(ucString({ raw: 'asString' })),
@@ -105,7 +105,7 @@ describe('UcList serializer', () => {
   describe('of nullable raw strings', () => {
     let writeList: UcSerializer<(string | null)[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeList: ucList<UcString | null>(ucNullable(ucString({ raw: 'asString' }))),
@@ -125,7 +125,7 @@ describe('UcList serializer', () => {
   describe('of maps', () => {
     let writeList: UcSerializer<{ foo: string }[]>;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
           writeList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
@@ -145,7 +145,7 @@ describe('UcList serializer', () => {
   describe('nested list', () => {
     let compiler: UcsCompiler<{ writeList: UcList.Schema<number[]> }>;
 
-    beforeEach(() => {
+    beforeAll(() => {
       compiler = new UcsCompiler({
         models: {
           writeList: ucList<number[]>(ucList<number>(Number)),
