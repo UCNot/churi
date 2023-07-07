@@ -5,11 +5,13 @@ export type UcsWriterSignature = EsSignature<UcsWriterSignature.Args>;
 
 export const UcsWriterSignature: UcsWriterSignature = /*#__PURE__*/ new EsSignature({
   stream: {},
+  'options?': {},
 });
 
 export namespace UcsWriterSignature {
   export type Args = {
     readonly stream: EsArg;
+    readonly ['options?']: EsArg;
   };
 
   export type Values = EsSignature.ValuesOf<Args>;

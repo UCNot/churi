@@ -11,10 +11,29 @@ import { UcModel } from './uc-schema.js';
  * @typeParam T - Serialized data type.
  * @param stream - Writable stream to serialize the data to.
  * @param value - Data value to serialize.
+ * @param options - Serialization options.
  *
  * @returns Promise resolved when data serialized.
  */
-export type UcSerializer<in T> = (stream: WritableStream<Uint8Array>, value: T) => Promise<void>;
+export type UcSerializer<in T> = (
+  stream: WritableStream<Uint8Array>,
+  value: T,
+  options?: UcSerializer.Options,
+) => Promise<void>;
+
+export namespace UcSerializer {
+  /**
+   * Data serialization options passed to {@link churi!UcSerializer serializer}.
+   */
+  export interface Options {
+    /**
+     * Custom serialization data.
+     *
+     * This data can be used by serializers.
+     */
+    readonly data?: Record<PropertyKey, unknown> | undefined;
+  }
+}
 
 /**
  * Creates serializer for the given data `model`.

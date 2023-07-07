@@ -2,19 +2,25 @@ import { describe, expect, it } from '@jest/globals';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
-import { UcsSupportNumberAsHex } from '../../spec/write-uc-hex-number.js';
+import {
+  UcsSupportNumberWithRadix,
+  UcsSupportRadixNumber,
+} from '../../spec/write-uc-radix-number.js';
 import { UcsCompiler } from './ucs-compiler.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
     const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
       models: { writeValue: Number },
-      features: UcsSupportNumberAsHex,
+      features: UcsSupportNumberWithRadix,
     });
 
     const { writeValue } = await compiler.evaluate();
 
     await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
+    await expect(
+      TextOutStream.read(async to => await writeValue(to, 128, { data: { radix: 10 } })),
+    ).resolves.toBe('128');
   });
 
   describe('generate', () => {
@@ -25,12 +31,16 @@ describe('UcsCompiler', () => {
       const module = await compiler.generate();
 
       expect(module).toContain(`} from 'churi/serializer.js';\n`);
-      expect(module).toContain('export async function writeValue(stream, value) {\n');
+      expect(module).toContain(
+        `
+export async function writeValue(stream, value, options) {
+`.trimStart(),
+      );
     });
     it('fails to serialize unknown schema', async () => {
       const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
         models: { writeValue: { type: 'test-type' } },
-        features: UcsSupportNumberAsHex,
+        features: UcsSupportRadixNumber,
       });
 
       await expect(compiler.generate()).rejects.toThrow(
@@ -42,10 +52,10 @@ describe('UcsCompiler', () => {
   describe('schema uses', () => {
     it('enables serializer feature', async () => {
       const schema: UcSchema<number> = {
-        type: 'hexNumber',
+        type: 'radixNumber',
         where: {
           serializer: {
-            use: 'UcsSupportHexNumber',
+            use: 'UcsSupportRadixNumber',
             from: SPEC_MODULE,
           },
         },
@@ -63,7 +73,7 @@ describe('UcsCompiler', () => {
         type: 'hexNumber',
         where: {
           serializer: {
-            use: 'UcsSupportHexNumberSchema',
+            use: 'UcsSupportRadixNumberSchema',
             from: SPEC_MODULE,
           },
         },
