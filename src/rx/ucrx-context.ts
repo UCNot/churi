@@ -1,6 +1,6 @@
 import { UcMeta } from '../schema/meta/uc-meta.js';
+import { UcRejection } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcrxRejection } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 
 /**
@@ -26,7 +26,7 @@ export interface UcrxContext {
    *
    * @returns Always `0` to be able to return it from receiver's method.
    */
-  reject(rejection: UcrxRejection): 0;
+  reject(rejection: UcRejection): 0;
 
   /**
    * Processes entity.

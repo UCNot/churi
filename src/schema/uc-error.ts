@@ -126,3 +126,11 @@ function isUcErrorInfo(cause: unknown): cause is UcErrorInfo {
       || (cause as UcErrorInfo).details === undefined)
   );
 }
+
+/**
+ * Charge rejection reason.
+ *
+ * Contains rejection {@link UcErrorInfo error info} except its {@link UcErrorInfo#path path}. The latter added
+ * automatically.
+ */
+export type UcRejection = Omit<UcErrorInfo, 'path'>;

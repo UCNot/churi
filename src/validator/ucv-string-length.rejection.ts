@@ -1,9 +1,9 @@
-import { UcrxRejection } from '../rx/ucrx-rejection.js';
+import { UcRejection } from '../schema/uc-error.js';
 
 export function ucvRejectTooShort(
   minLength: number,
   message = `At least ${minLength} characters expected`,
-): UcrxRejection {
+): UcRejection {
   return {
     code: 'tooShort',
     details: {
@@ -16,7 +16,7 @@ export function ucvRejectTooShort(
 export function ucvRejectTooLong(
   maxLength: number,
   message = `At most ${maxLength} characters expected`,
-): UcrxRejection {
+): UcRejection {
   return {
     code: 'tooLong',
     details: {

@@ -1,9 +1,9 @@
-import { UcrxRejection } from '../rx/ucrx-rejection.js';
+import { UcRejection } from '../schema/uc-error.js';
 
 export function ucvRejectPatternMismatch(
   pattern: RegExp,
   message = `String matching ${pattern} pattern expected`,
-): UcrxRejection {
+): UcRejection {
   return {
     code: 'patternMismatch',
     details: {
