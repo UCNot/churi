@@ -5,6 +5,7 @@ export * from './map/mod.js';
 export * from './meta/mod.js';
 export * from './numeric/mod.js';
 export * from './string/mod.js';
+export * from './uc-bundle.js';
 export * from './uc-constraints.js';
 export * from './uc-deserializer.js';
 export * from './uc-error.js';

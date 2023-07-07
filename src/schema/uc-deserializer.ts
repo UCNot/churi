@@ -2,6 +2,7 @@ import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { FormatUcrx } from '../rx/format.ucrx.js';
 import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
+import { UcBundle } from './uc-bundle.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
 import { UcModel } from './uc-schema.js';
@@ -126,22 +127,112 @@ export namespace UcDeserializer {
      */
     readonly onMeta?: MetaUcrx;
   }
+
+  /**
+   * {@link UcDeserializer universal deserializer} initialization options passed to its
+   * {@link createUcDeserializer compiler}.
+   */
+  export interface Init {
+    readonly mode?: 'universal' | undefined;
+
+    /**
+     * A bundle the generated deserializer code should be added to.
+     *
+     * The default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+  }
+
+  /**
+   * {@link Sync synchronous deserializer} initialization options passed to its {@link createUcDeserializer compiler}.
+   */
+  export interface SyncInit {
+    readonly mode: 'sync';
+
+    /**
+     * A bundle the generated deserializer code should be added to.
+     *
+     * The default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+  }
+
+  /**
+   * {@link Async asynchronous deserializer} initialization options passed to its {@link createUcDeserializer compiler}.
+   */
+  export interface AsyncInit {
+    readonly mode: 'async';
+
+    /**
+     * A bundle the generated deserializer code should be added to.
+     *
+     * The default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+  }
 }
 
 /**
- * Creates deserializer for the given data `model`.
+ * Creates {@link UcDeserializer deserializer} for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
  * [ts-transformer-churi] enabled.
  *
+ * @typeParam T - Deserialized data type.
+ * @param model - Deserialized data model.
+ * @param init - Deserializer initialization options.
+ *
+ * @returns Universal deserializer instance.
+ *
  * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
+ */
+export function createUcDeserializer<T>(
+  model: UcModel<T>,
+  init?: UcDeserializer.Init,
+): UcDeserializer<T>;
+
+/**
+ * Creates {@link UcDeserializer.Sync synchronous deserializer} for the given data `model`.
+ *
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
+ * [ts-transformer-churi] enabled.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
+ * @param init - Deserializer initialization options.
  *
- * @returns Deserializer instance.
+ * @returns Synchronous deserializer instance.
+ *
+ * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
  */
-export function createUcDeserializer<T>(model: UcModel<T>): UcDeserializer<T> {
+export function createUcDeserializer<T>(
+  model: UcModel<T>,
+  init: UcDeserializer.SyncInit,
+): UcDeserializer.Sync<T>;
+
+/**
+ * Creates {@link UcDeserializer.Async asynchronous deserializer} for the given data `model`.
+ *
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
+ * [ts-transformer-churi] enabled.
+ *
+ * @typeParam T - Deserialized data type.
+ * @param model - Deserialized data model.
+ * @param init - Deserializer initialization options.
+ *
+ * @returns Asynchronous deserializer instance.
+ *
+ * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
+ */
+export function createUcDeserializer<T>(
+  model: UcModel<T>,
+  init: UcDeserializer.AsyncInit,
+): UcDeserializer.Async<T>;
+
+export function createUcDeserializer<T>(
+  model: UcModel<T>,
+  _init?: UcDeserializer.Init | UcDeserializer.SyncInit | UcDeserializer.AsyncInit,
+): UcDeserializer<T> {
   return () => {
     throw new TypeError(
       `Can not deserialize ${ucModelName(model)}. Is "ts-transformer-churi" applied?`,

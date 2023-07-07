@@ -1,3 +1,4 @@
+import { UcBundle } from './uc-bundle.js';
 import { ucModelName } from './uc-model-name.js';
 import { UcModel } from './uc-schema.js';
 
@@ -33,6 +34,18 @@ export namespace UcSerializer {
      */
     readonly data?: Record<PropertyKey, unknown> | undefined;
   }
+
+  /**
+   * Serializer initialization options passed to its {@link createUcSerializer compiler}.
+   */
+  export interface Init {
+    /**
+     * A bundle the generated serializer code should be added to.
+     *
+     * The default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+  }
 }
 
 /**
@@ -45,10 +58,17 @@ export namespace UcSerializer {
  *
  * @typeParam T - Serialized data type.
  * @param model - Serialized data model.
+ * @param init - Serializer initialization options.
  *
  * @returns Serializer instance.
  */
-export function createUcSerializer<T>(model: UcModel<T>): UcSerializer<T> {
+export function createUcSerializer<T>(model: UcModel<T>, init?: UcSerializer.Init): UcSerializer<T>;
+
+/*#__NO_SIDE_EFFECTS__*/
+export function createUcSerializer<T>(
+  model: UcModel<T>,
+  _init?: UcSerializer.Init,
+): UcSerializer<T> {
   return () => {
     throw new TypeError(
       `Can not serialize ${ucModelName(model)}. Is "ts-transformer-churi" applied?`,
