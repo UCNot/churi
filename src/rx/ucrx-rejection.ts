@@ -1,29 +1,10 @@
 import { esEscapeString, esQuoteKey } from 'esgen';
-import { UcErrorInfo } from '../schema/uc-error.js';
+import { UcRejection } from '../schema/uc-error.js';
 import { printUcTokens } from '../syntax/print-uc-token.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
 
-/**
- * Charge rejection reason.
- *
- * Contains rejection {@link UcErrorInfo error info} except its {@link UcErrorInfo#path path}. The latter added
- * automatically.
- */
-export type UcrxRejection = Omit<UcErrorInfo, 'path'>;
-
-/**
- * Signature of function to call when received value rejected.
- *
- * Passed to {@link Ucrx charge receiver} for the latter to report rejections.
- *
- * @param rejection - Rejection reason.
- *
- * @returns Always `0` to be able to return it from receiver's method.
- */
-export type UcrxReject = (this: void, rejection: UcrxRejection) => 0;
-
-export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcrxRejection {
+export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcRejection {
   return {
     code: 'unexpectedType',
     details: {
@@ -36,7 +17,7 @@ export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types)
   };
 }
 
-export function ucrxRejectSyntax(type: string, cause: unknown): UcrxRejection {
+export function ucrxRejectSyntax(type: string, cause: unknown): UcRejection {
   if (typeof cause === 'string') {
     return {
       code: 'invalidSyntax',
@@ -53,7 +34,7 @@ export function ucrxRejectSyntax(type: string, cause: unknown): UcrxRejection {
   };
 }
 
-export function ucrxRejectNull(rx: Ucrx): UcrxRejection {
+export function ucrxRejectNull(rx: Ucrx): UcRejection {
   return ucrxRejectType(
     'null',
     rx,
@@ -64,7 +45,7 @@ export function ucrxRejectNull(rx: Ucrx): UcrxRejection {
 export function ucrxRejectMissingEntries(
   assigned: { readonly [key: string]: 1 | undefined },
   entries: { readonly [key: string]: { use: 1 | 0 } },
-): UcrxRejection {
+): UcRejection {
   const requiredKeys = new Set(
     Object.entries(entries)
       .filter(([, { use }]) => use)
@@ -86,7 +67,7 @@ export function ucrxRejectMissingEntries(
   };
 }
 
-export function ucrxRejectSingleItem(rx: Ucrx): UcrxRejection {
+export function ucrxRejectSingleItem(rx: Ucrx): UcRejection {
   const { types } = rx;
 
   return {
@@ -101,7 +82,7 @@ export function ucrxRejectSingleItem(rx: Ucrx): UcrxRejection {
   };
 }
 
-export function ucrxRejectEntry(key: string): UcrxRejection {
+export function ucrxRejectEntry(key: string): UcRejection {
   return {
     code: 'unexpectedEntry',
     details: {
@@ -111,7 +92,7 @@ export function ucrxRejectEntry(key: string): UcrxRejection {
   };
 }
 
-export function ucrxRejectEntity(entity: string): UcrxRejection {
+export function ucrxRejectEntity(entity: string): UcRejection {
   return {
     code: 'unrecognizedEntity',
     details: {
@@ -121,7 +102,7 @@ export function ucrxRejectEntity(entity: string): UcrxRejection {
   };
 }
 
-export function ucrxRejectFormat(format: string, data: readonly UcToken[]): UcrxRejection {
+export function ucrxRejectFormat(format: string, data: readonly UcToken[]): UcRejection {
   return {
     code: 'unrecognizedFormat',
     details: {

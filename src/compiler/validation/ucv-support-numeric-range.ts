@@ -8,7 +8,7 @@ import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { ucvValidate } from './ucv-validate.js';
 
 export type UcvNumericRange = [
-  op: '<=' | '<' | '>=' | '>',
+  constraint: 'ItsMax' | 'ItIsLessThan' | 'ItsMin' | 'ItIsGreaterThan',
   than: number | bigint,
   or?: string | undefined,
 ];
@@ -18,7 +18,7 @@ export function ucvSupportNumericRange(
   schema: UcSchema<number | bigint>,
 ): UccConfig<UcvNumericRange> {
   return {
-    configure([op, than, or]) {
+    configure([constraint, than, or]) {
       let setter: UcrxSetter;
       let bound: string;
 
@@ -35,12 +35,10 @@ export function ucvSupportNumericRange(
       processor.modifyUcrxMethod(schema, setter, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {
-            const ucvReject = UC_MODULE_VALIDATOR.import(
-              `ucvRejectNot${UcvNumericRange$reject[op]}`,
-            );
+            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvViolate${constraint}`);
 
             code
-              .write(esline`if (${value} ${UcvNumericRange$reverseOp[op]} ${bound}) {`)
+              .write(esline`if (${value} ${UcvNumericRange$reverseOp[constraint]} ${bound}) {`)
               .indent(reject(esline`${ucvReject}(${bound}${message})`))
               .write('}');
           });
@@ -50,17 +48,9 @@ export function ucvSupportNumericRange(
   };
 }
 
-const UcvNumericRange$reject: { readonly [key in UcvNumericRange['0']]: string } = {
-  '>=': 'GE',
-  '>': 'GT',
-  '<=': 'LE',
-  '<': 'LT',
+const UcvNumericRange$reverseOp: { readonly [key in UcvNumericRange['0']]: string } = {
+  ItsMin: '<',
+  ItIsGreaterThan: '<=',
+  ItsMax: '>',
+  ItIsLessThan: '>=',
 };
-
-const UcvNumericRange$reverseOp: { readonly [key in UcvNumericRange['0']]: UcvNumericRange['0'] } =
-  {
-    '>=': '<',
-    '>': '<=',
-    '<=': '>',
-    '<': '>=',
-  };

@@ -35,7 +35,7 @@ export namespace UcInteger {
   /**
    * Variant of integer representation.
    *
-   * Different variants may treat {@link string} values differently.
+   * Different variants may treat {@link UcNumber.Variant#string string} values differently.
    */
   export type Variant = UcNumber.Variant;
 

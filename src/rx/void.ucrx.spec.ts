@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { noop } from '@proc7ts/primitives';
+import { UcRejection } from '../schema/uc-error.js';
 import { UcrxContext } from './ucrx-context.js';
-import { UcrxRejection } from './ucrx-rejection.js';
 import { VoidUcrx } from './void.ucrx.js';
 
 describe('VoidUcrx', () => {
-  let rejections: UcrxRejection[];
+  let rejections: UcRejection[];
   let cx: UcrxContext;
 
   beforeEach(() => {

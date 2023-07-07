@@ -3,24 +3,25 @@ import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
-import { ucMatch } from './uc-string-pattern.validator.js';
+import { ucItMatches } from './uc-string-pattern.validator.js';
 import { ucString } from './uc-string.js';
 
-describe('ucMatch', () => {
+describe('ucItMatches', () => {
   let errors: UcErrorInfo[];
   const onError = (error: UcErrorInfo): void => {
     errors.push(error);
   };
 
   it('rejects mismatching string', async () => {
-    const readValue = await compile(ucString({ where: ucMatch(/abc/u) }));
+    const readValue = await compile(ucString({ where: ucItMatches(/abc/u) }));
 
     expect(readValue('def', { onError })).toBeUndefined();
     expect(errors).toEqual([
       {
-        code: 'patternMismatch',
+        code: 'violation',
         path: [{}],
         details: {
+          constraint: 'ItMatches',
           pattern: 'abc',
           flags: 'u',
         },
@@ -29,14 +30,15 @@ describe('ucMatch', () => {
     ]);
   });
   it('supports custom message', async () => {
-    const readValue = await compile(ucString({ where: ucMatch(/abc/, 'Wrong!') }));
+    const readValue = await compile(ucString({ where: ucItMatches(/abc/, 'Wrong!') }));
 
     expect(readValue('def', { onError })).toBeUndefined();
     expect(errors).toEqual([
       {
-        code: 'patternMismatch',
+        code: 'violation',
         path: [{}],
         details: {
+          constraint: 'ItMatches',
           pattern: 'abc',
           flags: '',
         },
@@ -45,7 +47,7 @@ describe('ucMatch', () => {
     ]);
   });
   it('accepts matching string', async () => {
-    const readValue = await compile(ucString({ where: ucMatch(/[abc]/) }));
+    const readValue = await compile(ucString({ where: ucItMatches(/[abc]/) }));
 
     expect(readValue('a')).toBe('a');
   });

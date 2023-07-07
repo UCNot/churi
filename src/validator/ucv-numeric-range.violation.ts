@@ -1,12 +1,13 @@
-import { UcrxRejection } from '../rx/ucrx-rejection.js';
+import { UcViolation } from '../schema/uc-error.js';
 
-export function ucvRejectNotGE(
+export function ucvViolateItsMin(
   min: number | bigint,
   message = `At least ${min} expected`,
-): UcrxRejection {
+): UcViolation {
   return {
-    code: 'tooSmall',
+    code: 'violation',
     details: {
+      constraint: 'ItsMin',
       min,
       inclusive: true,
     },
@@ -14,13 +15,14 @@ export function ucvRejectNotGE(
   };
 }
 
-export function ucvRejectNotGT(
+export function ucvViolateItIsGreaterThan(
   min: number | bigint,
   message = `Greater than ${min} expected`,
-): UcrxRejection {
+): UcViolation {
   return {
-    code: 'tooSmall',
+    code: 'violation',
     details: {
+      constraint: 'ItIsGreaterThan',
       min,
       inclusive: false,
     },
@@ -28,13 +30,14 @@ export function ucvRejectNotGT(
   };
 }
 
-export function ucvRejectNotLE(
+export function ucvViolateItsMax(
   max: number | bigint,
   message = `At most ${max} expected`,
-): UcrxRejection {
+): UcViolation {
   return {
-    code: 'tooBig',
+    code: 'violation',
     details: {
+      constraint: 'ItsMax',
       max,
       inclusive: true,
     },
@@ -42,13 +45,14 @@ export function ucvRejectNotLE(
   };
 }
 
-export function ucvRejectNotLT(
+export function ucvViolateItIsLessThan(
   max: number | bigint,
   message = `Less than ${max} expected`,
-): UcrxRejection {
+): UcViolation {
   return {
-    code: 'tooBig',
+    code: 'violation',
     details: {
+      constraint: 'ItIsLessThan',
       max,
       inclusive: false,
     },

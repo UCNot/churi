@@ -29,8 +29,8 @@ export function ucdParseNumericAsBigInt(context: UcrxContext, rx: Ucrx, input: s
   );
 }
 
-function ucdRejectString({ reject }: UcrxContext, rx: Ucrx, _value: string): 0 {
-  return reject(ucrxRejectType('string', rx));
+function ucdRejectString(cx: UcrxContext, rx: Ucrx, _value: string): 0 {
+  return cx.reject(ucrxRejectType('string', rx));
 }
 
 function ucdDecodePositiveAsBigInt(context: UcrxContext, rx: Ucrx, input: string): 0 | 1 {

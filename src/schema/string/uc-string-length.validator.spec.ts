@@ -3,7 +3,7 @@ import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
-import { ucMaxLength, ucMinLength } from './uc-string-length.validator.js';
+import { ucItHasMaxChars, ucItHasMinChars } from './uc-string-length.validator.js';
 import { ucString } from './uc-string.js';
 
 describe('string length validator', () => {
@@ -16,21 +16,22 @@ describe('string length validator', () => {
     errors = [];
   });
 
-  describe('ucMinLength', () => {
+  describe('ucItHasMinChars', () => {
     let readValue: UcDeserializer.Sync<string>;
 
     beforeAll(async () => {
-      readValue = await compile(ucString({ where: ucMinLength(3) }));
+      readValue = await compile(ucString({ where: ucItHasMinChars(3) }));
     });
 
     it('rejects shorter string', () => {
       expect(readValue('ab', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooShort',
+          code: 'violation',
           path: [{}],
           details: {
-            minLength: 3,
+            constraint: 'ItHasMinChars',
+            minChars: 3,
           },
           message: 'At least 3 characters expected',
         },
@@ -42,15 +43,16 @@ describe('string length validator', () => {
       expect(errors).toEqual([]);
     });
     it('supports custom message', async () => {
-      const readValue = await compile(ucString({ where: ucMinLength(3, 'Wrong!') }));
+      const readValue = await compile(ucString({ where: ucItHasMinChars(3, 'Wrong!') }));
 
       expect(readValue('', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooShort',
+          code: 'violation',
           path: [{}],
           details: {
-            minLength: 3,
+            constraint: 'ItHasMinChars',
+            minChars: 3,
           },
           message: 'Wrong!',
         },
@@ -58,21 +60,22 @@ describe('string length validator', () => {
     });
   });
 
-  describe('ucMaxLength', () => {
+  describe('ucItHasMaxChars', () => {
     let readValue: UcDeserializer.Sync<string>;
 
     beforeAll(async () => {
-      readValue = await compile(ucString({ where: ucMaxLength(3) }));
+      readValue = await compile(ucString({ where: ucItHasMaxChars(3) }));
     });
 
     it('rejects longer string', () => {
       expect(readValue('abcd', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooLong',
+          code: 'violation',
           path: [{}],
           details: {
-            maxLength: 3,
+            constraint: 'ItHasMaxChars',
+            maxChars: 3,
           },
           message: 'At most 3 characters expected',
         },
@@ -84,15 +87,16 @@ describe('string length validator', () => {
       expect(errors).toEqual([]);
     });
     it('supports custom message', async () => {
-      const readValue = await compile(ucString({ where: ucMaxLength(3, 'Wrong!') }));
+      const readValue = await compile(ucString({ where: ucItHasMaxChars(3, 'Wrong!') }));
 
       expect(readValue('abcd', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooLong',
+          code: 'violation',
           path: [{}],
           details: {
-            maxLength: 3,
+            constraint: 'ItHasMaxChars',
+            maxChars: 3,
           },
           message: 'Wrong!',
         },
