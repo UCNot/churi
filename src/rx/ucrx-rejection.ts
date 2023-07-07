@@ -12,17 +12,6 @@ import { Ucrx } from './ucrx.js';
  */
 export type UcrxRejection = Omit<UcErrorInfo, 'path'>;
 
-/**
- * Signature of function to call when received value rejected.
- *
- * Passed to {@link Ucrx charge receiver} for the latter to report rejections.
- *
- * @param rejection - Rejection reason.
- *
- * @returns Always `0` to be able to return it from receiver's method.
- */
-export type UcrxReject = (this: void, rejection: UcrxRejection) => 0;
-
 export function ucrxRejectType(type: string, rx: Ucrx, expectedTypes = rx.types): UcrxRejection {
   return {
     code: 'unexpectedType',

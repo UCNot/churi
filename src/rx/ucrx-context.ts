@@ -1,6 +1,6 @@
 import { UcMeta } from '../schema/meta/uc-meta.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcrxReject } from './ucrx-rejection.js';
+import { UcrxRejection } from './ucrx-rejection.js';
 import { Ucrx } from './ucrx.js';
 
 /**
@@ -15,18 +15,18 @@ export interface UcrxContext {
   readonly opaqueRx: Ucrx;
 
   /**
-   * Charge rejection callback.
-   *
-   *  @param rejection - Rejection reason.
-   *
-   * @returns Always `0` to be able to return it from receiver's method.
-   */
-  readonly reject: UcrxReject;
-
-  /**
    * Metadata for currently charged value.
    */
   readonly meta: UcMeta.Mutable;
+
+  /**
+   * Rejects the charge.
+   *
+   * @param rejection - Rejection reason.
+   *
+   * @returns Always `0` to be able to return it from receiver's method.
+   */
+  reject(rejection: UcrxRejection): 0;
 
   /**
    * Processes entity.
