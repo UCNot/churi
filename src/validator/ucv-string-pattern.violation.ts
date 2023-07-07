@@ -1,12 +1,13 @@
-import { UcRejection } from '../schema/uc-error.js';
+import { UcViolation } from '../schema/uc-error.js';
 
-export function ucvRejectPatternMismatch(
+export function ucvViolateItMatches(
   pattern: RegExp,
   message = `String matching ${pattern} pattern expected`,
-): UcRejection {
+): UcViolation {
   return {
-    code: 'patternMismatch',
+    code: 'violation',
     details: {
+      constraint: 'ItMatches',
       pattern: pattern.source,
       flags: pattern.flags,
     },

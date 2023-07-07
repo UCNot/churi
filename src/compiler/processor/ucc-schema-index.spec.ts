@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { ucBoolean } from '../../schema/boolean/uc-boolean.js';
 import { ucBigInt } from '../../schema/numeric/uc-bigint.js';
 import { ucNumber } from '../../schema/numeric/uc-number.js';
-import { ucMin } from '../../schema/numeric/uc-numeric-range.validator.js';
+import { ucItsMin } from '../../schema/numeric/uc-numeric-range.validator.js';
 import { ucString } from '../../schema/string/uc-string.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
@@ -25,8 +25,8 @@ describe('UccSchemaIndex', () => {
     expect(index.schemaId({ type: Number })).not.toBe(index.schemaId({ type: 'Number' }));
   });
   it('provides different IDs for types with different constraints', () => {
-    expect(index.schemaId(ucNumber({ where: ucMin(0) }))).not.toBe(index.schemaId(ucNumber()));
-    expect(index.schemaId(ucBigInt())).not.toBe(index.schemaId(ucBigInt({ where: ucMin(0) })));
+    expect(index.schemaId(ucNumber({ where: ucItsMin(0) }))).not.toBe(index.schemaId(ucNumber()));
+    expect(index.schemaId(ucBigInt())).not.toBe(index.schemaId(ucBigInt({ where: ucItsMin(0) })));
   });
   it('provides different IDs for nullable and non-nullable types', () => {
     expect(index.schemaId(ucNullable(ucNumber()))).not.toBe(index.schemaId(ucNumber()));

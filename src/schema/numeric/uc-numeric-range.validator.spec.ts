@@ -5,7 +5,12 @@ import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
 import { ucBigInt } from './uc-bigint.js';
 import { ucNumber } from './uc-number.js';
-import { ucGreaterThan, ucLessThan, ucMax, ucMin } from './uc-numeric-range.validator.js';
+import {
+  ucItIsGreaterThan,
+  ucItIsLessThan,
+  ucItsMax,
+  ucItsMin,
+} from './uc-numeric-range.validator.js';
 
 describe('number range validator', () => {
   let errors: UcErrorInfo[];
@@ -17,20 +22,21 @@ describe('number range validator', () => {
     errors = [];
   });
 
-  describe('ucMin', () => {
+  describe('ucItsMin', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ where: ucMin(10) }));
+      readValue = await compile(ucNumber({ where: ucItsMin(10) }));
     });
 
     it('rejects lesser number', () => {
       expect(readValue('9', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMin',
             min: 10,
             inclusive: true,
           },
@@ -44,14 +50,15 @@ describe('number range validator', () => {
       expect(errors).toEqual([]);
     });
     it('supports custom message', async () => {
-      const readValue = await compile(ucNumber({ where: ucMin(10, 'Wrong!') }));
+      const readValue = await compile(ucNumber({ where: ucItsMin(10, 'Wrong!') }));
 
       expect(readValue('0', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMin',
             min: 10,
             inclusive: true,
           },
@@ -61,20 +68,21 @@ describe('number range validator', () => {
     });
   });
 
-  describe('ucGreaterThan', () => {
+  describe('ucItIsGreaterThan', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ where: ucGreaterThan(10) }));
+      readValue = await compile(ucNumber({ where: ucItIsGreaterThan(10) }));
     });
 
     it('rejects lesser number', () => {
       expect(readValue('9', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsGreaterThan',
             min: 10,
             inclusive: false,
           },
@@ -86,9 +94,10 @@ describe('number range validator', () => {
       expect(readValue('10', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsGreaterThan',
             min: 10,
             inclusive: false,
           },
@@ -102,20 +111,21 @@ describe('number range validator', () => {
     });
   });
 
-  describe('ucMax', () => {
+  describe('ucItsMax', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ where: ucMax(10) }));
+      readValue = await compile(ucNumber({ where: ucItsMax(10) }));
     });
 
     it('rejects greater number', () => {
       expect(readValue('11', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMax',
             max: 10,
             inclusive: true,
           },
@@ -130,20 +140,21 @@ describe('number range validator', () => {
     });
   });
 
-  describe('ucLessThan', () => {
+  describe('ucItIsLessThan', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ where: ucLessThan(10) }));
+      readValue = await compile(ucNumber({ where: ucItIsLessThan(10) }));
     });
 
     it('rejects greater number', () => {
       expect(readValue('11', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsLessThan',
             max: 10,
             inclusive: false,
           },
@@ -155,9 +166,10 @@ describe('number range validator', () => {
       expect(readValue('10', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsLessThan',
             max: 10,
             inclusive: false,
           },
@@ -175,25 +187,27 @@ describe('number range validator', () => {
     let readValue: UcDeserializer.Sync<number>;
 
     beforeAll(async () => {
-      readValue = await compile(ucNumber({ where: [ucMax(9), ucLessThan(10)] }));
+      readValue = await compile(ucNumber({ where: [ucItsMax(9), ucItIsLessThan(10)] }));
     });
 
     it('reports multiple violations', () => {
       expect(readValue('10', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMax',
             max: 9,
             inclusive: true,
           },
           message: 'At most 9 expected',
         },
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsLessThan',
             max: 10,
             inclusive: false,
           },
@@ -205,9 +219,10 @@ describe('number range validator', () => {
       expect(readValue('9.5', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMax',
             max: 9,
             inclusive: true,
           },
@@ -235,20 +250,21 @@ describe('bigint range validator', () => {
     errors = [];
   });
 
-  describe('ucMin', () => {
+  describe('ucItsMin', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ where: ucMin(10) }));
+      readValue = await compile(ucBigInt({ where: ucItsMin(10) }));
     });
 
     it('rejects lesser number', () => {
       expect(readValue('0n9', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMin',
             min: 10n,
             inclusive: true,
           },
@@ -263,20 +279,21 @@ describe('bigint range validator', () => {
     });
   });
 
-  describe('ucMin with bigint bound', () => {
+  describe('ucItsMin with bigint bound', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ where: ucMin(10n) }));
+      readValue = await compile(ucBigInt({ where: ucItsMin(10n) }));
     });
 
     it('rejects lesser bigint', () => {
       expect(readValue('0n9', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMin',
             min: 10n,
             inclusive: true,
           },
@@ -291,20 +308,21 @@ describe('bigint range validator', () => {
     });
   });
 
-  describe('ucGreaterThan', () => {
+  describe('ucItIsGreaterThan', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ where: ucGreaterThan(10) }));
+      readValue = await compile(ucBigInt({ where: ucItIsGreaterThan(10) }));
     });
 
     it('rejects lesser number', () => {
       expect(readValue('0n9', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsGreaterThan',
             min: 10n,
             inclusive: false,
           },
@@ -316,9 +334,10 @@ describe('bigint range validator', () => {
       expect(readValue('0n10', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooSmall',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsGreaterThan',
             min: 10n,
             inclusive: false,
           },
@@ -332,20 +351,21 @@ describe('bigint range validator', () => {
     });
   });
 
-  describe('ucMax', () => {
+  describe('ucItsMax', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ where: ucMax(10) }));
+      readValue = await compile(ucBigInt({ where: ucItsMax(10) }));
     });
 
     it('rejects greater number', () => {
       expect(readValue('0n11', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItsMax',
             max: 10n,
             inclusive: true,
           },
@@ -360,20 +380,21 @@ describe('bigint range validator', () => {
     });
   });
 
-  describe('ucLessThan', () => {
+  describe('ucItIsLessThan', () => {
     let readValue: UcDeserializer.Sync<bigint>;
 
     beforeAll(async () => {
-      readValue = await compile(ucBigInt({ where: ucLessThan(10) }));
+      readValue = await compile(ucBigInt({ where: ucItIsLessThan(10) }));
     });
 
     it('rejects greater number', () => {
       expect(readValue('0n11', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsLessThan',
             max: 10n,
             inclusive: false,
           },
@@ -385,9 +406,10 @@ describe('bigint range validator', () => {
       expect(readValue('0n10', { onError })).toBeUndefined();
       expect(errors).toEqual([
         {
-          code: 'tooBig',
+          code: 'violation',
           path: [{}],
           details: {
+            constraint: 'ItIsLessThan',
             max: 10n,
             inclusive: false,
           },

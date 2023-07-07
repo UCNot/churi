@@ -4,66 +4,66 @@ import { UcConstraints } from '../uc-constraints.js';
 import { UcBigInt } from './uc-bigint.js';
 import { UcNumber } from './uc-number.js';
 
-export function ucMin(
+export function ucItsMin(
   min: UcNumber,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
-export function ucMin(min: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
+export function ucItsMin(min: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucMin(
+export function ucItsMin(
   min: UcNumber | UcBigInt,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
-  return ucValidateNumericRange(['>=', min, message]);
+  return ucValidateNumericRange(['ItsMin', min, message]);
 }
 
-export function ucGreaterThan(
+export function ucItIsGreaterThan(
   min: UcNumber,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
-export function ucGreaterThan(
+export function ucItIsGreaterThan(
   min: UcBigInt,
   message?: string,
 ): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucGreaterThan(
+export function ucItIsGreaterThan(
   min: UcNumber | UcBigInt,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
-  return ucValidateNumericRange(['>', min, message]);
+  return ucValidateNumericRange(['ItIsGreaterThan', min, message]);
 }
 
-export function ucMax(
+export function ucItsMax(
   max: UcNumber,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
-export function ucMax(max: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
+export function ucItsMax(max: UcBigInt, message?: string): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucMax(
+export function ucItsMax(
   max: UcNumber | UcBigInt,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
-  return ucValidateNumericRange(['<=', max, message]);
+  return ucValidateNumericRange(['ItsMax', max, message]);
 }
 
-export function ucLessThan(
+export function ucItIsLessThan(
   max: UcNumber,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema>;
-export function ucLessThan(
+export function ucItIsLessThan(
   max: UcBigInt,
   message?: string,
 ): UcConstraints<UcBigInt, UcBigInt.Schema>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucLessThan(
+export function ucItIsLessThan(
   max: UcNumber | UcBigInt,
   message?: string,
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
-  return ucValidateNumericRange(['<', max, message]);
+  return ucValidateNumericRange(['ItIsLessThan', max, message]);
 }
 
 function ucValidateNumericRange(

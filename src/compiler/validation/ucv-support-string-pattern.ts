@@ -1,10 +1,10 @@
 import { esStringLiteral, esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { ucvValidate } from './ucv-validate.js';
-import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 
 export type UcvStringPattern = [match: RegExp, or?: string | undefined];
 
@@ -19,7 +19,7 @@ export function ucvSupportStringPattern(
           return ucvValidate(args, ({ value, reject }) => code => {
             const pattern = String(match);
             const message = or != null ? `, ${esStringLiteral(or)}` : '';
-            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvRejectPatternMismatch`);
+            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvViolateItMatches`);
 
             code
               .write(esline`if (!${pattern}.test(${value})) {`)

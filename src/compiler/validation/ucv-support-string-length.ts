@@ -6,23 +6,29 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { ucvValidate } from './ucv-validate.js';
 
-export type UcvStringLength = [op: '<=' | '>=', than: number, or?: string | undefined];
+export type UcvStringLength = [
+  constraint: 'ItHasMaxChars' | 'ItHasMinChars',
+  than: number,
+  or?: string | undefined,
+];
 
 export function ucvSupportStringLength(
   processor: UcrxProcessor.Any,
   schema: UcSchema<string>,
 ): UccConfig<UcvStringLength> {
   return {
-    configure([op, than, or]) {
+    configure([constraint, than, or]) {
       processor.modifyUcrxMethod(schema, UcrxCore.str, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {
             const bound = String(than);
             const message = or != null ? `, ${esStringLiteral(or)}` : '';
-            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvReject${UcvStringLength$reject[op]}`);
+            const ucvReject = UC_MODULE_VALIDATOR.import(`ucvViolate${constraint}`);
 
             code
-              .write(esline`if (${value}.length ${UcvStringReject$reverseOp[op]} ${bound}) {`)
+              .write(
+                esline`if (${value}.length ${UcvStringReject$reverseOp[constraint]} ${bound}) {`,
+              )
               .indent(reject(esline`${ucvReject}(${bound}${message})`))
               .write('}');
           });
@@ -32,12 +38,7 @@ export function ucvSupportStringLength(
   };
 }
 
-const UcvStringLength$reject: { readonly [key in UcvStringLength['0']]: string } = {
-  '>=': 'TooShort',
-  '<=': 'TooLong',
-};
-
 const UcvStringReject$reverseOp: { readonly [key in UcvStringLength['0']]: '>' | '<' } = {
-  '>=': '<',
-  '<=': '>',
+  ItHasMinChars: '<',
+  ItHasMaxChars: '>',
 };

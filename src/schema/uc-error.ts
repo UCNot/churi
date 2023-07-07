@@ -100,7 +100,7 @@ export interface UcErrorInfo {
   /**
    * Error details that can be used e.g. to build localized error {@link message}.
    */
-  readonly details?: Readonly<Record<string, unknown>>;
+  readonly details?: Readonly<Record<string, unknown>> | undefined;
 
   /**
    * Default error message in English.
@@ -134,3 +134,27 @@ function isUcErrorInfo(cause: unknown): cause is UcErrorInfo {
  * automatically.
  */
 export type UcRejection = Omit<UcErrorInfo, 'path'>;
+
+/**
+ * Schema {@link UcConstraints constraint} violation reason.
+ *
+ * A more specific kind of {@link UcRejection rejection} charge.
+ */
+export interface UcViolation extends UcRejection {
+  /**
+   * Error code always equal to `violation`.
+   */
+  readonly code: 'violation';
+
+  /**
+   * Violation details that can be used e.g. to build localized error {@link message}.
+   */
+  readonly details: {
+    /**
+     * Name of violated constraint.
+     */
+    readonly constraint: string;
+
+    readonly [key: string]: unknown;
+  };
+}
