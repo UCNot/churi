@@ -90,6 +90,13 @@ export namespace UcDeserializer {
    */
   export interface Options {
     /**
+     * Custom deserialization data.
+     *
+     * This data can be used by deserializers and handlers.
+     */
+    readonly data?: Record<PropertyKey, unknown> | undefined;
+
+    /**
      * Function to call to report deserialization error.
      *
      * By default, throws an {@link churi!UcError} with the given `error` info.

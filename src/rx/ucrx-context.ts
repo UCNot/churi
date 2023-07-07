@@ -20,6 +20,11 @@ export interface UcrxContext {
   readonly meta: UcMeta.Mutable;
 
   /**
+   * Custom data passed to {@link churi!UcDeserializer.Options#data deserializer}.
+   */
+  readonly data: Record<PropertyKey, unknown>;
+
+  /**
    * Rejects the charge.
    *
    * @param rejection - Rejection reason.
