@@ -38,7 +38,7 @@ export function createUcBundle<T extends Record<string, unknown>>(input: UcBundl
  */
 export interface UcBundleInput<T extends Record<string, unknown>> {
   /**
-   * Path to distribution file relative to the module containing the {@link createUcBundle call}.
+   * Path to distribution file relative to the default one.
    *
    * If unspecified, will be guessed based on package main file and bundle constant name.
    */
