@@ -11,9 +11,9 @@
  *   dist: 'my-bundle.js',
  *   bundle() {
  *     return {
- *     readValue: createUcDeserializer(mySchema),
- *     writeValue: createUcSerialize(mySchema),
- *    };
+ *       readValue: createUcDeserializer(mySchema),
+ *       writeValue: createUcSerialize(mySchema),
+ *     };
  *   },
  * })
  * ```
