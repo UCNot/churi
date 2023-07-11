@@ -1,48 +1,62 @@
 import { EsGenerationOptions } from 'esgen';
 
 /**
- * Declaration of bundle containing compiled schema processing code.
+ * Creates new {@link UcBundle bundle declaration}.
  *
  * Bundle may include code of several processors (e.g. {@link UcSerializer serializers} and
- * {@link UcDeserializer deserializers}). To make this possible, different processors have to
- * {@link UcDeserializer.Init#bundle refer} the same bundle.
+ * {@link UcDeserializer deserializers}). For that, create the named processors has to be created within `bundle`
+ * function.
  *
- * A bundle _has to be created_ by {@link createUcBundle} function call and stored as top-level module constant.
+ * @example
+ * ```typescript
+ * const { readValue, writeValue } = createUcBundle({
+ *   dist: 'my-bundle.js',
+ *   bundle() {
+ *     return {
+ *     readValue: createUcDeserializer(mySchema),
+ *     writeValue: createUcSerialize(mySchema),
+ *    };
+ *   },
+ * })
+ * ```
  *
- * **This is a placeholder**. The actual bundle is generated when TypeScript compiled with
- * [ts-transformer-churi] enabled.
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
+ * [ts-transformer-churi] enabled. It is expected that the result of this function called is stored as constant(s).
  *
- * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
+ * @typeParam T - Compiled bundle interface.
+ * @param input - Bundle initialization options.
+ *
+ * @returns New bundle instance.
  */
-export interface UcBundle {
-  readonly _brand: unique symbol;
+/*#__NO_SIDE_EFFECTS__*/
+export function createUcBundle<T extends Record<string, unknown>>(input: UcBundleInput<T>): T {
+  return input.bundle();
+}
 
+/**
+ * Schema processing bundle input passed to its {@link createUcBundle compiler}.
+ *
+ * @typeParam T - Compiled bundle interface.
+ */
+export interface UcBundleInput<T extends Record<string, unknown>> {
   /**
-   * Path to distribution file relative to the module containing the{@link createUcBundle call}.
+   * Path to distribution file relative to the module containing the {@link createUcBundle call}.
    *
    * If unspecified, will be guessed based on package main file and bundle constant name.
    */
   readonly dist?: string | undefined;
 
   /**
-   * Custom data passed to all schema processors within the bundle.
-   */
-  readonly data?: Record<PropertyKey, unknown> | undefined;
-
-  /**
-   * Bundle code generation options.
+   * Bundled code generation options.
    */
   readonly generate?: EsGenerationOptions | undefined;
-}
 
-/**
- * Creates new {@link UcBundle bundle declaration}.
- *
- * @param options - Bundle options.
- *
- * @returns New bundle declaration.
- */
-/*#__NO_SIDE_EFFECTS__*/
-export function createUcBundle(options: Omit<UcBundle, '_brand'>): UcBundle {
-  return options as UcBundle;
+  /**
+   * Creates bundled schema processors.
+   *
+   * Schema processors has to be created _inside_ of this function body in order to be bundled.
+   *
+   * @returns Record of named schema processors.
+   */
+  bundle(): T;
 }

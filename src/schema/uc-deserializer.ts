@@ -2,7 +2,6 @@ import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { FormatUcrx } from '../rx/format.ucrx.js';
 import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
-import { UcBundle } from './uc-bundle.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
 import { UcModel } from './uc-schema.js';
@@ -134,13 +133,6 @@ export namespace UcDeserializer {
    */
   export interface Init {
     readonly mode?: 'universal' | undefined;
-
-    /**
-     * A bundle the generated deserializer code should be added to.
-     *
-     * The default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
   }
 
   /**
@@ -148,13 +140,6 @@ export namespace UcDeserializer {
    */
   export interface SyncInit {
     readonly mode: 'sync';
-
-    /**
-     * A bundle the generated deserializer code should be added to.
-     *
-     * The default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
   }
 
   /**
@@ -162,13 +147,6 @@ export namespace UcDeserializer {
    */
   export interface AsyncInit {
     readonly mode: 'async';
-
-    /**
-     * A bundle the generated deserializer code should be added to.
-     *
-     * The default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
   }
 }
 
@@ -176,7 +154,8 @@ export namespace UcDeserializer {
  * Creates {@link UcDeserializer deserializer} for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled.
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
+ * constant, or {@link createUcBundle bundled}.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
@@ -195,7 +174,8 @@ export function createUcDeserializer<T>(
  * Creates {@link UcDeserializer.Sync synchronous deserializer} for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled.
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
+ * constant, or {@link createUcBundle bundled}.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
@@ -214,7 +194,8 @@ export function createUcDeserializer<T>(
  * Creates {@link UcDeserializer.Async asynchronous deserializer} for the given data `model`.
  *
  * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled.
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
+ * constant, or {@link createUcBundle bundled}.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
