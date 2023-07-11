@@ -181,6 +181,7 @@ describe('UcdCompiler', () => {
 export async function readValue(
   stream,
   {
+    data,
     onError,
     entities = defaultEntities,
     formats,
@@ -206,6 +207,7 @@ export async function readValue(
 export function readValue(
   input,
   {
+    data,
     onError,
     entities = defaultEntities,
     formats,
@@ -229,6 +231,7 @@ export function readValue(
 export function readValue(
   input,
   {
+    data,
     onError,
     entities = defaultEntities,
     formats,
@@ -257,6 +260,7 @@ export function readValue(
   async function readValue(
     stream,
     {
+      data,
       onError,
       entities = defaultEntities,
       formats,
@@ -282,6 +286,7 @@ export function readValue(
   function readValue(
     input,
     {
+      data,
       onError,
       entities = defaultEntities,
       formats,
@@ -306,6 +311,7 @@ export function readValue(
   function readValue(
     input,
     {
+      data,
       onError,
       entities = defaultEntities,
       formats,

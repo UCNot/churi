@@ -7,16 +7,18 @@ import { UcSchema } from '../schema/uc-schema.js';
 import { ucsWriteAsIs } from '../serializer/ucs-write-asis.js';
 import { UcsWriter } from '../serializer/ucs-writer.js';
 
-export async function writeUcHexNumber(writer: UcsWriter, value: number): Promise<void> {
-  await ucsWriteAsIs(writer, '0x' + value.toString(16));
+export async function writeUcRadixNumber(writer: UcsWriter, value: number): Promise<void> {
+  const { radix = 16 } = writer.data;
+
+  await ucsWriteAsIs(writer, (radix === 16 ? '0x' : '') + value.toString(Number(radix)));
 }
 
-export const UcsSupportNumberAsHex: UccFeature.Object<UcsCompiler> = {
+export const UcsSupportNumberWithRadix: UccFeature.Object<UcsCompiler> = {
   uccProcess(compiler) {
     return {
       configure() {
         compiler.useUcsGenerator<number>(Number, (_fn, _schema, { writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcHexNumber');
+          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;
         });
@@ -25,12 +27,12 @@ export const UcsSupportNumberAsHex: UccFeature.Object<UcsCompiler> = {
   },
 };
 
-export const UcsSupportHexNumber: UccFeature.Object<UcsCompiler> = {
+export const UcsSupportRadixNumber: UccFeature.Object<UcsCompiler> = {
   uccProcess(compiler) {
     return {
       configure() {
-        compiler.useUcsGenerator<number>('hexNumber', (_fn, _schema, { writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcHexNumber');
+        compiler.useUcsGenerator<number>('radixNumber', (_fn, _schema, { writer, value }) => {
+          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;
         });
@@ -39,12 +41,12 @@ export const UcsSupportHexNumber: UccFeature.Object<UcsCompiler> = {
   },
 };
 
-export const UcsSupportHexNumberSchema: UccSchemaFeature.Object<UcsCompiler> = {
+export const UcsSupportRadixNumberSchema: UccSchemaFeature.Object<UcsCompiler> = {
   uccProcessSchema(compiler, schema: UcSchema<number>) {
     return {
       configure() {
         compiler.useUcsGenerator(schema.type, (_fn, _schema, { writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcHexNumber');
+          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;
         });

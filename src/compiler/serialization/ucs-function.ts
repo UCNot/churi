@@ -69,13 +69,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         at: 'exports',
         async: true,
         body:
-          ({ args: { stream, value } }) => code => {
+          ({ args: { stream, value, options } }) => code => {
             const writer = new EsVarSymbol('writer');
 
             code
               .line(
                 writer.declare({
-                  value: () => this.#createWriter({ stream }, this),
+                  value: () => this.#createWriter({ stream, options }, this),
                 }),
               )
               .write(`try {`)

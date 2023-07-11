@@ -8,6 +8,7 @@ import { UcToken } from '../syntax/uc-token.js';
 
 export abstract class UcdReader {
 
+  readonly #data: Record<PropertyKey, unknown>;
   readonly #opaqueRx: Ucrx;
   readonly #onError: (error: UcErrorInfo) => void;
   readonly #entities: Exclude<UcdReader.Options['entities'], undefined>;
@@ -17,17 +18,23 @@ export abstract class UcdReader {
   constructor(options?: UcDeserializer.Options);
 
   constructor({
+    data = {},
     onError = UcdReader$throwOnError,
     entities = {},
     formats = {},
     onMeta = UcdReader$noMeta,
     opaqueRx = OPAQUE_UCRX,
   }: UcdReader.Options = {}) {
+    this.#data = data;
     this.#opaqueRx = opaqueRx;
     this.#onError = onError;
     this.#entities = entities;
     this.#formats = formats;
     this.#onMeta = onMeta;
+  }
+
+  get data(): Record<PropertyKey, unknown> {
+    return this.#data;
   }
 
   get opaqueRx(): Ucrx {

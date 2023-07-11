@@ -1,15 +1,23 @@
+import { UcSerializer } from '../schema/uc-serializer.js';
 import { UcsMemory } from './ucs-memory.js';
 
 export class UcsWriter {
 
   readonly #writer: WritableStreamDefaultWriter;
+  readonly #data: Record<PropertyKey, unknown>;
   #whenWritten: Promise<unknown> = Promise.resolve();
 
   #memory?: UcsMemory;
   #encoder?: TextEncoder;
 
-  constructor(stream: WritableStream<Uint8Array>) {
+  constructor(stream: WritableStream<Uint8Array>, options?: UcSerializer.Options);
+  constructor(stream: WritableStream<Uint8Array>, { data = {} }: UcSerializer.Options = {}) {
     this.#writer = stream.getWriter();
+    this.#data = data;
+  }
+
+  get data(): Record<PropertyKey, unknown> {
+    return this.#data;
   }
 
   get ready(): Promise<void> {

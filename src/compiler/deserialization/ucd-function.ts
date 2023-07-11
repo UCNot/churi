@@ -74,6 +74,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         code
           .write('{')
           .indent(
+            'data,',
             'onError,',
             'entities,',
             'formats,',
@@ -109,6 +110,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
                 code
                   .write('{')
                   .indent(
+                    'data,',
                     'onError,',
                     defaultEntities !== 'undefined'
                       ? esline`entities = ${defaultEntities},`

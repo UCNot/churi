@@ -142,8 +142,8 @@ describe('UcMeta deserializer', () => {
           ucdSupportDefaults,
           compiler => ({
             configure() {
-              compiler.parseMetaValue('comment', ucString(), ({ cx, rx, value }) => code => {
-                code.write(esline`${rx}.for('comment', ${cx}).str(${value}, ${cx})`);
+              compiler.parseMetaValue('comment', ucString(), ({ cx, value }) => code => {
+                code.write(esline`${cx}.data.comment = ${value};`);
               });
             },
           }),
@@ -161,9 +161,13 @@ describe('UcMeta deserializer', () => {
     });
 
     it('recognizes meta', () => {
-      expect(parse('!comment(Test comment) text(Test value)')).toEqual({
-        comment: 'Test comment',
+      const data = {};
+
+      expect(parse('!comment(Test comment) text(Test value)', { data })).toEqual({
         text: 'Test value',
+      });
+      expect(data).toEqual({
+        comment: 'Test comment',
       });
     });
   });

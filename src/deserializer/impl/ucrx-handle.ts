@@ -25,6 +25,10 @@ export class UcrxHandle implements UcrxContext {
     this.#path = path;
   }
 
+  get data(): Record<PropertyKey, unknown> {
+    return this.#reader.data;
+  }
+
   get opaqueRx(): Ucrx {
     return this.#reader.opaqueRx;
   }
