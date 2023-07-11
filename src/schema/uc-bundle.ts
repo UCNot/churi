@@ -1,5 +1,3 @@
-import { EsGenerationOptions } from 'esgen';
-
 /**
  * Creates new {@link UcBundle bundle declaration}.
  *
@@ -45,11 +43,6 @@ export interface UcBundleInput<T extends Record<string, unknown>> {
    * If unspecified, will be guessed based on package main file and bundle constant name.
    */
   readonly dist?: string | undefined;
-
-  /**
-   * Bundled code generation options.
-   */
-  readonly generate?: EsGenerationOptions | undefined;
 
   /**
    * Creates bundled schema processors.
