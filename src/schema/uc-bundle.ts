@@ -1,5 +1,5 @@
 /**
- * Creates new {@link UcBundle bundle declaration}.
+ * Creates new bundle with schema processing code.
  *
  * Bundle may include code of several processors (e.g. {@link UcSerializer serializers} and
  * {@link UcDeserializer deserializers}). For that, create the named processors has to be created within `bundle`
