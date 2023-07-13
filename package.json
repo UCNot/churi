@@ -1,6 +1,6 @@
 {
   "name": "churi",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Charged URI syntax, URI Charge Notation, schema processor",
   "keywords": [
     "charged-uri",
