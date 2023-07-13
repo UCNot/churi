@@ -4,17 +4,16 @@ import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { UcdLib } from '../deserialization/ucd-lib.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 
-export class UcValueCompiler extends UcdCompiler<{ parseUcValue: UcUnknown.Schema }, 'sync'> {
+export class UcValueCompiler extends UcdCompiler<{ parseUcValue: ['sync', UcUnknown.Schema] }> {
 
   constructor() {
     super({
-      models: { parseUcValue: ucUnknown() },
-      mode: 'sync',
+      models: { parseUcValue: ['sync', ucUnknown()] },
     });
   }
 
   override async bootstrapOptions(): Promise<
-    UcdLib.Options<{ parseUcValue: UcUnknown.Schema }, 'sync'>
+    UcdLib.Options<{ parseUcValue: ['sync', UcUnknown.Schema] }>
   > {
     const options = await super.bootstrapOptions();
     const onMeta = new EsFunction(
@@ -26,7 +25,7 @@ export class UcValueCompiler extends UcdCompiler<{ parseUcValue: UcUnknown.Schem
           body:
             ({ args: { cx, attr } }) => (code, scope) => {
               const ucrxLib = scope.get(UcrxLib);
-              const ucrxClass = ucrxLib.ucrxClassFor(options.models.parseUcValue);
+              const ucrxClass = ucrxLib.ucrxClassFor(options.models.parseUcValue[1]);
 
               code.write(esline`return new ${ucrxClass}($ => ${cx}.meta.add(${attr}, $));`);
             },

@@ -11,9 +11,8 @@ describe('UcdCompiler', () => {
     it('enables feature in object form', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: Number,
+          readTimestamp: ['sync', Number],
         },
-        mode: 'sync',
         features: [
           {
             uccProcess(compiler) {
@@ -68,9 +67,8 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: schema,
+          readTimestamp: ['sync', schema],
         },
-        mode: 'sync',
       });
 
       const now = new Date();
@@ -90,9 +88,8 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: schema,
+          readTimestamp: ['sync', schema],
         },
-        mode: 'sync',
       });
 
       const now = new Date();
@@ -112,9 +109,8 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: schema,
+          readTimestamp: ['sync', schema],
         },
-        mode: 'sync',
       });
 
       const now = new Date();
@@ -169,9 +165,8 @@ describe('UcdCompiler', () => {
   describe('generate', () => {
     describe('ES2015', () => {
       it('compiles async module', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'async'>({
-          models: { readValue: Number },
-          mode: 'async',
+        const compiler = new UcdCompiler({
+          models: { readValue: ['async', Number] },
         });
         const text = await compiler.generate();
 
@@ -195,9 +190,8 @@ export async function readValue(
         await expect(compiler.generate()).resolves.toBe(text);
       });
       it('compiles sync module', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'sync'>({
-          models: { readValue: Number },
-          mode: 'sync',
+        const compiler = new UcdCompiler({
+          models: { readValue: ['sync', Number] },
         });
         const text = await compiler.generate();
 
@@ -220,7 +214,7 @@ export function readValue(
         expect(text).not.toMatch(/\bAsyncUcdReader\b/);
       });
       it('compiles universal module', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'universal'>({
+        const compiler = new UcdCompiler({
           models: { readValue: Number },
         });
         const text = await compiler.generate();
@@ -248,9 +242,8 @@ export function readValue(
 
     describe('IIFE', () => {
       it('creates async factory', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'async'>({
-          models: { readValue: Number },
-          mode: 'async',
+        const compiler = new UcdCompiler({
+          models: { readValue: ['async', Number] },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 
@@ -274,9 +267,8 @@ export function readValue(
         await expect(compiler.generate({ format: EsBundleFormat.IIFE })).resolves.toBe(text);
       });
       it('creates sync factory', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'sync'>({
-          models: { readValue: Number },
-          mode: 'sync',
+        const compiler = new UcdCompiler({
+          models: { readValue: ['sync', Number] },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 
@@ -300,7 +292,7 @@ export function readValue(
         await expect(compiler.generate({ format: EsBundleFormat.IIFE })).resolves.toBe(text);
       });
       it('creates universal factory', async () => {
-        const compiler = new UcdCompiler<{ readValue: UcModel<number> }, 'universal'>({
+        const compiler = new UcdCompiler({
           models: { readValue: Number },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });

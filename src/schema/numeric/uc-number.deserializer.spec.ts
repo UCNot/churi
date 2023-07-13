@@ -39,9 +39,8 @@ describe('UcNumber deserializer', () => {
     it('deserializes number synchronously', async () => {
       const compiler = new UcdCompiler({
         models: {
-          parseValue: Number,
+          parseValue: ['sync', Number],
         },
-        mode: 'sync',
       });
 
       const { parseValue } = await compiler.evaluate();
@@ -52,9 +51,8 @@ describe('UcNumber deserializer', () => {
     it('deserializes number from string', async () => {
       const compiler = new UcdCompiler({
         models: {
-          parseValue: Number,
+          parseValue: ['sync', Number],
         },
-        mode: 'sync',
       });
       const { parseValue } = await compiler.evaluate();
 

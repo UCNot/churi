@@ -1,4 +1,5 @@
 import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
@@ -63,11 +64,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ucrxClass;
   }
 
-  exportFn(
-    externalName: string,
-    signature: UcdExportSignature,
-  ): EsFunction<UcdExportSignature.Args> {
-    const { mode, opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
+  exportFn(externalName: string, mode: UcDeserializer.Mode): EsFunction<UcdExportSignature.Args> {
+    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -85,7 +83,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       });
     };
 
-    return new EsFunction(externalName, signature, {
+    return new EsFunction(externalName, UcdExportSignature, {
       declare: {
         at: 'exports',
         async: mode === 'async',
