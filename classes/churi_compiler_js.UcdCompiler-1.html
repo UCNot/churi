@@ -15,7 +15,7 @@
 <li><a href="../index.html">Charged URI</a></li>
 <li><a href="../modules/churi_compiler_js.html">churi/compiler.js</a></li>
 <li><a href="churi_compiler_js.UcdCompiler-1.html">UcdCompiler</a></li></ul>
-<h1>Class UcdCompiler&lt;TModels, TMode&gt;</h1></div>
+<h1>Class UcdCompiler&lt;TModels&gt;</h1></div>
 <section class="tsd-panel tsd-comment">
 <div class="tsd-comment tsd-typography"><p>Compiler of schema <a href="../modules/churi.UcDeserializer.html" class="tsd-kind-namespace">deserializers</a>.</p>
 </div>
@@ -24,13 +24,8 @@
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4>out <span class="tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol"> extends </span><a href="../interfaces/churi_compiler_js.UcdModels.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a> = <a href="../interfaces/churi_compiler_js.UcdModels.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a></h4>
+<h4>out <span class="tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol"> extends </span><a href="../interfaces/churi_compiler_js.UcdModels-1.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a> = <a href="../interfaces/churi_compiler_js.UcdModels-1.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a></h4>
 <div class="tsd-comment tsd-typography"><p>Compiled models record type.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li>
-<li>
-<h4>out <span class="tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol"> extends </span><a href="../types/churi.UcDeserializer.Mode.html" class="tsd-signature-type tsd-kind-type-alias">Mode</a> = <span class="tsd-signature-type">&quot;universal&quot;</span></h4>
-<div class="tsd-comment tsd-typography"><p>Deserialization mode type.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></section> 
 <section class="tsd-panel tsd-hierarchy">
@@ -40,8 +35,8 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">UcdCompiler</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L37">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:37</a></li>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L379">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:379</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L36">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:36</a></li>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L343">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:343</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -81,7 +76,7 @@
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_UcdCompiler"><span class="tsd-kind-constructor-signature">new <wbr/>Ucd<wbr/>Compiler</span><span class="tsd-signature-symbol">&lt;</span>out <span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span>out <span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_UcdCompiler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_UcdCompiler"><span class="tsd-kind-constructor-signature">new <wbr/>Ucd<wbr/>Compiler</span><span class="tsd-signature-symbol">&lt;</span>out <span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#constructor.new_UcdCompiler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Constructs deserializer compiler.</p>
 </div>
@@ -89,22 +84,20 @@
 <h4>Type Parameters</h4>
 <ul class="tsd-type-parameter-list">
 <li>
-<h4>out <span class="tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol"> extends </span><a href="../interfaces/churi_compiler_js.UcdModels.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a> = <a href="../interfaces/churi_compiler_js.UcdModels.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a></h4></li>
-<li>
-<h4>out <span class="tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol"> extends </span><a href="../types/churi.UcDeserializer.Mode.html" class="tsd-signature-type tsd-kind-type-alias">Mode</a> = <span class="tsd-signature-type">&quot;universal&quot;</span></h4></li></ul></section>
+<h4>out <span class="tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol"> extends </span><a href="../interfaces/churi_compiler_js.UcdModels-1.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a> = <a href="../interfaces/churi_compiler_js.UcdModels-1.html" class="tsd-signature-type tsd-kind-interface">UcdModels</a></h4></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><code class="tsd-tag ts-flagRest">Rest</code> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type">&quot;async&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;sync&quot;</span><br/><span>    </span><span class="tsd-signature-symbol">? </span><span class="tsd-signature-symbol">[</span><a href="../modules/churi_compiler_js.UcdCompiler.html" class="tsd-signature-type tsd-kind-namespace">UcdCompiler</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdCompiler.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span><br/><span>    </span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><a href="../modules/churi_compiler_js.UcdCompiler.html" class="tsd-signature-type tsd-kind-namespace">UcdCompiler</a><span class="tsd-signature-symbol">.</span><a href="../types/churi_compiler_js.UcdCompiler.DefaultOptions.html" class="tsd-signature-type tsd-kind-type-alias">DefaultOptions</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">]</span></h5>
+<h5><span class="tsd-kind-parameter">options</span>: <a href="../modules/churi_compiler_js.UcdCompiler.html" class="tsd-signature-type tsd-kind-namespace">UcdCompiler</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdCompiler.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h5>
 <div class="tsd-comment tsd-typography"><p>Compiler options.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L57">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:57</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L55">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:55</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="names" class="tsd-anchor"></a>
@@ -118,7 +111,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from UcrxProcessor.names</p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L45">ucnot/churi/src/compiler/processor/ucc-processor.ts:45</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L45">ucnot/churi/src/compiler/processor/ucc-processor.ts:45</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="schemaIndex" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>schema<wbr/>Index</span><a href="#schemaIndex" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -127,7 +120,7 @@
 <h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UccSchemaIndex.html" class="tsd-signature-type tsd-kind-class">UccSchemaIndex</a></h4><aside class="tsd-sources">
 <p>Inherited from UcrxProcessor.schemaIndex</p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L38">ucnot/churi/src/compiler/processor/ucc-processor.ts:38</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L38">ucnot/churi/src/compiler/processor/ucc-processor.ts:38</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member"><a id="bootstrap" class="tsd-anchor"></a>
@@ -143,24 +136,24 @@ then creates library with that options.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L297">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:297</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L289">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:289</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="bootstrapOptions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>bootstrap<wbr/>Options</span><a href="#bootstrapOptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="bootstrapOptions.bootstrapOptions-1"><span class="tsd-kind-call-signature">bootstrap<wbr/>Options</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/churi_compiler_js.UcdLib.html" class="tsd-signature-type tsd-kind-namespace">UcdLib</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdLib.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#bootstrapOptions.bootstrapOptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="bootstrapOptions.bootstrapOptions-1"><span class="tsd-kind-call-signature">bootstrap<wbr/>Options</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/churi_compiler_js.UcdLib.html" class="tsd-signature-type tsd-kind-namespace">UcdLib</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdLib.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#bootstrapOptions.bootstrapOptions-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Bootstraps deserializer library options.</p>
 <p>Enables configured <a href="churi_compiler_js.UcdCompiler-1.html#enable" class="tsd-kind-method">deserialization features</a>.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/churi_compiler_js.UcdLib.html" class="tsd-signature-type tsd-kind-namespace">UcdLib</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdLib.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise resolved to deserializer library options.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../modules/churi_compiler_js.UcdLib.html" class="tsd-signature-type tsd-kind-namespace">UcdLib</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcdLib.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise resolved to deserializer library options.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L317">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:317</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L309">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:309</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="compileSchema" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>compile<wbr/>Schema</span><a href="#compileSchema" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="compileSchema.compileSchema-1"><span class="tsd-kind-call-signature">compile<wbr/>Schema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">whenCompiled</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#compileSchema.compileSchema-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="compileSchema.compileSchema-1"><span class="tsd-kind-call-signature">compile<wbr/>Schema</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">whenCompiled</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#compileSchema.compileSchema-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Requests the given <code>schema</code> to be compiled.</p>
 <p>Once compiled, an <a href="churi_compiler_js.UcrxClass-1.html" class="tsd-kind-class">UcrxClass</a> will be reported to the given <code>whenCompiled</code> callback. It can be used
@@ -200,11 +193,11 @@ to generated parser code for the input matching the schema.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4></li></ul></li></ul></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L121">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:121</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L113">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:113</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected"><a id="createConfig" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>create<wbr/>Config</span><a href="#createConfig" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected">
@@ -230,7 +223,7 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#createConfig">createConfig</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L78">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:78</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L70">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:70</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="createUcrxLibOptions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Ucrx<wbr/>Lib<wbr/>Options</span><a href="#createUcrxLibOptions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -239,11 +232,11 @@ to generated parser code for the input matching the schema.</p>
 <h4 class="tsd-returns-title">Returns <a href="../modules/churi_compiler_js.UcrxLib.html" class="tsd-signature-type tsd-kind-namespace">UcrxLib</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/churi_compiler_js.UcrxLib.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a></h4><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#createUcrxLibOptions">createUcrxLibOptions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/rx/ucrx-processor.ts#L84">ucnot/churi/src/compiler/rx/ucrx-processor.ts:84</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/rx/ucrx-processor.ts#L84">ucnot/churi/src/compiler/rx/ucrx-processor.ts:84</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="declareUcrxMethod" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>declare<wbr/>Ucrx<wbr/>Method</span><a href="#declareUcrxMethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="declareUcrxMethod.declareUcrxMethod-1"><span class="tsd-kind-call-signature">declare<wbr/>Ucrx<wbr/>Method</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TArgs</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMod</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">method</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#declareUcrxMethod.declareUcrxMethod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="declareUcrxMethod.declareUcrxMethod-1"><span class="tsd-kind-call-signature">declare<wbr/>Ucrx<wbr/>Method</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TArgs</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMod</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">method</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#declareUcrxMethod.declareUcrxMethod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Declares <code>method</code> to present in all <a href="../interfaces/churi.Ucrx.html" class="tsd-kind-interface">charge receiver</a> implementations.</p>
 </div>
@@ -268,16 +261,16 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Declaration of method to add to charge receiver template.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#declareUcrxMethod">declareUcrxMethod</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/rx/ucrx-processor.ts#L55">ucnot/churi/src/compiler/rx/ucrx-processor.ts:55</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/rx/ucrx-processor.ts#L55">ucnot/churi/src/compiler/rx/ucrx-processor.ts:55</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="enable" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>enable</span><a href="#enable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="enable.enable-1"><span class="tsd-kind-call-signature">enable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">feature</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#enable.enable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="enable.enable-1"><span class="tsd-kind-call-signature">enable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TOptions</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">feature</span>, <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#enable.enable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Enables the given processing <code>feature</code>.</p>
 </div>
@@ -302,13 +295,13 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Processing options.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#enable">enable</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L58">ucnot/churi/src/compiler/processor/ucc-processor.ts:58</a></li></ul></aside></li>
-<li class="tsd-signature tsd-anchor-link" id="enable.enable-2"><span class="tsd-kind-call-signature">enable</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#enable.enable-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L58">ucnot/churi/src/compiler/processor/ucc-processor.ts:58</a></li></ul></aside></li>
+<li class="tsd-signature tsd-anchor-link" id="enable.enable-2"><span class="tsd-kind-call-signature">enable</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#enable.enable-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Enables the given processing <code>feature</code> that does not require options.</p>
 </div>
@@ -320,16 +313,16 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Feature to enable.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#enable">enable</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L68">ucnot/churi/src/compiler/processor/ucc-processor.ts:68</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L68">ucnot/churi/src/compiler/processor/ucc-processor.ts:68</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="evaluate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>evaluate</span><a href="#evaluate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="evaluate.evaluate-1"><span class="tsd-kind-call-signature">evaluate</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">snippets</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/churi_compiler_js.UcdExports.html" class="tsd-signature-type tsd-kind-type-alias">UcdExports</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#evaluate.evaluate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="evaluate.evaluate-1"><span class="tsd-kind-call-signature">evaluate</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">snippets</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/churi_compiler_js.UcdExports.html" class="tsd-signature-type tsd-kind-type-alias">UcdExports</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#evaluate.evaluate-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Generates serialization code and evaluates it.</p>
 </div>
@@ -346,11 +339,11 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Additional code snippets.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/churi_compiler_js.UcdExports.html" class="tsd-signature-type tsd-kind-type-alias">UcdExports</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise resolved to deserializers exported from generated module.</p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/churi_compiler_js.UcdExports.html" class="tsd-signature-type tsd-kind-type-alias">UcdExports</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4><p>Promise resolved to deserializers exported from generated module.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L276">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:276</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L268">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:268</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="generate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>generate</span><a href="#generate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -375,11 +368,11 @@ to generated parser code for the input matching the schema.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L258">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:258</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L250">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:250</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="handleEntity" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>handle<wbr/>Entity</span><a href="#handleEntity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="handleEntity.handleEntity-1"><span class="tsd-kind-call-signature">handle<wbr/>Entity</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entity</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleEntity.handleEntity-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="handleEntity.handleEntity-1"><span class="tsd-kind-call-signature">handle<wbr/>Entity</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">entity</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleEntity.handleEntity-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Configures entity handler.</p>
 </div>
@@ -396,15 +389,15 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Entity support feature.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L143">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:143</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L135">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:135</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="handleFormat" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>handle<wbr/>Format</span><a href="#handleFormat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="handleFormat.handleFormat-1"><span class="tsd-kind-call-signature">handle<wbr/>Format</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">format</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleFormat.handleFormat-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="handleFormat.handleFormat-1"><span class="tsd-kind-call-signature">handle<wbr/>Format</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">format</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleFormat.handleFormat-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Configures data format handler.</p>
 </div>
@@ -421,15 +414,15 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Format support feature.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L157">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:157</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L149">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:149</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="handleMeta" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>handle<wbr/>Meta</span><a href="#handleMeta" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="handleMeta.handleMeta-1"><span class="tsd-kind-call-signature">handle<wbr/>Meta</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attribute</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleMeta.handleMeta-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="handleMeta.handleMeta-1"><span class="tsd-kind-call-signature">handle<wbr/>Meta</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attribute</span>, <span class="tsd-kind-parameter">feature</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#handleMeta.handleMeta-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Configures metadata attribute handler.</p>
 </div>
@@ -446,15 +439,15 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Metadata support feature.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L171">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:171</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L163">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:163</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="modifyUcrxMethod" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>modify<wbr/>Ucrx<wbr/>Method</span><a href="#modifyUcrxMethod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="modifyUcrxMethod.modifyUcrxMethod-1"><span class="tsd-kind-call-signature">modify<wbr/>Ucrx<wbr/>Method</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TArgs</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMod</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">method</span>, <span class="tsd-kind-parameter">mod</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#modifyUcrxMethod.modifyUcrxMethod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="modifyUcrxMethod.modifyUcrxMethod-1"><span class="tsd-kind-call-signature">modify<wbr/>Ucrx<wbr/>Method</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TArgs</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMod</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">method</span>, <span class="tsd-kind-parameter">mod</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#modifyUcrxMethod.modifyUcrxMethod-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Modifies the <code>method</code> of the target <code>type</code> receiver.</p>
 </div>
@@ -489,16 +482,16 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Modifier to apply to target <code>method</code>.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#modifyUcrxMethod">modifyUcrxMethod</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/rx/ucrx-processor.ts#L74">ucnot/churi/src/compiler/rx/ucrx-processor.ts:74</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/rx/ucrx-processor.ts#L74">ucnot/churi/src/compiler/rx/ucrx-processor.ts:74</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="parseMetaValue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>parse<wbr/>Meta<wbr/>Value</span><a href="#parseMetaValue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="parseMetaValue.parseMetaValue-1"><span class="tsd-kind-call-signature">parse<wbr/>Meta<wbr/>Value</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attribute</span>, <span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">set</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#parseMetaValue.parseMetaValue-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="parseMetaValue.parseMetaValue-1"><span class="tsd-kind-call-signature">parse<wbr/>Meta<wbr/>Value</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">attribute</span>, <span class="tsd-kind-parameter">schema</span>, <span class="tsd-kind-parameter">set</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#parseMetaValue.parseMetaValue-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Requests the given <code>attribute</code> value to be parsed with the given <code>schema</code>.</p>
 </div>
@@ -565,11 +558,11 @@ to generated parser code for the input matching the schema.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">EsSnippet</span></h4></li></ul></li></ul></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/deserialization/ucd-compiler.ts#L188">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:188</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/deserialization/ucd-compiler.ts#L180">ucnot/churi/src/compiler/deserialization/ucd-compiler.ts:180</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited"><a id="processInstructions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>process<wbr/>Instructions</span><a href="#processInstructions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-protected tsd-is-inherited">
@@ -578,11 +571,11 @@ to generated parser code for the input matching the schema.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#processInstructions">processInstructions</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L139">ucnot/churi/src/compiler/processor/ucc-processor.ts:139</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L139">ucnot/churi/src/compiler/processor/ucc-processor.ts:139</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="processModel" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>process<wbr/>Model</span><a href="#processModel" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="processModel.processModel-1"><span class="tsd-kind-call-signature">process<wbr/>Model</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">model</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#processModel.processModel-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="processModel.processModel-1"><span class="tsd-kind-call-signature">process<wbr/>Model</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">model</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#processModel.processModel-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Applies model processing instructions specified as its <a href="../interfaces/churi.UcSchema-1.html#where" class="tsd-kind-property">constraints</a>.</p>
 </div>
@@ -602,16 +595,16 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Target model.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#processModel">processModel</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/processor/ucc-processor.ts#L113">ucnot/churi/src/compiler/processor/ucc-processor.ts:113</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/processor/ucc-processor.ts#L113">ucnot/churi/src/compiler/processor/ucc-processor.ts:113</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="useUcrxClass" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>use<wbr/>Ucrx<wbr/>Class</span><a href="#useUcrxClass" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="useUcrxClass.useUcrxClass-1"><span class="tsd-kind-call-signature">use<wbr/>Ucrx<wbr/>Class</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">target</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span><a href="#useUcrxClass.useUcrxClass-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="useUcrxClass.useUcrxClass-1"><span class="tsd-kind-call-signature">use<wbr/>Ucrx<wbr/>Class</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TSchema</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">target</span>, <span class="tsd-kind-parameter">proto</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span><a href="#useUcrxClass.useUcrxClass-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Assigns <a href="../interfaces/churi.Ucrx.html" class="tsd-kind-interface">Ucrx</a> class to use for <code>target</code> value type or schema processing.</p>
 <p>The class prototype provided for particular schema takes precedence over the one provided for the type.</p>
@@ -642,12 +635,12 @@ to generated parser code for the input matching the schema.</p>
 <div class="tsd-comment tsd-typography"><p>Ucrx class prototype.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type tsd-kind-type-parameter">TMode</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="churi_compiler_js.UcdCompiler-1.html" class="tsd-signature-type tsd-kind-class">UcdCompiler</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">TModels</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>this</code> instance.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="churi_compiler_js.UcrxProcessor-1.html">UcrxProcessor</a>.<a href="churi_compiler_js.UcrxProcessor-1.html#useUcrxClass">useUcrxClass</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/compiler/rx/ucrx-processor.ts#L33">ucnot/churi/src/compiler/rx/ucrx-processor.ts:33</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/compiler/rx/ucrx-processor.ts#L33">ucnot/churi/src/compiler/rx/ucrx-processor.ts:33</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -702,6 +695,7 @@ to generated parser code for the input matching the schema.</p>
 <li><a href="../modules/churi_compiler_js.UcdExportSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcdFunction.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Function</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcdLib.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Lib</span></a></li>
+<li><a href="../modules/churi_compiler_js.UcdModels.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucd<wbr/>Models</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxAttrSetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Attr<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxClass.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Class</span></a></li>
 <li><a href="../modules/churi_compiler_js.UcrxEntitySetterSignature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Ucrx<wbr/>Entity<wbr/>Setter<wbr/>Signature</span></a></li>
@@ -747,7 +741,7 @@ to generated parser code for the input matching the schema.</p>
 <li><a href="../interfaces/churi_compiler_js.UccConfig.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucc<wbr/>Config</span></a></li>
 <li><a href="../interfaces/churi_compiler_js.UccProcessorInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucc<wbr/>Processor<wbr/>Init</span></a></li>
 <li><a href="../interfaces/churi_compiler_js.UcdHandlerSetup.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Handler<wbr/>Setup</span></a></li>
-<li><a href="../interfaces/churi_compiler_js.UcdModels.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Models</span></a></li>
+<li><a href="../interfaces/churi_compiler_js.UcdModels-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucd<wbr/>Models</span></a></li>
 <li><a href="../interfaces/churi_compiler_js.UcrxBeforeMod.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Before<wbr/>Mod</span></a></li>
 <li><a href="../interfaces/churi_compiler_js.UcrxMethodInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Method<wbr/>Init</span></a></li>
 <li><a href="../interfaces/churi_compiler_js.UcrxPropertyInit.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Ucrx<wbr/>Property<wbr/>Init</span></a></li>
@@ -757,12 +751,9 @@ to generated parser code for the input matching the schema.</p>
 <li><a href="../types/churi_compiler_js.MapUcrxEntrySignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Map<wbr/>Ucrx<wbr/>Entry<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UccFeature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucc<wbr/>Feature</span></a></li>
 <li><a href="../types/churi_compiler_js.UccSchemaFeature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucc<wbr/>Schema<wbr/>Feature</span></a></li>
-<li><a href="../types/churi_compiler_js.UcdAsyncExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Async<wbr/>Exports</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdExportSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Export<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Exports</span></a></li>
 <li><a href="../types/churi_compiler_js.UcdHandlerFeature.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Handler<wbr/>Feature</span></a></li>
-<li><a href="../types/churi_compiler_js.UcdSyncExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Sync<wbr/>Exports</span></a></li>
-<li><a href="../types/churi_compiler_js.UcdUniversalExports.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucd<wbr/>Universal<wbr/>Exports</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxAttrSetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Attr<wbr/>Setter<wbr/>Signature</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxCore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Core</span></a></li>
 <li><a href="../types/churi_compiler_js.UcrxEntitySetterSignature-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Ucrx<wbr/>Entity<wbr/>Setter<wbr/>Signature</span></a></li>
@@ -787,7 +778,8 @@ to generated parser code for the input matching the schema.</p>
 <li><a href="../variables/churi_compiler_js.UcsSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Signature</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcsWriterClass.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Writer<wbr/>Class</span></a></li>
 <li><a href="../variables/churi_compiler_js.UcsWriterSignature-2.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Ucs<wbr/>Writer<wbr/>Signature</span></a></li>
-<li><a href="../functions/churi_compiler_js.isUcrxSetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>is<wbr/>Ucrx<wbr/>Setter</span></a></li>
+<li><a href="../functions/churi_compiler_js.isUcdModelConfig.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>is<wbr/>Ucd<wbr/>Model<wbr/>Config</span></a></li>
+<li><a href="../functions/churi_compiler_js.isUcrxSetter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>is<wbr/>Ucrx<wbr/>Setter</span></a></li>
 <li><a href="../functions/churi_compiler_js.ucdSupportDefaults.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>ucd<wbr/>Support<wbr/>Defaults</span></a></li>
 <li><a href="../functions/churi_compiler_js.ucdSupportNonFinite.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>ucd<wbr/>Support<wbr/>Non<wbr/>Finite</span></a></li>
 <li><a href="../functions/churi_compiler_js.ucdSupportPrimitives.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>ucd<wbr/>Support<wbr/>Primitives</span></a></li>

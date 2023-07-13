@@ -18,39 +18,31 @@
 <h1>Function createUcBundle</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="createUcBundle"><span class="tsd-kind-call-signature">create<wbr/>Uc<wbr/>Bundle</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">input</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><a href="#createUcBundle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="createUcBundle"><span class="tsd-kind-call-signature">create<wbr/>Uc<wbr/>Bundle</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">config</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/churi.UcBundle.html" class="tsd-signature-type tsd-kind-class">UcBundle</a><a href="#createUcBundle" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Creates new bundle with schema processing code.</p>
-<p>Bundle may include code of several processors (e.g. <a href="../modules/churi.UcSerializer.html" class="tsd-kind-namespace">serializers</a> and
-<a href="../modules/churi.UcDeserializer.html" class="tsd-kind-namespace">deserializers</a>). For that, create the named processors has to be created within <code>bundle</code>
-function.</p>
+<p>Bundle may include code of several schema processors (e.g. <a href="../modules/churi.UcSerializer.html" class="tsd-kind-namespace">serializers</a> and
+<a href="../modules/churi.UcDeserializer.html" class="tsd-kind-namespace">deserializers</a>). For that, the processors has to refer  the bundle.</p>
 </div>
-<section class="tsd-panel">
-<h4>Type Parameters</h4>
-<ul class="tsd-type-parameter-list">
-<li>
-<h4><span class="tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type ">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">&gt;</span></h4>
-<div class="tsd-comment tsd-typography"><p>Compiled bundle interface.</p>
-</div>
-<div class="tsd-comment tsd-typography"></div></li></ul></section>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">input</span>: <a href="../interfaces/churi.UcBundleInput.html" class="tsd-signature-type tsd-kind-interface">UcBundleInput</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h5>
-<div class="tsd-comment tsd-typography"><p>Bundle initialization options.</p>
+<h5><span class="tsd-kind-parameter">config</span>: <a href="../interfaces/churi.UcBundleConfig.html" class="tsd-signature-type tsd-kind-interface">UcBundleConfig</a><span class="tsd-signature-symbol"> = {}</span></h5>
+<div class="tsd-comment tsd-typography"><p>Bundle configuration.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h4><p>New bundle instance.</p>
+<h4 class="tsd-returns-title">Returns <a href="../classes/churi.UcBundle.html" class="tsd-signature-type tsd-kind-class">UcBundle</a></h4><p>New bundle representation.</p>
 
 <div class="tsd-comment tsd-typography">
-<h4>Example</h4><pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> { </span><span class="hl-4">readValue</span><span class="hl-1">, </span><span class="hl-4">writeValue</span><span class="hl-1"> } = </span><span class="hl-5">createUcBundle</span><span class="hl-1">({</span><br/><span class="hl-1">  </span><span class="hl-6">dist:</span><span class="hl-1"> </span><span class="hl-7">&#39;my-bundle.js&#39;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-5">bundle</span><span class="hl-1">() {</span><br/><span class="hl-1">    </span><span class="hl-8">return</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-6">readValue:</span><span class="hl-1"> </span><span class="hl-5">createUcDeserializer</span><span class="hl-1">(</span><span class="hl-6">mySchema</span><span class="hl-1">),</span><br/><span class="hl-1">      </span><span class="hl-6">writeValue:</span><span class="hl-1"> </span><span class="hl-5">createUcSerialize</span><span class="hl-1">(</span><span class="hl-6">mySchema</span><span class="hl-1">),</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">  },</span><br/><span class="hl-1">})</span>
+<h4>Example</h4><pre><code class="language-typescript"><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">myBundle</span><span class="hl-1"> = </span><span class="hl-5">createUcBundle</span><span class="hl-1">({ </span><span class="hl-6">dist:</span><span class="hl-1"> </span><span class="hl-7">&#39;my-bundle.js&#39;</span><span class="hl-1"> });</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">readValue</span><span class="hl-1"> = </span><span class="hl-5">createUcDeserializer</span><span class="hl-1">(</span><span class="hl-6">mySchema</span><span class="hl-1">, { </span><span class="hl-6">bundle:</span><span class="hl-1"> </span><span class="hl-6">myBundle</span><span class="hl-1"> });</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">writeValue</span><span class="hl-1"> = </span><span class="hl-5">createUcSerializer</span><span class="hl-1">(</span><span class="hl-6">mySchema</span><span class="hl-1">, { </span><span class="hl-6">bundle:</span><span class="hl-1"> </span><span class="hl-6">myBundle</span><span class="hl-1"> });</span>
 </code><button>Copy</button></pre>
-<p><strong>This is a placeholder</strong>. It is replaced with actual deserializer when TypeScript compiled with
-[ts-transformer-churi] enabled. It is expected that the result of this function called is stored as constant(s).</p>
+<p><strong>This is a placeholder</strong>. It is not processed in any way at run time. The actual bundle generated when TypeScript
+code compiled with [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to
+constant.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/UCNot/churi/blob/eb02d68/src/schema/uc-bundle.ts#L30">ucnot/churi/src/schema/uc-bundle.ts:30</a></li></ul></aside></li></ul></section></div>
+<li>Defined in <a href="https://github.com/UCNot/churi/blob/188cbc9/src/schema/uc-bundle.ts#L40">ucnot/churi/src/schema/uc-bundle.ts:40</a></li></ul></aside></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -101,6 +93,7 @@ function.</p>
 <li><a href="../classes/churi.TokenUcrx.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Token<wbr/>Ucrx</span></a></li>
 <li><a href="../classes/churi.URICharge-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>URICharge</span></a></li>
 <li><a href="../classes/churi.UcAttr.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Uc<wbr/>Attr</span></a></li>
+<li><a href="../classes/churi.UcBundle.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Uc<wbr/>Bundle</span></a></li>
 <li><a href="../classes/churi.UcEntity.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Uc<wbr/>Entity</span></a></li>
 <li><a href="../classes/churi.UcError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Uc<wbr/>Error</span></a></li>
 <li><a href="../classes/churi.UcFormatted.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Uc<wbr/>Formatted</span></a></li>
@@ -111,7 +104,7 @@ function.</p>
 <li><a href="../classes/churi.VoidUcrx.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Void<wbr/>Ucrx</span></a></li>
 <li><a href="../interfaces/churi.AllUcrx.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>All<wbr/>Ucrx</span></a></li>
 <li><a href="../interfaces/churi.ChURIParamSplitter.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ChURIParam<wbr/>Splitter</span></a></li>
-<li><a href="../interfaces/churi.UcBundleInput.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Uc<wbr/>Bundle<wbr/>Input</span></a></li>
+<li><a href="../interfaces/churi.UcBundleConfig.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Uc<wbr/>Bundle<wbr/>Config</span></a></li>
 <li><a href="../interfaces/churi.UcConstraints.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Uc<wbr/>Constraints</span></a></li>
 <li><a href="../interfaces/churi.UcErrorInfo.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Uc<wbr/>Error<wbr/>Info</span></a></li>
 <li><a href="../interfaces/churi.UcFeatureConstraint.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>Uc<wbr/>Feature<wbr/>Constraint</span></a></li>
