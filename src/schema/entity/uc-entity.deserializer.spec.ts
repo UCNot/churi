@@ -17,9 +17,8 @@ describe('UcEntity deserializer', () => {
   it('(async) does not recognize unknown entity', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: Number,
+        readNumber: ['async', Number],
       },
-      mode: 'async',
       features: ucdSupportPrimitives,
     });
 
@@ -40,9 +39,8 @@ describe('UcEntity deserializer', () => {
   it('(sync) does not recognize unknown entity', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: Number,
+        readNumber: ['sync', Number],
       },
-      mode: 'sync',
       features: ucdSupportPrimitives,
     });
 

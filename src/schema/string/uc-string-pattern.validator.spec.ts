@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UcdModels } from '../../compiler/deserialization/ucd-models.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcSchema } from '../uc-schema.js';
@@ -11,6 +12,10 @@ describe('ucItMatches', () => {
   const onError = (error: UcErrorInfo): void => {
     errors.push(error);
   };
+
+  beforeEach(() => {
+    errors = [];
+  });
 
   it('rejects mismatching string', async () => {
     const readValue = await compile(ucString({ where: ucItMatches(/abc/u) }));
@@ -28,6 +33,12 @@ describe('ucItMatches', () => {
         message: `String matching /abc/u pattern expected`,
       },
     ]);
+  });
+  it('does not reject when validation is off', async () => {
+    const readValue = await compile(ucString({ where: ucItMatches(/abc/u) }), { validate: false });
+
+    expect(readValue('def', { onError })).toBe('def');
+    expect(errors).toEqual([]);
   });
   it('supports custom message', async () => {
     const readValue = await compile(ucString({ where: ucItMatches(/abc/, 'Wrong!') }));
@@ -52,12 +63,11 @@ describe('ucItMatches', () => {
     expect(readValue('a')).toBe('a');
   });
 
-  beforeEach(() => {
-    errors = [];
-  });
-
-  async function compile(schema: UcSchema<string>): Promise<UcDeserializer.Sync<string>> {
-    const compiler = new UcdCompiler({ models: { readValue: schema }, mode: 'sync' });
+  async function compile(
+    schema: UcSchema<string>,
+    options?: Partial<UcdCompiler.Options<UcdModels>>,
+  ): Promise<UcDeserializer.Sync<string>> {
+    const compiler = new UcdCompiler({ ...options, models: { readValue: ['sync', schema] } });
     const { readValue } = await compiler.evaluate();
 
     return readValue;

@@ -105,7 +105,7 @@ describe('string length validator', () => {
   });
 
   async function compile(schema: UcSchema<string>): Promise<UcDeserializer.Sync<string>> {
-    const compiler = new UcdCompiler({ models: { readValue: schema }, mode: 'sync' });
+    const compiler = new UcdCompiler({ models: { readValue: ['sync', schema] } });
     const { readValue } = await compiler.evaluate();
 
     return readValue;

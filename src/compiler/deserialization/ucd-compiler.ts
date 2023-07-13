@@ -15,8 +15,7 @@ import {
   esline,
 } from 'esgen';
 import { capitalize } from 'httongue';
-import { UcDeserializer } from '../../mod.js';
-import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
@@ -26,20 +25,19 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdExports, UcdModels, isUcdModelConfig } from './ucd-models.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
  * Compiler of schema {@link churi!UcDeserializer deserializers}.
  *
  * @typeParam TModels - Compiled models record type.
- * @typeParam TMode - Deserialization mode type.
  */
 export class UcdCompiler<
   out TModels extends UcdModels = UcdModels,
-  out TMode extends UcDeserializer.Mode = 'universal',
 > extends UcrxProcessor<UcdCompiler.Any> {
 
-  readonly #options: UcdCompiler.Options<TModels, TMode>;
+  readonly #options: UcdCompiler.Options<TModels>;
 
   readonly #entities: UcdHandlerRegistry;
   readonly #formats: UcdHandlerRegistry;
@@ -54,18 +52,12 @@ export class UcdCompiler<
    *
    * @param options - Compiler options.
    */
-  constructor(
-    ...options: TMode extends 'sync' | 'async'
-      ? [UcdCompiler.Options<TModels, TMode>]
-      : [UcdCompiler.DefaultOptions<TModels>]
-  );
-
-  constructor(options: UcdCompiler.Options<TModels, TMode>) {
-    const { models, features } = options;
+  constructor(options: UcdCompiler.Options<TModels>) {
+    const { models, validate = true, features } = options;
 
     super({
-      names: ['validator', 'deserializer'],
-      models: Object.values(models),
+      names: validate ? ['validator', 'deserializer'] : ['deserializer'],
+      models: Object.values(models).map(entry => (isUcdModelConfig(entry) ? entry[1] : entry)),
       features,
     });
 
@@ -276,14 +268,14 @@ export class UcdCompiler<
   async evaluate(
     options: EsEvaluationOptions = {},
     ...snippets: EsSnippet[]
-  ): Promise<UcdExports<TModels, TMode>> {
+  ): Promise<UcdExports<TModels>> {
     return (await esEvaluate(
       {
         ...options,
         setup: [...asArray(options.setup), await this.bootstrap()],
       },
       ...snippets,
-    )) as UcdExports<TModels, TMode>;
+    )) as UcdExports<TModels>;
   }
 
   /**
@@ -314,17 +306,14 @@ export class UcdCompiler<
    *
    * @returns Promise resolved to deserializer library options.
    */
-  async bootstrapOptions(): Promise<UcdLib.Options<TModels, TMode>> {
+  async bootstrapOptions(): Promise<UcdLib.Options<TModels>> {
     await this.#bootstrap();
-
-    const { mode = 'universal' as TMode } = this.#options;
 
     return {
       ...this.#options,
       ...this.createUcrxLibOptions(),
       schemaIndex: this.schemaIndex,
       internalModels: this.#internalModels,
-      mode,
       entities: this.#entities.declare(),
       formats: this.#formats.declare(),
       meta: this.#meta.declare(),
@@ -351,38 +340,12 @@ export class UcdCompiler<
 
 }
 
-export interface UcdModels {
-  readonly [reader: string]: UcModel;
-}
-
-export type UcdExports<
-  TModels extends UcdModels,
-  TMode extends UcDeserializer.Mode,
-> = TMode extends 'async'
-  ? UcdAsyncExports<TModels>
-  : TMode extends 'sync'
-  ? UcdSyncExports<TModels>
-  : UcdUniversalExports<TModels>;
-
-export type UcdUniversalExports<TModels extends UcdModels> = {
-  readonly [reader in keyof TModels]: UcDeserializer<UcInfer<TModels[reader]>>;
-};
-
-export type UcdAsyncExports<TModels extends UcdModels> = {
-  readonly [reader in keyof TModels]: UcDeserializer.Async<UcInfer<TModels[reader]>>;
-};
-
-export type UcdSyncExports<TModels extends UcdModels> = {
-  readonly [reader in keyof TModels]: UcDeserializer.Sync<UcInfer<TModels[reader]>>;
-};
-
 export namespace UcdCompiler {
-  export type Any = UcdCompiler<UcdModels, UcDeserializer.Mode>;
+  export type Any = UcdCompiler<UcdModels>;
 
-  export interface BaseOptions<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
-    extends Omit<UcrxLib.Options, 'methods'> {
+  export interface Options<out TModels extends UcdModels> extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
-    readonly mode?: TMode | undefined;
+    readonly validate?: boolean | undefined;
     readonly features?:
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
@@ -393,12 +356,5 @@ export namespace UcdCompiler {
       this: void,
       options: UcdFunction.Options<T, TSchema>,
     ): UcdFunction<T, TSchema>;
-  }
-
-  export type DefaultOptions<TModels extends UcdModels> = BaseOptions<TModels, 'universal'>;
-
-  export interface Options<out TModels extends UcdModels, out TMode extends UcDeserializer.Mode>
-    extends BaseOptions<TModels, TMode> {
-    readonly mode: TMode;
   }
 }

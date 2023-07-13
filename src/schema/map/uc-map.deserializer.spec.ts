@@ -417,12 +417,14 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({
-            foo: ucList<string>(String),
-            bar: ucList<number>(Number),
-          }),
+          readMap: [
+            'sync',
+            ucMap({
+              foo: ucList<string>(String),
+              bar: ucList<number>(Number),
+            }),
+          ],
         },
-        mode: 'sync',
       });
 
       ({ readMap } = await compiler.evaluate());

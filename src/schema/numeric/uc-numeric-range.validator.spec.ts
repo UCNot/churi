@@ -233,7 +233,7 @@ describe('number range validator', () => {
   });
 
   async function compile(schema: UcSchema<number>): Promise<UcDeserializer.Sync<number>> {
-    const compiler = new UcdCompiler({ models: { readValue: schema }, mode: 'sync' });
+    const compiler = new UcdCompiler({ models: { readValue: ['sync', schema] } });
     const { readValue } = await compiler.evaluate();
 
     return readValue;
@@ -424,7 +424,7 @@ describe('bigint range validator', () => {
   });
 
   async function compile(schema: UcSchema<bigint>): Promise<UcDeserializer.Sync<bigint>> {
-    const compiler = new UcdCompiler({ models: { readValue: schema }, mode: 'sync' });
+    const compiler = new UcdCompiler({ models: { readValue: ['sync', schema] } });
     const { readValue } = await compiler.evaluate();
 
     return readValue;
