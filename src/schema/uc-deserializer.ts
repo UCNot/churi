@@ -2,6 +2,7 @@ import { EntityUcrx } from '../rx/entity.ucrx.js';
 import { FormatUcrx } from '../rx/format.ucrx.js';
 import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { UcToken } from '../syntax/uc-token.js';
+import { UcBundle } from './uc-bundle.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
 import { UcModel } from './uc-schema.js';
@@ -128,38 +129,57 @@ export namespace UcDeserializer {
   }
 
   /**
-   * {@link UcDeserializer universal deserializer} initialization options passed to its
-   * {@link createUcDeserializer compiler}.
+   * {@link UcDeserializer Universal} deserializer {@link createUcDeserializer compiler} configuration.
    */
-  export interface Init {
+  export interface Config {
+    /**
+     * Target bundle the compiled deserializer will be included into.
+     *
+     * Default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+
     readonly mode?: 'universal' | undefined;
   }
 
   /**
-   * {@link Sync synchronous deserializer} initialization options passed to its {@link createUcDeserializer compiler}.
+   * {@link Sync Synchronous} deserializer {@link createUcDeserializer compiler} configuration.
    */
-  export interface SyncInit {
+  export interface SyncConfig {
+    /**
+     * Target bundle the compiled deserializer will be included into.
+     *
+     * Default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+
     readonly mode: 'sync';
   }
 
   /**
-   * {@link Async asynchronous deserializer} initialization options passed to its {@link createUcDeserializer compiler}.
+   * {@link Async Asynchronous} deserializer {@link createUcDeserializer compiler} configuration.
    */
   export interface AsyncInit {
+    /**
+     * Target bundle the compiled deserializer will be included into.
+     *
+     * Default bundle will be used when omitted.
+     */
+    readonly bundle?: UcBundle | undefined;
+
     readonly mode: 'async';
   }
 }
 
 /**
- * Creates {@link UcDeserializer deserializer} for the given data `model`.
+ * Compiles {@link UcDeserializer deserializer} for the given data `model`.
  *
- * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
- * constant, or {@link createUcBundle bundled}.
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript code compiled with
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to constant.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
- * @param init - Deserializer initialization options.
+ * @param config - Compiler configuration.
  *
  * @returns Universal deserializer instance.
  *
@@ -167,19 +187,18 @@ export namespace UcDeserializer {
  */
 export function createUcDeserializer<T>(
   model: UcModel<T>,
-  init?: UcDeserializer.Init,
+  config?: UcDeserializer.Config,
 ): UcDeserializer<T>;
 
 /**
- * Creates {@link UcDeserializer.Sync synchronous deserializer} for the given data `model`.
+ * Compiles {@link UcDeserializer.Sync synchronous deserializer} for the given data `model`.
  *
- * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
- * constant, or {@link createUcBundle bundled}.
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript code compiled with
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to constant.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
- * @param init - Deserializer initialization options.
+ * @param config - Compiler configuration.
  *
  * @returns Synchronous deserializer instance.
  *
@@ -187,19 +206,18 @@ export function createUcDeserializer<T>(
  */
 export function createUcDeserializer<T>(
   model: UcModel<T>,
-  init: UcDeserializer.SyncInit,
+  config: UcDeserializer.SyncConfig,
 ): UcDeserializer.Sync<T>;
 
 /**
- * Creates {@link UcDeserializer.Async asynchronous deserializer} for the given data `model`.
+ * Compiles {@link UcDeserializer.Async asynchronous deserializer} for the given data `model`.
  *
- * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled. It is expected that the result of this function call is either stored to
- * constant, or {@link createUcBundle bundled}.
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript code compiled with
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to constant.
  *
  * @typeParam T - Deserialized data type.
  * @param model - Deserialized data model.
- * @param init - Deserializer initialization options.
+ * @param config - Compiler configuration.
  *
  * @returns Asynchronous deserializer instance.
  *
@@ -207,12 +225,12 @@ export function createUcDeserializer<T>(
  */
 export function createUcDeserializer<T>(
   model: UcModel<T>,
-  init: UcDeserializer.AsyncInit,
+  config: UcDeserializer.AsyncInit,
 ): UcDeserializer.Async<T>;
 
 export function createUcDeserializer<T>(
   model: UcModel<T>,
-  _init?: UcDeserializer.Init | UcDeserializer.SyncInit | UcDeserializer.AsyncInit,
+  _init?: UcDeserializer.Config | UcDeserializer.SyncConfig | UcDeserializer.AsyncInit,
 ): UcDeserializer<T> {
   return () => {
     throw new TypeError(

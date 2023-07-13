@@ -1,34 +1,44 @@
 /**
+ * Representation bundle of schema processing code.
+ *
+ * Code processors have to {@link UcDeserializer.Init#bundle refer} the bundle in order to be included.
+ *
+ * Has to be created by {@link createUcBundle}.
+ */
+export declare abstract class UcBundle {
+
+  #private;
+
+  readonly config: UcBundleConfig;
+
+}
+
+/**
  * Creates new bundle with schema processing code.
  *
- * Bundle may include code of several processors (e.g. {@link UcSerializer serializers} and
- * {@link UcDeserializer deserializers}). For that, create the named processors has to be created within `bundle`
- * function.
+ * Bundle may include code of several schema processors (e.g. {@link UcSerializer serializers} and
+ * {@link UcDeserializer deserializers}). For that, the processors has to refer  the bundle.
  *
  * @example
  * ```typescript
- * const { readValue, writeValue } = createUcBundle({
- *   dist: 'my-bundle.js',
- *   bundle() {
- *     return {
- *       readValue: createUcDeserializer(mySchema),
- *       writeValue: createUcSerialize(mySchema),
- *     };
- *   },
- * })
+ * const myBundle = createUcBundle({ dist: 'my-bundle.js' });
+ * const readValue = createUcDeserializer(mySchema, { bundle: myBundle });
+ * const writeValue = createUcSerializer(mySchema, { bundle: myBundle });
  * ```
  *
- * **This is a placeholder**. It is replaced with actual deserializer when TypeScript compiled with
- * [ts-transformer-churi] enabled. It is expected that the result of this function called is stored as constant(s).
+ * **This is a placeholder**. It is not processed in any way at run time. The actual bundle generated when TypeScript
+ * code compiled with [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to
+ * constant.
  *
- * @typeParam T - Compiled bundle interface.
- * @param input - Bundle initialization options.
+ * @param config - Bundle configuration.
  *
- * @returns New bundle instance.
+ * @returns New bundle representation.
+ *
+ * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
  */
 /*#__NO_SIDE_EFFECTS__*/
-export function createUcBundle<T extends Record<string, unknown>>(input: UcBundleInput<T>): T {
-  return input.bundle();
+export function createUcBundle(config: UcBundleConfig = {}): UcBundle {
+  return { config } as UcBundle;
 }
 
 /**
@@ -36,20 +46,11 @@ export function createUcBundle<T extends Record<string, unknown>>(input: UcBundl
  *
  * @typeParam T - Compiled bundle interface.
  */
-export interface UcBundleInput<T extends Record<string, unknown>> {
+export interface UcBundleConfig {
   /**
    * Path to distribution file relative to the default one.
    *
    * If unspecified, will be guessed based on package main file and bundle constant name.
    */
   readonly dist?: string | undefined;
-
-  /**
-   * Creates bundled schema processors.
-   *
-   * Schema processors has to be created _inside_ of this function body in order to be bundled.
-   *
-   * @returns Record of named schema processors.
-   */
-  bundle(): T;
 }
