@@ -1,7 +1,7 @@
 /**
  * Representation bundle of schema processing code.
  *
- * Code processors have to {@link UcDeserializer.Init#bundle refer} the bundle in order to be included.
+ * Code processors have to {@link UcDeserializer.Config#bundle refer} the bundle in order to be included.
  *
  * Has to be created by {@link createUcBundle}.
  */
