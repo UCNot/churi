@@ -47,6 +47,7 @@ export class ListUcrxClass<
 
   readonly #itemClass: UcrxClass;
   readonly #isMatrix: boolean;
+  readonly #single: UccListOptions['single'];
 
   readonly #items: EsFieldHandle;
   readonly #addItem: EsMethodHandle<{ item: EsArg }>;
@@ -59,7 +60,7 @@ export class ListUcrxClass<
   constructor(
     lib: UcrxLib,
     schema: UcList.Schema<TItem, TItemModel>,
-    _options: UccListOptions = { single: 'reject' },
+    { single }: UccListOptions = { single: 'reject' },
   ) {
     let itemClass: UcrxClass;
 
@@ -90,6 +91,7 @@ export class ListUcrxClass<
 
     this.#itemClass = itemClass;
     this.#isMatrix = isMatrix;
+    this.#single = single;
 
     this.#items = new EsField('items', { visibility: EsMemberVisibility.Private }).declareIn(this, {
       initializer: () => '[]',
@@ -203,6 +205,18 @@ export class ListUcrxClass<
     return this.#items.get('this');
   }
 
+  protected countItems(_cx: EsSnippet): EsSnippet {
+    return esline`${this.#items.get('this')}.length`;
+  }
+
+  protected createSingle(_cx: EsSnippet): EsSnippet {
+    return esline`${this.#items.get('this')}[0]`;
+  }
+
+  protected createEmptyList(_cx: EsSnippet): EsSnippet {
+    return '[]';
+  }
+
   protected createNullList(cx: EsSnippet): EsSnippet;
   protected createNullList(_cx: EsSnippet): EsSnippet {
     return 'null';
@@ -271,22 +285,77 @@ export class ListUcrxClass<
             args: { cx },
           },
         }) => code => {
-          if (isNull) {
-            code
-              .write(esline`if (${isNull.get('this')}) {`)
-              .indent(esline`${this.#setList}(${this.createNullList(cx)});`)
-              .write(esline`} else if (${listCreated.get('this')}) {`);
-          } else {
-            code.write(esline`if (${listCreated.get('this')}) {`);
-          }
+          switch (this.#single) {
+            case 'reject':
+              if (isNull) {
+                code
+                  .write(esline`if (${isNull.get('this')}) {`)
+                  .indent(this.#storeNullList(cx))
+                  .write(esline`} else if (${listCreated.get('this')}) {`);
+              } else {
+                code.write(esline`if (${listCreated.get('this')}) {`);
+              }
 
-          code
-            .indent(esline`${this.#setList}(${this.createList(cx)});`)
-            .write(`} else {`)
-            .indent(esline`${cx}.reject(${ucrxRejectSingleItem}(this));`)
-            .write(`}`);
+              code
+                .indent(this.#storeList(cx))
+                .write('} else {')
+                .indent(esline`${cx}.reject(${ucrxRejectSingleItem}(this));`)
+                .write('}');
+
+              break;
+            case 'accept':
+              if (isNull) {
+                code
+                  .write(esline`if (${isNull.get('this')}) {`)
+                  .indent(this.#storeNullList(cx))
+                  .write(esline`} else {`)
+                  .indent(this.#storeList(cx))
+                  .write('}');
+              } else {
+                code.write(this.#storeList(cx));
+              }
+
+              break;
+            case 'as-is':
+            case 'prefer':
+              if (isNull) {
+                code
+                  .write(esline`if (${isNull.get('this')}) {`)
+                  .indent(this.#storeNullList(cx))
+                  .write(esline`} else if (${listCreated.get('this')}) {`);
+              } else {
+                code.write(esline`if (${listCreated.get('this')}) {`);
+              }
+              code
+                .indent(
+                  this.#single === 'prefer' ? this.#storeSingleOrList(cx) : this.#storeList(cx),
+                )
+                .write('} else {')
+                .indent(this.#storeSingleOrEmpty(cx))
+                .write('}');
+          }
         },
     });
+  }
+
+  #storeNullList(cx: EsSnippet): EsSnippet {
+    return esline`${this.#setList}(${this.createNullList(cx)});`;
+  }
+
+  #storeList(cx: EsSnippet): EsSnippet {
+    return esline`${this.#setList}(${this.createList(cx)});`;
+  }
+
+  #storeSingleOrList(cx: EsSnippet): EsSnippet {
+    return esline`${this.#setList}(${this.countItems(cx)} === 1 ? ${this.createSingle(
+      cx,
+    )} : ${this.createList(cx)});`;
+  }
+
+  #storeSingleOrEmpty(cx: EsSnippet): EsSnippet {
+    return esline`${this.#setList}(${this.countItems(cx)} ? ${this.createSingle(
+      cx,
+    )} : ${this.createEmptyList(cx)});`;
   }
 
   #declareMatrixMethods(): void {

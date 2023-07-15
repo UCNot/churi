@@ -5,7 +5,7 @@ import { UcSerializer } from '../uc-serializer.js';
 import { ucMultiValue } from './uc-multi-value.js';
 
 describe('UcMultiValue serializer', () => {
-  describe('single: as-is', () => {
+  describe('with single: as-is', () => {
     let writeList: UcSerializer<number | number[]>;
 
     beforeAll(async () => {
@@ -34,7 +34,7 @@ describe('UcMultiValue serializer', () => {
     });
   });
 
-  describe('single: prefer', () => {
+  describe('with single: prefer', () => {
     let writeList: UcSerializer<number | number[]>;
 
     beforeAll(async () => {
