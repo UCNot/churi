@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
+import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';

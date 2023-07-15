@@ -1,5 +1,5 @@
-import { ucModelName } from '../schema/uc-model-name.js';
-import { UcSchema } from '../schema/uc-schema.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 
 export class UnsupportedUcSchemaError extends TypeError {
 

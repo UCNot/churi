@@ -14,6 +14,8 @@ import {
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel } from '../../schema/uc-schema.js';
+import { UccListOptions } from '../common/ucc-list-options.js';
+import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
@@ -22,7 +24,6 @@ import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdCompiler } from './ucd-compiler.js';
 
 export class ListUcrxClass<
@@ -30,11 +31,16 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccProcessSchema(compiler: UcdCompiler.Any, { item }: UcList.Schema): UccConfig {
+  static uccProcessSchema(
+    compiler: UcdCompiler.Any,
+    schema: UcList.Schema,
+  ): UccConfig<UccListOptions> {
     return {
-      configure: () => {
-        compiler.useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema));
-        compiler.processModel(item);
+      configure: options => {
+        compiler
+          .processModel(schema.item)
+          .useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema))
+          .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
       },
     };
   }
@@ -50,7 +56,11 @@ export class ListUcrxClass<
   readonly #setListField: EsFieldHandle | undefined;
   readonly #itemRx: EsPropertyHandle | undefined;
 
-  constructor(lib: UcrxLib, schema: UcList.Schema<TItem, TItemModel>) {
+  constructor(
+    lib: UcrxLib,
+    schema: UcList.Schema<TItem, TItemModel>,
+    _options: UccListOptions = { single: 'reject' },
+  ) {
     let itemClass: UcrxClass;
 
     const { item } = schema;
