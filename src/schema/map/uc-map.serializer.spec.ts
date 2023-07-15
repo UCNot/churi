@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
-import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucList } from '../list/uc-list.js';
 import { ucNullable } from '../uc-nullable.js';

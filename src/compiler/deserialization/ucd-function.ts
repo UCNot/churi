@@ -2,10 +2,10 @@ import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
-import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdLib } from './ucd-lib.js';
 

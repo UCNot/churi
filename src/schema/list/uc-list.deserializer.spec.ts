@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
+import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UnsupportedUcSchemaError } from '../../compiler/unsupported-uc-schema.error.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -20,76 +20,123 @@ describe('UcList deserializer', () => {
     errors = [];
   });
 
-  let readList: UcDeserializer<number[]>;
+  describe('with single: reject', () => {
+    let readList: UcDeserializer<number[]>;
 
-  beforeAll(async () => {
-    const compiler = new UcdCompiler({
-      models: {
-        readList: ucList<number>(Number),
-      },
-    });
-
-    ({ readList } = await compiler.evaluate());
-  });
-
-  it('deserializes list', async () => {
-    await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
-  });
-  it('deserializes list synchronously', () => {
-    expect(readList(parseTokens('1 , 2, 3  '))).toEqual([1, 2, 3]);
-  });
-  it('deserializes empty list', async () => {
-    await expect(readList(readTokens(', '))).resolves.toEqual([]);
-  });
-  it('deserializes list with leading comma', async () => {
-    await expect(readList(readTokens(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
-  });
-  it('deserializes list with trailing comma', async () => {
-    await expect(readList(readTokens('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
-  });
-  it('deserializes single item with leading comma', async () => {
-    await expect(readList(readTokens(' ,13  '))).resolves.toEqual([13]);
-  });
-  it('deserializes single item with trailing comma', async () => {
-    await expect(readList(readTokens('13 ,  '))).resolves.toEqual([13]);
-  });
-  it('rejects item instead of list', async () => {
-    await expect(readList(readTokens('13'), { onError })).resolves.toBeUndefined();
-
-    expect(errors).toEqual([
-      {
-        code: 'unexpectedType',
-        path: [{}],
-        details: {
-          types: ['number'],
-          expected: {
-            types: ['list'],
-          },
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readList: ucList<number>(Number),
         },
-        message: 'Unexpected single number instead of list',
-      },
-    ]);
-  });
-  it('does not deserialize unrecognized schema', async () => {
-    const compiler = new UcdCompiler({
-      models: {
-        readList: ucList<number>({ type: 'test-type' }),
-      },
+      });
+
+      ({ readList } = await compiler.evaluate());
     });
 
-    let error: UnsupportedUcSchemaError | undefined;
+    it('deserializes list', async () => {
+      await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes list synchronously', () => {
+      expect(readList(parseTokens('1 , 2, 3  '))).toEqual([1, 2, 3]);
+    });
+    it('deserializes empty list', async () => {
+      await expect(readList(readTokens(', '))).resolves.toEqual([]);
+    });
+    it('deserializes list with leading comma', async () => {
+      await expect(readList(readTokens(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes list with trailing comma', async () => {
+      await expect(readList(readTokens('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
+    });
+    it('deserializes single item with leading comma', async () => {
+      await expect(readList(readTokens(' ,13  '))).resolves.toEqual([13]);
+    });
+    it('deserializes single item with trailing comma', async () => {
+      await expect(readList(readTokens('13 ,  '))).resolves.toEqual([13]);
+    });
+    it('rejects item instead of list', async () => {
+      await expect(readList(readTokens('13'), { onError })).resolves.toBeUndefined();
 
-    try {
-      await compiler.evaluate();
-    } catch (e) {
-      error = e as UnsupportedUcSchemaError;
-    }
+      expect(errors).toEqual([
+        {
+          code: 'unexpectedType',
+          path: [{}],
+          details: {
+            types: ['number'],
+            expected: {
+              types: ['list'],
+            },
+          },
+          message: 'Unexpected single number instead of list',
+        },
+      ]);
+    });
+    it('does not deserialize unrecognized schema', async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readList: ucList<number>({ type: 'test-type' }),
+        },
+      });
 
-    expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
-    expect(error?.schema.type).toBe('test-type');
-    expect(error?.message).toBe('List: Can not deserialize list item of type "test-type"');
-    expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
-    expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+      let error: UnsupportedUcSchemaError | undefined;
+
+      try {
+        await compiler.evaluate();
+      } catch (e) {
+        error = e as UnsupportedUcSchemaError;
+      }
+
+      expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect(error?.schema.type).toBe('test-type');
+      expect(error?.message).toBe('List: Can not deserialize list item of type "test-type"');
+      expect(error?.cause).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect((error?.cause as UnsupportedUcSchemaError).schema.type).toBe('test-type');
+    });
+  });
+
+  describe('with single: accept', () => {
+    let readList: UcDeserializer<number[]>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readList: ucList<number>(Number, { single: 'accept' }),
+        },
+      });
+
+      ({ readList } = await compiler.evaluate());
+    });
+
+    it('accepts item instead of list', async () => {
+      await expect(readList(readTokens('13'), { onError })).resolves.toEqual([13]);
+
+      expect(errors).toEqual([]);
+    });
+  });
+
+  describe('nullable with single: accept', () => {
+    let readList: UcDeserializer<number[] | null>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readList: ucNullable(ucList<number>(Number, { single: 'accept' })),
+        },
+      });
+
+      ({ readList } = await compiler.evaluate());
+    });
+
+    it('accepts item instead of list', async () => {
+      await expect(readList(readTokens('13'), { onError })).resolves.toEqual([13]);
+
+      expect(errors).toEqual([]);
+    });
+    it('accepts null', async () => {
+      await expect(readList(readTokens('--'), { onError })).resolves.toBeNull();
+
+      expect(errors).toEqual([]);
+    });
   });
 
   describe('of booleans', () => {

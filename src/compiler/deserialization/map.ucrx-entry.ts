@@ -11,10 +11,10 @@ import {
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
-import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { MapUcrxClass, MapUcrxStore } from './map.ucrx.class.js';
 
 export class MapUcrxEntry {

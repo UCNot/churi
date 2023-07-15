@@ -1,7 +1,5 @@
-import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcConstraints } from '../uc-constraints.js';
-import { ucModelName } from '../uc-model-name.js';
-import { UcModel, UcSchema, ucSchema } from '../uc-schema.js';
+import { UcModel, UcSchema } from '../uc-schema.js';
+import { createUcListSchema } from './uc-list.impl.js';
 
 /**
  * Data list represented as JavaScript array.
@@ -37,10 +35,20 @@ export namespace UcList {
    * @typeParam TItem - Type of list item.
    * @typeParam TItemModel - Type of list item model.
    */
-  export type Options<
-    TItem = unknown,
-    TItemModel extends UcModel<TItem> = UcModel<TItem>,
-  > = UcSchema.Extension<TItem[], Schema<TItem, TItemModel>>;
+  export interface Options<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
+    extends UcSchema.Extension<TItem[], Schema<TItem, TItemModel>> {
+    /**
+     * How to treat single values.
+     *
+     * One of:
+     *
+     * `'accept'` to treat single value as list with single item.
+     * `'reject'` (the default) to reject single value.
+     *
+     * This option is ignored if item type is a list itself.
+     */
+    readonly single?: 'accept' | 'reject' | undefined;
+  }
 }
 
 /**
@@ -49,6 +57,7 @@ export namespace UcList {
  * @typeParam TItem - Type of list item.
  * @typeParam TItemModel - Type of list item model.
  * @param itemModel - List item model.
+ * @param options
  *
  * @returns New list schema instance.
  */
@@ -62,28 +71,7 @@ export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TIt
   itemModel: UcModel<TItem, TItemSchema>,
   options: UcList.Options<TItem, TItemSchema> = {},
 ): UcList.Schema<TItem, TItemSchema> {
-  const item = ucSchema<TItem, TItemSchema>(itemModel) as UcSchema.Of<TItemSchema>;
+  const { single = 'reject' } = options;
 
-  return ucSchema<TItem[], UcList.Schema<TItem, TItemSchema>>(
-    {
-      type: 'list',
-      where: UcList$constraints,
-      item,
-      toString() {
-        return `${ucModelName(item)}[]`;
-      },
-    },
-    options,
-  );
+  return createUcListSchema(itemModel, { ...options, single });
 }
-
-const UcList$constraints: UcConstraints<never[], UcList.Schema<never>> = {
-  deserializer: {
-    use: 'ListUcrxClass',
-    from: COMPILER_MODULE,
-  },
-  serializer: {
-    use: 'ucsSupportList',
-    from: COMPILER_MODULE,
-  },
-};

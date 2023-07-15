@@ -1,9 +1,9 @@
 import { EsFunction, EsSnippet, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UnsupportedUcSchemaError } from '../unsupported-uc-schema.error.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
