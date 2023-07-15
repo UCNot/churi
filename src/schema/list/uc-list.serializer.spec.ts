@@ -27,7 +27,7 @@ describe('UcList serializer', () => {
   it('serializes empty list', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList(Number),
+        writeList: ucList(Number, { single: 'accept' }),
       },
     });
 

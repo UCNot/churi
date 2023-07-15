@@ -60,7 +60,7 @@ export namespace UcMultiValue {
  *
  * @returns New list schema instance.
  */
-export function ucMultiValue<TItem, TItemModel extends UcSchema<TItem> = UcSchema<TItem>>(
+export function ucMultiValue<TItem, TItemModel extends UcModel<TItem> = UcModel<TItem>>(
   itemModel: TItemModel,
   options?: UcMultiValue.Options<TItem, TItemModel>,
 ): UcMultiValue.Schema<TItem, TItemModel>;

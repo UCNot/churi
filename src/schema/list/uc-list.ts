@@ -67,10 +67,10 @@ export function ucList<TItem, TItemModel extends UcModel<TItem> = UcModel<TItem>
 ): UcList.Schema<TItem, TItemModel>;
 
 /*#__NO_SIDE_EFFECTS__*/
-export function ucList<TItem, TItemModel extends UcSchema<TItem> = UcSchema<TItem>>(
-  itemModel: UcModel<TItem, TItemModel>,
-  options: UcList.Options<TItem, TItemModel> = {},
-): UcList.Schema<TItem, TItemModel> {
+export function ucList<TItem, TItemSchema extends UcSchema<TItem> = UcSchema<TItem>>(
+  itemModel: UcModel<TItem, TItemSchema>,
+  options: UcList.Options<TItem, TItemSchema> = {},
+): UcList.Schema<TItem, TItemSchema> {
   const { single = 'reject' } = options;
 
   return createUcListSchema(itemModel, { ...options, single });
