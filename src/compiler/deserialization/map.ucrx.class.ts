@@ -1,9 +1,13 @@
 import {
+  EsArg,
+  EsCode,
   EsField,
   EsFieldHandle,
   EsMemberVisibility,
+  EsMethod,
   EsSnippet,
   EsSymbol,
+  EsVarKind,
   EsVarSymbol,
   esQuoteKey,
   esline,
@@ -228,9 +232,10 @@ export class MapUcrxClass<
               .write('}');
           }
 
-          const { assigned, counter, noDuplicates } = this.#collector;
+          const { assigned, rxs, counter, noDuplicates } = this.#collector;
 
           if (assigned) {
+            const assignedByKey = esline`${assigned.get('this')}[${key}]`;
             const rx = new EsVarSymbol('rx');
 
             code.write(
@@ -238,9 +243,10 @@ export class MapUcrxClass<
                 value: () => this.#createEntryRx(args, entry),
               }),
             );
+
             if (noDuplicates) {
               code
-                .write(esline`if (${assigned.get('this')}[${key}]) {`)
+                .write(esline`if (${assignedByKey}) {`)
                 .indent(code => {
                   const ucrxRejectDuplicateEntry = UC_MODULE_CHURI.import(
                     'ucrxRejectDuplicateEntry',
@@ -254,7 +260,7 @@ export class MapUcrxClass<
                 .write('}')
                 .write(esline`if (${entry}.use) {`);
             } else {
-              code.write(esline`if (${entry}.use && !${assigned.get('this')}[${key}]) {`);
+              code.write(esline`if (${entry}.use && !${assignedByKey}) {`);
             }
 
             code
@@ -264,7 +270,41 @@ export class MapUcrxClass<
 
                   code.write(esline`--${missingCount.get('this')};`);
                 }
-                code.write(esline`${assigned.get('this')}[${key}] = 1;`);
+                code.write(esline`${assignedByKey} = 1;`);
+              })
+              .write('}')
+              .write(esline`return ${rx};`);
+          } else if (rxs) {
+            const rxByKey = esline`${rxs.get('this')}[${key}]`;
+
+            const rx = new EsVarSymbol('rx');
+
+            code
+              .write(
+                rx.declare({
+                  as: EsVarKind.Let,
+                  value: () => esline`${rxs.get('this')}[${key}]`,
+                }),
+              )
+              .write(esline`if (${rx}) {`)
+              .indent(code => {
+                code
+                  .write(esline`if (!${rx}.and()) {`)
+                  .indent(`return ${cx}.opaqueRx;`)
+                  .write('}');
+              })
+              .write(esline`} else {`)
+              .indent(code => {
+                code.write(esline`${rx} = ${rxByKey} = ${this.#createEntryRx(args, entry)};`);
+
+                if (counter) {
+                  const { missingCount } = counter;
+
+                  code
+                    .write(esline`if (${entry}.use) {`)
+                    .indent(esline`--${missingCount.get('this')};`)
+                    .write('}');
+                }
               })
               .write('}')
               .write(esline`return ${rx};`);
@@ -302,7 +342,13 @@ export class MapUcrxClass<
               args: { cx },
             },
           }) => code => {
+            if (rxs) {
+              // Explicitly finish the charges.
+              code.write(esline`Object.values(${rxs.get('this')}).forEach(rx => rx._end());`);
+            }
+
             if (counter) {
+              // Check the required entities assigned.
               const { requiredCount, missingCount } = counter;
 
               code
@@ -317,8 +363,11 @@ export class MapUcrxClass<
                 .indent(esline`this.set(${store.store(map, cx)});`)
                 .write(`}`)
                 .line(missingCount.set('this', `${requiredCount}`), ';');
+            } else {
+              code.line('this.set(', store.store(map, cx), ');');
             }
 
+            // Reclaim the map.
             code
               .line(esline`${map} = ${store.reclaim(map)};`)
               .line(assigned.set('this', '{}'), ';')
@@ -334,7 +383,7 @@ export class MapUcrxClass<
             },
           }) => code => {
             code
-              .line('this.set(', this.#store.store(map, cx), ');')
+              .line('this.set(', store.store(map, cx), ');')
               .line(esline`${map} = ${store.reclaim(map)};`)
               .write('return 1;');
           },
@@ -364,7 +413,9 @@ export class MapUcrxClass<
   }
 
   entryUcrxFor(key: string | null, schema: UcSchema): UcrxClass {
-    return MapUcrxEntry.ucrxClass(this.#lib, this.schema, key, schema);
+    const entryClass = MapUcrxEntry.ucrxClass(this.#lib, this.schema, key, schema);
+
+    return this.#collector.rxs ? new MultiEntryUcrxClass(entryClass) : entryClass;
   }
 
   createEntry(key: string | null, schema: UcSchema): MapUcrxEntry {
@@ -454,4 +505,37 @@ function MapUcrxClass$typeName<
   }
 
   return `Map${ucSchemaVariant(schema)}Of` + [...entryTypeNames].join('Or');
+}
+
+class MultiEntryUcrxClass<
+  out TArgs extends UcrxSignature.Args = UcrxSignature.Args,
+  out T = unknown,
+  out TSchema extends UcSchema<T> = UcSchema<T>,
+> extends UcrxClass<TArgs, T, TSchema> {
+
+  static readonly _end = new EsMethod<{ cx: EsArg }>('_end', {
+    args: UcrxCore.end.signature,
+  });
+
+  constructor(baseClass: UcrxClass<TArgs, T, TSchema>) {
+    super({
+      schema: baseClass.schema,
+      baseClass,
+      typeName: `${baseClass.typeName}$Entry`,
+    });
+
+    // Do not finish the charge on calling `.end()`.
+    // Finish it explicitly instead by calling `._end()`.
+    UcrxCore.end.overrideIn(this, {
+      body: () => EsCode.none,
+    });
+    MultiEntryUcrxClass._end.declareIn(this as UcrxClass.Any, {
+      body: ({
+        member: {
+          args: { cx },
+        },
+      }) => esline`super.end(${cx});`,
+    });
+  }
+
 }
