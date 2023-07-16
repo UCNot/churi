@@ -28,10 +28,17 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccProcessSchema(compiler: UcdCompiler.Any, { entries, extra }: UcMap.Schema): UccConfig {
+  static uccProcessSchema(
+    compiler: UcdCompiler.Any,
+    schema: UcMap.Schema,
+  ): UccConfig<UcMap.Variant> {
+    const { entries, extra } = schema;
+
     return {
-      configure: () => {
-        compiler.useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema));
+      configure: variant => {
+        compiler
+          .useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema))
+          .useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
         for (const entrySchema of Object.values(entries)) {
           compiler.processModel(entrySchema);
         }
@@ -45,11 +52,15 @@ export class MapUcrxClass<
   readonly #lib: UcrxLib;
   readonly #entries: EsSymbol | undefined;
   readonly #extra: EsSymbol | undefined;
-  readonly #counter: MapUcrxStore$Counter | undefined;
+  readonly #collector: MapUcrxClass$Collector;
   readonly #store: MapUcrxStore;
   readonly #slot: EsFieldHandle;
 
-  constructor(lib: UcrxLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>) {
+  constructor(
+    lib: UcrxLib,
+    schema: UcMap.Schema<TEntriesModel, TExtraModel>,
+    variant?: UcMap.Variant,
+  ) {
     super({
       typeName: MapUcrxClass$typeName(lib, schema),
       schema,
@@ -63,7 +74,7 @@ export class MapUcrxClass<
 
     this.#entries = this.#declareEntries();
     this.#extra = this.#declareExtra();
-    this.#counter = this.#declareCounter();
+    this.#collector = this.#declareCollector(variant);
     this.#store = this.allocateStore();
     this.#slot = new EsField('slot', { visibility: EsMemberVisibility.Private }).declareIn(this);
 
@@ -76,7 +87,7 @@ export class MapUcrxClass<
   }
 
   get hasRequired(): boolean {
-    return !!this.#counter;
+    return !!this.#collector?.counter;
   }
 
   #declareEntries(): EsSymbol | undefined {
@@ -122,6 +133,19 @@ export class MapUcrxClass<
     });
   }
 
+  #declareCollector({ duplicates = 'overwrite' }: UcMap.Variant = {}): MapUcrxClass$Collector {
+    const counter = this.#declareCounter();
+
+    switch (duplicates) {
+      case 'overwrite':
+        return counter ? { assigned: this.#declareAssigned(), counter } : {};
+      case 'reject':
+        return { assigned: this.#declareAssigned(), counter };
+      case 'collect':
+        return { rxs: this.#declareAssigned('rxs'), counter };
+    }
+  }
+
   #declareCounter(): MapUcrxStore$Counter | undefined {
     const requiredCount = this.#countRequired();
 
@@ -134,17 +158,10 @@ export class MapUcrxClass<
     }).declareIn(this, {
       initializer: () => `${requiredCount}`,
     });
-    const assigned = new EsField('assigned', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-      {
-        initializer: () => '{}',
-      },
-    );
 
     return {
       requiredCount,
       missingCount,
-      assigned,
     };
   }
 
@@ -158,6 +175,14 @@ export class MapUcrxClass<
     }
 
     return requiredCount;
+  }
+
+  #declareAssigned(name: 'assigned' | 'rxs' = 'assigned'): EsFieldHandle {
+    return new EsField(name, {
+      visibility: EsMemberVisibility.Private,
+    }).declareIn(this, {
+      initializer: () => '{}',
+    });
   }
 
   #declareFor(): void {
@@ -203,10 +228,10 @@ export class MapUcrxClass<
               .write('}');
           }
 
-          const counter = this.#counter;
+          const { assigned, counter } = this.#collector;
 
-          if (counter) {
-            const { missingCount, assigned } = counter;
+          if (assigned && counter) {
+            const { missingCount } = counter;
             const rx = new EsVarSymbol('rx');
 
             code
@@ -244,10 +269,10 @@ export class MapUcrxClass<
   #declareMap(): void {
     const map = esline`${this.#slot.get('this')}[0]`;
     const store = this.#store;
-    const counter = this.#counter;
+    const { assigned, counter } = this.#collector;
 
-    if (counter) {
-      const { requiredCount, missingCount, assigned } = counter;
+    if (assigned && counter) {
+      const { requiredCount, missingCount } = counter;
       const ucrxRejectMissingEntries = UC_MODULE_CHURI.import('ucrxRejectMissingEntries');
 
       UcrxCore.map.overrideIn(this, {
@@ -355,8 +380,30 @@ class MapUcrxStore$Default implements MapUcrxStore {
 
 interface MapUcrxStore$Counter {
   readonly requiredCount: number;
-  readonly assigned: EsFieldHandle;
   readonly missingCount: EsFieldHandle;
+}
+
+type MapUcrxClass$Collector =
+  | MapUcrxClass$NoCollector
+  | MapUcrxClass$RxCollector
+  | MapUcrxClass$AssignedCollector;
+
+interface MapUcrxClass$NoCollector {
+  readonly assigned?: undefined;
+  readonly rxs?: undefined;
+  readonly counter?: undefined;
+}
+
+interface MapUcrxClass$RxCollector {
+  readonly assigned?: undefined;
+  readonly rxs: EsFieldHandle;
+  readonly counter?: MapUcrxStore$Counter | undefined;
+}
+
+interface MapUcrxClass$AssignedCollector {
+  readonly assigned: EsFieldHandle;
+  readonly rxs?: undefined;
+  readonly counter?: MapUcrxStore$Counter | undefined;
 }
 
 export namespace MapUcrxClass {

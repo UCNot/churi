@@ -1,6 +1,5 @@
 import { esQuoteKey } from 'esgen';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcConstraints } from '../uc-constraints.js';
 import { ucModelName } from '../uc-model-name.js';
 import { UcInfer, UcModel, UcSchema, ucSchema } from '../uc-schema.js';
 
@@ -82,18 +81,37 @@ export namespace UcMap {
   };
 
   /**
+   * Variant of {@link UcMap map} schema.
+   */
+  export interface Variant {
+    /**
+     * How to handle duplicate entries of the map.
+     *
+     * Can be one of:
+     *
+     * - `'collect'` to collect duplicates into one value. It is a good idea to declared map entry schemas
+     *   as {@link UcList lists} or {@link UcMultiValue multi-values}.
+     * - `'overwrite'` (the default) to entry value each time it is received. The value specified the last takes
+     *   precedence.
+     * - `'reject'` to reject duplicate entries.
+     */
+    readonly duplicates?: 'collect' | 'overwrite' | 'reject' | undefined;
+  }
+
+  /**
    * Additional options for the {@link ucMap map schema}.
    *
    * @typeParam TEntriesModel - Per-entry model type.
    * @typeParam TExtraModel - Extra entries model type, or `false` to prohibit extra entries.
    */
-  export type BaseOptions<
+  export interface BaseOptions<
     TEntriesModel extends EntriesModel,
     TExtraModel extends UcModel | false,
-  > = UcSchema.Extension<
-    UcMap.Infer<TEntriesModel, TExtraModel>,
-    UcMap.Schema<TEntriesModel, TExtraModel>
-  >;
+  > extends UcSchema.Extension<
+        UcMap.Infer<TEntriesModel, TExtraModel>,
+        UcMap.Schema<TEntriesModel, TExtraModel>
+      >,
+      Variant {}
 
   export type Options<TEntriesModel extends EntriesModel, TExtraModel extends UcModel> =
     | ExactOptions<TEntriesModel>
@@ -145,11 +163,14 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
   entriesModel: TEntriesModel,
   options: UcMap.Options<TEntriesModel, TExtraModel> = {},
 ): UcMap.Schema<TEntriesModel, TExtraModel> {
-  const { extra } = options;
+  const { extra, duplicates } = options;
   const entries: [string, UcSchema][] = Object.entries(entriesModel).map(([key, model]) => [
     key,
     ucSchema(model),
   ]);
+  const variant: UcMap.Variant = {
+    duplicates,
+  };
 
   return ucSchema<
     UcMap.Infer<TEntriesModel, TExtraModel>,
@@ -157,7 +178,17 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
   >(
     {
       type: 'map',
-      where: UcMap$constraints,
+      where: {
+        deserializer: {
+          use: 'MapUcrxClass',
+          from: COMPILER_MODULE,
+          with: variant,
+        },
+        serializer: {
+          use: 'ucsSupportMap',
+          from: COMPILER_MODULE,
+        },
+      },
       entries: Object.fromEntries(entries) as UcMap.Entries<TEntriesModel>,
       extra: (extra ? ucSchema(extra) : false) as UcMap.Schema<TEntriesModel, TExtraModel>['extra'],
       toString() {
@@ -189,14 +220,3 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
       | undefined,
   );
 }
-
-const UcMap$constraints: UcConstraints<any, any> = {
-  deserializer: {
-    use: 'MapUcrxClass',
-    from: COMPILER_MODULE,
-  },
-  serializer: {
-    use: 'ucsSupportMap',
-    from: COMPILER_MODULE,
-  },
-};
