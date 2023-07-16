@@ -30,13 +30,9 @@ export namespace UcMultiValue {
   }
 
   /**
-   * Additional options for the {@link ucMultiValue multi-value schema}.
-   *
-   * @typeParam TItem - Type of single item.
-   * @typeParam TItemModel - Type of single item model.
+   * Variant of {@link UcMultiValue multi-value} schema.
    */
-  export interface Options<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
-    extends UcSchema.Extension<TItem | TItem[], Schema<TItem, TItemModel>> {
+  export interface Variant {
     /**
      * How to treat single values.
      *
@@ -49,6 +45,16 @@ export namespace UcMultiValue {
      */
     readonly single?: 'as-is' | 'prefer' | undefined;
   }
+
+  /**
+   * Additional options for the {@link ucMultiValue multi-value schema}.
+   *
+   * @typeParam TItem - Type of single item.
+   * @typeParam TItemModel - Type of single item model.
+   */
+  export interface Options<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
+    extends UcSchema.Extension<TItem | TItem[], Schema<TItem, TItemModel>>,
+      Variant {}
 }
 
 /**
