@@ -42,6 +42,21 @@ export function ucrxRejectNull(rx: Ucrx): UcRejection {
   );
 }
 
+export function ucrxRejectSingleItem(rx: Ucrx): UcRejection {
+  const { types } = rx;
+
+  return {
+    code: 'unexpectedType',
+    details: {
+      types,
+      expected: {
+        types: ['list'],
+      },
+    },
+    message: `Unexpected single ${ucrxTypeNames(types)} instead of list`,
+  };
+}
+
 export function ucrxRejectMissingEntries(
   assigned: { readonly [key: string]: 1 | undefined },
   entries: { readonly [key: string]: { use: 1 | 0 } },
@@ -67,21 +82,6 @@ export function ucrxRejectMissingEntries(
   };
 }
 
-export function ucrxRejectSingleItem(rx: Ucrx): UcRejection {
-  const { types } = rx;
-
-  return {
-    code: 'unexpectedType',
-    details: {
-      types,
-      expected: {
-        types: ['list'],
-      },
-    },
-    message: `Unexpected single ${ucrxTypeNames(types)} instead of list`,
-  };
-}
-
 export function ucrxRejectEntry(key: string): UcRejection {
   return {
     code: 'unexpectedEntry',
@@ -89,6 +89,16 @@ export function ucrxRejectEntry(key: string): UcRejection {
       key,
     },
     message: `Unexpected entry: ${esQuoteKey(key, '"')}`,
+  };
+}
+
+export function ucrxRejectDuplicateEntry(key: string): UcRejection {
+  return {
+    code: 'duplicateEntry',
+    details: {
+      key,
+    },
+    message: `Duplicate entry: ${esQuoteKey(key, '"')}`,
   };
 }
 

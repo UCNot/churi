@@ -30,13 +30,9 @@ export namespace UcList {
   }
 
   /**
-   * Additional options for the {@link ucList list schema}.
-   *
-   * @typeParam TItem - Type of list item.
-   * @typeParam TItemModel - Type of list item model.
+   * Variant of {@link UcList list} schema.
    */
-  export interface Options<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
-    extends UcSchema.Extension<TItem[], Schema<TItem, TItemModel>> {
+  export interface Variant {
     /**
      * How to treat single values.
      *
@@ -49,6 +45,16 @@ export namespace UcList {
      */
     readonly single?: 'accept' | 'reject' | undefined;
   }
+
+  /**
+   * Additional options for the {@link ucList list schema}.
+   *
+   * @typeParam TItem - Type of list item.
+   * @typeParam TItemModel - Type of list item model.
+   */
+  export interface Options<TItem = unknown, TItemModel extends UcModel<TItem> = UcModel<TItem>>
+    extends UcSchema.Extension<TItem[], Schema<TItem, TItemModel>>,
+      Variant {}
 }
 
 /**

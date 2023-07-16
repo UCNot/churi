@@ -82,7 +82,11 @@ export class ListUcrxClass<
 
     super({
       schema,
-      typeName: 'List' + ucSchemaVariant(schema) + 'Of' + itemClass.typeName,
+      typeName:
+        (single === 'reject' || single === 'accept' ? 'List' : 'MultiValue')
+        + ucSchemaVariant(schema)
+        + 'Of'
+        + itemClass.typeName,
       baseClass: isMatrix ? lib.baseUcrx : itemClass,
       classConstructor: {
         args: UcrxSignature,

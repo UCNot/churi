@@ -3,6 +3,7 @@ import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-s
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { parseTokens, readTokens } from '../../spec/read-chunks.js';
 import { ucList } from '../list/uc-list.js';
+import { ucMultiValue } from '../list/uc-multi-value.js';
 import { ucNumber } from '../numeric/uc-number.js';
 import { ucString } from '../string/uc-string.js';
 import { UcDeserializer } from '../uc-deserializer.js';
@@ -312,6 +313,126 @@ describe('UcMap deserializer', () => {
           message: 'Unexpected list instead of map',
         },
       ]);
+    });
+    it('overwrites entry value', async () => {
+      await expect(
+        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: 'third',
+        bar: 'second',
+      });
+
+      expect(errors).toEqual([]);
+    });
+  });
+
+  describe('with duplicates: reject', () => {
+    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
+            {
+              foo: String,
+              bar: String,
+            },
+            {
+              duplicates: 'reject',
+            },
+          ),
+        },
+      });
+
+      ({ readMap } = await compiler.evaluate());
+    });
+
+    it('rejects entry duplicate', async () => {
+      await expect(
+        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: 'first',
+        bar: 'second',
+      });
+
+      expect(errors).toEqual([
+        {
+          code: 'duplicateEntry',
+          path: [{}, { key: 'foo' }],
+          details: {
+            key: 'foo',
+          },
+          message: 'Duplicate entry: foo',
+        },
+      ]);
+    });
+  });
+
+  describe('with duplicates: collect', () => {
+    let readMap: UcDeserializer<{ foo: string | string[]; bar: string | string[] }>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readMap: ucMap(
+            {
+              foo: ucMultiValue<string>(String),
+              bar: ucMultiValue<string>(String),
+            },
+            {
+              duplicates: 'collect',
+            },
+          ),
+        },
+      });
+
+      ({ readMap } = await compiler.evaluate());
+    });
+
+    it('collects entry duplicates', async () => {
+      await expect(
+        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: ['first', 'third'],
+        bar: 'second',
+      });
+
+      expect(errors).toEqual([]);
+    });
+  });
+
+  describe('with duplicates: collect and without required members', () => {
+    let readMap: UcDeserializer<{
+      foo?: string | string[] | undefined;
+      bar?: string | string[] | undefined;
+    }>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readMap: ucMap(
+            {
+              foo: ucOptional(ucMultiValue<string>(String)),
+              bar: ucOptional(ucMultiValue<string>(String)),
+            },
+            {
+              duplicates: 'collect',
+            },
+          ),
+        },
+      });
+
+      ({ readMap } = await compiler.evaluate());
+    });
+
+    it('collects entry duplicates', async () => {
+      await expect(
+        readMap(readTokens('foo(first)foo(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: ['first', 'second', 'third'],
+      });
+
+      expect(errors).toEqual([]);
     });
   });
 
