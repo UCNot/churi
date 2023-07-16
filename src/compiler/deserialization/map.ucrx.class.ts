@@ -138,9 +138,9 @@ export class MapUcrxClass<
 
     switch (duplicates) {
       case 'overwrite':
-        return counter ? { assigned: this.#declareAssigned(), counter } : {};
+        return counter ? { assigned: this.#declareAssigned(), counter, noDuplicates: false } : {};
       case 'reject':
-        return { assigned: this.#declareAssigned(), counter };
+        return { assigned: this.#declareAssigned(), counter, noDuplicates: true };
       case 'collect':
         return { rxs: this.#declareAssigned('rxs'), counter };
     }
@@ -189,7 +189,7 @@ export class MapUcrxClass<
     UcrxCore.for.overrideIn(this, {
       body:
         ({ member: { args } }) => code => {
-          const { key } = args;
+          const { key, cx } = args;
           const entries = this.#entries;
           const extra = this.#extra;
 
@@ -228,23 +228,44 @@ export class MapUcrxClass<
               .write('}');
           }
 
-          const { assigned, counter } = this.#collector;
+          const { assigned, counter, noDuplicates } = this.#collector;
 
-          if (assigned && counter) {
-            const { missingCount } = counter;
+          if (assigned) {
             const rx = new EsVarSymbol('rx');
 
+            code.write(
+              rx.declare({
+                value: () => this.#createEntryRx(args, entry),
+              }),
+            );
+            if (noDuplicates) {
+              code
+                .write(esline`if (${assigned.get('this')}[${key}]) {`)
+                .indent(code => {
+                  const ucrxRejectDuplicateEntry = UC_MODULE_CHURI.import(
+                    'ucrxRejectDuplicateEntry',
+                  );
+
+                  code.write(
+                    esline`${cx}.reject(${ucrxRejectDuplicateEntry}(${key}));`,
+                    `return cx.opaqueRx;`,
+                  );
+                })
+                .write('}')
+                .write(esline`if (${entry}.use) {`);
+            } else {
+              code.write(esline`if (${entry}.use && !${assigned.get('this')}[${key}]) {`);
+            }
+
             code
-              .write(
-                rx.declare({
-                  value: () => this.#createEntryRx(args, entry),
-                }),
-              )
-              .write(esline`if (${entry}.use && !${assigned.get('this')}[${key}]) {`)
-              .indent(
-                esline`--${missingCount.get('this')};`,
-                esline`${assigned.get('this')}[${key}] = 1;`,
-              )
+              .indent(code => {
+                if (counter) {
+                  const { missingCount } = counter;
+
+                  code.write(esline`--${missingCount.get('this')};`);
+                }
+                code.write(esline`${assigned.get('this')}[${key}] = 1;`);
+              })
               .write('}')
               .write(esline`return ${rx};`);
           } else {
@@ -269,10 +290,9 @@ export class MapUcrxClass<
   #declareMap(): void {
     const map = esline`${this.#slot.get('this')}[0]`;
     const store = this.#store;
-    const { assigned, counter } = this.#collector;
+    const { rxs, assigned = rxs, counter } = this.#collector;
 
-    if (assigned && counter) {
-      const { requiredCount, missingCount } = counter;
+    if (assigned) {
       const ucrxRejectMissingEntries = UC_MODULE_CHURI.import('ucrxRejectMissingEntries');
 
       UcrxCore.map.overrideIn(this, {
@@ -282,18 +302,24 @@ export class MapUcrxClass<
               args: { cx },
             },
           }) => code => {
+            if (counter) {
+              const { requiredCount, missingCount } = counter;
+
+              code
+                .write(esline`if (${missingCount.get('this')}) {`)
+                .indent(
+                  esline`${cx}.reject(${ucrxRejectMissingEntries}(${assigned.get('this')}, ${
+                    this.#entries! // Won't be accessed without entries
+                  }));`,
+                  'return 0;',
+                )
+                .write(`} else {`)
+                .indent(esline`this.set(${store.store(map, cx)});`)
+                .write(`}`)
+                .line(missingCount.set('this', `${requiredCount}`), ';');
+            }
+
             code
-              .write(esline`if (${missingCount.get('this')}) {`)
-              .indent(
-                esline`${cx}.reject(${ucrxRejectMissingEntries}(${assigned.get('this')}, ${
-                  this.#entries! // Won't be accessed without entries
-                }));`,
-                'return 0;',
-              )
-              .write(`} else {`)
-              .indent(esline`this.set(${store.store(map, cx)});`)
-              .write(`}`)
-              .line(missingCount.set('this', `${requiredCount}`), ';')
               .line(esline`${map} = ${store.reclaim(map)};`)
               .line(assigned.set('this', '{}'), ';')
               .write(`return 1;`);
@@ -392,44 +418,21 @@ interface MapUcrxClass$NoCollector {
   readonly assigned?: undefined;
   readonly rxs?: undefined;
   readonly counter?: undefined;
+  readonly noDuplicates?: undefined;
 }
 
 interface MapUcrxClass$RxCollector {
   readonly assigned?: undefined;
   readonly rxs: EsFieldHandle;
   readonly counter?: MapUcrxStore$Counter | undefined;
+  readonly noDuplicates?: undefined;
 }
 
 interface MapUcrxClass$AssignedCollector {
   readonly assigned: EsFieldHandle;
   readonly rxs?: undefined;
   readonly counter?: MapUcrxStore$Counter | undefined;
-}
-
-export namespace MapUcrxClass {
-  export interface Decls {
-    readonly entries: string;
-    readonly extra: string | undefined;
-    readonly requiredCount: number;
-  }
-
-  export type Allocation = Allocation.WithRequiredEntries | Allocation.WithOptionalEntries;
-  export namespace Allocation {
-    export interface WithRequiredEntries {
-      readonly decls: Decls;
-      readonly context: string;
-      readonly map: string;
-      readonly assigned: string;
-      readonly missingCount: string;
-    }
-    export interface WithOptionalEntries {
-      readonly decls: Decls;
-      readonly context: string;
-      readonly map: string;
-      readonly assigned?: undefined;
-      readonly missingCount?: undefined;
-    }
-  }
+  readonly noDuplicates: boolean;
 }
 
 function MapUcrxClass$typeName<

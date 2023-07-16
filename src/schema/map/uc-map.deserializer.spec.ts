@@ -313,6 +313,58 @@ describe('UcMap deserializer', () => {
         },
       ]);
     });
+    it('overwrites entry value', async () => {
+      await expect(
+        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: 'third',
+        bar: 'second',
+      });
+
+      expect(errors).toEqual([]);
+    });
+  });
+
+  describe('with duplicates: reject', () => {
+    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
+            {
+              foo: String,
+              bar: String,
+            },
+            {
+              duplicates: 'reject',
+            },
+          ),
+        },
+      });
+
+      ({ readMap } = await compiler.evaluate());
+    });
+
+    it('rejects entry duplicate', async () => {
+      await expect(
+        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+      ).resolves.toEqual({
+        foo: 'first',
+        bar: 'second',
+      });
+
+      expect(errors).toEqual([
+        {
+          code: 'duplicateEntry',
+          path: [{}, { key: 'foo' }],
+          details: {
+            key: 'foo',
+          },
+          message: 'Duplicate entry: foo',
+        },
+      ]);
+    });
   });
 
   describe('extra entries', () => {
