@@ -39,7 +39,6 @@ export class ListUcrxClass<
       configure: options => {
         compiler
           .processModel(schema.item)
-          .useUcrxClass('list', (lib, schema: UcList.Schema) => new this(lib, schema))
           .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
       },
     };

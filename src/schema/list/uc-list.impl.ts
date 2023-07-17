@@ -30,11 +30,13 @@ export function createUcListSchema<TItem, TItemSchema extends UcSchema<TItem> = 
           use: 'ListUcrxClass',
           from: COMPILER_MODULE,
           with: options,
+          id: UcList$id,
         },
         serializer: {
           use: 'ucsSupportList',
           from: COMPILER_MODULE,
           with: options,
+          id: UcList$id,
         },
       },
       item,
@@ -44,4 +46,12 @@ export function createUcListSchema<TItem, TItemSchema extends UcSchema<TItem> = 
     },
     options,
   );
+}
+
+function UcList$id(
+  this: { with: UccListOptions },
+  { item }: UcList.Schema,
+  schemaId: (schema: UcSchema) => string,
+): string {
+  return `item:${schemaId(ucSchema(item))},single:${this.with.single}`;
 }

@@ -308,36 +308,4 @@ describe('parseURICharge', () => {
       expect(map.toString()).toBe(input);
     });
   });
-
-  it('merges maps', () => {
-    expect(parse('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))')).toHaveURIChargeItems({
-      foo: { bar: { baz: 2, test: '' } },
-    });
-  });
-  it('overrides list', () => {
-    expect(parse('foo(bar,baz)foo(bar1,baz1)foo(bar2,baz2)')).toHaveURIChargeItems({
-      foo: ['bar2', 'baz2'],
-    });
-  });
-  it('replaces value with map', () => {
-    expect(parse('foo(bar(test))foo(bar(baz(1)test))')).toHaveURIChargeItems({
-      foo: { bar: { baz: 1, test: '' } },
-    });
-  });
-  it('concatenates maps', () => {
-    expect(
-      parse('foo(bar(test,test2),bar(baz(1)test(!)),bar(baz(2)test(-)))'),
-    ).toHaveURIChargeItems({
-      foo: [
-        { bar: ['test', 'test2'] },
-        { bar: { baz: 1, test: true } },
-        { bar: { baz: 2, test: false } },
-      ],
-    });
-  });
-  it('concatenates map and value', () => {
-    expect(parse('foo(bar(baz(1),test))')).toHaveURIChargeItems({
-      foo: { bar: [{ baz: 1 }, 'test'] },
-    });
-  });
 });

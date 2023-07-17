@@ -1,4 +1,5 @@
-import { UcProcessorName } from '../../schema/uc-constraints.js';
+import { asArray } from '@proc7ts/primitives';
+import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
@@ -30,14 +31,31 @@ export class UccSchemaIndex {
   }
 
   #createSchemaId(schema: UcSchema): string {
-    const typeEntry = this.#typeEntry(schema);
-    const typeId = `${typeEntry.prefix}${ucSchemaVariant(schema)}`;
+    let { prefix: fullId } = this.#typeEntry(schema);
+    const variant = ucSchemaVariant(schema);
 
-    if (this.processors.some(name => schema.where?.[name])) {
-      return `${typeId}#${++typeEntry.counter}`;
+    if (variant) {
+      fullId += `,${variant}`;
     }
 
-    return typeId;
+    const { where = {} } = schema;
+
+    return this.processors.reduce((fullId, processorName) => {
+      const constraints = where[processorName];
+
+      if (!constraints) {
+        return fullId;
+      }
+
+      return asArray(constraints).reduce((fullId, constraint): string => {
+        const { use, from } = constraint;
+        const id = constraint.id
+          ? constraint.id(schema, schema => this.schemaId(schema))
+          : UcsSchemaIndex$defaultConstraintId(constraint);
+
+        return fullId + `,${use}@${from}` + (id ? `(${id})` : '');
+      }, fullId);
+    }, fullId);
   }
 
   #typeEntry({ type }: UcSchema): UccSchemaIndex$TypeEntry {
@@ -54,14 +72,12 @@ export class UccSchemaIndex {
       return this.#addEntry({
         type,
         prefix: `${prefix}#${++this.#typeCounter}`,
-        counter: 0,
       });
     }
 
     return this.#addEntry({
       type,
       prefix,
-      counter: 0,
     });
   }
 
@@ -77,5 +93,8 @@ export class UccSchemaIndex {
 interface UccSchemaIndex$TypeEntry {
   readonly type: string | UcDataType;
   readonly prefix: string;
-  counter: number;
+}
+
+function UcsSchemaIndex$defaultConstraintId({ with: options }: UcFeatureConstraint): string {
+  return options !== undefined ? JSON.stringify(options) : '';
 }

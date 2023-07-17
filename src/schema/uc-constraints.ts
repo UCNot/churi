@@ -69,6 +69,20 @@ export interface UcFeatureConstraint {
    * The format is specific to the feature.
    */
   readonly with?: unknown;
+
+  /**
+   * Builds unique identifier based on {@link with additional options}.
+   *
+   * This identifier will be appended to full schema identifier.
+   *
+   * When omitted, the schema identifier will be built based on JSON representation of options.
+   *
+   * @param schema - Target schema.
+   * @param schemaId - Builds unique schema identifier.
+   *
+   * @returns Part of schema identifier.
+   */
+  id?(schema: UcSchema, schemaId: (schema: UcSchema) => string): string;
 }
 
 /**
