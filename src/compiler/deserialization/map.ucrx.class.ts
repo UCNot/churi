@@ -57,6 +57,7 @@ export class MapUcrxClass<
   readonly #collector: MapUcrxClass$Collector;
   readonly #store: MapUcrxStore;
   readonly #slot: EsFieldHandle;
+  readonly #rxClasses = new Map<UcrxClass, UcrxClass>();
 
   constructor(
     lib: UcrxLib,
@@ -413,7 +414,18 @@ export class MapUcrxClass<
   entryUcrxFor(key: string | null, schema: UcSchema): UcrxClass {
     const entryClass = MapUcrxEntry.ucrxClass(this.#lib, this.schema, key, schema);
 
-    return this.#collector.rxs ? new MultiEntryUcrxClass(entryClass) : entryClass;
+    if (!this.#collector.rxs) {
+      return entryClass;
+    }
+
+    let rxClass = this.#rxClasses.get(entryClass);
+
+    if (!rxClass) {
+      rxClass = new MultiEntryUcrxClass(entryClass);
+      this.#rxClasses.set(entryClass, rxClass);
+    }
+
+    return rxClass;
   }
 
   createEntry(key: string | null, schema: UcSchema): MapUcrxEntry {
