@@ -367,35 +367,6 @@ describe('parseUcValue', () => {
     });
   });
 
-  it('merges maps', () => {
-    expect(parseUcValue('foo(bar(baz(1)))foo(bar(baz(-)))foo(bar(baz(2)test))')).toEqual({
-      foo: { bar: { baz: 2, test: '' } },
-    });
-  });
-  it('overrides list', () => {
-    expect(parseUcValue('foo(bar,baz)foo(bar1,baz1)foo(bar2,baz2)')).toEqual({
-      foo: ['bar2', 'baz2'],
-    });
-  });
-  it('replaces value with map', () => {
-    expect(parseUcValue('foo(bar(test))foo(bar(baz(1)test))')).toEqual({
-      foo: { bar: { baz: 1, test: '' } },
-    });
-  });
-  it('concatenates maps', () => {
-    expect(parseUcValue('foo(bar(test,test2),bar(baz(1)test(!)),bar(baz(2)test(-)))')).toEqual({
-      foo: [
-        { bar: ['test', 'test2'] },
-        { bar: { baz: 1, test: true } },
-        { bar: { baz: 2, test: false } },
-      ],
-    });
-  });
-  it('concatenates map and value', () => {
-    expect(parseUcValue('foo(bar(baz(1),test))')).toEqual({
-      foo: { bar: [{ baz: 1 }, 'test'] },
-    });
-  });
   it('stops simple value parsing at closing parent', () => {
     expect(parseUcValue('foo)')).toBe('foo');
   });

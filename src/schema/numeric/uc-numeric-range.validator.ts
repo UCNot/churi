@@ -1,3 +1,4 @@
+import { esEscapeString } from 'esgen';
 import type { UcvNumericRange } from '../../compiler/validation/ucv-support-numeric-range.js';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcConstraints } from '../uc-constraints.js';
@@ -74,6 +75,11 @@ function ucValidateNumericRange(
       use: 'ucvSupportNumericRange',
       from: COMPILER_MODULE,
       with: options,
+      id(): string {
+        const [constraint, than, or] = options;
+
+        return `${constraint}:${than}` + (or != null ? `,or:${esEscapeString(or)}` : '');
+      },
     },
   };
 }

@@ -40,9 +40,7 @@ export class MapUcrxClass<
 
     return {
       configure: variant => {
-        compiler
-          .useUcrxClass('map', (lib, schema: UcMap.Schema) => new this(lib, schema))
-          .useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
+        compiler.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
         for (const entrySchema of Object.values(entries)) {
           compiler.processModel(entrySchema);
         }

@@ -1,8 +1,9 @@
 import { EsCode, EsSignature, EsSnippet, esStringLiteral, esline } from 'esgen';
-import { UcList } from '../../schema/list/uc-list.js';
-import { UcMap } from '../../schema/map/uc-map.js';
+import { COMPILER_MODULE } from '../../impl/module-names.js';
+import { UcList, ucList } from '../../schema/list/uc-list.js';
+import { UcMap, ucMap } from '../../schema/map/uc-map.js';
+import { UcNullable } from '../../schema/uc-nullable.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { URICharge } from '../../schema/uri-charge/uri-charge.js';
 import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
@@ -27,20 +28,20 @@ export class URIChargeCompiler extends UcdCompiler<{
 
   constructor() {
     super({
-      models: { parseURICharge: ['sync', ucUnknown() as UcSchema<URICharge>] },
+      models: { parseURICharge: ['sync', URICharge$Schema] },
       features(compiler) {
         return {
           configure: () => {
             compiler
               .enable(ucdSupportDefaults)
-              .useUcrxClass('unknown', (lib, schema) => new URIChargeUcrxClass(lib, schema))
+              .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema))
               .useUcrxClass(
-                'list',
+                ucList(URICharge$Schema),
                 (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
               )
               .useUcrxClass(
-                'map',
-                (lib, schema: UcMap.Schema) => new URIChargeMapUcrxClass(lib, schema),
+                ucMap({}, { extra: URICharge$Schema }),
+                (lib, schema) => new URIChargeMapUcrxClass(lib, schema as unknown as UcMap.Schema),
               );
           },
         };
@@ -60,6 +61,23 @@ export class URIChargeCompiler extends UcdCompiler<{
   }
 
 }
+
+const URICharge$Schema: UcNullable<URICharge> = {
+  type: 'unknown',
+  nullable: true,
+  where: {
+    deserializer: {
+      use: 'UnknownUcrxClass',
+      from: COMPILER_MODULE,
+      with: 'charge',
+    },
+    serializer: {
+      use: 'ucsSupportUnknown',
+      from: COMPILER_MODULE,
+      with: 'charge',
+    },
+  },
+};
 
 class URIChargeListUcrxClass extends ListUcrxClass {
 

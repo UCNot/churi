@@ -183,10 +183,12 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
           use: 'MapUcrxClass',
           from: COMPILER_MODULE,
           with: variant,
+          id: UcMap$id,
         },
         serializer: {
           use: 'ucsSupportMap',
           from: COMPILER_MODULE,
+          id: UcMap$id,
         },
       },
       entries: Object.fromEntries(entries) as UcMap.Entries<TEntriesModel>,
@@ -219,4 +221,31 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
         >
       | undefined,
   );
+}
+
+function UcMap$id(
+  this: { with: UcMap.Variant | undefined },
+  { entries, extra }: UcMap.Schema,
+  schemaId: (schema: UcSchema) => string,
+): string {
+  const entryIds = Object.entries(entries)
+    .map(
+      ([entryName, entryModel]) => esQuoteKey(entryName) + '(' + schemaId(ucSchema(entryModel)) + ')',
+    )
+    .join(';');
+  let id = `entries{${entryIds}}`;
+
+  if (extra) {
+    id += ',extra(' + schemaId(ucSchema(extra)) + ')';
+  }
+
+  const options = this.with;
+
+  if (options) {
+    const { duplicates = 'overwrite' } = options;
+
+    id += `,duplicates:${duplicates}`;
+  }
+
+  return id;
 }
