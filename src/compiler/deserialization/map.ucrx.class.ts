@@ -57,7 +57,6 @@ export class MapUcrxClass<
   readonly #collector: MapUcrxClass$Collector;
   readonly #store: MapUcrxStore;
   readonly #slot: EsFieldHandle;
-  readonly #rxClasses = new Map<UcrxClass, UcrxClass>();
 
   constructor(
     lib: UcrxLib,
@@ -414,18 +413,7 @@ export class MapUcrxClass<
   entryUcrxFor(key: string | null, schema: UcSchema): UcrxClass {
     const entryClass = MapUcrxEntry.ucrxClass(this.#lib, this.schema, key, schema);
 
-    if (!this.#collector.rxs) {
-      return entryClass;
-    }
-
-    let rxClass = this.#rxClasses.get(entryClass);
-
-    if (!rxClass) {
-      rxClass = new MultiEntryUcrxClass(entryClass);
-      this.#rxClasses.set(entryClass, rxClass);
-    }
-
-    return rxClass;
+    return this.#collector.rxs ? entryClass.associate(MultiEntryUcrxClass$associate) : entryClass;
   }
 
   createEntry(key: string | null, schema: UcSchema): MapUcrxEntry {
@@ -548,4 +536,12 @@ class MultiEntryUcrxClass<
     });
   }
 
+}
+
+function MultiEntryUcrxClass$associate<
+  TArgs extends UcrxSignature.Args = UcrxSignature.Args,
+  T = unknown,
+  TSchema extends UcSchema<T> = UcSchema<T>,
+>(target: UcrxClass<TArgs, T, TSchema>): MultiEntryUcrxClass<TArgs, T, TSchema> {
+  return new MultiEntryUcrxClass(target);
 }

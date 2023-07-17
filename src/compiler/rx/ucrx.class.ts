@@ -15,6 +15,7 @@ export abstract class UcrxClass<
   readonly #typeName: string;
   readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
+  #associations?: Map<UcrxClass.Association<unknown, TArgs, T, TSchema, this>, unknown>;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
     const { schema, typeName = ucSchemaTypeSymbol(schema), declare = { at: 'bundle' } } = init;
@@ -87,6 +88,22 @@ export abstract class UcrxClass<
     }
   }
 
+  associate<TAssoc>(associate: UcrxClass.Association<TAssoc, TArgs, T, TSchema, this>): TAssoc {
+    let association: TAssoc | undefined;
+
+    if (!this.#associations) {
+      this.#associations = new Map();
+    } else {
+      association = this.#associations.get(associate) as TAssoc | undefined;
+    }
+    if (!association) {
+      association = associate(this);
+      this.#associations.set(associate, association);
+    }
+
+    return association;
+  }
+
   protected discoverTypes(types: Set<string>): void {
     for (const memberRef of this.members()) {
       const { member, declared } = memberRef;
@@ -127,6 +144,14 @@ export namespace UcrxClass {
     readonly schema: TSchema;
     readonly typeName?: string | undefined;
   };
+
+  export type Association<
+    out TAssoc = unknown,
+    out TArgs extends UcrxSignature.Args = UcrxSignature.Args,
+    out T = unknown,
+    out TSchema extends UcSchema<T> = UcSchema<T>,
+    in TTarget extends UcrxClass<TArgs, T, TSchema> = UcrxClass<TArgs, T, TSchema>,
+  > = { associate(target: TTarget): TAssoc }['associate'];
 }
 
 export type UcrxProto<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
