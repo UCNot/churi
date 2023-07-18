@@ -1,4 +1,5 @@
-import { EsArg, EsCode, EsSignature } from 'esgen';
+import { EsArg, EsSignature } from 'esgen';
+import { UcrxCore$stub } from '../impl/ucrx-core.stub.js';
 import { UcrxMethod } from './ucrx-method.js';
 
 export class UcrxAttrSetter extends UcrxMethod<UcrxAttrSetterSignature.Args> {
@@ -6,9 +7,7 @@ export class UcrxAttrSetter extends UcrxMethod<UcrxAttrSetterSignature.Args> {
   constructor(requestedName: string) {
     super(requestedName, {
       args: { attr: {}, cx: {} },
-      stub: {
-        body: () => EsCode.none,
-      },
+      stub: UcrxCore$stub,
     });
   }
 

@@ -1,5 +1,5 @@
-import { EsArg, EsCode, EsMethodDeclaration, esStringLiteral, esline } from 'esgen';
-import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { EsArg } from 'esgen';
+import { UcrxCore$stub, UcrxCore$stubBody } from '../impl/ucrx-core.stub.js';
 import { UcrxAttrSetter, UcrxAttrSetterSignature } from './ucrx-attr-setter.js';
 import { UcrxEntitySetter } from './ucrx-entity-setter.js';
 import { UcrxFormattedSetter } from './ucrx-formatted-setter.js';
@@ -29,32 +29,22 @@ export type UcrxCore = {
 export const UcrxCore: UcrxCore = {
   types: /*#__PURE__*/ new UcrxProperty('types', {
     stub: {
-      get: () => `return ['void'];`,
+      get: UcrxCore$stubBody,
     },
   }),
   att: /*#__PURE__*/ new UcrxAttrSetter('att'),
-  bol: /*#__PURE__*/ new UcrxSetter('bol', { typeName: 'boolean' }),
-  big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint' }),
+  bol: /*#__PURE__*/ new UcrxSetter('bol', { typeName: 'boolean', stub: UcrxCore$stub }),
+  big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint', stub: UcrxCore$stub }),
   ent: /*#__PURE__*/ new UcrxEntitySetter('ent'),
   fmt: /*#__PURE__*/ new UcrxFormattedSetter('fmt'),
-  nls: /*#__PURE__*/ new UcrxMethod('nls', {
+  nls: /*#__PURE__*/ new UcrxMethod<{ cx: EsArg }>('nls', {
     args: { cx: {} },
-    stub: UcrxCore$rejectType('nested list'),
+    stub: UcrxCore$stub,
     typeName: 'nested list',
   }),
   nul: /*#__PURE__*/ new UcrxMethod('nul', {
     args: { cx: {} },
-    stub: {
-      body({
-        member: {
-          args: { cx },
-        },
-      }) {
-        const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');
-
-        return esline`return this.any(null) || ${cx}.reject(${ucrxRejectNull}(this));`;
-      },
-    },
+    stub: UcrxCore$stub,
     typeName: 'null',
   }),
   num: /*#__PURE__*/ new UcrxSetter('num', { typeName: 'number' }),
@@ -62,48 +52,24 @@ export const UcrxCore: UcrxCore = {
   str: /*#__PURE__*/ new UcrxSetter('str', { typeName: 'string' }),
   for: /*#__PURE__*/ new UcrxMethod('for', {
     args: { key: {}, cx: {} },
-    stub: {
-      body({
-        member: {
-          args: { cx },
-        },
-      }) {
-        const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
-
-        return esline`return ${cx}.reject(${ucrxRejectType}('map', this));`;
-      },
-    },
+    stub: UcrxCore$stub,
   }),
   map: /*#__PURE__*/ new UcrxMethod('map', {
     args: { cx: {} },
-    stub: UcrxCore$rejectType('map'),
+    stub: UcrxCore$stub,
     typeName: 'map',
   }),
   and: /*#__PURE__*/ new UcrxMethod('and', {
     args: { cx: {} },
-    stub: UcrxCore$rejectType('list'),
+    stub: UcrxCore$stub,
   }),
   end: /*#__PURE__*/ new UcrxMethod('end', {
     args: { cx: {} },
-    stub: { body: () => EsCode.none },
+    stub: UcrxCore$stub,
   }),
   any: /*#__PURE__*/ new UcrxMethod('any', {
     args: { value: {} },
-    stub: { body: () => `return 0;` },
+    stub: UcrxCore$stub,
     typeName: 'any',
   }),
 };
-
-function UcrxCore$rejectType(typeName: string): EsMethodDeclaration<{ cx: EsArg }> {
-  return {
-    body({
-      member: {
-        args: { cx },
-      },
-    }) {
-      const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
-
-      return esline`return ${cx}.reject(${ucrxRejectType}(${esStringLiteral(typeName)}, this));`;
-    },
-  };
-}
