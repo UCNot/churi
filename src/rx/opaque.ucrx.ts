@@ -17,6 +17,11 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     // Ignore metadata.
   }
 
+  override raw(value: string): 1;
+  override raw(_value: string): 1 {
+    return 1;
+  }
+
   override nls(): this {
     return this;
   }
@@ -46,14 +51,9 @@ export interface OpaqueUcrx extends AllUcrx {
   big(value: bigint): 1;
   ent(name: string): 1;
   fmt(format: string, data: readonly UcToken[]): 1;
-  nls(): this;
   nul(): 1;
   num(value: number): 1;
-  raw(value: string): 1;
   str(value: string): 1;
-  for(key: PropertyKey): this;
-  map(): 1;
-  and(): 1;
   end(): void;
 }
 

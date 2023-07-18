@@ -24,6 +24,12 @@ describe('OpaqueUcrx', () => {
     });
   });
 
+  describe('raw', () => {
+    it('returns 1', () => {
+      expect(new OpaqueUcrx().raw('test')).toBe(1);
+    });
+  });
+
   describe('set', () => {
     it('has no effect', () => {
       class TestUcrx extends OpaqueUcrx {
