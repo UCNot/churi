@@ -1,9 +1,11 @@
+import { noop } from '@proc7ts/primitives';
 import { UcrxContext } from '../../rx/ucrx-context.js';
 import { ucrxRejectType } from '../../rx/ucrx-rejection.js';
 import { Ucrx } from '../../rx/ucrx.js';
 import { UcMeta } from '../../schema/meta/uc-meta.js';
 import { UcRejection } from '../../schema/uc-error.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
+import { UcInputLexer } from '../../syntax/uc-input-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
@@ -23,6 +25,10 @@ export class UcrxHandle implements UcrxContext {
     this.#reader = reader;
     this.#rx = rx;
     this.#path = path;
+  }
+
+  get rx(): Ucrx {
+    return this.#rx;
   }
 
   get data(): Record<PropertyKey, unknown> {
@@ -237,6 +243,22 @@ export class UcrxHandle implements UcrxContext {
     }
   }
 
+  embed(emit: (token: UcToken) => void): UcInputLexer {
+    const embed = this.#reader.embed(this);
+    const lexer = embed?.(emit);
+
+    if (lexer) {
+      return lexer;
+    }
+
+    this.#reject({
+      code: 'unrecognizedInput',
+      message: 'Unrecognized embedded input',
+    });
+
+    return UcInputLexer$noop;
+  }
+
 }
 
 type UcError$Path = [UcErrorPath$Head, ...UcErrorPath$Fragment[]];
@@ -247,4 +269,9 @@ type UcErrorPath$Head = {
 
 type UcErrorPath$Fragment = {
   -readonly [key in keyof URIChargePath.Fragment]?: URIChargePath.Fragment[key];
+};
+
+const UcInputLexer$noop: UcInputLexer = {
+  scan: noop,
+  flush: noop,
 };

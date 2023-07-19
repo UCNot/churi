@@ -1,3 +1,4 @@
+import { UcInputLexer } from './uc-input-lexer.js';
 import { UcLexer } from './uc-lexer.js';
 import { UcToken } from './uc-token.js';
 
@@ -8,23 +9,37 @@ import { UcToken } from './uc-token.js';
  */
 export class UcLexerStream extends TransformStream<string, UcToken> {
 
+  /**
+   * Constructs lexer stream.
+   *
+   * @param createLexer - Creates an input lexer to use. By default, creates {@link UcLexer} instance.
+   * @param writableStrategy - An object that optionally defines a queuing strategy for the input (chunks) stream.
+   * @param readableStrategy - An object that optionally defines a queuing strategy for the output (tokens) stream.
+   */
   constructor(
+    createLexer: (
+      emit: (token: UcToken) => void,
+    ) => UcInputLexer = UcLexerStream$createDefaultLexer,
     writableStrategy?: QueuingStrategy<string>,
     readableStrategy?: QueuingStrategy<UcToken>,
   ) {
-    let tokenizer: UcLexer;
+    let lexer: UcInputLexer;
 
     super(
       {
         start: controller => {
-          tokenizer = new UcLexer(token => controller.enqueue(token));
+          lexer = createLexer(token => controller.enqueue(token));
         },
-        transform: chunk => tokenizer.scan(chunk),
-        flush: () => tokenizer.flush(),
+        transform: chunk => lexer.scan(chunk),
+        flush: () => lexer.flush(),
       },
       writableStrategy,
       readableStrategy,
     );
   }
 
+}
+
+function UcLexerStream$createDefaultLexer(emit: (token: UcToken) => void): UcInputLexer {
+  return new UcLexer(emit);
 }

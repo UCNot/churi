@@ -4,6 +4,7 @@ import { UcrxContext } from '../rx/ucrx-context.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
+import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 
 export abstract class UcdReader {
@@ -14,6 +15,9 @@ export abstract class UcdReader {
   readonly #entities: Exclude<UcdReader.Options['entities'], undefined>;
   readonly #formats: Exclude<UcdReader.Options['formats'], undefined>;
   readonly #onMeta: MetaUcrx;
+  readonly #embed:
+    | ((cx: UcrxContext) => (emit: (token: UcToken) => void) => UcInputLexer | undefined)
+    | undefined;
 
   constructor(options?: UcDeserializer.Options);
 
@@ -24,9 +28,11 @@ export abstract class UcdReader {
     formats = {},
     onMeta = UcdReader$noMeta,
     opaqueRx = OPAQUE_UCRX,
+    embed,
   }: UcdReader.Options = {}) {
     this.#data = data;
     this.#opaqueRx = opaqueRx;
+    this.#embed = embed;
     this.#onError = onError;
     this.#entities = entities;
     this.#formats = formats;
@@ -39,6 +45,12 @@ export abstract class UcdReader {
 
   get opaqueRx(): Ucrx {
     return this.#opaqueRx;
+  }
+
+  embed(
+    cx: UcrxContext,
+  ): ((emit: (token: UcToken) => void) => UcInputLexer | undefined) | undefined {
+    return this.#embed?.(cx);
   }
 
   abstract hasNext(): boolean;
@@ -54,6 +66,12 @@ export abstract class UcdReader {
   }
 
   abstract read(rx: Ucrx): Promise<void> | void;
+
+  abstract readEmbeds(
+    rx: Ucrx,
+    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    single: boolean,
+  ): Promise<void> | void;
 
   get entities(): Exclude<UcdReader.Options['entities'], undefined> {
     return this.#entities;
@@ -88,6 +106,21 @@ export abstract class UcdReader {
 export namespace UcdReader {
   export interface Options extends UcDeserializer.Options {
     readonly opaqueRx?: Ucrx | undefined;
+    /**
+     * Creates a lexer for _embedded input_. I.e. the input chunks enclosed into {@link UC_TOKEN_INPUT embedded input
+     * bounds}.
+     *
+     * Once an embedded input is encountered, the deserializer would try to use the lexer defined by {@link Ucrx#emb
+     * charge receiver}, and only if the latter is undefined - it will try to use the one created by this method.
+     * If that fails, an error will be thrown.
+     *
+     * @param cx - Charge receiver context.
+     *
+     * @returns Either input lexer factory, or `undefined` if an embedded input is not expected.
+     */
+    readonly embed?:
+      | ((cx: UcrxContext) => (emit: (token: UcToken) => void) => UcInputLexer | undefined)
+      | undefined;
   }
 }
 

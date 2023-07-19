@@ -2,6 +2,7 @@ import { asis } from '@proc7ts/primitives';
 import {
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
+  UC_TOKEN_EMBED,
   UC_TOKEN_PREFIX_SPACE,
   UC_TOKEN_PREFIX_TAB,
   UcToken,
@@ -26,6 +27,8 @@ export function printUcToken(token: UcToken, encodeString?: (token: string) => s
       return '\t'.repeat((token >>> 8) + 1);
     case UC_TOKEN_CR:
       return token === UC_TOKEN_CRLF ? '\r\n' : '\r';
+    case UC_TOKEN_EMBED:
+      return '';
   }
 
   return String.fromCharCode(token);

@@ -1,5 +1,5 @@
 import { Ucrx } from '../rx/ucrx.js';
-import { UcDeserializer } from '../schema/uc-deserializer.js';
+import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcrxHandle } from './impl/ucrx-handle.js';
@@ -7,14 +7,16 @@ import { UcdReader } from './ucd-reader.js';
 
 export class AsyncUcdReader extends UcdReader {
 
-  readonly #reader: ReadableStreamDefaultReader<UcToken>;
+  #stream: ReadableStream<UcToken>;
+  #reader: ReadableStreamDefaultReader<UcToken>;
 
   #current: UcToken | undefined;
   readonly #prev: UcToken[] = [];
   #hasNext = true;
 
-  constructor(stream: ReadableStream<UcToken>, options?: UcDeserializer.Options) {
+  constructor(stream: ReadableStream<UcToken>, options?: UcdReader.Options) {
     super(options);
+    this.#stream = stream;
     this.#reader = stream.getReader();
   }
 
@@ -35,7 +37,21 @@ export class AsyncUcdReader extends UcdReader {
   }
 
   override async read(rx: Ucrx): Promise<void> {
-    await ucdReadValue(this, new UcrxHandle(this, rx, [{}]), rx => rx.end());
+    await ucdReadValue(this, new UcrxHandle(this, rx, [{}]), false);
+  }
+
+  override async readEmbeds(
+    rx: Ucrx,
+    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    single: boolean,
+  ): Promise<void> {
+    this.skip();
+
+    this.#reader.releaseLock();
+    this.#stream = this.#stream.pipeThrough(new UcEmbedsStream(createLexer));
+    this.#reader = this.#stream.getReader();
+
+    await ucdReadValue(this, new UcrxHandle(this, rx, [{}]), single);
   }
 
   override async next(): Promise<UcToken | undefined> {
@@ -130,6 +146,30 @@ export class AsyncUcdReader extends UcdReader {
 
   override done(): void {
     this.#reader.releaseLock();
+  }
+
+}
+
+export class UcEmbedsStream extends TransformStream<UcToken, UcToken> {
+
+  constructor(createLexer: (emit: (token: UcToken) => void) => UcInputLexer) {
+    let lexer: UcInputLexer;
+    let pass = (token: UcToken, _controller: TransformStreamDefaultController<UcToken>): void => {
+      if (typeof token === 'number') {
+        lexer.flush();
+        pass = (token, controller) => controller.enqueue(token);
+      } else {
+        lexer.scan(token);
+      }
+    };
+
+    super({
+      start: controller => {
+        lexer = createLexer(token => controller.enqueue(token));
+      },
+      transform: (token, controller) => pass(token, controller),
+      flush: () => lexer.flush(),
+    });
   }
 
 }

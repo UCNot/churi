@@ -1,9 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
-import { printUcToken } from './print-uc-token.js';
+import { printUcToken, printUcTokens } from './print-uc-token.js';
 import {
+  UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
+  UC_TOKEN_EMBED,
   UC_TOKEN_LF,
+  UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
   UC_TOKEN_PREFIX_TAB,
 } from './uc-token.js';
@@ -25,5 +28,16 @@ describe('printUcToken', () => {
   it('prints strings', () => {
     expect(printUcToken('')).toBe('');
     expect(printUcToken('a b c')).toBe('a b c');
+  });
+  it('skips embeds', () => {
+    expect(
+      printUcTokens([
+        UC_TOKEN_OPENING_PARENTHESIS,
+        UC_TOKEN_EMBED,
+        'test',
+        UC_TOKEN_EMBED,
+        UC_TOKEN_CLOSING_PARENTHESIS,
+      ]),
+    ).toBe('(test)');
   });
 });
