@@ -82,7 +82,7 @@ export async function ucdReadValue(
 
     hasValue = true;
   } else if (firstToken === UC_TOKEN_EMBED) {
-    await reader.readEmbeds(rx.rx, emit => rx.embed(emit), single);
+    await reader.readEmbeds(rx.rx, emit => rx.emb(emit), single);
     await ucdSkipWhitespace(reader);
 
     if (single) {

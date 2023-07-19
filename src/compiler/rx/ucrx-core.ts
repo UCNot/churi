@@ -12,6 +12,7 @@ export type UcrxCore = {
   readonly att: UcrxMethod<UcrxAttrSetterSignature.Args>;
   readonly bol: UcrxSetter;
   readonly big: UcrxSetter;
+  readonly emb: UcrxMethod<{ emit: EsArg; cx: EsArg }>;
   readonly ent: UcrxEntitySetter;
   readonly fmt: UcrxFormattedSetter;
   readonly nls: UcrxMethod<{ cx: EsArg }>;
@@ -35,6 +36,10 @@ export const UcrxCore: UcrxCore = {
   att: /*#__PURE__*/ new UcrxAttrSetter('att'),
   bol: /*#__PURE__*/ new UcrxSetter('bol', { typeName: 'boolean', stub: UcrxCore$stub }),
   big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint', stub: UcrxCore$stub }),
+  emb: /*#__PURE__*/ new UcrxMethod('emb', {
+    args: { emit: {}, cx: {} },
+    stub: UcrxCore$stub,
+  }),
   ent: /*#__PURE__*/ new UcrxEntitySetter('ent'),
   fmt: /*#__PURE__*/ new UcrxFormattedSetter('fmt'),
   nls: /*#__PURE__*/ new UcrxMethod<{ cx: EsArg }>('nls', {

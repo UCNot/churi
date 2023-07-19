@@ -1,3 +1,5 @@
+import { UcToken } from './uc-token.js';
+
 /**
  * Charge lexer that splits the input onto tokens.
  *
@@ -18,3 +20,24 @@ export interface UcInputLexer {
    */
   flush(): void;
 }
+
+/**
+ * Charge input lexer that ignores the input.
+ */
+export const ucOpaqueLexer: UcInputLexer = {
+  scan(_chunk) {
+    // Ignore input.
+  },
+  flush() {
+    // Nothing to flush.
+  },
+};
+
+/**
+ * Factory for {@link UcInputLexer input lexer}.
+ *
+ * @param emit - Emitter function called each time a token is found.
+ *
+ * @returns New lexer instance.
+ */
+export type UcInputLexerFactory = (emit: (token: UcToken) => void) => UcInputLexer;

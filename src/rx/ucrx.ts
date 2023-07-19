@@ -1,3 +1,4 @@
+import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 
@@ -52,6 +53,16 @@ export interface Ucrx {
    * @returns Either `1` if charge succeed, or `0` for unexpected big integer.
    */
   big(value: bigint, cx: UcrxContext): 0 | 1;
+
+  /**
+   * Called to start embedded input tokenization.
+   *
+   * @param emit - Emitter function called each time a token is found.
+   * @param cx - Charge processing context.
+   *
+   * @returns Either input lexer, or `undefined` if embedded input is not expected..
+   */
+  emb(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
 
   /**
    * Charges opaque (unrecognized) entity.

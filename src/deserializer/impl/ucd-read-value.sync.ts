@@ -90,7 +90,7 @@ export function ucdReadValueSync(
 
     hasValue = true;
   } else if (firstToken === UC_TOKEN_EMBED) {
-    reader.readEmbeds(rx.rx, emit => rx.embed(emit), single);
+    reader.readEmbeds(rx.rx, emit => rx.emb(emit), single);
     ucdSkipWhitespaceSync(reader);
 
     if (single) {

@@ -1,4 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
+import { noop } from '@proc7ts/primitives';
+import { ucOpaqueLexer } from '../syntax/uc-input-lexer.js';
 import { OpaqueUcrx } from './opaque.ucrx.js';
 
 describe('OpaqueUcrx', () => {
@@ -21,6 +23,12 @@ describe('OpaqueUcrx', () => {
   describe('att', () => {
     it('returns undefined', () => {
       expect(new OpaqueUcrx().att('name')).toBeUndefined();
+    });
+  });
+
+  describe('emb', () => {
+    it('returns ucOpaqueLexer', () => {
+      expect(new OpaqueUcrx().emb(noop)).toBe(ucOpaqueLexer);
     });
   });
 
