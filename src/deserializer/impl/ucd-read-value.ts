@@ -14,6 +14,7 @@ import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
+  UC_TOKEN_EMBED,
   UC_TOKEN_EXCLAMATION_MARK,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
@@ -25,10 +26,8 @@ import { UcrxHandle } from './ucrx-handle.js';
 export async function ucdReadValue(
   reader: AsyncUcdReader,
   rx: UcrxHandle,
-  end?: (rx: UcrxHandle) => void, // Never set for the first item of the list, unless it is non-empty.
+  single: boolean,
 ): Promise<void> {
-  const single = !end;
-
   await ucdSkipWhitespace(reader);
 
   const firstToken = reader.current();
@@ -82,6 +81,15 @@ export async function ucdReadValue(
     }
 
     hasValue = true;
+  } else if (firstToken === UC_TOKEN_EMBED) {
+    await reader.readEmbeds(rx.rx, emit => rx.emb(emit), single);
+    await ucdSkipWhitespace(reader);
+
+    if (single) {
+      return;
+    }
+
+    hasValue = true;
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {
@@ -117,8 +125,12 @@ export async function ucdReadValue(
   const bound = reader.current();
 
   if (!bound) {
+    if (!single) {
+      rx.end();
+    }
+
     // End of input.
-    return end?.(rx);
+    return;
   }
   if (bound === UC_TOKEN_CLOSING_PARENTHESIS) {
     // Unbalanced closing parenthesis.
@@ -126,8 +138,11 @@ export async function ucdReadValue(
     if (!hasValue) {
       rx.decode(printUcTokens(trimUcTokensTail(reader.consumePrev())));
     }
+    if (!single) {
+      rx.end();
+    }
 
-    return end?.(rx);
+    return;
   }
 
   if (bound === UC_TOKEN_COMMA) {
@@ -237,12 +252,12 @@ async function ucdReadMetaAndValue(reader: AsyncUcdReader, rx: UcrxHandle): Prom
 
   reader.skip(); // Skip opening parenthesis.
 
-  await ucdReadValue(reader, rx.att(attributeName), rx => rx.end());
+  await ucdReadValue(reader, rx.att(attributeName), false);
 
   reader.skip(); // Skip closing parenthesis.
 
   // Read single value following the attribute.
-  await ucdReadValue(reader, rx);
+  await ucdReadValue(reader, rx, true);
 }
 
 async function ucdReadTokens(
@@ -347,7 +362,7 @@ async function ucdReadItems(
     } else {
       rx.nextItem();
     }
-    await ucdReadValue(reader, rx);
+    await ucdReadValue(reader, rx, true);
 
     if (reader.current() === UC_TOKEN_COMMA) {
       // Skip comma and whitespace following it.
@@ -364,7 +379,7 @@ async function ucdReadMap(reader: AsyncUcdReader, rx: UcrxHandle, firstKey: stri
 
   const entryRx = rx.firstEntry(firstKey);
 
-  await ucdReadValue(reader, entryRx, rx => rx.end());
+  await ucdReadValue(reader, entryRx, false);
 
   const bound = reader.current();
 
@@ -413,7 +428,7 @@ async function ucdReadEntries(reader: AsyncUcdReader, rx: UcrxHandle): Promise<v
 
       const entryRx = rx.nextEntry(key);
 
-      await ucdReadValue(reader, entryRx, rx => rx.end());
+      await ucdReadValue(reader, entryRx, false);
 
       if (!reader.current()) {
         // End of input.

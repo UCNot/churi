@@ -65,7 +65,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   exportFn(externalName: string, mode: UcDeserializer.Mode): EsFunction<UcdExportSignature.Args> {
-    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
+    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta, embed } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -78,6 +78,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             'formats,',
             'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
+            embed ? esline`embed: ${embed},` : EsCode.none,
           )
           .write('}');
       });

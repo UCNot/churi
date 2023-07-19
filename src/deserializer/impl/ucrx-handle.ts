@@ -4,6 +4,7 @@ import { Ucrx } from '../../rx/ucrx.js';
 import { UcMeta } from '../../schema/meta/uc-meta.js';
 import { UcRejection } from '../../schema/uc-error.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
+import { UcInputLexer, ucOpaqueLexer } from '../../syntax/uc-input-lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
@@ -23,6 +24,10 @@ export class UcrxHandle implements UcrxContext {
     this.#reader = reader;
     this.#rx = rx;
     this.#path = path;
+  }
+
+  get rx(): Ucrx {
+    return this.#rx;
   }
 
   get data(): Record<PropertyKey, unknown> {
@@ -81,6 +86,21 @@ export class UcrxHandle implements UcrxContext {
 
   bol(value: boolean): void {
     this.#rx.bol(value, this);
+  }
+
+  emb(emit: (token: UcToken) => void): UcInputLexer {
+    const lexer = this.#rx.emb(emit, this) ?? this.#reader.embed(this)?.(emit);
+
+    if (lexer) {
+      return lexer;
+    }
+
+    this.#reject({
+      code: 'unrecognizedInput',
+      message: 'Unrecognized embedded input',
+    });
+
+    return ucOpaqueLexer;
   }
 
   ent(entity: string): void {

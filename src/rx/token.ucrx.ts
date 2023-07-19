@@ -1,6 +1,7 @@
 import { encodeURIPart } from 'httongue';
 import { UC_KEY_ESCAPED, isEscapedUcString } from '../impl/uc-string-escapes.js';
 import { printUcToken } from '../syntax/print-uc-token.js';
+import { UcInputLexer, ucOpaqueLexer } from '../syntax/uc-input-lexer.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -79,6 +80,11 @@ export class TokenUcrx implements AllUcrx {
     this.#add(value < 0n ? `-0n${-value}` : `0n${value}`);
 
     return 1;
+  }
+
+  emb(emit: (token: UcToken) => void): UcInputLexer;
+  emb(_emit: (token: UcToken) => void): UcInputLexer {
+    return ucOpaqueLexer;
   }
 
   ent(name: string): 1 {

@@ -6,6 +6,7 @@ import {
 } from '../impl/ucrx-decode-raw.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcFormatted } from '../schema/entity/uc-formatted.js';
+import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 import {
@@ -34,6 +35,11 @@ export class VoidUcrx implements Ucrx {
 
   big(value: bigint, cx: UcrxContext): 0 | 1 {
     return this.any(value) || cx.reject(ucrxRejectType('bigint', this));
+  }
+
+  emb(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
+  emb(_emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
+    // Embedded input not expected by default.
   }
 
   ent(name: string, cx: UcrxContext): 0 | 1 {

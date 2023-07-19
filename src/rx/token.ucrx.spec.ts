@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { noop } from '@proc7ts/primitives';
+import { ucOpaqueLexer } from '../syntax/uc-input-lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_OPENING_PARENTHESIS,
@@ -18,6 +19,12 @@ describe('TokenUcrx', () => {
   describe('types', () => {
     it('accepts any', () => {
       expect(ucrx.types).toEqual(['any']);
+    });
+  });
+
+  describe('emb', () => {
+    it('returns ucOpaqueLexer', () => {
+      expect(new TokenUcrx(noop).emb(noop)).toBe(ucOpaqueLexer);
     });
   });
 

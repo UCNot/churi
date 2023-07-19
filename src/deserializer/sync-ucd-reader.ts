@@ -1,5 +1,5 @@
 import { Ucrx } from '../rx/ucrx.js';
-import { UcDeserializer } from '../schema/uc-deserializer.js';
+import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
@@ -8,12 +8,12 @@ import { UcdReader } from './ucd-reader.js';
 
 export class SyncUcdReader extends UcdReader {
 
-  readonly #tokens: readonly UcToken[];
+  #tokens: readonly UcToken[];
   #current = -1;
   #next = 0;
   #consumed = 0;
 
-  constructor(tokens: readonly UcToken[], options?: UcDeserializer.Options) {
+  constructor(tokens: readonly UcToken[], options?: UcdReader.Options) {
     super(options);
     this.#tokens = tokens;
   }
@@ -35,7 +35,44 @@ export class SyncUcdReader extends UcdReader {
   }
 
   override read(rx: Ucrx): void {
-    ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), rx => rx.end());
+    ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), false);
+  }
+
+  override readEmbeds(
+    rx: Ucrx,
+    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    single: boolean,
+  ): Promise<void> | void {
+    this.#unwrapEmbeds(createLexer);
+    ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), single);
+  }
+
+  #unwrapEmbeds(createLexer: (emit: (token: UcToken) => void) => UcInputLexer): void {
+    const tokens = this.#tokens;
+    const newTokens = [];
+    const lexer = createLexer(token => newTokens.push(token));
+
+    const length = tokens.length;
+    let end = this.#current + 1;
+
+    while (end < length) {
+      const chunk = tokens[end++];
+
+      if (typeof chunk === 'number') {
+        // Embedded input expected to end with input bound.
+        break;
+      }
+
+      lexer.scan(chunk);
+    }
+    lexer.flush();
+
+    newTokens.push(...this.#tokens.slice(end));
+
+    this.#tokens = newTokens;
+    this.#current = -1;
+    this.#next = 0;
+    this.#consumed = 0;
   }
 
   override next(): UcToken | undefined {
@@ -113,17 +150,17 @@ export class SyncUcdReader extends UcdReader {
 
 export function createSyncUcdReader(
   input: string | readonly UcToken[],
-  options?: UcDeserializer.Options,
+  options?: UcdReader.Options,
 ): SyncUcdReader;
 
 export function createSyncUcdReader(
   input: string | readonly UcToken[] | unknown,
-  options?: UcDeserializer.Options,
+  options?: UcdReader.Options,
 ): SyncUcdReader | undefined;
 
 export function createSyncUcdReader(
   input: string | readonly UcToken[] | unknown,
-  options?: UcDeserializer.Options,
+  options?: UcdReader.Options,
 ): SyncUcdReader | undefined {
   if (typeof input === 'string') {
     return new SyncUcdReader(UcLexer.scan(input), options);

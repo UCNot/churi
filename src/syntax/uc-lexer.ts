@@ -1,3 +1,4 @@
+import { UcInputLexer } from './uc-input-lexer.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -30,7 +31,7 @@ import {
  * the given emitter function. On completion, the input has to by {@link UcLexer#flush flushed} in order to process
  * the remaining input.
  */
-export class UcLexer {
+export class UcLexer implements UcInputLexer {
 
   /**
    * Scans the `input` string for URI charge {@link UcToken tokens}.
@@ -84,11 +85,6 @@ export class UcLexer {
     this.#emit = emit;
   }
 
-  /**
-   * Scans the input `chunk` for tokens.
-   *
-   * @param chunk - Chunk of input to scan.
-   */
   scan(chunk: string): void {
     for (const token of chunk.split(UC_TOKEN_PATTERN)) {
       this.#add(token);
@@ -209,9 +205,6 @@ export class UcLexer {
     this.#emit(pad | (count << 8));
   }
 
-  /**
-   * Flushes the input emitting all pending tokens.
-   */
   flush(): void {
     this.#emitPrev();
   }
