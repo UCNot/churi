@@ -13,7 +13,7 @@ import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
-  UC_TOKEN_EMBED,
+  UC_TOKEN_INSET,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
   UcToken,
@@ -38,7 +38,7 @@ describe('UcPlainTextLexer', () => {
         models: {
           readValue: ucString(),
         },
-        embed: code => {
+        inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
           code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
@@ -49,11 +49,11 @@ describe('UcPlainTextLexer', () => {
     });
 
     it('generates string synchronously', () => {
-      expect(readValue([UC_TOKEN_EMBED, `'test'`, UC_TOKEN_EMBED])).toBe(`'test'`);
+      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET])).toBe(`'test'`);
     });
 
     it('generates string asynchronously', async () => {
-      await expect(readValue(readTokens(UC_TOKEN_EMBED, `'test'`, UC_TOKEN_EMBED))).resolves.toBe(
+      await expect(readValue(readTokens(UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET))).resolves.toBe(
         `'test'`,
       );
     });
@@ -67,7 +67,7 @@ describe('UcPlainTextLexer', () => {
         models: {
           readList: ucList<UcString>(ucString()),
         },
-        embed: code => {
+        inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
           code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
@@ -82,10 +82,10 @@ describe('UcPlainTextLexer', () => {
         readList([
           'start',
           UC_TOKEN_COMMA,
-          UC_TOKEN_EMBED,
+          UC_TOKEN_INSET,
           `'te`,
           `st'`,
-          UC_TOKEN_EMBED,
+          UC_TOKEN_INSET,
           UC_TOKEN_COMMA,
           UC_TOKEN_APOSTROPHE,
           'end',
@@ -99,10 +99,10 @@ describe('UcPlainTextLexer', () => {
           readTokens(
             'start',
             UC_TOKEN_COMMA,
-            UC_TOKEN_EMBED,
+            UC_TOKEN_INSET,
             `'te`,
             `st'`,
-            UC_TOKEN_EMBED,
+            UC_TOKEN_INSET,
             UC_TOKEN_COMMA,
             UC_TOKEN_APOSTROPHE,
             'end',
@@ -120,7 +120,7 @@ describe('UcPlainTextLexer', () => {
         models: {
           readMap: ucMap({ foo: ucNumber(), bar: ucString(), baz: ucString() }),
         },
-        embed: code => {
+        inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
           code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
@@ -140,10 +140,10 @@ describe('UcPlainTextLexer', () => {
           'bar',
           UC_TOKEN_OPENING_PARENTHESIS,
           UC_TOKEN_PREFIX_SPACE || 2 << 8,
-          UC_TOKEN_EMBED,
+          UC_TOKEN_INSET,
           `'te`,
           `st'`,
-          UC_TOKEN_EMBED,
+          UC_TOKEN_INSET,
           UC_TOKEN_PREFIX_SPACE || 2 << 8,
           UC_TOKEN_CLOSING_PARENTHESIS,
           'baz',
@@ -166,10 +166,10 @@ describe('UcPlainTextLexer', () => {
             'bar',
             UC_TOKEN_OPENING_PARENTHESIS,
             UC_TOKEN_PREFIX_SPACE || 2 << 8,
-            UC_TOKEN_EMBED,
+            UC_TOKEN_INSET,
             `'te`,
             `st'`,
-            UC_TOKEN_EMBED,
+            UC_TOKEN_INSET,
             UC_TOKEN_PREFIX_SPACE || 2 << 8,
             UC_TOKEN_CLOSING_PARENTHESIS,
             'baz',
@@ -196,14 +196,14 @@ describe('UcPlainTextLexer', () => {
       ({ readValue } = await compiler.evaluate());
     });
 
-    it('signals error on embedded input', () => {
-      expect(readValue([UC_TOKEN_EMBED, `'test'`, UC_TOKEN_EMBED], { onError })).toBe(``);
+    it('errors on inset', () => {
+      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET], { onError })).toBe(``);
 
       expect(errors).toEqual([
         {
-          code: 'unrecognizedInput',
+          code: 'unexpectedInset',
           path: [{}],
-          message: 'Unrecognized embedded input',
+          message: 'Unrecognized inset',
         },
       ]);
     });

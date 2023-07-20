@@ -350,7 +350,7 @@ export namespace UcdCompiler {
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
-    readonly embed?: EsSnippet | undefined;
+    readonly inset?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(

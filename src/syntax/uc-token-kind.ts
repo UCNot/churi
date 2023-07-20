@@ -2,7 +2,7 @@ import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
   UC_TOKEN_CR,
-  UC_TOKEN_EMBED,
+  UC_TOKEN_INSET,
   UC_TOKEN_LF,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
@@ -47,7 +47,7 @@ export function ucTokenKind(token: UcToken): UcTokenKind {
     case UC_TOKEN_OPENING_PARENTHESIS:
     case UC_TOKEN_CLOSING_PARENTHESIS:
       return UC_TOKEN_KIND_BOUND;
-    case UC_TOKEN_EMBED:
+    case UC_TOKEN_INSET:
       return UC_TOKEN_KIND_CONTROL;
     default:
       return UC_TOKEN_KIND_DELIMITER;

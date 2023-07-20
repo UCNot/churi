@@ -82,8 +82,8 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
-  emb(emit: (token: UcToken) => void): UcInputLexer;
-  emb(_emit: (token: UcToken) => void): UcInputLexer {
+  ins(emit: (token: UcToken) => void): UcInputLexer;
+  ins(_emit: (token: UcToken) => void): UcInputLexer {
     return ucOpaqueLexer;
   }
 

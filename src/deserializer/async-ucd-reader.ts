@@ -40,7 +40,7 @@ export class AsyncUcdReader extends UcdReader {
     await ucdReadValue(this, new UcrxHandle(this, rx, [{}]), false);
   }
 
-  override async readEmbeds(
+  override async readInset(
     rx: Ucrx,
     createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
     single: boolean,
@@ -48,7 +48,7 @@ export class AsyncUcdReader extends UcdReader {
     this.skip();
 
     this.#reader.releaseLock();
-    this.#stream = this.#stream.pipeThrough(new UcEmbedsStream(createLexer));
+    this.#stream = this.#stream.pipeThrough(new UcInsetStream(createLexer));
     this.#reader = this.#stream.getReader();
 
     await ucdReadValue(this, new UcrxHandle(this, rx, [{}]), single);
@@ -150,7 +150,7 @@ export class AsyncUcdReader extends UcdReader {
 
 }
 
-export class UcEmbedsStream extends TransformStream<UcToken, UcToken> {
+export class UcInsetStream extends TransformStream<UcToken, UcToken> {
 
   constructor(createLexer: (emit: (token: UcToken) => void) => UcInputLexer) {
     let lexer: UcInputLexer;

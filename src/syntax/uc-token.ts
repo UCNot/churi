@@ -1,11 +1,11 @@
 /**
- * Embedded input bounds enclose the tokens that considered an _embedded input_ chunks rather normal tokens.
- * The embedded input supposed to be processed by appropriate {@link UcInputLexer input lexer}.
+ * _Inset_ bounds enclose the tokens that considered as input chunks rather normal tokens.
+ * The _inset_ supposed to be processed by appropriate {@link UcInputLexer input lexer}.
  * The bounds themselves are control tokens to be ignored.
  *
- * Embedded input expected at value position and nowhere else. E.g. it can't present in the middle of a string.
+ * _Inset_ expected at value position and nowhere else. E.g. it can't be inserted into the middle of a string.
  */
-export const UC_TOKEN_EMBED = 0x1f;
+export const UC_TOKEN_INSET = 0x1f;
 
 // Line terminators.
 export const UC_TOKEN_LF = 0x0a as const;
@@ -62,8 +62,8 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *   Such padding always emitted for spaces and tabs around [reserved characters], line terminators, after input
  *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
- * - Number corresponding to {@link UC_TOKEN_EMBED input bound}. The tokens between input bounds considered an
- *   _embedded input_ chunks to be processed by appropriate {@link UcInputLexer input lexer}.
+ * - Number corresponding to {@link UC_TOKEN_INSET inset bound}. The tokens between inset bounds considered as
+ *   input chunks to be processed by appropriate {@link UcInputLexer input lexer}.
  *
  * [percent-decoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
  * [reserved characters]: https://www.rfc-editor.org/rfc/rfc3986#section-2.2

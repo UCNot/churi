@@ -14,8 +14,8 @@ import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
-  UC_TOKEN_EMBED,
   UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_INSET,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../../syntax/uc-token.js';
@@ -81,8 +81,8 @@ export async function ucdReadValue(
     }
 
     hasValue = true;
-  } else if (firstToken === UC_TOKEN_EMBED) {
-    await reader.readEmbeds(rx.rx, emit => rx.emb(emit), single);
+  } else if (firstToken === UC_TOKEN_INSET) {
+    await reader.readInset(rx.rx, emit => rx.ins(emit), single);
     await ucdSkipWhitespace(reader);
 
     if (single) {

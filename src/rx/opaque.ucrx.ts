@@ -18,18 +18,18 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     // Ignore metadata.
   }
 
-  override emb(emit: (token: UcToken) => void): UcInputLexer;
-  override emb(_emit: (token: UcToken) => void): UcInputLexer {
+  override ins(emit: (token: UcToken) => void): UcInputLexer;
+  override ins(_emit: (token: UcToken) => void): UcInputLexer {
     return ucOpaqueLexer;
+  }
+
+  override nls(): this {
+    return this;
   }
 
   override raw(value: string): 1;
   override raw(_value: string): 1 {
     return 1;
-  }
-
-  override nls(): this {
-    return this;
   }
 
   override for(key: PropertyKey): this;

@@ -29,17 +29,17 @@ export class VoidUcrx implements Ucrx {
     return ['void'];
   }
 
+  att(attr: string, cx: UcrxContext): Ucrx | undefined;
+  att(_attr: string, _cx: UcrxContext): undefined {
+    // Ignore metadata.
+  }
+
   bol(value: boolean, cx: UcrxContext): 0 | 1 {
     return this.any(value) || cx.reject(ucrxRejectType('boolean', this));
   }
 
   big(value: bigint, cx: UcrxContext): 0 | 1 {
     return this.any(value) || cx.reject(ucrxRejectType('bigint', this));
-  }
-
-  emb(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
-  emb(_emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
-    // Embedded input not expected by default.
   }
 
   ent(name: string, cx: UcrxContext): 0 | 1 {
@@ -50,9 +50,9 @@ export class VoidUcrx implements Ucrx {
     return this.any(new UcFormatted(format, data)) || cx.reject(ucrxRejectFormat(format, data));
   }
 
-  att(attr: string, cx: UcrxContext): Ucrx | undefined;
-  att(_attr: string, _cx: UcrxContext): undefined {
-    // Ignore metadata.
+  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
+  ins(_emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
+    // Inset is not expected by default.
   }
 
   nls(cx: UcrxContext): Ucrx | undefined {

@@ -88,21 +88,6 @@ export class UcrxHandle implements UcrxContext {
     this.#rx.bol(value, this);
   }
 
-  emb(emit: (token: UcToken) => void): UcInputLexer {
-    const lexer = this.#rx.emb(emit, this) ?? this.#reader.embed(this)?.(emit);
-
-    if (lexer) {
-      return lexer;
-    }
-
-    this.#reject({
-      code: 'unrecognizedInput',
-      message: 'Unrecognized embedded input',
-    });
-
-    return ucOpaqueLexer;
-  }
-
   ent(entity: string): void {
     if (!this.onEntity(entity)) {
       // Process entity.
@@ -114,6 +99,21 @@ export class UcrxHandle implements UcrxContext {
     if (!this.onFormat(format, data)) {
       this.#rx.fmt(format, data, this);
     }
+  }
+
+  ins(emit: (token: UcToken) => void): UcInputLexer {
+    const lexer = this.#rx.ins(emit, this) ?? this.#reader.inset(this)?.(emit);
+
+    if (lexer) {
+      return lexer;
+    }
+
+    this.#reject({
+      code: 'unexpectedInset',
+      message: 'Unrecognized inset',
+    });
+
+    return ucOpaqueLexer;
   }
 
   nls(beforeComma: boolean): UcrxHandle {

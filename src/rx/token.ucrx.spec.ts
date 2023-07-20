@@ -24,7 +24,7 @@ describe('TokenUcrx', () => {
 
   describe('emb', () => {
     it('returns ucOpaqueLexer', () => {
-      expect(new TokenUcrx(noop).emb(noop)).toBe(ucOpaqueLexer);
+      expect(new TokenUcrx(noop).ins(noop)).toBe(ucOpaqueLexer);
     });
   });
 

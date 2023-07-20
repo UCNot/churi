@@ -55,16 +55,6 @@ export interface Ucrx {
   big(value: bigint, cx: UcrxContext): 0 | 1;
 
   /**
-   * Called to start embedded input tokenization.
-   *
-   * @param emit - Emitter function called each time a token is found.
-   * @param cx - Charge processing context.
-   *
-   * @returns Either input lexer, or `undefined` if embedded input is not expected..
-   */
-  emb(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
-
-  /**
    * Charges opaque (unrecognized) entity.
    *
    * Called for unhandled entities.
@@ -86,6 +76,16 @@ export interface Ucrx {
    * @returns Either `1` if charge succeed, or `0` for unexpected data.
    */
   fmt(format: string, data: readonly UcToken[], cx: UcrxContext): 0 | 1;
+
+  /**
+   * Called to start inset tokenization.
+   *
+   * @param emit - Emitter function called each time a token is found.
+   * @param cx - Charge processing context.
+   *
+   * @returns Either input lexer, or `undefined` if inset is not expected..
+   */
+  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
 
   /**
    * Charges nested list.

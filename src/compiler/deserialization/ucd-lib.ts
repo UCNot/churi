@@ -114,8 +114,8 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
     return this.#onMeta;
   }
 
-  get embed(): EsSnippet | undefined {
-    return this.#options.embed;
+  get inset(): EsSnippet | undefined {
+    return this.#options.inset;
   }
 
   deserializerFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
@@ -152,7 +152,7 @@ export namespace UcdLib {
     formats(this: void, exportNs?: EsNamespace): EsSnippet;
     meta(this: void, exportNs?: EsNamespace): EsSnippet;
     onMeta?: EsSnippet | undefined;
-    readonly embed?: EsSnippet | undefined;
+    readonly inset?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(

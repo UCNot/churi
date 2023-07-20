@@ -38,16 +38,16 @@ export class SyncUcdReader extends UcdReader {
     ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), false);
   }
 
-  override readEmbeds(
+  override readInset(
     rx: Ucrx,
     createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
     single: boolean,
   ): Promise<void> | void {
-    this.#unwrapEmbeds(createLexer);
+    this.#unwrapInset(createLexer);
     ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), single);
   }
 
-  #unwrapEmbeds(createLexer: (emit: (token: UcToken) => void) => UcInputLexer): void {
+  #unwrapInset(createLexer: (emit: (token: UcToken) => void) => UcInputLexer): void {
     const tokens = this.#tokens;
     const newTokens = [];
     const lexer = createLexer(token => newTokens.push(token));
@@ -59,7 +59,7 @@ export class SyncUcdReader extends UcdReader {
       const chunk = tokens[end++];
 
       if (typeof chunk === 'number') {
-        // Embedded input expected to end with input bound.
+        // Inset expected to end with input bound.
         break;
       }
 

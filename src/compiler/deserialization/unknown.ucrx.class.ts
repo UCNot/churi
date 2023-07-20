@@ -315,7 +315,7 @@ export class UnknownUcrxClass extends UcrxClass {
       if (
         !declared
         && member instanceof UcrxMethod
-        && member !== UcrxCore.emb
+        && member !== UcrxCore.ins
         && member !== UcrxCore.raw
       ) {
         this.#declareMethod(member);
