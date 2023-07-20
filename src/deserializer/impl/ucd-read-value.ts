@@ -83,7 +83,6 @@ export async function ucdReadValue(
     hasValue = true;
   } else if (firstToken === UC_TOKEN_INSET) {
     await reader.readInset(rx.rx, emit => rx.ins(emit), single);
-    await ucdSkipWhitespace(reader);
 
     if (single) {
       return;

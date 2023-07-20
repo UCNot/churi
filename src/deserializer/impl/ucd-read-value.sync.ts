@@ -9,23 +9,23 @@
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { trimUcTokensTail } from '../../syntax/trim-uc-tokens-tail.js';
 import {
-    UC_TOKEN_KIND_BOUND,
-    UC_TOKEN_KIND_IS_WHITESPACE,
-    UC_TOKEN_KIND_NL,
-    isUcBoundToken,
-    isUcParenthesisToken,
-    isWhitespaceUcToken,
-    ucTokenKind,
+  UC_TOKEN_KIND_BOUND,
+  UC_TOKEN_KIND_IS_WHITESPACE,
+  UC_TOKEN_KIND_NL,
+  isUcBoundToken,
+  isUcParenthesisToken,
+  isWhitespaceUcToken,
+  ucTokenKind,
 } from '../../syntax/uc-token-kind.js';
 import {
-    UC_TOKEN_APOSTROPHE,
-    UC_TOKEN_CLOSING_PARENTHESIS,
-    UC_TOKEN_COMMA,
-    UC_TOKEN_DOLLAR_SIGN,
-    UC_TOKEN_EXCLAMATION_MARK,
-    UC_TOKEN_INSET,
-    UC_TOKEN_OPENING_PARENTHESIS,
-    UcToken,
+  UC_TOKEN_APOSTROPHE,
+  UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_COMMA,
+  UC_TOKEN_DOLLAR_SIGN,
+  UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_INSET,
+  UC_TOKEN_OPENING_PARENTHESIS,
+  UcToken,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
 import { appendUcTokens } from './append-uc-token.js';
@@ -91,7 +91,6 @@ export function ucdReadValueSync(
     hasValue = true;
   } else if (firstToken === UC_TOKEN_INSET) {
     reader.readInset(rx.rx, emit => rx.ins(emit), single);
-    ucdSkipWhitespaceSync(reader);
 
     if (single) {
       return;

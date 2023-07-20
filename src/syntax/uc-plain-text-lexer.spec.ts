@@ -9,6 +9,7 @@ import { UcNumber, ucNumber } from '../schema/numeric/uc-number.js';
 import { UcString, ucString } from '../schema/string/uc-string.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcErrorInfo } from '../schema/uc-error.js';
+import { ucUnknown } from '../schema/unknown/uc-unknown.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -31,12 +32,12 @@ describe('UcPlainTextLexer', () => {
   }
 
   describe('at top level', () => {
-    let readValue: UcDeserializer<UcString>;
+    let readValue: UcDeserializer<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucString(),
+          readValue: ucUnknown(),
         },
         inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
@@ -50,12 +51,14 @@ describe('UcPlainTextLexer', () => {
 
     it('generates string synchronously', () => {
       expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET])).toBe(`'test'`);
+      expect(readValue([UC_TOKEN_INSET, `3d`, UC_TOKEN_INSET])).toBe(`3d`);
     });
 
     it('generates string asynchronously', async () => {
       await expect(readValue(readTokens(UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET))).resolves.toBe(
         `'test'`,
       );
+      await expect(readValue(readTokens(UC_TOKEN_INSET, `3d`, UC_TOKEN_INSET))).resolves.toBe(`3d`);
     });
   });
 
@@ -139,12 +142,13 @@ describe('UcPlainTextLexer', () => {
           UC_TOKEN_CLOSING_PARENTHESIS,
           'bar',
           UC_TOKEN_OPENING_PARENTHESIS,
-          UC_TOKEN_PREFIX_SPACE || 2 << 8,
+          UC_TOKEN_PREFIX_SPACE | (2 << 8),
           UC_TOKEN_INSET,
           `'te`,
           `st'`,
           UC_TOKEN_INSET,
-          UC_TOKEN_PREFIX_SPACE || 2 << 8,
+          UC_TOKEN_PREFIX_SPACE | (2 << 8),
+          '!',
           UC_TOKEN_CLOSING_PARENTHESIS,
           'baz',
           UC_TOKEN_OPENING_PARENTHESIS,
@@ -152,7 +156,7 @@ describe('UcPlainTextLexer', () => {
           'end',
           UC_TOKEN_CLOSING_PARENTHESIS,
         ]),
-      ).toEqual({ foo: 13, bar: `'test'`, baz: 'end' });
+      ).toEqual({ foo: 13, bar: `'test'   !`, baz: 'end' });
     });
 
     it('generates string item asynchronously', async () => {
@@ -165,12 +169,13 @@ describe('UcPlainTextLexer', () => {
             UC_TOKEN_CLOSING_PARENTHESIS,
             'bar',
             UC_TOKEN_OPENING_PARENTHESIS,
-            UC_TOKEN_PREFIX_SPACE || 2 << 8,
+            UC_TOKEN_PREFIX_SPACE | (2 << 8),
             UC_TOKEN_INSET,
             `'te`,
             `st'`,
             UC_TOKEN_INSET,
-            UC_TOKEN_PREFIX_SPACE || 2 << 8,
+            UC_TOKEN_PREFIX_SPACE | (2 << 8),
+            '!',
             UC_TOKEN_CLOSING_PARENTHESIS,
             'baz',
             UC_TOKEN_OPENING_PARENTHESIS,
@@ -179,7 +184,7 @@ describe('UcPlainTextLexer', () => {
             UC_TOKEN_CLOSING_PARENTHESIS,
           ),
         ),
-      ).resolves.toEqual({ foo: 13, bar: `'test'`, baz: 'end' });
+      ).resolves.toEqual({ foo: 13, bar: `'test'   !`, baz: 'end' });
     });
   });
 
