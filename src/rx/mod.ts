@@ -7,6 +7,7 @@ export * from './meta.ucrx.js';
 export * from './opaque.ucrx.js';
 export * from './token.ucrx.js';
 export * from './ucrx-context.js';
+export * from './ucrx-inset-syntax.js';
 export * from './ucrx-rejection.js';
 export * from './ucrx.js';
 export * from './uctx-mode.js';

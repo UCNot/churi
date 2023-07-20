@@ -1,5 +1,5 @@
+import { UcrxInsetLexer } from '../rx/ucrx-inset-syntax.js';
 import { Ucrx } from '../rx/ucrx.js';
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
@@ -40,14 +40,14 @@ export class SyncUcdReader extends UcdReader {
 
   override readInset(
     rx: Ucrx,
-    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer,
     single: boolean,
   ): Promise<void> | void {
     this.#unwrapInset(createLexer);
     ucdReadValueSync(this, new UcrxHandle(this, rx, [{}]), single);
   }
 
-  #unwrapInset(createLexer: (emit: (token: UcToken) => void) => UcInputLexer): void {
+  #unwrapInset(createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer): void {
     const tokens = this.#tokens;
     const newTokens = [];
     const lexer = createLexer(token => newTokens.push(token));

@@ -1,5 +1,5 @@
+import { UcrxInsetLexer } from '../rx/ucrx-inset-syntax.js';
 import { Ucrx } from '../rx/ucrx.js';
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValue } from './impl/ucd-read-value.js';
 import { UcrxHandle } from './impl/ucrx-handle.js';
@@ -42,7 +42,7 @@ export class AsyncUcdReader extends UcdReader {
 
   override async readInset(
     rx: Ucrx,
-    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer,
     single: boolean,
   ): Promise<void> {
     this.skip();
@@ -152,8 +152,8 @@ export class AsyncUcdReader extends UcdReader {
 
 export class UcInsetStream extends TransformStream<UcToken, UcToken> {
 
-  constructor(createLexer: (emit: (token: UcToken) => void) => UcInputLexer) {
-    let lexer: UcInputLexer;
+  constructor(createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer) {
+    let lexer: UcrxInsetLexer;
     let pass = (token: UcToken, _controller: TransformStreamDefaultController<UcToken>): void => {
       if (typeof token === 'number') {
         lexer.flush();

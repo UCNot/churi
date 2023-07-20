@@ -1,10 +1,10 @@
 import { MetaUcrx } from '../rx/meta.ucrx.js';
 import { OpaqueUcrx } from '../rx/opaque.ucrx.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
+import { UcrxInsetLexer, UcrxInsetSyntax } from '../rx/ucrx-inset-syntax.js';
 import { Ucrx } from '../rx/ucrx.js';
 import { UcDeserializer } from '../schema/uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../schema/uc-error.js';
-import { UcInputLexer, UcInputLexerFactory } from '../syntax/uc-input-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 
 export abstract class UcdReader {
@@ -15,7 +15,7 @@ export abstract class UcdReader {
   readonly #entities: Exclude<UcdReader.Options['entities'], undefined>;
   readonly #formats: Exclude<UcdReader.Options['formats'], undefined>;
   readonly #onMeta: MetaUcrx;
-  readonly #inset: ((cx: UcrxContext) => UcInputLexerFactory | undefined) | undefined;
+  readonly #inset: UcrxInsetSyntax | undefined;
 
   constructor(options?: UcDeserializer.Options);
 
@@ -45,8 +45,8 @@ export abstract class UcdReader {
     return this.#opaqueRx;
   }
 
-  inset(cx: UcrxContext): UcInputLexerFactory | undefined {
-    return this.#inset?.(cx);
+  inset(emit: (token: UcToken) => void, cx: UcrxContext): UcrxInsetLexer | undefined {
+    return this.#inset?.(emit, cx);
   }
 
   abstract hasNext(): boolean;
@@ -65,7 +65,7 @@ export abstract class UcdReader {
 
   abstract readInset(
     rx: Ucrx,
-    createLexer: (emit: (token: UcToken) => void) => UcInputLexer,
+    createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer,
     single: boolean,
   ): Promise<void> | void;
 
@@ -102,18 +102,7 @@ export abstract class UcdReader {
 export namespace UcdReader {
   export interface Options extends UcDeserializer.Options {
     readonly opaqueRx?: Ucrx | undefined;
-    /**
-     * Creates a lexer for _inset_. I.e. the input chunks enclosed into {@link churi!UC_TOKEN_INSET inset bounds}.
-     *
-     * Once an inset is encountered, the deserializer would try to use the lexer defined by {@link churi!Ucrx#ins
-     * charge receiver}. If the latter is not defined, it will try to use the one created by this method.
-     * If that fails, an error will be reported.
-     *
-     * @param cx - Charge processing context.
-     *
-     * @returns Either input lexer factory, or `undefined` if an inset is not expected.
-     */
-    readonly inset?: ((cx: UcrxContext) => UcInputLexerFactory | undefined) | undefined;
+    readonly inset?: UcrxInsetSyntax | undefined;
   }
 }
 

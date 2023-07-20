@@ -41,7 +41,7 @@ describe('UcPlainTextLexer', () => {
         inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
+          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
         },
       });
 
@@ -70,7 +70,7 @@ describe('UcPlainTextLexer', () => {
         inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
+          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
         },
       });
 
@@ -123,7 +123,7 @@ describe('UcPlainTextLexer', () => {
         inset: code => {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`() => emit => new ${UcPlainTextLexer}(emit)`);
+          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
         },
       });
 
