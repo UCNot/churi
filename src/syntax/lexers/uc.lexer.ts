@@ -35,6 +35,22 @@ import {
 export class UcLexer implements UcInputLexer {
 
   /**
+   * Constructs URI charge lexer for URI query parameters.
+   *
+   * In contrast to regular lexer, this one decodes _plus sign_ (`"+" (U+002B)`) as
+   * {@link UC_TOKEN_PREFIX_SPACE space padding}.
+   *
+   * @param emit - Emitter function called each time a token is found.
+   */
+  static forParams(emit: (token: UcToken) => void): UcLexer {
+    const lexer = new UcLexer(emit);
+
+    lexer.#tokens = this.#paramTokens;
+
+    return lexer;
+  }
+
+  /**
    * Scans the `input` string for URI charge {@link UcToken tokens}.
    *
    * @param input - Array of input chunks to scan.
@@ -42,10 +58,23 @@ export class UcLexer implements UcInputLexer {
    * @returns Array of tokens.
    */
   static scan(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new UcLexer(emit), ...input);
+    return scanUcTokens(emit => new this(emit), ...input);
   }
 
-  static readonly #tokens: { [token: string]: (lexer: UcLexer) => void } = {
+  /**
+   * Scans the `input` string for URI query parameter charge {@link UcToken tokens}.
+   *
+   * In contrast to {@link scan}, decodes _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space padding}.
+   *
+   * @param input - Array of input chunks to scan.
+   *
+   * @returns Array of tokens.
+   */
+  static scanParam(...input: string[]): UcToken[] {
+    return scanUcTokens(emit => this.forParams(emit), ...input);
+  }
+
+  static readonly #ucTokens: { readonly [token: string]: (lexer: UcLexer) => void } = {
     '\r': lexer => lexer.#addCR(),
     '\n': lexer => lexer.#emitLF(),
     '(': lexer => lexer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
@@ -68,7 +97,13 @@ export class UcLexer implements UcInputLexer {
     ']': lexer => lexer.#emitReserved(UC_TOKEN_CLOSING_BRACKET),
   };
 
+  static readonly #paramTokens: { readonly [token: string]: (lexer: UcLexer) => void } = {
+    ...this.#ucTokens,
+    '+': lexer => lexer.#addString(' '),
+  };
+
   readonly #emit: (token: UcToken) => void;
+  #tokens: { readonly [token: string]: (lexer: UcLexer) => void } = UcLexer.#ucTokens;
   #prev: string | typeof UC_TOKEN_CR | 0 = 0;
 
   /**
@@ -88,7 +123,7 @@ export class UcLexer implements UcInputLexer {
 
   #add(token: string): void {
     if (token.length === 1) {
-      const emitter = UcLexer.#tokens[token];
+      const emitter = this.#tokens[token];
 
       if (emitter) {
         return emitter(this);

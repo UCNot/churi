@@ -207,4 +207,19 @@ describe('UcLexer', () => {
 
     expect(tokens).toEqual([input]);
   });
+
+  describe('scanParam', () => {
+    it('decodes plus sign as space', () => {
+      expect(UcLexer.scanParam('abc++', '++def')).toEqual(['abc    def']);
+    });
+    it('decodes plus sign as space padding', () => {
+      expect(UcLexer.scanParam('++++abcdef')).toEqual([
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        'abcdef',
+      ]);
+    });
+  });
 });
