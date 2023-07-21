@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream';
+import { UcLexer } from '../syntax/lexers/uc.lexer.js';
 import { UcLexerStream } from '../syntax/uc-lexer-stream.js';
-import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 
 export function readChunks(...chunks: string[]): ReadableStream<string> {

@@ -1,5 +1,5 @@
+import { UcLexer } from './lexers/uc.lexer.js';
 import { UcInputLexer } from './uc-input-lexer.js';
-import { UcLexer } from './uc-lexer.js';
 import { UcToken } from './uc-token.js';
 
 /**

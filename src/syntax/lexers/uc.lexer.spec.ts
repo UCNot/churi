@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcLexer } from './uc-lexer.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -25,7 +24,8 @@ import {
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
   UcToken,
-} from './uc-token.js';
+} from '../uc-token.js';
+import { UcLexer } from './uc.lexer.js';
 
 describe('UcLexer', () => {
   let tokenizer: UcLexer;

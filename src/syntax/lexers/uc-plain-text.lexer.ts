@@ -1,5 +1,5 @@
-import { UcInputLexer } from './uc-input-lexer.js';
-import { UC_TOKEN_APOSTROPHE, UcToken } from './uc-token.js';
+import { UcInputLexer } from '../uc-input-lexer.js';
+import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
 
 /**
  * Plain text lexer.

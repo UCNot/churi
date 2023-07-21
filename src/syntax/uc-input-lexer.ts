@@ -18,15 +18,3 @@ export interface UcInputLexer {
    */
   flush(): void;
 }
-
-/**
- * Charge input lexer that ignores the input.
- */
-export const ucOpaqueLexer: UcInputLexer = {
-  scan(_chunk) {
-    // Ignore input.
-  },
-  flush() {
-    // Nothing to flush.
-  },
-};

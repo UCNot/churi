@@ -1,4 +1,4 @@
-import { UcInputLexer } from './uc-input-lexer.js';
+import { UcInputLexer } from '../uc-input-lexer.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -22,7 +22,7 @@ import {
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
   UcToken,
-} from './uc-token.js';
+} from '../uc-token.js';
 
 /**
  * URI charge lexer that splits input string(s) onto tokens.
