@@ -2,7 +2,8 @@ import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { parseTokens, readTokens } from '../../spec/read-chunks.js';
+import { readTokens } from '../../spec/read-chunks.js';
+import { UcLexer } from '../../syntax/lexers/uc.lexer.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcDataType } from '../uc-schema.js';
@@ -45,8 +46,8 @@ describe('UcNumber deserializer', () => {
 
       const { parseValue } = await compiler.evaluate();
 
-      expect(parseValue(parseTokens('123'))).toBe(123);
-      expect(parseValue(parseTokens('-123'))).toBe(-123);
+      expect(parseValue(UcLexer.scan('123'))).toBe(123);
+      expect(parseValue(UcLexer.scan('-123'))).toBe(-123);
     });
     it('deserializes number from string', async () => {
       const compiler = new UcdCompiler({

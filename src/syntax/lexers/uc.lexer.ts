@@ -1,3 +1,4 @@
+import { scanUcTokens } from '../scan-uc-tokens.js';
 import { UcInputLexer } from '../uc-input-lexer.js';
 import {
   UC_TOKEN_AMPERSAND,
@@ -36,48 +37,42 @@ export class UcLexer implements UcInputLexer {
   /**
    * Scans the `input` string for URI charge {@link UcToken tokens}.
    *
-   * @param input - String to scan.
+   * @param input - Array of input chunks to scan.
    *
    * @returns Array of tokens.
    */
-  static scan(input: string): UcToken[] {
-    const tokens: UcToken[] = [];
-    const tokenizer = new UcLexer(token => tokens.push(token));
-
-    tokenizer.scan(input);
-    tokenizer.flush();
-
-    return tokens;
+  static scan(...input: string[]): UcToken[] {
+    return scanUcTokens(emit => new UcLexer(emit), ...input);
   }
 
-  static readonly #tokens: { [token: string]: (tokenizer: UcLexer) => void } = {
-    '\r': tokenizer => tokenizer.#addCR(),
-    '\n': tokenizer => tokenizer.#emitLF(),
-    '(': tokenizer => tokenizer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
-    ')': tokenizer => tokenizer.#emitReserved(UC_TOKEN_CLOSING_PARENTHESIS),
-    ',': tokenizer => tokenizer.#emitReserved(UC_TOKEN_COMMA),
-    '!': tokenizer => tokenizer.#emitReserved(UC_TOKEN_EXCLAMATION_MARK),
-    '#': tokenizer => tokenizer.#emitReserved(UC_TOKEN_HASH),
-    $: tokenizer => tokenizer.#emitReserved(UC_TOKEN_DOLLAR_SIGN),
-    '&': tokenizer => tokenizer.#emitReserved(UC_TOKEN_AMPERSAND),
-    "'": tokenizer => tokenizer.#emitReserved(UC_TOKEN_APOSTROPHE),
-    '*': tokenizer => tokenizer.#emitReserved(UC_TOKEN_ASTERISK),
-    '+': tokenizer => tokenizer.#emitReserved(UC_TOKEN_PLUS_SIGN),
-    '/': tokenizer => tokenizer.#emitReserved(UC_TOKEN_SLASH),
-    ':': tokenizer => tokenizer.#emitReserved(UC_TOKEN_COLON),
-    ';': tokenizer => tokenizer.#emitReserved(UC_TOKEN_SEMICOLON),
-    '=': tokenizer => tokenizer.#emitReserved(UC_TOKEN_EQUALS_SIGN),
-    '?': tokenizer => tokenizer.#emitReserved(UC_TOKEN_QUESTION_MARK),
-    '@': tokenizer => tokenizer.#emitReserved(UC_TOKEN_AT_SIGN),
-    '[': tokenizer => tokenizer.#emitReserved(UC_TOKEN_OPENING_BRACKET),
-    ']': tokenizer => tokenizer.#emitReserved(UC_TOKEN_CLOSING_BRACKET),
+  static readonly #tokens: { [token: string]: (lexer: UcLexer) => void } = {
+    '\r': lexer => lexer.#addCR(),
+    '\n': lexer => lexer.#emitLF(),
+    '(': lexer => lexer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
+    ')': lexer => lexer.#emitReserved(UC_TOKEN_CLOSING_PARENTHESIS),
+    ',': lexer => lexer.#emitReserved(UC_TOKEN_COMMA),
+    '!': lexer => lexer.#emitReserved(UC_TOKEN_EXCLAMATION_MARK),
+    '#': lexer => lexer.#emitReserved(UC_TOKEN_HASH),
+    $: lexer => lexer.#emitReserved(UC_TOKEN_DOLLAR_SIGN),
+    '&': lexer => lexer.#emitReserved(UC_TOKEN_AMPERSAND),
+    "'": lexer => lexer.#emitReserved(UC_TOKEN_APOSTROPHE),
+    '*': lexer => lexer.#emitReserved(UC_TOKEN_ASTERISK),
+    '+': lexer => lexer.#emitReserved(UC_TOKEN_PLUS_SIGN),
+    '/': lexer => lexer.#emitReserved(UC_TOKEN_SLASH),
+    ':': lexer => lexer.#emitReserved(UC_TOKEN_COLON),
+    ';': lexer => lexer.#emitReserved(UC_TOKEN_SEMICOLON),
+    '=': lexer => lexer.#emitReserved(UC_TOKEN_EQUALS_SIGN),
+    '?': lexer => lexer.#emitReserved(UC_TOKEN_QUESTION_MARK),
+    '@': lexer => lexer.#emitReserved(UC_TOKEN_AT_SIGN),
+    '[': lexer => lexer.#emitReserved(UC_TOKEN_OPENING_BRACKET),
+    ']': lexer => lexer.#emitReserved(UC_TOKEN_CLOSING_BRACKET),
   };
 
   readonly #emit: (token: UcToken) => void;
   #prev: string | typeof UC_TOKEN_CR | 0 = 0;
 
   /**
-   * Constructs URI charge tokenizer.
+   * Constructs URI charge lexer.
    *
    * @param emit - Emitter function called each time a token is found.
    */
