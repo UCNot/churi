@@ -56,7 +56,7 @@ export class UcdCompiler<
     const { models, validate = true, features } = options;
 
     super({
-      names: validate ? ['validator', 'deserializer'] : ['deserializer'],
+      processorNames: validate ? ['validator', 'deserializer'] : ['deserializer'],
       models: Object.values(models).map(entry => (isUcdModelConfig(entry) ? entry[1] : entry)),
       features,
     });

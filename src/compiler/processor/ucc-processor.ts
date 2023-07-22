@@ -1,6 +1,11 @@
 import { asArray, lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { esQuoteKey, esStringLiteral } from 'esgen';
-import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import {
+  UcConstraints,
+  UcFeatureConstraint,
+  UcProcessorName,
+} from '../../schema/uc-constraints.js';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
@@ -29,21 +34,22 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ names, models, features }: UccProcessorInit<TProcessor>) {
-    this.#schemaIndex = new UccSchemaIndex(asArray<UcProcessorName>(names));
+  constructor({
+    processorNames,
+    presentationNames = ['charge'] as const,
+    models,
+    features,
+  }: UccProcessorInit<TProcessor>) {
+    this.#schemaIndex = new UccSchemaIndex(
+      asArray<UcProcessorName>(processorNames),
+      asArray<UcPresentationName>(presentationNames),
+    );
     this.#models = models;
     this.#features = features && asArray(features);
   }
 
   get schemaIndex(): UccSchemaIndex {
     return this.#schemaIndex;
-  }
-
-  /**
-   * Processor names within {@link churi!UcConstraints schema constraints}.
-   */
-  get names(): readonly UcProcessorName[] {
-    return this.schemaIndex.processors;
   }
 
   /**
@@ -113,11 +119,18 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    for (const name of this.names) {
-      asArray(schema.where?.[name]).forEach(useFeature => this.#useFeature(schema, useFeature));
+    this.#applyConstraints<T>(schema, schema.where);
+    for (const presentationName of this.schemaIndex.presentations) {
+      this.#applyConstraints(schema, schema.within?.[presentationName]);
     }
 
     return this;
+  }
+
+  #applyConstraints<T>(schema: UcSchema<T>, constraints: UcConstraints<T> | undefined): void {
+    for (const processorName of this.schemaIndex.processors) {
+      asArray(constraints?.[processorName]).forEach(useFeature => this.#useFeature(schema, useFeature));
+    }
   }
 
   #useFeature<TOptions>(
@@ -180,7 +193,14 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Processor names within {@link churi!UcConstraints schema constraints}.
    */
-  readonly names: UcProcessorName | readonly UcProcessorName[];
+  readonly processorNames: UcProcessorName | readonly UcProcessorName[];
+
+  /**
+   * Schema instance presentation names within {@link churi!UcPresentation presentation constraints}.
+   *
+   * @defaultValue `'charge'`
+   */
+  readonly presentationNames?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
   /**
    * Models with constraints to extract processing instructions from.

@@ -1,5 +1,6 @@
 import { asArray } from '@proc7ts/primitives';
 import { UcConstraints, ucConstraints } from './uc-constraints.js';
+import { UcPresentations, ucPresentations } from './uc-presentations.js';
 
 /**
  * Data schema definition.
@@ -46,6 +47,11 @@ export interface UcSchema<out T = unknown> {
    * Schema constraints.
    */
   readonly where?: UcConstraints<T> | undefined;
+
+  /**
+   * Schema instance presentation constraints.
+   */
+  readonly within?: UcPresentations<T> | undefined;
 
   /**
    * Custom schema name.
@@ -123,7 +129,7 @@ export function ucSchema<T>(
 /*#__NO_SIDE_EFFECTS__*/
 export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   model: UcModel<T, TSchema>,
-  { where }: UcSchema.Extension<T, TSchema> = {},
+  { where, within }: UcSchema.Extension<T, TSchema> = {},
 ): TSchema {
   if (typeof model === 'function') {
     return {
@@ -131,13 +137,18 @@ export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
       nullable: false,
       type: model,
       where: ucConstraints(...asArray(where)),
+      within: ucPresentations(...asArray(within)),
     } as TSchema;
   }
   if (!where) {
     return model;
   }
 
-  return { ...model, where: ucConstraints(...asArray(model.where), ...asArray(where)) };
+  return {
+    ...model,
+    where: ucConstraints(...asArray(model.where), ...asArray(where)),
+    within: ucPresentations(...asArray(model.within), ...asArray(within)),
+  };
 }
 
 /**
@@ -163,6 +174,14 @@ export namespace UcSchema {
      * Additional schema constraints.
      */
     readonly where?: UcConstraints<T, TSchema> | readonly UcConstraints<T, TSchema>[] | undefined;
+
+    /**
+     * Additional schema instance presentation constraints.
+     */
+    readonly within?:
+      | UcPresentations<T, TSchema>
+      | readonly UcPresentations<T, TSchema>[]
+      | undefined;
   }
   /**
    * Schema type corresponding to the given model type.

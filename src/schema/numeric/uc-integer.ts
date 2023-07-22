@@ -55,16 +55,14 @@ export namespace UcInteger {
 /*#__NO_SIDE_EFFECTS__*/
 export function ucInteger(options?: UcInteger.Options): UcInteger.Schema {
   if (options) {
-    const { where, string } = options;
+    const { string } = options;
     const variant: UcNumber.Variant | undefined = string
       ? {
           string,
         }
       : undefined;
 
-    return ucSchema<UcInteger, UcInteger.Schema>(UcInteger$createSchema(variant), {
-      where,
-    });
+    return ucSchema<UcInteger, UcInteger.Schema>(UcInteger$createSchema(variant), options);
   }
 
   return UcInteger$schema;

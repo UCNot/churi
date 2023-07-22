@@ -75,7 +75,7 @@ export namespace UcString {
 /*#__NO_SIDE_EFFECTS__*/
 export function ucString(options?: UcString.Options): UcString.Schema {
   if (options) {
-    const { where, raw } = options;
+    const { where, within, raw } = options;
     const variant: UcString.Variant | undefined = raw
       ? {
           raw,
@@ -100,6 +100,7 @@ export function ucString(options?: UcString.Options): UcString.Schema {
             ...asArray(where),
           ]
         : where,
+      within,
     });
   }
 

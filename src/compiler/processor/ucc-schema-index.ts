@@ -1,22 +1,36 @@
 import { asArray } from '@proc7ts/primitives';
-import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import {
+  UcConstraints,
+  UcFeatureConstraint,
+  UcProcessorName,
+} from '../../schema/uc-constraints.js';
+import { UcPresentationName, UcPresentations } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
 export class UccSchemaIndex {
 
   readonly #processors: readonly UcProcessorName[];
+  readonly #presentations: readonly UcPresentationName[];
   readonly #types = new Map<string | UcDataType, UccSchemaIndex$TypeEntry>();
   readonly #typesByPrefix = new Map<string, UccSchemaIndex$TypeEntry>();
   #typeCounter = 0;
   readonly #schemaIds = new WeakMap<UcSchema, string>();
 
-  constructor(processors: readonly UcProcessorName[]) {
+  constructor(
+    processors: readonly UcProcessorName[],
+    presentations: readonly UcPresentationName[],
+  ) {
     this.#processors = processors;
+    this.#presentations = presentations;
   }
 
   get processors(): readonly UcProcessorName[] {
     return this.#processors;
+  }
+
+  get presentations(): readonly UcPresentationName[] {
+    return this.#presentations;
   }
 
   schemaId(schema: UcSchema): string {
@@ -38,24 +52,36 @@ export class UccSchemaIndex {
       fullId += `,${variant}`;
     }
 
-    const { where = {} } = schema;
+    const { where, within } = schema;
 
-    return this.processors.reduce((fullId, processorName) => {
-      const constraints = where[processorName];
+    return `${fullId}${this.#constraintsId(schema, where)}${this.#presentationsId(schema, within)}`;
+  }
 
-      if (!constraints) {
-        return fullId;
-      }
+  #presentationsId(schema: UcSchema, presentations: UcPresentations = {}): string {
+    return this.presentations
+      .map(presentationName => {
+        const constraintsId = this.#constraintsId(schema, presentations[presentationName]);
 
-      return asArray(constraints).reduce((fullId, constraint): string => {
-        const { use, from } = constraint;
-        const id = constraint.id
-          ? constraint.id(schema, schema => this.schemaId(schema))
-          : UcsSchemaIndex$defaultConstraintId(constraint);
+        return constraintsId ? `,~${presentationName}(${constraintsId.slice(1)})` : '';
+      })
+      .join('');
+  }
 
-        return fullId + `,${use}@${from}` + (id ? `(${id})` : '');
-      }, fullId);
-    }, fullId);
+  #constraintsId(schema: UcSchema, constraints: UcConstraints = {}): string {
+    return this.processors
+      .map(processorName => asArray(constraints[processorName])
+          .map(feature => this.#featureConstraintId(schema, feature))
+          .join(''))
+      .join('');
+  }
+
+  #featureConstraintId(schema: UcSchema, feature: UcFeatureConstraint): string {
+    const { use, from } = feature;
+    const id = feature.id
+      ? feature.id(schema, schema => this.schemaId(schema))
+      : UcsSchemaIndex$defaultConstraintId(feature);
+
+    return `,${use}@${from}` + (id ? `(${id})` : '');
   }
 
   #typeEntry({ type }: UcSchema): UccSchemaIndex$TypeEntry {

@@ -70,7 +70,7 @@ export namespace UcNumber {
 /*#__NO_SIDE_EFFECTS__*/
 export function ucNumber(options?: UcNumber.Options): UcNumber.Schema {
   if (options) {
-    const { where, string } = options;
+    const { where, within, string } = options;
     const variant: UcNumber.Variant | undefined = string
       ? {
           string,
@@ -95,6 +95,7 @@ export function ucNumber(options?: UcNumber.Options): UcNumber.Schema {
             ...asArray(where),
           ]
         : where,
+      within,
     });
   }
 
