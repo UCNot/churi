@@ -1,8 +1,8 @@
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 
-export type UcrxInsetLexer = UcInputLexer;
+export type UcrxInsetLexer = UcLexer;
 
 /**
  * Inset syntax is a function that creates a {@link UcrxInsetLexer lexer} for _inset_. I.e. the input chunks enclosed

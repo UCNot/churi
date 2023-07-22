@@ -1,6 +1,6 @@
 import { UcrxInsetLexer } from '../rx/ucrx-inset-syntax.js';
 import { Ucrx } from '../rx/ucrx.js';
-import { UcLexer } from '../syntax/lexers/uc.lexer.js';
+import { UcChargeLexer } from '../syntax/lexers/uc-charge.lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { ucdReadValueSync } from './impl/ucd-read-value.sync.js';
 import { UcrxHandle } from './impl/ucrx-handle.js';
@@ -163,7 +163,7 @@ export function createSyncUcdReader(
   options?: UcdReader.Options,
 ): SyncUcdReader | undefined {
   if (typeof input === 'string') {
-    return new SyncUcdReader(UcLexer.scan(input), options);
+    return new SyncUcdReader(UcChargeLexer.scan(input), options);
   }
   if (Array.isArray(input)) {
     return new SyncUcdReader(input, options);

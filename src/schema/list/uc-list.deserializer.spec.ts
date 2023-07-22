@@ -3,7 +3,7 @@ import { asis } from '@proc7ts/primitives';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { readTokens } from '../../spec/read-chunks.js';
-import { UcLexer } from '../../syntax/lexers/uc.lexer.js';
+import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';
@@ -38,7 +38,7 @@ describe('UcList deserializer', () => {
       await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes list synchronously', () => {
-      expect(readList(UcLexer.scan('1 , 2, 3  '))).toEqual([1, 2, 3]);
+      expect(readList(UcChargeLexer.scan('1 , 2, 3  '))).toEqual([1, 2, 3]);
     });
     it('deserializes empty list', async () => {
       await expect(readList(readTokens(', '))).resolves.toEqual([]);

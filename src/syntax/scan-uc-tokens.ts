@@ -1,4 +1,4 @@
-import { UcInputLexer } from './uc-input-lexer.js';
+import { UcLexer } from './uc-lexer.js';
 import { UcToken } from './uc-token.js';
 
 /**
@@ -15,7 +15,7 @@ export function scanUcTokens(
      * Emitter function called each time a is token found.
      */
     emit: (token: UcToken) => void,
-  ) => UcInputLexer,
+  ) => UcLexer,
   ...input: string[]
 ): UcToken[] {
   const tokens: UcToken[] = [];

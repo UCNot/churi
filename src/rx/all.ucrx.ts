@@ -1,4 +1,4 @@
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { Ucrx } from './ucrx.js';
 
@@ -11,7 +11,7 @@ export interface AllUcrx extends Ucrx {
   big(value: bigint): 1;
   ent(name: string): 1;
   fmt(format: string, data: readonly UcToken[]): 1;
-  ins(emit: (token: UcToken) => void): UcInputLexer;
+  ins(emit: (token: UcToken) => void): UcLexer;
   nls(): AllUcrx;
   nul(): 1;
   num(value: number): 1;

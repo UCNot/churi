@@ -25,14 +25,14 @@ import {
   UC_TOKEN_SLASH,
   UcToken,
 } from '../uc-token.js';
-import { UcLexer } from './uc.lexer.js';
+import { UcChargeLexer } from './uc-charge.lexer.js';
 
-describe('UcLexer', () => {
-  let lexer: UcLexer;
+describe('UcChargeLexer', () => {
+  let lexer: UcChargeLexer;
   let tokens: UcToken[];
 
   beforeEach(() => {
-    lexer = new UcLexer(token => {
+    lexer = new UcChargeLexer(token => {
       tokens.push(token);
     });
     tokens = [];
@@ -210,10 +210,10 @@ describe('UcLexer', () => {
 
   describe('scanParam', () => {
     it('decodes plus sign as space', () => {
-      expect(UcLexer.scanParam('abc++', '++def')).toEqual(['abc    def']);
+      expect(UcChargeLexer.scanParam('abc++', '++def')).toEqual(['abc    def']);
     });
     it('decodes plus sign as space padding', () => {
-      expect(UcLexer.scanParam('++++abcdef')).toEqual([
+      expect(UcChargeLexer.scanParam('++++abcdef')).toEqual([
         UC_TOKEN_PREFIX_SPACE,
         UC_TOKEN_PREFIX_SPACE,
         UC_TOKEN_PREFIX_SPACE,

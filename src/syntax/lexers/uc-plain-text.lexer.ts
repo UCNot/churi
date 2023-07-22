@@ -1,4 +1,4 @@
-import { UcInputLexer } from '../uc-input-lexer.js';
+import { UcLexer } from '../uc-lexer.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
 
 /**
@@ -6,7 +6,7 @@ import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
  *
  * The input chunks converted to string tokens directly, without any change.
  */
-export class UcPlainTextLexer implements UcInputLexer {
+export class UcPlainTextLexer implements UcLexer {
 
   readonly #emit: (token: UcToken) => void;
   #prefix = false;

@@ -1,10 +1,10 @@
-import { UcInputLexer } from '../uc-input-lexer.js';
+import { UcLexer } from '../uc-lexer.js';
 
 /**
  * Charge input lexer that ignores the input.
  */
 
-export const ucOpaqueLexer: UcInputLexer = {
+export const ucOpaqueLexer: UcLexer = {
   scan(_chunk) {
     // Ignore input.
   },

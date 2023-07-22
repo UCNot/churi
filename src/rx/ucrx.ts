@@ -1,4 +1,4 @@
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 
@@ -85,7 +85,7 @@ export interface Ucrx {
    *
    * @returns Either input lexer, or `undefined` if inset is not expected..
    */
-  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
+  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcLexer | undefined;
 
   /**
    * Charges nested list.

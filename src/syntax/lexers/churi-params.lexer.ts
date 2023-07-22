@@ -1,5 +1,5 @@
 import { decodeURISearchPart } from 'httongue';
-import { UcInputLexer } from '../uc-input-lexer.js';
+import { UcLexer } from '../uc-lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_DOLLAR_SIGN,
@@ -8,7 +8,7 @@ import {
   UcToken,
 } from '../uc-token.js';
 
-export class ChURIParamsLexer implements UcInputLexer {
+export class ChURIParamsLexer implements UcLexer {
 
   readonly #emit: (token: UcToken) => void;
   readonly #splitter: string;

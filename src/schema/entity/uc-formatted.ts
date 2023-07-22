@@ -1,7 +1,7 @@
 import { AllUcrx } from '../../rx/all.ucrx.js';
 import { chargeURI } from '../../rx/charge-uri.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
-import { UcLexer } from '../../syntax/lexers/uc.lexer.js';
+import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 
 /**
@@ -22,7 +22,7 @@ export class UcFormatted {
    */
   constructor(format: string, data: string | readonly UcToken[]) {
     this.#format = format;
-    this.#data = typeof data === 'string' ? UcLexer.scan(data) : data;
+    this.#data = typeof data === 'string' ? UcChargeLexer.scan(data) : data;
   }
 
   /**

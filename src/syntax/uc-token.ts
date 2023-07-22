@@ -1,6 +1,6 @@
 /**
  * _Inset_ bounds enclose the tokens that considered as input chunks rather normal tokens.
- * The _inset_ supposed to be processed by appropriate {@link UcInputLexer input lexer}.
+ * The _inset_ supposed to be processed by appropriate {@link UcLexer lexer}.
  * The bounds themselves are control tokens to be ignored.
  *
  * _Inset_ expected at value position and nowhere else. E.g. it can't be inserted into the middle of a string.
@@ -63,7 +63,7 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
  * - Number corresponding to {@link UC_TOKEN_INSET inset bound}. The tokens between inset bounds considered as
- *   input chunks to be processed by appropriate {@link UcInputLexer input lexer}.
+ *   input chunks to be processed by appropriate {@link UcLexer lexer}.
  *
  * [percent-decoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
  * [reserved characters]: https://www.rfc-editor.org/rfc/rfc3986#section-2.2

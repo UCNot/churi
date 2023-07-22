@@ -2,7 +2,7 @@ import { UcConstraints, ucConstraints } from './uc-constraints.js';
 import { UcSchema } from './uc-schema.js';
 
 /**
- * Schema {@link UcConstraint constraints} for schema instance presentations.
+ * Schema {@link UcConstraints constraints} for schema instance presentations.
  *
  * Each property corresponds to particular schema instance presentation.
  *
@@ -29,7 +29,7 @@ export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T
 /**
  * Name of schema instance presentation.
  *
- * Used to provide {@link UcConstraint schema constraints} for particular presentation.
+ * Used to provide {@link UcConstraints schema constraints} for particular presentation.
  */
 export type UcPresentationName = Exclude<keyof UcPresentations, '__UcPresentations__'>;
 

@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { readTokens } from '../../spec/read-chunks.js';
-import { UcLexer } from '../../syntax/lexers/uc.lexer.js';
+import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { ucList } from '../list/uc-list.js';
 import { ucMultiValue } from '../list/uc-multi-value.js';
 import { ucNumber } from '../numeric/uc-number.js';
@@ -91,8 +91,8 @@ describe('UcMap deserializer', () => {
       await expect(readMap(readTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes entry synchronously', () => {
-      expect(readMap(UcLexer.scan('foo(bar)'))).toEqual({ foo: 'bar' });
-      expect(readMap(UcLexer.scan('foo(bar'))).toEqual({ foo: 'bar' });
+      expect(readMap(UcChargeLexer.scan('foo(bar)'))).toEqual({ foo: 'bar' });
+      expect(readMap(UcChargeLexer.scan('foo(bar'))).toEqual({ foo: 'bar' });
     });
     it('deserializes $-escaped entry', async () => {
       await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
@@ -211,7 +211,7 @@ describe('UcMap deserializer', () => {
       });
     });
     it('deserializes entries synchronously', () => {
-      expect(readMap(UcLexer.scan('foo(first)bar(second'))).toEqual({
+      expect(readMap(UcChargeLexer.scan('foo(first)bar(second'))).toEqual({
         foo: 'first',
         bar: 'second',
       });
