@@ -33,13 +33,14 @@ export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcB
   }
 
   constructor(
-    { baseUcrx }: UcrxLib,
+    lib: UcrxLib,
     schema: UcBigInt.Schema,
     { string = 'parse', number = 'parse' }: UcBigInt.Variant = {},
   ) {
     super({
+      lib,
       schema,
-      baseClass: baseUcrx,
+      baseClass: lib.baseUcrx,
     });
 
     UcrxCore.big.overrideIn(this, {

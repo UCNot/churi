@@ -107,6 +107,7 @@ class TimestampUcrxClass extends UcrxClass {
 
   constructor(lib: UcrxLib, schema: UcSchema<number>) {
     super({
+      lib,
       schema,
       typeName: 'Timestamp',
       baseClass: lib.baseUcrx,

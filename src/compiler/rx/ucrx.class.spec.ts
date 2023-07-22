@@ -17,7 +17,7 @@ describe('UcrxClass', () => {
     });
   });
 
-  describe('isMEmberOverridden', () => {
+  describe('isMemberOverridden', () => {
     it('returns false for non-declared member', () => {
       const member = new EsField('test');
 
@@ -30,6 +30,7 @@ class TestClass extends UcrxClass {
 
   constructor() {
     super({
+      lib: null!,
       typeName: 'Test',
       schema: ucMap({}),
       baseClass: VoidUcrxClass.instance,
@@ -43,6 +44,7 @@ class TestClass2 extends UcrxClass {
 
   constructor() {
     super({
+      lib: null!,
       typeName: 'Test2',
       schema: ucMap({}),
       baseClass: new TestClass(),

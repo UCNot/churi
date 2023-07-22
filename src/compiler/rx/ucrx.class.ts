@@ -16,12 +16,14 @@ export abstract class UcrxClass<
   readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
   #associations?: Map<UcrxClass.Association<unknown, TArgs, T, TSchema, this>, unknown>;
+  #lib: UcrxLib;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
-    const { schema, typeName = ucSchemaTypeSymbol(schema), declare = { at: 'bundle' } } = init;
+    const { lib, schema, typeName = ucSchemaTypeSymbol(schema), declare = { at: 'bundle' } } = init;
 
     super(`${typeName}Ucrx`, { ...init, declare });
 
+    this.#lib = lib;
     this.#schema = schema;
     this.#typeName = typeName;
   }
@@ -30,6 +32,10 @@ export abstract class UcrxClass<
     const { baseClass } = this;
 
     return baseClass instanceof UcrxClass ? baseClass : undefined;
+  }
+
+  get lib(): UcrxLib {
+    return this.#lib;
   }
 
   get schema(): TSchema {
@@ -141,6 +147,7 @@ export namespace UcrxClass {
     T = unknown,
     TSchema extends UcSchema<T> = UcSchema<T>,
   > = EsClassInit<TArgs> & {
+    readonly lib: UcrxLib;
     readonly schema: TSchema;
     readonly typeName?: string | undefined;
   };

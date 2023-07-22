@@ -19,10 +19,11 @@ export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, U
     };
   }
 
-  constructor({ baseUcrx }: UcrxLib, schema: UcBoolean.Schema) {
+  constructor(lib: UcrxLib, schema: UcBoolean.Schema) {
     super({
+      lib,
       schema,
-      baseClass: baseUcrx,
+      baseClass: lib.baseUcrx,
     });
 
     UcrxCore.bol.overrideIn(this, {

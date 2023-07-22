@@ -32,14 +32,11 @@ export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcN
     };
   }
 
-  constructor(
-    { baseUcrx }: UcrxLib,
-    schema: UcNumber.Schema,
-    { string = 'parse' }: UcNumber.Variant = {},
-  ) {
+  constructor(lib: UcrxLib, schema: UcNumber.Schema, { string = 'parse' }: UcNumber.Variant = {}) {
     super({
+      lib,
       schema,
-      baseClass: baseUcrx,
+      baseClass: lib.baseUcrx,
     });
 
     UcrxCore.num.overrideIn(this, {
