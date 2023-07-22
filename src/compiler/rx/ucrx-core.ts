@@ -3,6 +3,7 @@ import { UcrxCore$stub, UcrxCore$stubBody } from '../impl/ucrx-core.stub.js';
 import { UcrxAttrSetter, UcrxAttrSetterSignature } from './ucrx-attr-setter.js';
 import { UcrxEntitySetter } from './ucrx-entity-setter.js';
 import { UcrxFormattedSetter } from './ucrx-formatted-setter.js';
+import { UcrxInsetMethod } from './ucrx-inset-method.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxProperty } from './ucrx-property.js';
 import { UcrxSetter } from './ucrx-setter.js';
@@ -14,7 +15,7 @@ export type UcrxCore = {
   readonly big: UcrxSetter;
   readonly ent: UcrxEntitySetter;
   readonly fmt: UcrxFormattedSetter;
-  readonly ins: UcrxMethod<{ emit: EsArg; cx: EsArg }>;
+  readonly ins: UcrxInsetMethod;
   readonly nls: UcrxMethod<{ cx: EsArg }>;
   readonly nul: UcrxMethod<{ cx: EsArg }>;
   readonly num: UcrxSetter;
@@ -38,10 +39,7 @@ export const UcrxCore: UcrxCore = {
   big: /*#__PURE__*/ new UcrxSetter('big', { typeName: 'bigint', stub: UcrxCore$stub }),
   ent: /*#__PURE__*/ new UcrxEntitySetter('ent'),
   fmt: /*#__PURE__*/ new UcrxFormattedSetter('fmt'),
-  ins: /*#__PURE__*/ new UcrxMethod('ins', {
-    args: { emit: {}, cx: {} },
-    stub: UcrxCore$stub,
-  }),
+  ins: /*#__PURE__*/ new UcrxInsetMethod('ins'),
   nls: /*#__PURE__*/ new UcrxMethod<{ cx: EsArg }>('nls', {
     args: { cx: {} },
     stub: UcrxCore$stub,

@@ -4,7 +4,7 @@ import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
-import { UcrxClass, UcrxProto } from './ucrx.class.js';
+import { UcrxClass, UcrxClassMod, UcrxProto, UcrxSignature } from './ucrx.class.js';
 
 /**
  * Schema processor utilizing {@link churi!Ucrx charge receiver} code generation.
@@ -39,6 +39,15 @@ export abstract class UcrxProcessor<
     } else {
       this.#typeEntryFor(target).useProto(proto);
     }
+
+    return this;
+  }
+
+  modifyUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    schema: TSchema,
+    mod: UcrxClassMod<T, TSchema>,
+  ): this {
+    this.#typeEntryFor(schema.type).modifyClass(schema, mod);
 
     return this;
   }
@@ -99,7 +108,7 @@ export abstract class UcrxProcessor<
 
     if (!typeEntry) {
       typeEntry = new UcrxTypeEntry(this.schemaIndex);
-      this.#perType.set(type, typeEntry);
+      this.#perType.set(type, typeEntry as UcrxTypeEntry);
     }
 
     return typeEntry;
@@ -111,7 +120,7 @@ export namespace UcrxProcessor {
   export type Any = UcrxProcessor<UcrxProcessor.Any>;
 }
 
-class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+class UcrxTypeEntry<in out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schemaIndex: UccSchemaIndex;
   #proto: UcrxProto<T, TSchema> | undefined;
@@ -131,6 +140,10 @@ class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<
 
   protoFor(schema: TSchema): UcrxProto<T, TSchema> | undefined {
     return this.#schemaEntryFor(schema).proto(this.#proto);
+  }
+
+  modifyClass(schema: TSchema, mod: UcrxClassMod<T, TSchema>): void {
+    this.#schemaEntryFor(schema).modifyClass(mod);
   }
 
   modifyMethodOf<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
@@ -155,9 +168,9 @@ class UcrxTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<
 
 }
 
-class UcrxSchemaEntry<out T, out TSchema extends UcSchema<T>> {
+class UcrxSchemaEntry<in out T, out TSchema extends UcSchema<T>> {
 
-  readonly #mods: ((ucrxClass: UcrxClass.Any) => void)[] = [];
+  readonly #mods: ((ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>) => void)[] = [];
   #explicitProto: UcrxProto<T, TSchema> | undefined;
   #proto: UcrxProto<T, TSchema> | undefined;
 
@@ -180,13 +193,17 @@ class UcrxSchemaEntry<out T, out TSchema extends UcSchema<T>> {
       const ucrxClass = baseProto(lib, schema);
 
       if (ucrxClass) {
-        this.#modifyUcrxClass(ucrxClass);
+        this.#modifyUcrxClass(ucrxClass as UcrxClass<UcrxSignature.Args, T, TSchema>);
 
-        ucrxClass.initUcrx(lib);
+        ucrxClass.initUcrx();
       }
 
       return ucrxClass;
     };
+  }
+
+  modifyClass(mod: UcrxClassMod<T, TSchema>): void {
+    this.#mods.push(ucrxClass => mod.applyTo(ucrxClass));
   }
 
   modifyMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
@@ -196,7 +213,7 @@ class UcrxSchemaEntry<out T, out TSchema extends UcSchema<T>> {
     this.#mods.push(ucrxClass => ucrxClass.modifyMethod(method, mod));
   }
 
-  #modifyUcrxClass(ucrxClass: UcrxClass.Any): void {
+  #modifyUcrxClass(ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>): void {
     this.#mods.forEach(mod => mod(ucrxClass));
   }
 

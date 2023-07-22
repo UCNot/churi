@@ -126,8 +126,7 @@ export abstract class UcrxClass<
     this.baseUcrx?.discoverTypes(types);
   }
 
-  initUcrx(lib: UcrxLib): void;
-  initUcrx(_lib: UcrxLib): void {
+  initUcrx(): void {
     this.#declareTypes();
   }
 
@@ -168,6 +167,10 @@ export type UcrxProto<out T = unknown, out TSchema extends UcSchema<T> = UcSchem
 export const UcrxSignature: UcrxSignature = /*#__PURE__*/ new EsSignature({
   set: {},
 });
+
+export interface UcrxClassMod<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+  applyTo(ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>): void;
+}
 
 export type UcrxSignature = EsSignature<UcrxSignature.Args>;
 

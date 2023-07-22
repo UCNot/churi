@@ -21,9 +21,21 @@ export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T
   __UcPresentations__?(schema: TSchema): TSchema;
 
   /**
-   * Schema constraints for schema instance represented as URI Charge.
+   * Constraints for schema instance represented as URI Charge.
    */
   readonly charge?: UcConstraints | undefined;
+
+  /**
+   * Constraints for schema instance represented as URI {@link ChURIParams parameter} value.
+   *
+   * This works for e.g.:
+   *
+   * - {@link ChURIQuery URI query} parameters,
+   * - {@link ChURIMatrix URI matrix} parameters,
+   * - {@link ChURIAnchor URI hash} parameters,
+   * - `application/x-www-form-urlencoded` body.
+   */
+  readonly uriParams?: UcConstraints | undefined;
 }
 
 /**

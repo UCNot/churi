@@ -3,6 +3,7 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_DESERIALIZER_META } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';
@@ -148,9 +149,7 @@ export namespace UcdLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
     readonly internalModels: InternalModel[];
-    readonly inset?:
-      | ((this: void, args: { readonly emit: EsSnippet; readonly cx: EsSnippet }) => EsSnippet)
-      | undefined;
+    readonly inset?: ((this: void, args: UcrxInsetSignature.Values) => EsSnippet) | undefined;
     entities(this: void, exportNs?: EsNamespace): EsSnippet;
     formats(this: void, exportNs?: EsNamespace): EsSnippet;
     meta(this: void, exportNs?: EsNamespace): EsSnippet;
