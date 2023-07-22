@@ -140,7 +140,7 @@ export function ucSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
       within: ucPresentations(...asArray(within)),
     } as TSchema;
   }
-  if (!where) {
+  if (!where && !within) {
     return model;
   }
 

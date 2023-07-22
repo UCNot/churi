@@ -19,6 +19,7 @@ export function ucdSupportInset(
               },
             }) {
               const UcLexer = esImport(from, lexer);
+              // istanbul ignore next
               const extraArgs = args?.length ? ', ' + args.join(', ') : '';
 
               return esline`return new ${UcLexer}(${emit}${extraArgs});`;

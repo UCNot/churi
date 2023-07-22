@@ -57,6 +57,65 @@ describe('ucSchema', () => {
       },
     });
   });
+  it('merges schema presentations', () => {
+    expect(
+      ucSchema(
+        {
+          type: 'test-type',
+          within: {
+            charge: {
+              deserializer: {
+                use: 'test-feature',
+                from: 'test-module',
+                with: { test: 1 },
+              },
+            },
+          },
+        },
+        {
+          within: {
+            charge: {
+              deserializer: [
+                {
+                  use: 'test-feature',
+                  from: 'test-module',
+                  with: { test: 2 },
+                },
+                {
+                  use: 'test-feature3',
+                  from: 'test-module',
+                  with: { test: 3 },
+                },
+              ],
+            },
+          },
+        },
+      ),
+    ).toEqual({
+      type: 'test-type',
+      within: {
+        charge: {
+          deserializer: [
+            {
+              use: 'test-feature',
+              from: 'test-module',
+              with: { test: 1 },
+            },
+            {
+              use: 'test-feature',
+              from: 'test-module',
+              with: { test: 2 },
+            },
+            {
+              use: 'test-feature3',
+              from: 'test-module',
+              with: { test: 3 },
+            },
+          ],
+        },
+      },
+    });
+  });
   it('returns schema without extension as is', () => {
     const schema: UcSchema = {
       type: 'test-type',
