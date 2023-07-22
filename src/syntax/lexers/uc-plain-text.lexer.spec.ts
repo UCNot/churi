@@ -39,10 +39,10 @@ describe('UcPlainTextLexer', () => {
         models: {
           readValue: ucUnknown(),
         },
-        inset: code => {
+        inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
+          return esline`return new ${UcPlainTextLexer}(${emit});`;
         },
       });
 
@@ -70,10 +70,10 @@ describe('UcPlainTextLexer', () => {
         models: {
           readList: ucList<UcString>(ucString()),
         },
-        inset: code => {
+        inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
+          return esline`return new ${UcPlainTextLexer}(${emit});`;
         },
       });
 
@@ -123,10 +123,10 @@ describe('UcPlainTextLexer', () => {
         models: {
           readMap: ucMap({ foo: ucNumber(), bar: ucString(), baz: ucString() }),
         },
-        inset: code => {
+        inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          code.line(esline`emit => new ${UcPlainTextLexer}(emit)`);
+          return esline`return new ${UcPlainTextLexer}(${emit});`;
         },
       });
 

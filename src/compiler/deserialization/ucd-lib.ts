@@ -114,7 +114,7 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
     return this.#onMeta;
   }
 
-  get inset(): EsSnippet | undefined {
+  get inset(): UcdLib.Options<TModels>['inset'] {
     return this.#options.inset;
   }
 
@@ -148,11 +148,13 @@ export namespace UcdLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
     readonly internalModels: InternalModel[];
+    readonly inset?:
+      | ((this: void, args: { readonly emit: EsSnippet; readonly cx: EsSnippet }) => EsSnippet)
+      | undefined;
     entities(this: void, exportNs?: EsNamespace): EsSnippet;
     formats(this: void, exportNs?: EsNamespace): EsSnippet;
     meta(this: void, exportNs?: EsNamespace): EsSnippet;
     onMeta?: EsSnippet | undefined;
-    readonly inset?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(

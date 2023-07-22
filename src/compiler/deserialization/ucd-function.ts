@@ -1,4 +1,13 @@
-import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
+import {
+  EsCallable,
+  EsCode,
+  EsFunction,
+  EsSnippet,
+  EsSymbol,
+  EsVarKind,
+  EsVarSymbol,
+  esline,
+} from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
@@ -78,7 +87,15 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             'formats,',
             'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
-            inset ? esline`inset: ${inset},` : EsCode.none,
+            inset
+              ? code => {
+                  code.line(
+                    'inset: ',
+                    new EsCallable({ emit: {}, cx: {} }).lambda(({ args }) => inset(args)),
+                    ',',
+                  );
+                }
+              : EsCode.none,
           )
           .write('}');
       });

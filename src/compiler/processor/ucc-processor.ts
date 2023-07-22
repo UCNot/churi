@@ -198,7 +198,7 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Schema instance presentation names within {@link churi!UcPresentation presentation constraints}.
    *
-   * @defaultValue `'charge'`
+   * @defaultValue `['charge']`
    */
   readonly presentationNames?: UcPresentationName | readonly UcPresentationName[] | undefined;
 

@@ -15,6 +15,7 @@ import {
   esline,
 } from 'esgen';
 import { capitalize } from 'httongue';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
@@ -53,10 +54,11 @@ export class UcdCompiler<
    * @param options - Compiler options.
    */
   constructor(options: UcdCompiler.Options<TModels>) {
-    const { models, validate = true, features } = options;
+    const { models, presentation, validate = true, features } = options;
 
     super({
       processorNames: validate ? ['validator', 'deserializer'] : ['deserializer'],
+      presentationNames: presentation,
       models: Object.values(models).map(entry => (isUcdModelConfig(entry) ? entry[1] : entry)),
       features,
     });
@@ -345,12 +347,15 @@ export namespace UcdCompiler {
 
   export interface Options<out TModels extends UcdModels> extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
+    readonly presentation?: UcPresentationName | UcPresentationName[] | undefined;
+    readonly inset?:
+      | ((this: void, args: { readonly emit: EsSnippet; readonly cx: EsSnippet }) => EsSnippet)
+      | undefined;
     readonly validate?: boolean | undefined;
     readonly features?:
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
-    readonly inset?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
 
     createDeserializer?<T, TSchema extends UcSchema<T>>(
