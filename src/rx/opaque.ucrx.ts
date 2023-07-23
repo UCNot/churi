@@ -19,8 +19,8 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     // Ignore metadata.
   }
 
-  override ins(emit: (token: UcToken) => void): UcLexer;
-  override ins(_emit: (token: UcToken) => void): UcLexer {
+  override ins(id: number | string, emit: (token: UcToken) => void): UcLexer;
+  override ins(_id: number | string, _emit: (token: UcToken) => void): UcLexer {
     return ucOpaqueLexer;
   }
 

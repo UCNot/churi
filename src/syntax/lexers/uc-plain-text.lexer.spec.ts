@@ -239,6 +239,9 @@ describe('UcPlainTextLexer', () => {
         {
           code: 'unexpectedInset',
           path: [{}],
+          details: {
+            insetId: UC_TOKEN_INSET,
+          },
           message: 'Unrecognized inset',
         },
       ]);

@@ -17,12 +17,13 @@ export interface UcrxInsetMethodInit
   readonly stub?: EsMethodDeclaration<UcrxInsetSignature.Args> | undefined;
 }
 
-export const UcrxInsetSignature = /*#__PURE__*/ new EsSignature({ emit: {}, cx: {} });
+export const UcrxInsetSignature = /*#__PURE__*/ new EsSignature({ id: {}, emit: {}, cx: {} });
 
 export type UcrxInsetSignature = EsSignature<UcrxInsetSignature.Args>;
 
 export namespace UcrxInsetSignature {
   export type Args = {
+    readonly id: EsArg;
     readonly emit: EsArg;
     readonly cx: EsArg;
   };

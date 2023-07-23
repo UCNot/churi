@@ -50,8 +50,8 @@ export class VoidUcrx implements Ucrx {
     return this.any(new UcFormatted(format, data)) || cx.reject(ucrxRejectFormat(format, data));
   }
 
-  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcLexer | undefined;
-  ins(_emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
+  ins(id: number | string, emit: (token: UcToken) => void, cx: UcrxContext): UcLexer | undefined;
+  ins(_id: number | string, _emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
     // Inset is not expected by default.
   }
 

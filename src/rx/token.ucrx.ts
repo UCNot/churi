@@ -83,8 +83,8 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
-  ins(emit: (token: UcToken) => void): UcLexer;
-  ins(_emit: (token: UcToken) => void): UcLexer {
+  ins(id: number | string, emit: (token: UcToken) => void): UcLexer;
+  ins(_id: number | string, _emit: (token: UcToken) => void): UcLexer {
     return ucOpaqueLexer;
   }
 

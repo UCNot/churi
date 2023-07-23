@@ -3,6 +3,7 @@ import { noop } from '@proc7ts/primitives';
 import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_INSET,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../syntax/uc-token.js';
@@ -24,7 +25,7 @@ describe('TokenUcrx', () => {
 
   describe('emb', () => {
     it('returns ucOpaqueLexer', () => {
-      expect(new TokenUcrx(noop).ins(noop)).toBe(ucOpaqueLexer);
+      expect(new TokenUcrx(noop).ins(UC_TOKEN_INSET, noop)).toBe(ucOpaqueLexer);
     });
   });
 

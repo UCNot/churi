@@ -11,7 +11,7 @@ export interface AllUcrx extends Ucrx {
   big(value: bigint): 1;
   ent(name: string): 1;
   fmt(format: string, data: readonly UcToken[]): 1;
-  ins(emit: (token: UcToken) => void): UcLexer;
+  ins(id: number | string, emit: (token: UcToken) => void): UcLexer;
   nls(): AllUcrx;
   nul(): 1;
   num(value: number): 1;

@@ -13,6 +13,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdLib } from './ucd-lib.js';
@@ -94,7 +95,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
               ? code => {
                   code.line(
                     'inset: ',
-                    new EsCallable({ emit: {}, cx: {} }).lambda(({ args }) => inset(args)),
+                    new EsCallable(UcrxInsetSignature).lambda(({ args }) => inset(args)),
                     ',',
                   );
                 }

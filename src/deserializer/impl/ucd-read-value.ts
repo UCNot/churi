@@ -33,62 +33,75 @@ export async function ucdReadValue(
   const firstToken = reader.current();
   let hasValue = false;
 
-  if (!firstToken) {
+  if (firstToken === undefined) {
     // End of input.
     // Decode as empty string.
     rx.emptyStr();
 
     return;
   }
-  if (firstToken === UC_TOKEN_EXCLAMATION_MARK) {
-    await ucdReadMetaOrEntityOrTrue(reader, rx);
+  if (typeof firstToken === 'number') {
+    const prefix = firstToken & 0xff;
 
-    if (single) {
-      return;
+    switch (prefix) {
+      case UC_TOKEN_EXCLAMATION_MARK:
+        await ucdReadMetaOrEntityOrTrue(reader, rx);
+
+        if (single) {
+          return;
+        }
+
+        hasValue = true;
+
+        break;
+      case UC_TOKEN_APOSTROPHE:
+        reader.skip(); // Skip apostrophe.
+
+        rx.str(printUcTokens(await ucdReadTokens(reader, rx)));
+
+        if (single) {
+          return;
+        }
+
+        hasValue = true;
+
+        break;
+      case UC_TOKEN_DOLLAR_SIGN:
+        reader.skip(); // Skip dollar prefix.
+
+        {
+          const bound = await ucdFindAnyBound(reader, rx);
+          const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
+
+          if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
+            await ucdReadMap(reader, rx, key);
+          } else if (!key) {
+            // End of input and no key.
+            // Empty map.
+            rx.emptyMap();
+          } else {
+            // End of input.
+            // Map containing single key with empty value.
+            rx.onlySuffix(key);
+          }
+        }
+
+        if (single) {
+          return;
+        }
+
+        hasValue = true;
+
+        break;
+      case UC_TOKEN_INSET:
+        await reader.readInset(rx.rx, emit => rx.ins(firstToken, emit), single);
+
+        if (single) {
+          return;
+        }
+
+        hasValue = true;
     }
-
-    hasValue = true;
-  } else if (firstToken === UC_TOKEN_APOSTROPHE) {
-    reader.skip(); // Skip apostrophe.
-
-    rx.str(printUcTokens(await ucdReadTokens(reader, rx)));
-
-    if (single) {
-      return;
-    }
-
-    hasValue = true;
-  } else if (firstToken === UC_TOKEN_DOLLAR_SIGN) {
-    reader.skip(); // Skip dollar prefix.
-
-    const bound = await ucdFindAnyBound(reader, rx);
-    const key = printUcTokens(trimUcTokensTail(reader.consumePrev()));
-
-    if (bound === UC_TOKEN_OPENING_PARENTHESIS) {
-      await ucdReadMap(reader, rx, key);
-    } else if (!key) {
-      // End of input and no key.
-      // Empty map.
-      rx.emptyMap();
-    } else {
-      // End of input.
-      // Map containing single key with empty value.
-      rx.onlySuffix(key);
-    }
-
-    if (single) {
-      return;
-    }
-
-    hasValue = true;
-  } else if (firstToken === UC_TOKEN_INSET) {
-    await reader.readInset(rx.rx, emit => rx.ins(emit), single);
-
-    if (single) {
-      return;
-    }
-
-    hasValue = true;
   }
 
   if (reader.current() === UC_TOKEN_OPENING_PARENTHESIS) {

@@ -12,12 +12,15 @@ export type UcrxInsetLexer = UcLexer;
  * charge receiver}. If the latter is not defined, it will try to use the one created by this method.
  * If that fails, an error will be reported.
  *
+ * @param id - Inset format identifier.
  * @param emit - Emitter function called each time a token is found.
  * @param cx - Charge processing context.
  *
  * @returns Either input lexer factory, or `undefined` if an inset is not expected.
  */
 export type UcrxInsetSyntax = (
+  this: void,
+  id: number | string,
   emit: (token: UcToken) => void,
   cx: UcrxContext,
 ) => UcrxInsetLexer | undefined;
