@@ -8,7 +8,6 @@ import {
   EsVarSymbol,
   esline,
 } from 'esgen';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
@@ -17,6 +16,7 @@ import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdModels } from './ucd-models.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
@@ -73,7 +73,10 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ucrxClass;
   }
 
-  exportFn(externalName: string, mode: UcDeserializer.Mode): EsFunction<UcdExportSignature.Args> {
+  exportFn(
+    externalName: string,
+    { mode = 'universal' }: UcdModels.SchemaEntry<T, TSchema>,
+  ): EsFunction<UcdExportSignature.Args> {
     const { opaqueUcrx, defaultEntities, defaultFormats, onMeta, inset } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {

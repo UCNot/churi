@@ -1,10 +1,11 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UcdModels } from '../../compiler/deserialization/ucd-models.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcNullable, ucNullable } from '../uc-nullable.js';
-import { UcModel } from '../uc-schema.js';
+import { ucNullable } from '../uc-nullable.js';
+import { UcDataType } from '../uc-schema.js';
 import { UcString, ucString } from './uc-string.js';
 
 describe('UcString deserializer', () => {
@@ -21,9 +22,9 @@ describe('UcString deserializer', () => {
     let readValue: UcDeserializer<string>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcModel<string> }>({
+      const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcDataType<string>> }>({
         models: {
-          readValue: String,
+          readValue: { model: String },
         },
       });
 
@@ -133,9 +134,9 @@ describe('UcString deserializer', () => {
       let readValue: UcDeserializer<string | null>;
 
       beforeAll(async () => {
-        const compiler = new UcdCompiler<{ readValue: UcNullable<UcString> }>({
+        const compiler = new UcdCompiler({
           models: {
-            readValue: ucNullable<UcString>(String),
+            readValue: { model: ucNullable<UcString>(String) },
           },
         });
 
@@ -152,11 +153,13 @@ describe('UcString deserializer', () => {
     let readValue: UcDeserializer<string>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcString.Schema }>({
+      const compiler = new UcdCompiler({
         models: {
-          readValue: ucString({
-            raw: 'parse',
-          }),
+          readValue: {
+            model: ucString({
+              raw: 'parse',
+            }),
+          },
         },
       });
 
@@ -253,13 +256,15 @@ describe('UcString deserializer', () => {
       let readValue: UcDeserializer<string | null>;
 
       beforeAll(async () => {
-        const compiler = new UcdCompiler<{ readValue: UcNullable<UcString, UcString.Schema> }>({
+        const compiler = new UcdCompiler({
           models: {
-            readValue: ucNullable(
-              ucString({
-                raw: 'parse',
-              }),
-            ),
+            readValue: {
+              model: ucNullable(
+                ucString({
+                  raw: 'parse',
+                }),
+              ),
+            },
           },
         });
 

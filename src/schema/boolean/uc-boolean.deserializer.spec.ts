@@ -1,5 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UcdModels } from '../../compiler/deserialization/ucd-models.js';
 import { readTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
@@ -19,9 +20,9 @@ describe('UcBoolean deserializer', () => {
   let readValue: UcDeserializer<boolean>;
 
   beforeAll(async () => {
-    const compiler = new UcdCompiler<{ readValue: UcModel<boolean> }>({
+    const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcModel<boolean>> }>({
       models: {
-        readValue: Boolean,
+        readValue: { model: Boolean },
       },
     });
 
@@ -94,9 +95,9 @@ describe('UcBoolean deserializer', () => {
     let readValue: UcDeserializer<boolean | null>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcModel<boolean | null> }>({
+      const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcModel<boolean | null>> }>({
         models: {
-          readValue: ucNullable<boolean>(Boolean),
+          readValue: { model: ucNullable<boolean>(Boolean) },
         },
       });
 

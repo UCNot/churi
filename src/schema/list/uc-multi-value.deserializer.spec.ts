@@ -12,7 +12,7 @@ describe('UcMultiValue deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucMultiValue<number>(Number),
+          readList: { model: ucMultiValue<number>(Number) },
         },
       });
 
@@ -40,7 +40,7 @@ describe('UcMultiValue deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucMultiValue<number>(Number)),
+          readList: { model: ucNullable(ucMultiValue<number>(Number)) },
         },
       });
 
@@ -58,7 +58,7 @@ describe('UcMultiValue deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucMultiValue<number>(Number, { single: 'prefer' }),
+          readList: { model: ucMultiValue<number>(Number, { single: 'prefer' }) },
         },
       });
 
@@ -86,7 +86,7 @@ describe('UcMultiValue deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucMultiValue<number>(Number, { single: 'prefer' })),
+          readList: { model: ucNullable(ucMultiValue<number>(Number, { single: 'prefer' })) },
         },
       });
 

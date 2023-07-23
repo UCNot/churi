@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
-import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcdCompiler } from './ucd-compiler.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
@@ -11,7 +11,7 @@ describe('UcdCompiler', () => {
     it('enables feature in object form', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: ['sync', Number],
+          readTimestamp: { model: Number, mode: 'sync' },
         },
         features: [
           {
@@ -67,7 +67,7 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: ['sync', schema],
+          readTimestamp: { model: schema, mode: 'sync' },
         },
       });
 
@@ -88,7 +88,7 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: ['sync', schema],
+          readTimestamp: { model: schema, mode: 'sync' },
         },
       });
 
@@ -109,7 +109,7 @@ describe('UcdCompiler', () => {
       };
       const compiler = new UcdCompiler({
         models: {
-          readTimestamp: ['sync', schema],
+          readTimestamp: { model: schema, mode: 'sync' },
         },
       });
 
@@ -130,8 +130,8 @@ describe('UcdCompiler', () => {
       };
 
       await expect(
-        new UcdCompiler<{ readTimestamp: UcModel<number> }>({
-          models: { readTimestamp: schema },
+        new UcdCompiler({
+          models: { readTimestamp: { model: schema } },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(
@@ -151,8 +151,8 @@ describe('UcdCompiler', () => {
       };
 
       await expect(
-        new UcdCompiler<{ readTimestamp: UcModel<number> }>({
-          models: { readTimestamp: schema },
+        new UcdCompiler({
+          models: { readTimestamp: { model: schema } },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(
@@ -166,7 +166,7 @@ describe('UcdCompiler', () => {
     describe('ES2015', () => {
       it('compiles async module', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: ['async', Number] },
+          models: { readValue: { model: Number, mode: 'async' } },
         });
         const text = await compiler.generate();
 
@@ -191,7 +191,7 @@ export async function readValue(
       });
       it('compiles sync module', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: ['sync', Number] },
+          models: { readValue: { model: Number, mode: 'sync' } },
         });
         const text = await compiler.generate();
 
@@ -215,7 +215,7 @@ export function readValue(
       });
       it('compiles universal module', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: Number },
+          models: { readValue: { model: Number } },
         });
         const text = await compiler.generate();
 
@@ -243,7 +243,7 @@ export function readValue(
     describe('IIFE', () => {
       it('creates async factory', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: ['async', Number] },
+          models: { readValue: { model: Number, mode: 'async' } },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 
@@ -268,7 +268,7 @@ export function readValue(
       });
       it('creates sync factory', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: ['sync', Number] },
+          models: { readValue: { model: Number, mode: 'sync' } },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 
@@ -293,7 +293,7 @@ export function readValue(
       });
       it('creates universal factory', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: Number },
+          models: { readValue: { model: Number } },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 

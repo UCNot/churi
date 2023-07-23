@@ -37,7 +37,7 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucUnknown(),
+          readValue: { model: ucUnknown() },
         },
         inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
@@ -68,7 +68,7 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<UcString>(ucString()),
+          readList: { model: ucList<UcString>(ucString()) },
         },
         inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
@@ -121,7 +121,7 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({ foo: ucNumber(), bar: ucString(), baz: ucString() }),
+          readMap: { model: ucMap({ foo: ucNumber(), bar: ucString(), baz: ucString() }) },
         },
         inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
@@ -194,7 +194,7 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucUnknown(),
+          readValue: { model: ucUnknown() },
         },
         inset({ emit }) {
           const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
@@ -225,7 +225,7 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucString(),
+          readValue: { model: ucString() },
         },
       });
 

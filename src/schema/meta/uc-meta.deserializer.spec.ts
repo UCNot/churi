@@ -86,7 +86,7 @@ describe('UcMeta deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          parse: ucUnknown(),
+          parse: { model: ucUnknown() },
         },
         features: [ucdSupportDefaults, ucdSupportMetaMapEntity],
       });
@@ -137,7 +137,7 @@ describe('UcMeta deserializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
-        models: { parse: ucUnknown() },
+        models: { parse: { model: ucUnknown() } },
         features: [
           ucdSupportDefaults,
           compiler => ({

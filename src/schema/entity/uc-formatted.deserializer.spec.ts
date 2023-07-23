@@ -23,7 +23,7 @@ describe('UcFormatted deserializer', () => {
   it('recognizes by custom prefix', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readString: ['sync', String],
+        readString: { model: String, mode: 'sync' },
       },
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     });
@@ -34,7 +34,7 @@ describe('UcFormatted deserializer', () => {
   it('closes hanging parentheses', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readString: ['async', String],
+        readString: { model: String, mode: 'async' },
       },
       features: [ucdSupportPrimitives, ucdSupportPlainEntity],
     });
@@ -47,7 +47,7 @@ describe('UcFormatted deserializer', () => {
   it('extends base ucrx', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readTimestamp: ['sync', Number],
+        readTimestamp: { model: Number, mode: 'sync' },
       },
       features: [ucdSupportPrimitives, ucdSupportTimestampFormat],
     });
@@ -59,7 +59,7 @@ describe('UcFormatted deserializer', () => {
   it('fails without required ucrx method', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readTimestamp: ['sync', Number],
+        readTimestamp: { model: Number, mode: 'sync' },
       },
       features: [ucdSupportPrimitives, ucdSupportTimestampFormatOnly],
     });
@@ -71,7 +71,7 @@ describe('UcFormatted deserializer', () => {
   it('does not recognize unknown format', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: ['sync', Number],
+        readNumber: { model: Number, mode: 'sync' },
       },
       features: ucdSupportPrimitives,
     });

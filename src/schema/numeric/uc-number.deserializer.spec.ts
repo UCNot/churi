@@ -25,7 +25,7 @@ describe('UcNumber deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: Number as UcDataType<UcNumber>,
+          readValue: { model: Number as UcDataType<UcNumber> },
         },
         features: [ucdSupportPrimitives, ucdSupportNonFinite],
       });
@@ -40,7 +40,7 @@ describe('UcNumber deserializer', () => {
     it('deserializes number synchronously', async () => {
       const compiler = new UcdCompiler({
         models: {
-          parseValue: ['sync', Number],
+          parseValue: { model: Number, mode: 'sync' },
         },
       });
 
@@ -52,7 +52,7 @@ describe('UcNumber deserializer', () => {
     it('deserializes number from string', async () => {
       const compiler = new UcdCompiler({
         models: {
-          parseValue: ['sync', Number],
+          parseValue: { model: Number, mode: 'sync' },
         },
       });
       const { parseValue } = await compiler.evaluate();
@@ -151,7 +151,7 @@ describe('UcNumber deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucNumber({ string: 'reject' }),
+          readValue: { model: ucNumber({ string: 'reject' }) },
         },
         features: [ucdSupportPrimitives, ucdSupportNonFinite],
       });

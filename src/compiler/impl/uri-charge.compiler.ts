@@ -9,6 +9,7 @@ import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
 import { UcdCompiler } from '../deserialization/ucd-compiler.js';
 import { UcdLib } from '../deserialization/ucd-lib.js';
+import { UcdModels } from '../deserialization/ucd-models.js';
 import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
 import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -23,12 +24,12 @@ import {
 } from './uc-modules.js';
 
 export class URIChargeCompiler extends UcdCompiler<{
-  parseURICharge: ['sync', UcSchema<URICharge>];
+  parseURICharge: UcdModels.Entry<UcSchema<URICharge>, 'sync'>;
 }> {
 
   constructor() {
     super({
-      models: { parseURICharge: ['sync', URICharge$Schema] },
+      models: { parseURICharge: { model: URICharge$Schema, mode: 'sync' } },
       features(compiler) {
         return {
           configure: () => {
@@ -50,7 +51,7 @@ export class URIChargeCompiler extends UcdCompiler<{
   }
 
   override async bootstrapOptions(): Promise<
-    UcdLib.Options<{ parseURICharge: ['sync', UcSchema<URICharge>] }>
+    UcdLib.Options<{ parseURICharge: UcdModels.Entry<UcSchema<URICharge>, 'sync'> }>
   > {
     const options = await super.bootstrapOptions();
 

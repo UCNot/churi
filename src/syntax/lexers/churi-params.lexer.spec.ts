@@ -114,13 +114,13 @@ describe('ChURIParamsLexer', () => {
   it('permits custom insets', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readParams: [
-          'sync',
-          ucMap({
+        readParams: {
+          model: ucMap({
             foo: ucString({ within: { uriParams: ucInsetPlainText() } }),
             bar: ucList(ucString()),
           }),
-        ],
+          mode: 'sync',
+        },
       },
       presentation: 'uriParams',
       inset({ emit }) {

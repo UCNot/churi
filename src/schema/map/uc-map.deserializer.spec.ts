@@ -30,7 +30,7 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({}),
+          readMap: { model: ucMap({}) },
         },
       });
 
@@ -77,9 +77,11 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string> }>({
-            foo: String,
-          }),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string> }>({
+              foo: String,
+            }),
+          },
         },
       });
 
@@ -166,9 +168,11 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized entity schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({
-            test: { type: 'test-type' },
-          }),
+          readMap: {
+            model: ucMap({
+              test: { type: 'test-type' },
+            }),
+          },
         },
       });
 
@@ -194,10 +198,12 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
-            foo: String,
-            bar: String,
-          }),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
+              foo: String,
+              bar: String,
+            }),
+          },
         },
       });
 
@@ -333,15 +339,17 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
-            {
-              foo: String,
-              bar: String,
-            },
-            {
-              duplicates: 'reject',
-            },
-          ),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
+              {
+                foo: String,
+                bar: String,
+              },
+              {
+                duplicates: 'reject',
+              },
+            ),
+          },
         },
       });
 
@@ -375,15 +383,17 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              foo: ucMultiValue<string>(String),
-              bar: ucMultiValue<string>(String),
-            },
-            {
-              duplicates: 'collect',
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                foo: ucMultiValue<string>(String),
+                bar: ucMultiValue<string>(String),
+              },
+              {
+                duplicates: 'collect',
+              },
+            ),
+          },
         },
       });
 
@@ -411,15 +421,17 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              foo: ucOptional(ucMultiValue<string>(String)),
-              bar: ucOptional(ucMultiValue<string>(String)),
-            },
-            {
-              duplicates: 'collect',
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                foo: ucOptional(ucMultiValue<string>(String)),
+                bar: ucOptional(ucMultiValue<string>(String)),
+              },
+              {
+                duplicates: 'collect',
+              },
+            ),
+          },
         },
       });
 
@@ -443,14 +455,16 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              length: ucNumber(),
-            },
-            {
-              extra: ucString(),
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                length: ucNumber(),
+              },
+              {
+                extra: ucString(),
+              },
+            ),
+          },
         },
       });
 
@@ -467,14 +481,16 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized extra schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              test: String,
-            },
-            {
-              extra: { type: 'test-type' },
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                test: String,
+              },
+              {
+                extra: { type: 'test-type' },
+              },
+            ),
+          },
         },
       });
 
@@ -502,14 +518,16 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              length: ucOptional<number>(Number),
-            },
-            {
-              extra: String as UcDataType<string>,
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                length: ucOptional<number>(Number),
+              },
+              {
+                extra: String as UcDataType<string>,
+              },
+            ),
+          },
         },
       });
 
@@ -539,13 +557,13 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: [
-            'sync',
-            ucMap({
+          readMap: {
+            model: ucMap({
               foo: ucList<string>(String),
               bar: ucList<number>(Number),
             }),
-          ],
+            mode: 'sync',
+          },
         },
       });
 
@@ -616,11 +634,13 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucNullable(
-            ucMap<{ foo: UcModel<string> }>({
-              foo: String,
-            }),
-          ),
+          readMap: {
+            model: ucNullable(
+              ucMap<{ foo: UcModel<string> }>({
+                foo: String,
+              }),
+            ),
+          },
         },
       });
 

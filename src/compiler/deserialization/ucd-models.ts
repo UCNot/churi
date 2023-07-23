@@ -1,31 +1,32 @@
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcInfer, UcModel } from '../../schema/uc-schema.js';
+import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
 
 export interface UcdModels {
   readonly [reader: string]: UcdModels.Entry;
 }
 
-export function isUcdModelConfig<TModel extends UcModel>(
-  entry: UcdModels.Entry<TModel>,
-): entry is UcdModels.ModelConfig<TModel> {
-  return Array.isArray(entry);
-}
-
 export namespace UcdModels {
-  export type Entry<TModel extends UcModel = UcModel> = TModel | ModelConfig<TModel>;
+  export interface Entry<
+    out TModel extends UcModel = UcModel,
+    out TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
+  > {
+    readonly model: TModel;
+    readonly mode?: TMode | undefined;
+  }
 
-  export type ModelConfig<
-    TModel extends UcModel = UcModel,
-    TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
-  > = readonly [TMode, TModel];
-
-  export type ModeOf<TEntry extends Entry> = TEntry extends ModelConfig<any, infer TMode>
+  export type ModeOf<TEntry extends Entry> = TEntry extends Entry<any, infer TMode>
     ? TMode
     : 'universal';
 
-  export type ModelOf<TEntry extends Entry> = TEntry extends ModelConfig<infer TModel, any>
+  export type ModelOf<TEntry extends Entry> = TEntry extends Entry<infer TModel, any>
     ? TModel
     : TEntry;
+
+  export interface SchemaEntry<
+    out T = unknown,
+    out TSchema extends UcSchema<T> = UcSchema<T>,
+    out TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
+  > extends Entry<TSchema, TMode> {}
 }
 
 export type UcdExports<TModels extends UcdModels> = {

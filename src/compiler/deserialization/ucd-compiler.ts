@@ -27,7 +27,7 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
-import { UcdExports, UcdModels, isUcdModelConfig } from './ucd-models.js';
+import { UcdExports, UcdModels } from './ucd-models.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
@@ -60,7 +60,7 @@ export class UcdCompiler<
     super({
       processorNames: validate ? ['validator', 'deserializer'] : ['deserializer'],
       presentationNames: presentation,
-      models: Object.values(models).map(entry => (isUcdModelConfig(entry) ? entry[1] : entry)),
+      models: Object.values(models).map(({ model }) => model),
       features,
     });
 
