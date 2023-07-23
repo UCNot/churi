@@ -18,7 +18,7 @@ export class UcPlainTextLexer implements UcLexer {
    * Constructs plain text lexer.
    *
    * @param emit - Emitter function called each time a token is found.
-   * @param raw - Whether to not emit a raw string rather quoted string. `false` by default.
+   * @param raw - Whether to emit a raw string rather quoted string. `false` by default.
    */
   constructor(emit: (token: UcToken) => void, raw = false) {
     this.#emit = emit;

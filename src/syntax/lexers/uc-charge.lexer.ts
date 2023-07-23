@@ -37,6 +37,8 @@ export class UcChargeLexer implements UcLexer {
    * This is needed e.g. when tokenizing URI query parameters.
    *
    * @param emit - Emitter function called each time a token is found.
+   *
+   * @returns New URI charge lexer instance.
    */
   static plusAsSpace(emit: (token: UcToken) => void): UcChargeLexer {
     const lexer = new UcChargeLexer(emit);
