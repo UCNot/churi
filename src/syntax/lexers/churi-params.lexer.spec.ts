@@ -126,13 +126,13 @@ describe('ChURIParamsLexer', () => {
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 
-        return esline`return new ${UcChargeLexer}(${emit});`;
+        return esline`return ${UcChargeLexer}.forParams(${emit});`;
       },
     });
     const { readParams } = await compiler.evaluate();
 
     expect(
-      readParams(scanUcTokens(emit => new ChURIParamsLexer(emit), 'foo=1,2,3&bar=4,5,6')),
+      readParams(scanUcTokens(emit => new ChURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
     ).toEqual({
       foo: '1,2,3',
       bar: ['4', '5', '6'],
