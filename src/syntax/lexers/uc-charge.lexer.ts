@@ -31,14 +31,14 @@ import {
 export class UcChargeLexer implements UcLexer {
 
   /**
-   * Constructs URI charge lexer for URI query parameters.
+   * Constructs URI charge lexer that decodes _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space
+   * padding}.
    *
-   * In contrast to regular lexer, this one decodes _plus sign_ (`"+" (U+002B)`) as
-   * {@link UC_TOKEN_PREFIX_SPACE space padding}.
+   * This is needed e.g. when tokenizing URI query parameters.
    *
    * @param emit - Emitter function called each time a token is found.
    */
-  static forParams(emit: (token: UcToken) => void): UcChargeLexer {
+  static plusAsSpace(emit: (token: UcToken) => void): UcChargeLexer {
     const lexer = new UcChargeLexer(emit);
 
     lexer.#tokens = this.#paramTokens;
@@ -67,7 +67,7 @@ export class UcChargeLexer implements UcLexer {
    * @returns Array of tokens.
    */
   static scanParam(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => this.forParams(emit), ...input);
+    return scanUcTokens(emit => this.plusAsSpace(emit), ...input);
   }
 
   static readonly #ucTokens: { readonly [token: string]: (lexer: UcChargeLexer) => void } = {

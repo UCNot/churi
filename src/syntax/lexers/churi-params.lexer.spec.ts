@@ -126,7 +126,7 @@ describe('ChURIParamsLexer', () => {
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 
-        return esline`return ${UcChargeLexer}.forParams(${emit});`;
+        return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
       },
     });
     const { readParams } = await compiler.evaluate();
