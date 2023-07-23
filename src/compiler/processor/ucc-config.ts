@@ -1,3 +1,5 @@
+import { UcPresentationName } from '../../schema/uc-presentations.js';
+
 /**
  * Schema processing configuration.
  *
@@ -12,6 +14,17 @@ export interface UccConfig<in TOptions = void> {
    * May be called multiple times.
    *
    * @param options - Configuration options.
+   * @param context - Configuration context.
    */
-  configure(options: TOptions): void;
+  configure(options: TOptions, context: UccConfigContext): void;
+}
+
+/**
+ * Schema processing configuration context.
+ */
+export interface UccConfigContext {
+  /**
+   * Presentation name the feature is applied in.
+   */
+  readonly within?: UcPresentationName | undefined;
 }

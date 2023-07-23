@@ -95,7 +95,7 @@ export class UcdCompiler<
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure();
+    defaultConfig.configure(undefined, {});
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();

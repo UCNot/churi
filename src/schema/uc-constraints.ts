@@ -36,6 +36,8 @@ export interface UcConstraints<out T = unknown, out TSchema extends UcSchema<T> 
   readonly validator?: UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined;
 }
 
+export type UcOmniConstraints = UcConstraints<never, never>;
+
 /**
  * Name of schema processor.
  *

@@ -13,17 +13,9 @@ import { UcSchema } from './uc-schema.js';
  */
 export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
   /**
-   * Marker method needed for correct type inference.
-   *
-   * Not supposed to be defined.
-   */
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  __UcPresentations__?(schema: TSchema): TSchema;
-
-  /**
    * Constraints for schema instance represented as URI Charge.
    */
-  readonly charge?: UcConstraints | undefined;
+  readonly charge?: UcConstraints<T, TSchema> | undefined;
 
   /**
    * Constraints for schema instance represented as URI {@link ChURIParams parameter} value.
@@ -35,7 +27,7 @@ export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T
    * - {@link ChURIAnchor URI hash} parameters,
    * - `application/x-www-form-urlencoded` body.
    */
-  readonly uriParam?: UcConstraints | undefined;
+  readonly uriParam?: UcConstraints<T, TSchema> | undefined;
 }
 
 /**
@@ -43,7 +35,7 @@ export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T
  *
  * Used to provide {@link UcConstraints schema constraints} for particular presentation.
  */
-export type UcPresentationName = Exclude<keyof UcPresentations, '__UcPresentations__'>;
+export type UcPresentationName = keyof UcPresentations;
 
 /**
  * Combines schema instance presentation constraints.
@@ -72,7 +64,7 @@ export function ucPresentations<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   for (const constr of presentations) {
     for (const [presentationName, constraints] of Object.entries(constr) as [
       UcPresentationName,
-      UcConstraints | undefined,
+      UcConstraints<T, TSchema> | undefined,
     ][]) {
       if (constraints) {
         const prevConstraints = result[presentationName];

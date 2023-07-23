@@ -48,10 +48,15 @@ export class UcrxMethod<
       body: (member, hostClass) => code => {
         const mods = ucrxClass.methodModifiersOf(this);
 
-        for (const { before } of mods) {
-          code.write(
-            before(member as EsMemberRef<UcrxMethod<TArgs>, EsMethodHandle<TArgs>>, ucrxClass),
+        for (const mod of mods) {
+          const before = mod.before?.(
+            member as EsMemberRef<UcrxMethod<TArgs>, EsMethodHandle<TArgs>>,
+            ucrxClass,
           );
+
+          if (before) {
+            code.write(before);
+          }
         }
 
         code.write(declaration.body(member, hostClass));
@@ -76,7 +81,7 @@ export interface UcrxMethodInit<out TArgs extends EsSignature.Args = EsSignature
 }
 
 export interface UcrxBeforeMod<TArgs extends EsSignature.Args> {
-  before(
+  before?(
     member: EsMemberRef<UcrxMethod<TArgs>, EsMethodHandle<TArgs>>,
     ucrxClass: UcrxClass.Any,
   ): EsSnippet;

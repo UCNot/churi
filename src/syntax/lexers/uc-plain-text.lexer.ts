@@ -1,6 +1,6 @@
 import { UcdInsetOptions } from '../../compiler/deserialization/ucd-support-inset.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcConstraints } from '../../schema/uc-constraints.js';
+import { UcOmniConstraints } from '../../schema/uc-constraints.js';
 import { UcLexer } from '../uc-lexer.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
 
@@ -37,7 +37,7 @@ export class UcPlainTextLexer implements UcLexer {
 
 }
 
-export function ucInsetPlainText(): UcConstraints {
+export function ucInsetPlainText(raw?: boolean): UcOmniConstraints {
   return {
     deserializer: {
       use: 'ucdSupportInset',
@@ -45,6 +45,7 @@ export function ucInsetPlainText(): UcConstraints {
       with: {
         lexer: 'UcPlainTextLexer',
         from: CHURI_MODULE,
+        args: raw ? [`true`] : undefined,
       } satisfies UcdInsetOptions,
     },
   };

@@ -112,24 +112,62 @@ describe('ChURIParamsLexer', () => {
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });
-  it('permits custom insets', async () => {
+  it('permits custom inset', async () => {
     const compiler = new UcdCompiler({
       models: {
         readParams: {
           model: ucMap({
-            foo: ucString({ within: { uriParam: ucInsetPlainText() } }),
+            foo: ucString({
+              within: {
+                uriParam: ucInsetPlainText(),
+              },
+            }),
             bar: ucList(ucString()),
           }),
           mode: 'sync',
         },
       },
-      presentation: 'uriParam',
+      presentation: ['uriParam', 'charge'],
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 
         return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
       },
     });
+
+    const { readParams } = await compiler.evaluate();
+
+    expect(
+      readParams(scanUcTokens(emit => new ChURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
+    ).toEqual({
+      foo: '1,2,3',
+      bar: ['4', '5', '6'],
+    });
+  });
+  it('uses default custom inset', async () => {
+    const compiler = new UcdCompiler({
+      models: {
+        readParams: {
+          model: ucMap({
+            foo: ucString({
+              where: ucInsetPlainText(),
+              within: {
+                charge: ucInsetPlainText(true),
+              },
+            }),
+            bar: ucList(ucString()),
+          }),
+          mode: 'sync',
+        },
+      },
+      presentation: ['uriParam', 'charge'],
+      inset({ emit }) {
+        const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
+
+        return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
+      },
+    });
+
     const { readParams } = await compiler.evaluate();
 
     expect(

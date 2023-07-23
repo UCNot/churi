@@ -7,7 +7,7 @@ import {
 } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from './ucc-config.js';
+import { UccConfig, UccConfigContext } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
@@ -90,7 +90,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
       this.#configs.set(feature, getConfig);
     }
 
-    getConfig().configure(options!);
+    getConfig().configure(options!, {});
 
     return this;
   }
@@ -119,23 +119,28 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    this.#applyConstraints<T>(schema, schema.where);
-    for (const presentationName of this.schemaIndex.presentations) {
-      this.#applyConstraints(schema, schema.within?.[presentationName]);
+    this.#applyConstraints<T>(schema, schema.where, {});
+    for (const within of this.schemaIndex.presentations) {
+      this.#applyConstraints(schema, schema.within?.[within], { within });
     }
 
     return this;
   }
 
-  #applyConstraints<T>(schema: UcSchema<T>, constraints: UcConstraints<T> | undefined): void {
+  #applyConstraints<T>(
+    schema: UcSchema<T>,
+    constraints: UcConstraints<T> | undefined,
+    context: UccConfigContext,
+  ): void {
     for (const processorName of this.schemaIndex.processors) {
-      asArray(constraints?.[processorName]).forEach(useFeature => this.#useFeature(schema, useFeature));
+      asArray(constraints?.[processorName]).forEach(feature => this.#useFeature(schema, feature, context));
     }
   }
 
   #useFeature<TOptions>(
     schema: UcSchema,
     { use: feature, from, with: options }: UcFeatureConstraint,
+    context: UccConfigContext,
   ): void {
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
     let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TProcessor, TOptions> | undefined;
@@ -146,7 +151,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
       this.#uses.set(useId, use);
     }
 
-    use.configure(options as TOptions);
+    use.configure(options as TOptions, context);
   }
 
   protected async processInstructions(): Promise<void> {
@@ -221,7 +226,7 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
   readonly #schema: UcSchema;
   readonly #from: string;
   readonly #name: string;
-  readonly #options: TOptions[] = [];
+  readonly #options: [TOptions, UccConfigContext][] = [];
   #enabled = false;
 
   constructor(schema: UcSchema, from: string, name: string) {
@@ -230,8 +235,8 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
     this.#name = name;
   }
 
-  configure(options: TOptions): void {
-    this.#options.push(options);
+  configure(options: TOptions, context: UccConfigContext): void {
+    this.#options.push([options, context]);
   }
 
   async enableIn(processor: TProcessor): Promise<void> {
@@ -279,8 +284,8 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
   }
 
   #configure(config: UccConfig<TOptions>): void {
-    for (const options of this.#options) {
-      config.configure(options);
+    for (const [options, context] of this.#options) {
+      config.configure(options, context);
     }
   }
 
