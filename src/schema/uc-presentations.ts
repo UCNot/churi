@@ -35,7 +35,7 @@ export interface UcPresentations<out T = unknown, out TSchema extends UcSchema<T
    * - {@link ChURIAnchor URI hash} parameters,
    * - `application/x-www-form-urlencoded` body.
    */
-  readonly uriParams?: UcConstraints | undefined;
+  readonly uriParam?: UcConstraints | undefined;
 }
 
 /**

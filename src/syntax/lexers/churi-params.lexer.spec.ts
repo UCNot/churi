@@ -117,13 +117,13 @@ describe('ChURIParamsLexer', () => {
       models: {
         readParams: {
           model: ucMap({
-            foo: ucString({ within: { uriParams: ucInsetPlainText() } }),
+            foo: ucString({ within: { uriParam: ucInsetPlainText() } }),
             bar: ucList(ucString()),
           }),
           mode: 'sync',
         },
       },
-      presentation: 'uriParams',
+      presentation: 'uriParam',
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 
