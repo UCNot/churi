@@ -1,12 +1,3 @@
-/**
- * _Inset_ bounds enclose the tokens that considered as input chunks rather normal tokens.
- * The _inset_ supposed to be processed by appropriate {@link UcLexer lexer}.
- * The bounds themselves are control tokens to be ignored.
- *
- * _Inset_ expected at value position and nowhere else. E.g. it can't be inserted into the middle of a string.
- */
-export const UC_TOKEN_INSET = 0x1f;
-
 // Line terminators.
 export const UC_TOKEN_LF = 0x0a as const;
 export const UC_TOKEN_CR = 0x0d as const;
@@ -16,6 +7,19 @@ export const UC_TOKEN_CRLF = 0x0a0d as const; // Windows-style
 // Lowest byte is a code (space or tab), higher byte is the number of repeats.
 export const UC_TOKEN_PREFIX_TAB = 0x09 as const;
 export const UC_TOKEN_PREFIX_SPACE = 0x20 as const;
+
+/**
+ * _Inset_ starts with number token which lowest byte equals to this prefix. Tokens after this token considered
+ * as _inset_ input chunks rather normal tokens. The _inset_ supposed to be processed by appropriate {@link UcLexer
+ * lexer}. The token itself is used as _inset_ format identifier. The _inset_ input ends with {@link UC_TOKEN_INSET_END}
+ * token. The _inset_ bounds themselves are control tokens to be ignored.
+ *
+ * _Inset_ expected at value position and nowhere else. E.g. it can't be inserted into the middle of a string.
+ */
+export const UC_TOKEN_PREFIX_INSET = 0x1f;
+
+export const UC_TOKEN_INSET_URI_PARAM = 0x011f as const;
+export const UC_TOKEN_INSET_END = UC_TOKEN_PREFIX_INSET;
 
 // [Reserved characters](https://www.rfc-editor.org/rfc/rfc3986#section-2.2).
 export const UC_TOKEN_EXCLAMATION_MARK = 0x21 as const;
@@ -62,8 +66,9 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *   Such padding always emitted for spaces and tabs around [reserved characters], line terminators, after input
  *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
- * - Number corresponding to {@link UC_TOKEN_INSET inset bound}. The tokens between inset bounds considered as
- *   input chunks to be processed by appropriate {@link UcLexer lexer}.
+ * - Contains {@link UC_TOKEN_INSET_PREFIX} as the lowest byte. The tokens after this token considered an _inset_
+ *   input chunks to be processed by appropriate {@link UcLexer lexer}. The token itself is used as _inset_ format
+ *   identifier. The _inset_ input ends with {@link UC_TOKEN_INSET_END} token.
  *
  * [percent-decoded]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
  * [reserved characters]: https://www.rfc-editor.org/rfc/rfc3986#section-2.2

@@ -9,7 +9,8 @@ import { scanUcTokens } from '../scan-uc-tokens.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_DOLLAR_SIGN,
-  UC_TOKEN_INSET,
+  UC_TOKEN_INSET_END,
+  UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../uc-token.js';
@@ -21,15 +22,15 @@ describe('ChURIParamsLexer', () => {
     expect(scan('first=1&second=2')).toEqual([
       'first',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '1',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
       'second',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '2',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });
@@ -37,15 +38,15 @@ describe('ChURIParamsLexer', () => {
     expect(scanMatrix('first=1;second=2')).toEqual([
       'first',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '1',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
       'second',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '2',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });
@@ -57,17 +58,17 @@ describe('ChURIParamsLexer', () => {
     expect(scan('ab+', 'cd=123')).toEqual([
       'ab cd',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '123',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
     expect(scan('ab%', '20cd=123')).toEqual([
       'ab cd',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       '123',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });
@@ -75,10 +76,10 @@ describe('ChURIParamsLexer', () => {
     expect(scan('a=', 'cd=1%23', '=456')).toEqual([
       'a',
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       'cd=1%23',
       '=456',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });
@@ -99,15 +100,15 @@ describe('ChURIParamsLexer', () => {
     expect(scan('=a', '&=', 'b')).toEqual([
       UC_TOKEN_DOLLAR_SIGN,
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       'a',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
       UC_TOKEN_DOLLAR_SIGN,
       UC_TOKEN_OPENING_PARENTHESIS,
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_URI_PARAM,
       'b',
-      UC_TOKEN_INSET,
+      UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
   });

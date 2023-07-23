@@ -14,7 +14,8 @@ import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
-  UC_TOKEN_INSET,
+  UC_TOKEN_INSET_END,
+  UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
   UcToken,
@@ -50,15 +51,17 @@ describe('UcPlainTextLexer', () => {
     });
 
     it('generates string synchronously', () => {
-      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET])).toBe(`'test'`);
-      expect(readValue([UC_TOKEN_INSET, `3d`, UC_TOKEN_INSET])).toBe(`3d`);
+      expect(readValue([UC_TOKEN_INSET_URI_PARAM, `'test'`, UC_TOKEN_INSET_END])).toBe(`'test'`);
+      expect(readValue([UC_TOKEN_INSET_URI_PARAM, `3d`, UC_TOKEN_INSET_END])).toBe(`3d`);
     });
 
     it('generates string asynchronously', async () => {
-      await expect(readValue(readTokens(UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET))).resolves.toBe(
-        `'test'`,
-      );
-      await expect(readValue(readTokens(UC_TOKEN_INSET, `3d`, UC_TOKEN_INSET))).resolves.toBe(`3d`);
+      await expect(
+        readValue(readTokens(UC_TOKEN_INSET_URI_PARAM, `'test'`, UC_TOKEN_INSET_END)),
+      ).resolves.toBe(`'test'`);
+      await expect(
+        readValue(readTokens(UC_TOKEN_INSET_URI_PARAM, `3d`, UC_TOKEN_INSET_END)),
+      ).resolves.toBe(`3d`);
     });
   });
 
@@ -85,10 +88,10 @@ describe('UcPlainTextLexer', () => {
         readList([
           'start',
           UC_TOKEN_COMMA,
-          UC_TOKEN_INSET,
+          UC_TOKEN_INSET_URI_PARAM,
           `'te`,
           `st'`,
-          UC_TOKEN_INSET,
+          UC_TOKEN_INSET_END,
           UC_TOKEN_COMMA,
           UC_TOKEN_APOSTROPHE,
           'end',
@@ -102,10 +105,10 @@ describe('UcPlainTextLexer', () => {
           readTokens(
             'start',
             UC_TOKEN_COMMA,
-            UC_TOKEN_INSET,
+            UC_TOKEN_INSET_URI_PARAM,
             `'te`,
             `st'`,
-            UC_TOKEN_INSET,
+            UC_TOKEN_INSET_END,
             UC_TOKEN_COMMA,
             UC_TOKEN_APOSTROPHE,
             'end',
@@ -143,10 +146,10 @@ describe('UcPlainTextLexer', () => {
           'bar',
           UC_TOKEN_OPENING_PARENTHESIS,
           UC_TOKEN_PREFIX_SPACE | (2 << 8),
-          UC_TOKEN_INSET,
+          UC_TOKEN_INSET_URI_PARAM,
           `'te`,
           `st'`,
-          UC_TOKEN_INSET,
+          UC_TOKEN_INSET_END,
           UC_TOKEN_PREFIX_SPACE | (2 << 8),
           '!',
           UC_TOKEN_CLOSING_PARENTHESIS,
@@ -170,10 +173,10 @@ describe('UcPlainTextLexer', () => {
             'bar',
             UC_TOKEN_OPENING_PARENTHESIS,
             UC_TOKEN_PREFIX_SPACE | (2 << 8),
-            UC_TOKEN_INSET,
+            UC_TOKEN_INSET_URI_PARAM,
             `'te`,
             `st'`,
-            UC_TOKEN_INSET,
+            UC_TOKEN_INSET_END,
             UC_TOKEN_PREFIX_SPACE | (2 << 8),
             '!',
             UC_TOKEN_CLOSING_PARENTHESIS,
@@ -207,15 +210,17 @@ describe('UcPlainTextLexer', () => {
     });
 
     it('generates string synchronously', () => {
-      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET])).toBe(`'test'`);
-      expect(readValue([UC_TOKEN_INSET, `3`, UC_TOKEN_INSET])).toBe(3);
+      expect(readValue([UC_TOKEN_INSET_URI_PARAM, `'test'`, UC_TOKEN_INSET_END])).toBe(`'test'`);
+      expect(readValue([UC_TOKEN_INSET_URI_PARAM, `3`, UC_TOKEN_INSET_END])).toBe(3);
     });
 
     it('generates string asynchronously', async () => {
-      await expect(readValue(readTokens(UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET))).resolves.toBe(
-        `'test'`,
-      );
-      await expect(readValue(readTokens(UC_TOKEN_INSET, `3`, UC_TOKEN_INSET))).resolves.toBe(3);
+      await expect(
+        readValue(readTokens(UC_TOKEN_INSET_URI_PARAM, `'test'`, UC_TOKEN_INSET_END)),
+      ).resolves.toBe(`'test'`);
+      await expect(
+        readValue(readTokens(UC_TOKEN_INSET_URI_PARAM, `3`, UC_TOKEN_INSET_END)),
+      ).resolves.toBe(3);
     });
   });
 
@@ -233,14 +238,16 @@ describe('UcPlainTextLexer', () => {
     });
 
     it('errors on inset', () => {
-      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET], { onError })).toBe(``);
+      expect(readValue([UC_TOKEN_INSET_URI_PARAM, `'test'`, UC_TOKEN_INSET_END], { onError })).toBe(
+        ``,
+      );
 
       expect(errors).toEqual([
         {
           code: 'unexpectedInset',
           path: [{}],
           details: {
-            insetId: UC_TOKEN_INSET,
+            insetId: UC_TOKEN_INSET_URI_PARAM,
           },
           message: 'Unrecognized inset',
         },

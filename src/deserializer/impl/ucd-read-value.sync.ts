@@ -23,8 +23,8 @@ import {
   UC_TOKEN_COMMA,
   UC_TOKEN_DOLLAR_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
-  UC_TOKEN_INSET,
   UC_TOKEN_OPENING_PARENTHESIS,
+  UC_TOKEN_PREFIX_INSET,
   UcToken,
 } from '../../syntax/uc-token.js';
 import { SyncUcdReader } from '../sync-ucd-reader.js';
@@ -101,7 +101,7 @@ export function ucdReadValueSync(
         hasValue = true;
 
         break;
-      case UC_TOKEN_INSET:
+      case UC_TOKEN_PREFIX_INSET:
         reader.readInset(rx.rx, emit => rx.ins(firstToken, emit), single);
 
         if (single) {

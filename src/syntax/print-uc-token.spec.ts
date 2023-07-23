@@ -4,7 +4,8 @@ import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
-  UC_TOKEN_INSET,
+  UC_TOKEN_INSET_END,
+  UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_LF,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
@@ -33,9 +34,9 @@ describe('printUcToken', () => {
     expect(
       printUcTokens([
         UC_TOKEN_OPENING_PARENTHESIS,
-        UC_TOKEN_INSET,
+        UC_TOKEN_INSET_URI_PARAM,
         'test',
-        UC_TOKEN_INSET,
+        UC_TOKEN_INSET_END,
         UC_TOKEN_CLOSING_PARENTHESIS,
       ]),
     ).toBe('(test)');
