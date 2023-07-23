@@ -12,10 +12,17 @@ import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
 export class UcPlainTextLexer implements UcLexer {
 
   readonly #emit: (token: UcToken) => void;
-  #prefix = false;
+  #prefix: boolean;
 
-  constructor(emit: (token: UcToken) => void) {
+  /**
+   * Constructs plain text lexer.
+   *
+   * @param emit - Emitter function called each time a token is found.
+   * @param raw - Whether to not emit a raw string rather quoted string. `false` by default.
+   */
+  constructor(emit: (token: UcToken) => void, raw = false) {
     this.#emit = emit;
+    this.#prefix = raw;
   }
 
   scan(chunk: string): void {

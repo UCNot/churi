@@ -188,6 +188,37 @@ describe('UcPlainTextLexer', () => {
     });
   });
 
+  describe('in raw string mode', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: ucUnknown(),
+        },
+        inset({ emit }) {
+          const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+
+          return esline`return new ${UcPlainTextLexer}(${emit}, true);`;
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('generates string synchronously', () => {
+      expect(readValue([UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET])).toBe(`'test'`);
+      expect(readValue([UC_TOKEN_INSET, `3`, UC_TOKEN_INSET])).toBe(3);
+    });
+
+    it('generates string asynchronously', async () => {
+      await expect(readValue(readTokens(UC_TOKEN_INSET, `'test'`, UC_TOKEN_INSET))).resolves.toBe(
+        `'test'`,
+      );
+      await expect(readValue(readTokens(UC_TOKEN_INSET, `3`, UC_TOKEN_INSET))).resolves.toBe(3);
+    });
+  });
+
   describe('when turned off', () => {
     let readValue: UcDeserializer<UcString>;
 
