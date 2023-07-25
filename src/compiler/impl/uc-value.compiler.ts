@@ -6,22 +6,31 @@ import { UcdModels } from '../deserialization/ucd-models.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 
 export class UcValueCompiler extends UcdCompiler<{
-  parseUcValue: UcdModels.Entry<UcUnknown.Schema, 'sync'>;
+  parseUcValue: UcdModels.SyncEntry<UcUnknown.Schema>;
 }> {
 
   constructor() {
     super({
-      models: { parseUcValue: { model: ucUnknown(), mode: 'sync' } },
+      models: {
+        parseUcValue: {
+          model: ucUnknown(),
+          mode: 'sync',
+        },
+      },
     });
   }
 
   override async bootstrapOptions(): Promise<
-    UcdLib.Options<{ parseUcValue: UcdModels.Entry<UcUnknown.Schema, 'sync'> }>
+    UcdLib.Options<{ parseUcValue: UcdModels.SyncEntry<UcUnknown.Schema> }>
   > {
     const options = await super.bootstrapOptions();
     const onMeta = new EsFunction(
       'onMeta$byDefault',
-      { cx: {}, rx: {}, attr: {} },
+      {
+        cx: {},
+        rx: {},
+        attr: {},
+      },
       {
         declare: {
           at: 'exports',

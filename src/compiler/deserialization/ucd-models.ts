@@ -8,28 +8,36 @@ export interface UcdModels {
 }
 
 export namespace UcdModels {
-  export interface Entry<
-    out TModel extends UcModel = UcModel,
-    out TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
-  > {
+  export interface BaseEntry<out TModel extends UcModel = UcModel> {
     readonly model: TModel;
-    readonly mode?: TMode | undefined;
+    readonly mode?: UcDeserializer.Mode | undefined;
     readonly inset?: ((this: void, args: UcrxInsetSignature.Values) => EsSnippet) | undefined;
   }
 
-  export type ModeOf<TEntry extends Entry> = TEntry extends Entry<any, infer TMode>
+  export type Entry<TModel extends UcModel = UcModel> =
+    | SyncEntry<TModel>
+    | AsyncEntry<TModel>
+    | UniversalEntry<TModel>;
+
+  export interface SyncEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
+    readonly mode: 'sync';
+  }
+
+  export interface AsyncEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
+    readonly mode: 'async';
+  }
+
+  export interface UniversalEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
+    readonly mode?: 'universal' | undefined;
+  }
+
+  export type ModeOf<TEntry extends Entry> = TEntry extends { readonly mode: infer TMode }
     ? TMode
     : 'universal';
 
-  export type ModelOf<TEntry extends Entry> = TEntry extends Entry<infer TModel, any>
-    ? TModel
-    : TEntry;
+  export type ModelOf<TEntry extends Entry> = TEntry extends Entry<infer TModel> ? TModel : never;
 
-  export interface SchemaEntry<
-    out T = unknown,
-    out TSchema extends UcSchema<T> = UcSchema<T>,
-    out TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
-  > extends Entry<TSchema, TMode> {}
+  export type SchemaEntry<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>> = Entry<TSchema>;
 }
 
 export type UcdExports<TModels extends UcdModels> = {

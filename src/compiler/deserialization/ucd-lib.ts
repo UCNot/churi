@@ -1,5 +1,4 @@
 import { EsBundle, EsCallable, EsNamespace, EsSnippet, esline } from 'esgen';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_DESERIALIZER_META } from '../impl/uc-modules.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
@@ -165,12 +164,8 @@ export namespace UcdLib {
 
 type UcdSchemaConfigs<TModels extends UcdModels> = {
   readonly [externalName in keyof TModels]: UcdSchemaConfig<
-    UcdModels.ModelOf<TModels[externalName]>,
-    UcdModels.ModeOf<TModels[externalName]>
+    UcdModels.ModelOf<TModels[externalName]>
   >;
 };
 
-type UcdSchemaConfig<
-  TModel extends UcModel = UcModel,
-  TMode extends UcDeserializer.Mode = UcDeserializer.Mode,
-> = UcdModels.Entry<UcSchema.Of<TModel>, TMode>;
+type UcdSchemaConfig<TModel extends UcModel = UcModel> = UcdModels.Entry<UcSchema.Of<TModel>>;

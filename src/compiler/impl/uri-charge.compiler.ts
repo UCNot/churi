@@ -24,7 +24,7 @@ import {
 } from './uc-modules.js';
 
 export class URIChargeCompiler extends UcdCompiler<{
-  parseURICharge: UcdModels.Entry<UcSchema<URICharge>, 'sync'>;
+  parseURICharge: UcdModels.SyncEntry<UcSchema<URICharge>>;
 }> {
 
   constructor() {
@@ -51,7 +51,7 @@ export class URIChargeCompiler extends UcdCompiler<{
   }
 
   override async bootstrapOptions(): Promise<
-    UcdLib.Options<{ parseURICharge: UcdModels.Entry<UcSchema<URICharge>, 'sync'> }>
+    UcdLib.Options<{ parseURICharge: UcdModels.SyncEntry<UcSchema<URICharge>> }>
   > {
     const options = await super.bootstrapOptions();
 
