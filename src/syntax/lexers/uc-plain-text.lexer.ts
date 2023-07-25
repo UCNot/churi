@@ -37,7 +37,26 @@ export class UcPlainTextLexer implements UcLexer {
 
 }
 
-export function ucInsetPlainText(raw?: boolean): UcOmniConstraints {
+/**
+ * Enables inset processing as {@link UcPlainTextLexer plain text}.
+ *
+ * @param options - Lexer options.
+ *
+ * @returns Schema constraints.
+ */
+export function ucInsetPlainText(options?: {
+  /**
+   * Whether to emit a raw string rather quoted string.
+   *
+   * @defaultValue `false`.
+   */
+  readonly raw?: boolean;
+}): UcOmniConstraints;
+export function ucInsetPlainText({
+  raw,
+}: {
+  readonly raw?: boolean;
+} = {}): UcOmniConstraints {
   return {
     deserializer: {
       use: 'ucdSupportInset',

@@ -36,6 +36,9 @@ export interface UcConstraints<out T = unknown, out TSchema extends UcSchema<T> 
   readonly validator?: UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined;
 }
 
+/**
+ * Omnivorous constraints that can be applied to any schema.
+ */
 export type UcOmniConstraints = UcConstraints<never, never>;
 
 /**

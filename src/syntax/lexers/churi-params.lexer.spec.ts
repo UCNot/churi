@@ -152,7 +152,7 @@ describe('ChURIParamsLexer', () => {
             foo: ucString({
               where: ucInsetPlainText(),
               within: {
-                charge: ucInsetPlainText(true),
+                charge: ucInsetPlainText({ raw: true }),
               },
             }),
             bar: ucList(ucString()),

@@ -66,7 +66,7 @@ export const UC_TOKEN_CLOSING_BRACKET = 0x5d as const;
  *   Such padding always emitted for spaces and tabs around [reserved characters], line terminators, after input
  *   beginning, and before input end. Spaces and tabs e.g. between words may be emitted as part of string tokens.
  *
- * - Contains {@link UC_TOKEN_INSET_PREFIX} as the lowest byte. The tokens after this token considered an _inset_
+ * - Contains {@link UC_TOKEN_PREFIX_INSET} as the lowest byte. The tokens after this token considered an _inset_
  *   input chunks to be processed by appropriate {@link UcLexer lexer}. The token itself is used as _inset_ format
  *   identifier. The _inset_ input ends with {@link UC_TOKEN_INSET_END} token.
  *
