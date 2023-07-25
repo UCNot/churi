@@ -17,23 +17,34 @@ export namespace UcdModels {
   export type Entry<TModel extends UcModel = UcModel> =
     | SyncEntry<TModel>
     | AsyncEntry<TModel>
-    | UniversalEntry<TModel>;
+    | UniversalEntry<TModel>
+    | AsyncLexerEntry<TModel>
+    | LexerEntry<TModel>;
 
   export interface SyncEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
     readonly mode: 'sync';
+    readonly lexer?: ((this: void, args: { emit: EsSnippet }) => EsSnippet) | undefined;
   }
 
   export interface AsyncEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
     readonly mode: 'async';
+    readonly lexer?: undefined;
+  }
+
+  export interface AsyncLexerEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
+    readonly mode: 'async';
+    readonly lexer: (this: void, args: { emit: EsSnippet }) => EsSnippet;
   }
 
   export interface UniversalEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
     readonly mode?: 'universal' | undefined;
+    readonly lexer?: undefined;
   }
 
-  export type ModeOf<TEntry extends Entry> = TEntry extends { readonly mode: infer TMode }
-    ? TMode
-    : 'universal';
+  export interface LexerEntry<out TModel extends UcModel = UcModel> extends BaseEntry<TModel> {
+    readonly mode?: 'universal' | undefined;
+    readonly lexer: (this: void, args: { emit: EsSnippet }) => EsSnippet;
+  }
 
   export type ModelOf<TEntry extends Entry> = TEntry extends Entry<infer TModel> ? TModel : never;
 
@@ -41,9 +52,13 @@ export namespace UcdModels {
 }
 
 export type UcdExports<TModels extends UcdModels> = {
-  readonly [reader in keyof TModels]: UcdModels.ModeOf<TModels[reader]> extends 'sync'
+  readonly [reader in keyof TModels]: TModels[reader] extends UcdModels.SyncEntry<any>
     ? UcDeserializer.Sync<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
-    : UcdModels.ModeOf<TModels[reader]> extends 'async'
+    : TModels[reader] extends UcdModels.AsyncEntry<any>
+    ? UcDeserializer.AsyncByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
+    : TModels[reader] extends UcdModels.AsyncLexerEntry<any>
     ? UcDeserializer.Async<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
+    : TModels[reader] extends UcdModels.UniversalEntry<any>
+    ? UcDeserializer.ByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
     : UcDeserializer<UcInfer<UcdModels.ModelOf<TModels[reader]>>>;
 };

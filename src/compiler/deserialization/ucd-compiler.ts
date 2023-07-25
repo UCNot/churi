@@ -23,7 +23,6 @@ import { UccFeature } from '../processor/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdFunction } from './ucd-function.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
@@ -355,10 +354,5 @@ export namespace UcdCompiler {
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
     readonly exportDefaults?: boolean | undefined;
-
-    createDeserializer?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      options: UcdFunction.Options<T, TSchema>,
-    ): UcdFunction<T, TSchema>;
   }
 }

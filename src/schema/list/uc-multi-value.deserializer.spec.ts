@@ -7,7 +7,7 @@ import { ucMultiValue } from './uc-multi-value.js';
 
 describe('UcMultiValue deserializer', () => {
   describe('with single: as-is', () => {
-    let readList: UcDeserializer<number | number[]>;
+    let readList: UcDeserializer.ByTokens<number | number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -35,7 +35,7 @@ describe('UcMultiValue deserializer', () => {
   });
 
   describe('nullable with single: as-is', () => {
-    let readList: UcDeserializer<number | number[] | null>;
+    let readList: UcDeserializer.ByTokens<number | number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -53,7 +53,7 @@ describe('UcMultiValue deserializer', () => {
   });
 
   describe('with single: prefer', () => {
-    let readList: UcDeserializer<number | number[]>;
+    let readList: UcDeserializer.ByTokens<number | number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -81,7 +81,7 @@ describe('UcMultiValue deserializer', () => {
   });
 
   describe('nullable with single: prefer', () => {
-    let readList: UcDeserializer<number | number[] | null>;
+    let readList: UcDeserializer.ByTokens<number | number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({

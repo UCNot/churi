@@ -1,8 +1,11 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
+import { esline } from 'esgen';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
 import { ucMap } from '../../schema/map/uc-map.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
+import { readChunks } from '../../spec/read-chunks.js';
 import { scanUcTokens } from '../scan-uc-tokens.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
 import { UcURIEncodedLexer, ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
@@ -64,6 +67,11 @@ describe('ucInsetURIEncoded', () => {
             model: ucMap({
               a: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -72,9 +80,9 @@ describe('ucInsetURIEncoded', () => {
     });
 
     it('URI-decodes values', () => {
-      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `'te st'` });
-      expect(readValue(scan(`a=te+st`))).toEqual({ a: 'te+st' });
-      expect(readValue(scan(`a=%33`))).toEqual({ a: '3' });
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `'te st'` });
+      expect(readValue(`a=te+st`)).toEqual({ a: 'te+st' });
+      expect(readValue(`a=%33`)).toEqual({ a: '3' });
     });
   });
 
@@ -88,6 +96,11 @@ describe('ucInsetURIEncoded', () => {
             model: ucMap({
               a: ucUnknown({ within: { uriParam: ucInsetURIEncoded({ raw: true }) } }),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -95,15 +108,20 @@ describe('ucInsetURIEncoded', () => {
       ({ readValue } = await compiler.evaluate());
     });
 
-    it('URI-decodes values', () => {
-      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `'te st'` });
-      expect(readValue(scan(`a='te+st'`))).toEqual({ a: `'te+st'` });
-      expect(readValue(scan(`a=%33`))).toEqual({ a: 3 });
+    it('URI-decodes values synchronously', () => {
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `'te st'` });
+      expect(readValue(`a='te+st'`)).toEqual({ a: `'te+st'` });
+      expect(readValue(`a=%33`)).toEqual({ a: 3 });
+    });
+    it('URI-decodes values asynchronously', async () => {
+      await expect(readValue(readChunks(`a='te%20st'`))).resolves.toEqual({ a: `'te st'` });
+      await expect(readValue(readChunks(`a='te+st'`))).resolves.toEqual({ a: `'te+st'` });
+      await expect(readValue(readChunks(`a=%33`))).resolves.toEqual({ a: 3 });
     });
   });
 
   describe('in plus-as-space mode', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.Async<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -112,6 +130,12 @@ describe('ucInsetURIEncoded', () => {
             model: ucMap({
               a: ucUnknown({ within: { uriParam: ucInsetURIEncoded({ plusAsSpace: true }) } }),
             }),
+            mode: 'async',
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -119,15 +143,15 @@ describe('ucInsetURIEncoded', () => {
       ({ readValue } = await compiler.evaluate());
     });
 
-    it('URI-decodes values', () => {
-      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `'te st'` });
-      expect(readValue(scan(`a='te+st'`))).toEqual({ a: `'te st'` });
-      expect(readValue(scan(`a=%33`))).toEqual({ a: '3' });
+    it('URI-decodes values synchronously', async () => {
+      await expect(readValue(readChunks(`a='te%20st'`))).resolves.toEqual({ a: `'te st'` });
+      await expect(readValue(readChunks(`a='te+st'`))).resolves.toEqual({ a: `'te st'` });
+      await expect(readValue(readChunks(`a=%33`))).resolves.toEqual({ a: '3' });
     });
   });
 
   describe('in raw plus-as-space mode', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.Sync<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -138,6 +162,12 @@ describe('ucInsetURIEncoded', () => {
                 within: { uriParam: ucInsetURIEncoded({ plusAsSpace: true, raw: true }) },
               }),
             }),
+            mode: 'sync',
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -145,14 +175,19 @@ describe('ucInsetURIEncoded', () => {
       ({ readValue } = await compiler.evaluate());
     });
 
-    it('URI-decodes values', () => {
+    it('URI-decodes values by chunks', () => {
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `'te st'` });
+      expect(readValue(`a='te+st'`)).toEqual({ a: `'te st'` });
+      expect(readValue(`a=%33+`)).toEqual({ a: 3 });
+    });
+    it('URI-decodes values by tokens', () => {
       expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `'te st'` });
       expect(readValue(scan(`a='te+st'`))).toEqual({ a: `'te st'` });
       expect(readValue(scan(`a=%33+`))).toEqual({ a: 3 });
+
+      function scan(...input: string[]): UcToken[] {
+        return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
+      }
     });
   });
-
-  function scan(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
-  }
 });

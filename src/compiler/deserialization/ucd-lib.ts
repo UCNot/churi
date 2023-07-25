@@ -18,7 +18,6 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
   readonly #models: UcdSchemaConfigs<TModels>;
 
   readonly #options: UcdLib.Options<TModels>;
-  readonly #createDeserializer: Exclude<UcdLib.Options<TModels>['createDeserializer'], undefined>;
 
   readonly #deserializers = new Map<string, UcdFunction>();
   readonly #defaultEntities: EsSnippet;
@@ -28,22 +27,13 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
 
   constructor(bundle: EsBundle, options: UcdLib.Options<TModels>);
   constructor({ ns }: EsBundle, options: UcdLib.Options<TModels>) {
-    const {
-      schemaIndex,
-      models,
-      exportDefaults,
-      entities,
-      formats,
-      meta,
-      createDeserializer = options => new UcdFunction(options),
-    } = options;
+    const { schemaIndex, models, exportDefaults, entities, formats, meta } = options;
 
     super(options);
 
     this.#schemaIndex = schemaIndex;
     this.#options = options;
     this.#models = this.#createModels(models);
-    this.#createDeserializer = createDeserializer;
 
     const exportNs = exportDefaults ? ns : undefined;
 
@@ -121,7 +111,7 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
     let deserializer = this.#deserializers.get(schemaId) as UcdFunction<T, TSchema> | undefined;
 
     if (!deserializer) {
-      deserializer = this.#createDeserializer({
+      deserializer = new UcdFunction({
         lib: this as UcdLib,
         schema,
       });
@@ -149,11 +139,6 @@ export namespace UcdLib {
     meta(this: void, exportNs?: EsNamespace): EsSnippet;
     onMeta?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
-
-    createDeserializer?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      options: UcdFunction.Options<T, TSchema>,
-    ): UcdFunction<T, TSchema>;
   }
 
   export interface InternalModel<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {

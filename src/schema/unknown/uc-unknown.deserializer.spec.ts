@@ -111,7 +111,7 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let readValue: UcDeserializer<UcUnknown>;
+    let readValue: UcDeserializer.ByTokens<UcUnknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -138,7 +138,7 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('with custom entity', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.ByTokens<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({

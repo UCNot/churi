@@ -17,7 +17,7 @@ describe('UcBigInt deserializer', () => {
   });
 
   describe('by default', () => {
-    let readValue: UcDeserializer<bigint>;
+    let readValue: UcDeserializer.ByTokens<bigint>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -127,7 +127,7 @@ describe('UcBigInt deserializer', () => {
     });
 
     describe('when strings rejected', () => {
-      let readValue: UcDeserializer<bigint>;
+      let readValue: UcDeserializer.ByTokens<bigint>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({
@@ -167,7 +167,7 @@ describe('UcBigInt deserializer', () => {
   });
 
   describe('when nullable', () => {
-    let readValue: UcDeserializer<bigint | null>;
+    let readValue: UcDeserializer.ByTokens<bigint | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -189,7 +189,7 @@ describe('UcBigInt deserializer', () => {
   });
 
   describe('when numbers rejected', () => {
-    let readValue: UcDeserializer<bigint>;
+    let readValue: UcDeserializer.ByTokens<bigint>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -287,7 +287,7 @@ describe('UcBigInt deserializer', () => {
     });
 
     describe('when strings rejected', () => {
-      let readValue: UcDeserializer<bigint>;
+      let readValue: UcDeserializer.ByTokens<bigint>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({

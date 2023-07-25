@@ -32,7 +32,7 @@ describe('UcPlainTextLexer', () => {
   }
 
   describe('at top level', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.ByTokens<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -67,7 +67,7 @@ describe('UcPlainTextLexer', () => {
   });
 
   describe('as list item', () => {
-    let readList: UcDeserializer<UcString[]>;
+    let readList: UcDeserializer.ByTokens<UcString[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -122,7 +122,7 @@ describe('UcPlainTextLexer', () => {
   });
 
   describe('as map entry', () => {
-    let readMap: UcDeserializer<{ foo: UcNumber; bar: UcString; baz: UcString }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: UcNumber; bar: UcString; baz: UcString }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -201,7 +201,7 @@ describe('UcPlainTextLexer', () => {
   });
 
   describe('in raw string mode', () => {
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.ByTokens<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -236,7 +236,7 @@ describe('UcPlainTextLexer', () => {
   });
 
   describe('when turned off', () => {
-    let readValue: UcDeserializer<UcString>;
+    let readValue: UcDeserializer.ByTokens<UcString>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({

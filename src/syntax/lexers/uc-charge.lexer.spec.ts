@@ -1,9 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { esline } from 'esgen';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
 import { ucMap } from '../../schema/map/uc-map.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
-import { scanUcTokens } from '../scan-uc-tokens.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -241,6 +242,11 @@ describe('ucInsetCharge', () => {
             model: ucMap({
               a: ucUnknown({ within: { uriParam: ucInsetCharge() } }),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -249,9 +255,9 @@ describe('ucInsetCharge', () => {
     });
 
     it('URI-decodes values', () => {
-      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `te st'` });
-      expect(readValue(scan(`a=te+st`))).toEqual({ a: 'te+st' });
-      expect(readValue(scan(`a=%33`))).toEqual({ a: 3 });
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a=te+st`)).toEqual({ a: 'te+st' });
+      expect(readValue(`a=%33`)).toEqual({ a: 3 });
     });
   });
 
@@ -263,8 +269,17 @@ describe('ucInsetCharge', () => {
         models: {
           readValue: {
             model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucInsetCharge({ plusAsSpace: true }) } }),
+              a: ucUnknown({
+                within: {
+                  uriParam: ucInsetCharge({ plusAsSpace: true }),
+                },
+              }),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -273,13 +288,9 @@ describe('ucInsetCharge', () => {
     });
 
     it('decodes URI charge values', () => {
-      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `te st'` });
-      expect(readValue(scan(`a='te+st'`))).toEqual({ a: `te st'` });
-      expect(readValue(scan(`a=%33`))).toEqual({ a: 3 });
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a='te+st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a=%33`)).toEqual({ a: 3 });
     });
   });
-
-  function scan(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
-  }
 });

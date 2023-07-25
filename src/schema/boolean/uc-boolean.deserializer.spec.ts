@@ -17,10 +17,10 @@ describe('UcBoolean deserializer', () => {
     errors = [];
   });
 
-  let readValue: UcDeserializer<boolean>;
+  let readValue: UcDeserializer.ByTokens<boolean>;
 
   beforeAll(async () => {
-    const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcModel<boolean>> }>({
+    const compiler = new UcdCompiler<{ readValue: UcdModels.UniversalEntry<UcModel<boolean>> }>({
       models: {
         readValue: { model: Boolean },
       },
@@ -92,10 +92,12 @@ describe('UcBoolean deserializer', () => {
   });
 
   describe('nullable', () => {
-    let readValue: UcDeserializer<boolean | null>;
+    let readValue: UcDeserializer.ByTokens<boolean | null>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcModel<boolean | null>> }>({
+      const compiler = new UcdCompiler<{
+        readValue: UcdModels.UniversalEntry<UcModel<boolean | null>>;
+      }>({
         models: {
           readValue: { model: ucNullable<boolean>(Boolean) },
         },

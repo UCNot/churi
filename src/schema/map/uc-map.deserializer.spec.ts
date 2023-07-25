@@ -25,7 +25,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('empty map', () => {
-    let readMap: UcDeserializer<UcMap>;
+    let readMap: UcDeserializer.ByTokens<UcMap>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -72,7 +72,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let readMap: UcDeserializer<{ foo: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -193,7 +193,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('multiple entries', () => {
-    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string; bar: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -334,7 +334,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: reject', () => {
-    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string; bar: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -378,7 +378,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: collect', () => {
-    let readMap: UcDeserializer<{ foo: string | string[]; bar: string | string[] }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string | string[]; bar: string | string[] }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -413,7 +413,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: collect and without required members', () => {
-    let readMap: UcDeserializer<{
+    let readMap: UcDeserializer.ByTokens<{
       foo?: string | string[] | undefined;
       bar?: string | string[] | undefined;
     }>;
@@ -450,7 +450,9 @@ describe('UcMap deserializer', () => {
   });
 
   describe('extra entries', () => {
-    let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
+    let readMap: UcDeserializer.ByTokens<
+      { length: number } & { [key in Exclude<string, 'foo'>]: string }
+    >;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -511,7 +513,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('optional entries', () => {
-    let readMap: UcDeserializer<
+    let readMap: UcDeserializer.ByTokens<
       { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
     >;
 
@@ -629,7 +631,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('nullable', () => {
-    let readMap: UcDeserializer<{ foo: string } | null>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string } | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({

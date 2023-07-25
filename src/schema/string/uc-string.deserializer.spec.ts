@@ -19,14 +19,16 @@ describe('UcString deserializer', () => {
   });
 
   describe('by default', () => {
-    let readValue: UcDeserializer<string>;
+    let readValue: UcDeserializer.ByTokens<string>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcdModels.Entry<UcDataType<string>> }>({
-        models: {
-          readValue: { model: String },
+      const compiler = new UcdCompiler<{ readValue: UcdModels.UniversalEntry<UcDataType<string>> }>(
+        {
+          models: {
+            readValue: { model: String },
+          },
         },
-      });
+      );
 
       ({ readValue } = await compiler.evaluate());
     });
@@ -131,7 +133,7 @@ describe('UcString deserializer', () => {
     });
 
     describe('when nullable', () => {
-      let readValue: UcDeserializer<string | null>;
+      let readValue: UcDeserializer.ByTokens<string | null>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({
@@ -150,7 +152,7 @@ describe('UcString deserializer', () => {
   });
 
   describe('when raw values parsed', () => {
-    let readValue: UcDeserializer<string>;
+    let readValue: UcDeserializer.ByTokens<string>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -253,7 +255,7 @@ describe('UcString deserializer', () => {
     });
 
     describe('when nullable', () => {
-      let readValue: UcDeserializer<string | null>;
+      let readValue: UcDeserializer.ByTokens<string | null>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({

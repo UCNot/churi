@@ -22,7 +22,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('with single: reject', () => {
-    let readList: UcDeserializer<number[]>;
+    let readList: UcDeserializer.ByTokens<number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -96,7 +96,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('with single: accept', () => {
-    let readList: UcDeserializer<number[]>;
+    let readList: UcDeserializer.ByTokens<number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -116,7 +116,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with single: accept', () => {
-    let readList: UcDeserializer<number[] | null>;
+    let readList: UcDeserializer.ByTokens<number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -141,7 +141,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('of booleans', () => {
-    let readList: UcDeserializer<boolean[]>;
+    let readList: UcDeserializer.ByTokens<boolean[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -159,7 +159,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('of strings', () => {
-    let readList: UcDeserializer<string[]>;
+    let readList: UcDeserializer.ByTokens<string[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -182,7 +182,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('of maps', () => {
-    let readList: UcDeserializer<{ foo: string }[]>;
+    let readList: UcDeserializer.ByTokens<{ foo: string }[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -264,7 +264,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('with nullable items', () => {
-    let readList: UcDeserializer<(number | null)[]>;
+    let readList: UcDeserializer.ByTokens<(number | null)[]>;
 
     beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
@@ -301,7 +301,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable', () => {
-    let readList: UcDeserializer<number[] | null>;
+    let readList: UcDeserializer.ByTokens<number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -354,7 +354,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with nullable items', () => {
-    let readList: UcDeserializer<(number | null)[] | null>;
+    let readList: UcDeserializer.ByTokens<(number | null)[] | null>;
 
     beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
@@ -388,7 +388,7 @@ describe('UcList deserializer', () => {
       errors = [];
     });
 
-    let readMatrix: UcDeserializer<number[][]>;
+    let readMatrix: UcDeserializer.ByTokens<number[][]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -461,7 +461,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nested or null', () => {
-    let readMatrix: UcDeserializer<(number[] | null)[]>;
+    let readMatrix: UcDeserializer.ByTokens<(number[] | null)[]>;
 
     beforeAll(async () => {
       const list = ucList<number>(Number);
@@ -500,7 +500,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with nested', () => {
-    let readMatrix: UcDeserializer<number[][] | null>;
+    let readMatrix: UcDeserializer.ByTokens<number[][] | null>;
 
     beforeAll(async () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
@@ -547,7 +547,7 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with nested or null', () => {
-    let readMatrix: UcDeserializer<(number[] | null)[] | null>;
+    let readMatrix: UcDeserializer.ByTokens<(number[] | null)[] | null>;
 
     beforeAll(async () => {
       const list = ucList<number>(Number);

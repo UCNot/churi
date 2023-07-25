@@ -209,6 +209,11 @@ describe('ucInsetURIParams', () => {
                 },
               ),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit}, ';')`;
+            },
           },
         },
       });
@@ -217,14 +222,10 @@ describe('ucInsetURIParams', () => {
     });
 
     it('recognizes params', () => {
-      expect(readValue(scan(`a=b='te%20st'&c=2`))).toEqual({ a: { b: `'te st'`, c: '2' } });
-      expect(readValue(scan(`a=b=te+st&c=2`))).toEqual({ a: { b: 'te+st', c: '2' } });
-      expect(readValue(scan(`a=b=%33&c=2`))).toEqual({ a: { b: '3', c: '2' } });
+      expect(readValue(`a=b='te%20st'&c=2`)).toEqual({ a: { b: `'te st'`, c: '2' } });
+      expect(readValue(`a=b=te+st&c=2`)).toEqual({ a: { b: 'te+st', c: '2' } });
+      expect(readValue(`a=b=%33&c=2`)).toEqual({ a: { b: '3', c: '2' } });
     });
-
-    function scan(...input: string[]): UcToken[] {
-      return scanUcTokens(emit => new UcURIParamsLexer(emit, ';'), ...input);
-    }
   });
 
   describe('with matrix splitter', () => {
@@ -245,6 +246,11 @@ describe('ucInsetURIParams', () => {
                 },
               ),
             }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
           },
         },
       });
@@ -253,13 +259,9 @@ describe('ucInsetURIParams', () => {
     });
 
     it('recognizes params', () => {
-      expect(readValue(scan(`a=b='te%20st';c=2`))).toEqual({ a: { b: `'te st'`, c: '2' } });
-      expect(readValue(scan(`a=b=te+st;c=2`))).toEqual({ a: { b: 'te+st', c: '2' } });
-      expect(readValue(scan(`a=b=%33;c=2`))).toEqual({ a: { b: '3', c: '2' } });
+      expect(readValue(`a=b='te%20st';c=2`)).toEqual({ a: { b: `'te st'`, c: '2' } });
+      expect(readValue(`a=b=te+st;c=2`)).toEqual({ a: { b: 'te+st', c: '2' } });
+      expect(readValue(`a=b=%33;c=2`)).toEqual({ a: { b: '3', c: '2' } });
     });
-
-    function scan(...input: string[]): UcToken[] {
-      return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
-    }
   });
 });

@@ -20,7 +20,7 @@ describe('UcNumber deserializer', () => {
   });
 
   describe('by default', () => {
-    let readValue: UcDeserializer<number>;
+    let readValue: UcDeserializer.ByTokens<number>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
@@ -146,7 +146,7 @@ describe('UcNumber deserializer', () => {
   });
 
   describe('when strings rejected', () => {
-    let readValue: UcDeserializer<number>;
+    let readValue: UcDeserializer.ByTokens<number>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({

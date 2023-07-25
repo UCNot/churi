@@ -81,7 +81,7 @@ describe('UcMeta deserializer', () => {
   });
 
   describe('within unknown input', () => {
-    let parse: UcDeserializer.Async<unknown>;
+    let parse: UcDeserializer.AsyncByTokens<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
