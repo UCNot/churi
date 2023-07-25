@@ -9,8 +9,6 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcPresentationName } from '../../schema/uc-presentations.js';
-import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
 import { UcrxCore$stub } from '../impl/ucrx-core.stub.js';
 import { UcrxBeforeMod, UcrxMethod, UcrxMethodInit } from './ucrx-method.js';
 import { UcrxClass } from './ucrx.class.js';
@@ -32,16 +30,7 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
       body: (member, hostClass) => code => {
         const mods = ucrxClass.methodModifiersOf(this);
         const insets = mods
-          .map(
-            ({ inset }) => inset
-              && ([
-                inset.presentation
-                  ? UC_INSETS_BY_PRESENTATIONS[inset.presentation]
-                    || esStringLiteral(inset.presentation)
-                  : 0,
-                inset,
-              ] as const),
-          )
+          .map(({ inset }) => inset && ([inset.insetId, inset] as const))
           .filter(isDefined);
 
         if (insets.length) {
@@ -56,9 +45,11 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
               let defaultInset: UcrxInsetMod['inset'];
 
               for (const [insetId, inset] of insets) {
-                if (insetId) {
+                if (insetId != null) {
                   code.line(
-                    `case ${insetId}: return `,
+                    `case ${
+                      typeof insetId === 'string' ? esStringLiteral(insetId) : insetId
+                    }: return `,
                     inset.createLexer(member as EsMemberRef<UcrxInsetMethod>, ucrxClass),
                     ';',
                   );
@@ -85,15 +76,10 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
 
 }
 
-const UC_INSETS_BY_PRESENTATIONS: { readonly [presentation in UcPresentationName]: number } = {
-  charge: 0,
-  uriParam: UC_TOKEN_INSET_URI_PARAM,
-};
-
 export interface UcrxInsetMod extends UcrxBeforeMod<UcrxInsetSignature.Args> {
   readonly inset?:
     | {
-        readonly presentation?: UcPresentationName | undefined;
+        readonly insetId?: number | string | undefined;
         createLexer(
           member: EsMemberRef<UcrxInsetMethod, EsMethodHandle<UcrxInsetSignature.Args>>,
           ucrxClass: UcrxClass.Any,

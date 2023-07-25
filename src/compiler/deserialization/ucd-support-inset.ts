@@ -1,5 +1,7 @@
 import { esImport, esline } from 'esgen';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
 import { UcrxCore$stubBody } from '../impl/ucrx-core.stub.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -10,7 +12,7 @@ export function ucdSupportInset(
   schema: UcSchema,
 ): UccConfig<UcdInsetOptions> {
   return {
-    configure({ lexer, from, args }, { within: presentation }) {
+    configure({ lexer, from, args }, { within }) {
       compiler
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
@@ -23,7 +25,7 @@ export function ucdSupportInset(
         })
         .modifyUcrxMethod(schema, UcrxCore.ins, {
           inset: {
-            presentation,
+            insetId: within && (UC_PRESENTATION_INSET_ID[within] ?? within),
             createLexer({
               member: {
                 args: { emit },
@@ -45,3 +47,9 @@ export interface UcdInsetOptions {
   readonly from: string;
   readonly args?: readonly string[] | undefined;
 }
+
+const UC_PRESENTATION_INSET_ID: {
+  readonly [presentation in UcPresentationName]?: number | undefined;
+} = {
+  uriParam: UC_TOKEN_INSET_URI_PARAM,
+};
