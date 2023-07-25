@@ -50,12 +50,13 @@ export function ucInsetPlainText(options?: {
    *
    * @defaultValue `false`.
    */
-  readonly raw?: boolean;
+  readonly raw?: boolean | undefined;
 }): UcOmniConstraints;
+
 export function ucInsetPlainText({
   raw,
 }: {
-  readonly raw?: boolean;
+  readonly raw?: boolean | undefined;
 } = {}): UcOmniConstraints {
   return {
     deserializer: {
