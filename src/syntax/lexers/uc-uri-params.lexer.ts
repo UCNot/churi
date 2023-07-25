@@ -1,4 +1,8 @@
+import { esStringLiteral } from 'esgen';
 import { decodeURISearchPart } from 'httongue';
+import { UcdInsetOptions } from '../../compiler/deserialization/ucd-support-inset.js';
+import { CHURI_MODULE, COMPILER_MODULE } from '../../impl/module-names.js';
+import { UcOmniConstraints } from '../../schema/uc-constraints.js';
 import { UcLexer } from '../uc-lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -21,7 +25,7 @@ import {
  *
  * Parameter values emitted as inset starting with {@link UC_TOKEN_INSET_URI_PARAM} token.
  */
-export class ChURIParamsLexer implements UcLexer {
+export class UcURIParamsLexer implements UcLexer {
 
   readonly #emit: (token: UcToken) => void;
   readonly #splitter: string;
@@ -140,3 +144,28 @@ const CHURI_DELIMITER_PATTERNS = {
   '&': /=|&+/,
   ';': /=|;+/,
 };
+
+/**
+ * Enables inset processing as {@link UcURIParamsLexer URI params}.
+ *
+ * E.g. for `application/x-www-form-urlencoded` processing.
+ *
+ * @param splitter - Parameters splitter character.
+ *
+ * Either `'&'` (by default), or `';'`.
+ *
+ * @returns Schema constraints.
+ */
+export function ucInsetURIParams(splitter?: '&' | ';'): UcOmniConstraints {
+  return {
+    deserializer: {
+      use: 'ucdSupportInset',
+      from: COMPILER_MODULE,
+      with: {
+        lexer: 'UcURIParamsLexer',
+        from: CHURI_MODULE,
+        args: splitter ? [esStringLiteral(splitter)] : undefined,
+      } satisfies UcdInsetOptions,
+    },
+  };
+}

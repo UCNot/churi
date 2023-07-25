@@ -5,8 +5,8 @@ import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { scanUcTokens } from '../scan-uc-tokens.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
-import { ChURIParamsLexer } from './churi-params.lexer.js';
 import { UcURIEncodedLexer, ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
+import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
 describe('UcURIEncodedLexer', () => {
   it('decodes percent-encoded entities', () => {
@@ -153,6 +153,6 @@ describe('ucInsetURIEncoded', () => {
   });
 
   function scan(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new ChURIParamsLexer(emit), ...input);
+    return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
   }
 });

@@ -1,10 +1,12 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
 import { ucList } from '../../schema/list/uc-list.js';
 import { ucMap } from '../../schema/map/uc-map.js';
 import { ucString } from '../../schema/string/uc-string.js';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import { scanUcTokens } from '../scan-uc-tokens.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -14,10 +16,11 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../uc-token.js';
-import { ChURIParamsLexer } from './churi-params.lexer.js';
 import { ucInsetPlainText } from './uc-plain-text.lexer.js';
+import { ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
+import { UcURIParamsLexer, ucInsetURIParams } from './uc-uri-params.lexer.js';
 
-describe('ChURIParamsLexer', () => {
+describe('UcURIParamsLexer', () => {
   it('recognizes query params', () => {
     expect(scan('first=1&second=2')).toEqual([
       'first',
@@ -138,7 +141,7 @@ describe('ChURIParamsLexer', () => {
     const { readParams } = await compiler.evaluate();
 
     expect(
-      readParams(scanUcTokens(emit => new ChURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
+      readParams(scanUcTokens(emit => new UcURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
     ).toEqual({
       foo: '1,2,3',
       bar: ['4', '5', '6'],
@@ -171,7 +174,7 @@ describe('ChURIParamsLexer', () => {
     const { readParams } = await compiler.evaluate();
 
     expect(
-      readParams(scanUcTokens(emit => new ChURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
+      readParams(scanUcTokens(emit => new UcURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
     ).toEqual({
       foo: '1,2,3',
       bar: ['4', '5', '6'],
@@ -179,10 +182,84 @@ describe('ChURIParamsLexer', () => {
   });
 
   function scan(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new ChURIParamsLexer(emit), ...input);
+    return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
   }
 
   function scanMatrix(...input: string[]): UcToken[] {
-    return scanUcTokens(emit => new ChURIParamsLexer(emit, ';'), ...input);
+    return scanUcTokens(emit => new UcURIParamsLexer(emit, ';'), ...input);
   }
+});
+
+describe('ucInsetURIParams', () => {
+  describe('with default splitter', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucMap(
+                {
+                  b: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                  c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                },
+                {
+                  within: { uriParam: ucInsetURIParams() },
+                },
+              ),
+            }),
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('recognizes params', () => {
+      expect(readValue(scan(`a=b='te%20st'&c=2`))).toEqual({ a: { b: `'te st'`, c: '2' } });
+      expect(readValue(scan(`a=b=te+st&c=2`))).toEqual({ a: { b: 'te+st', c: '2' } });
+      expect(readValue(scan(`a=b=%33&c=2`))).toEqual({ a: { b: '3', c: '2' } });
+    });
+
+    function scan(...input: string[]): UcToken[] {
+      return scanUcTokens(emit => new UcURIParamsLexer(emit, ';'), ...input);
+    }
+  });
+
+  describe('with matrix splitter', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucMap(
+                {
+                  b: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                  c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                },
+                {
+                  within: { uriParam: ucInsetURIParams(';') },
+                },
+              ),
+            }),
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('recognizes params', () => {
+      expect(readValue(scan(`a=b='te%20st';c=2`))).toEqual({ a: { b: `'te st'`, c: '2' } });
+      expect(readValue(scan(`a=b=te+st;c=2`))).toEqual({ a: { b: 'te+st', c: '2' } });
+      expect(readValue(scan(`a=b=%33;c=2`))).toEqual({ a: { b: '3', c: '2' } });
+    });
+
+    function scan(...input: string[]): UcToken[] {
+      return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
+    }
+  });
 });
