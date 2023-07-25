@@ -1,4 +1,4 @@
-import { esImport, esline } from 'esgen';
+import { esImport, esMemberAccessor, esline } from 'esgen';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
@@ -12,7 +12,7 @@ export function ucdSupportInset(
   schema: UcSchema,
 ): UccConfig<UcdInsetOptions> {
   return {
-    configure({ lexer, from, args }, { within }) {
+    configure({ lexer, from, method, args }, { within }) {
       compiler
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
@@ -34,7 +34,9 @@ export function ucdSupportInset(
               const UcLexer = esImport(from, lexer);
               const extraArgs = args?.length ? ', ' + args.join(', ') : '';
 
-              return esline`new ${UcLexer}(${emit}${extraArgs})`;
+              return method
+                ? esline`${UcLexer}${esMemberAccessor(method).accessor}(${emit}${extraArgs})`
+                : esline`new ${UcLexer}(${emit}${extraArgs})`;
             },
           },
         });
@@ -45,6 +47,7 @@ export function ucdSupportInset(
 export interface UcdInsetOptions {
   readonly lexer: string;
   readonly from: string;
+  readonly method?: string | undefined;
   readonly args?: readonly string[] | undefined;
 }
 
