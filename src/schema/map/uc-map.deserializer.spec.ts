@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { ucList } from '../list/uc-list.js';
 import { ucMultiValue } from '../list/uc-multi-value.js';
@@ -89,23 +89,23 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entry', async () => {
-      await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
-      await expect(readMap(readTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes entry synchronously', () => {
       expect(readMap(UcChargeLexer.scan('foo(bar)'))).toEqual({ foo: 'bar' });
       expect(readMap(UcChargeLexer.scan('foo(bar'))).toEqual({ foo: 'bar' });
     });
     it('deserializes $-escaped entry', async () => {
-      await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes $-escaped suffix', async () => {
-      await expect(readMap(readTokens('$foo'))).resolves.toEqual({ foo: '' });
-      await expect(readMap(readTokens('$foo \r\n   '))).resolves.toEqual({ foo: '' });
-      await expect(readMap(readTokens('\r\n $foo'))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('$foo'))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('$foo \r\n   '))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('\r\n $foo'))).resolves.toEqual({ foo: '' });
     });
     it('handles whitespace', async () => {
-      await expect(readMap(readTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+      await expect(readMap(parseTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
         foo: 'bar',
       });
     });
@@ -113,12 +113,12 @@ describe('UcMap deserializer', () => {
       const errors: unknown[] = [];
 
       await expect(
-        readMap(readTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
+        readMap(parseTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
       ).resolves.toEqual({ foo: '' });
     });
     it('rejects null', async () => {
       await expect(
-        readMap(readTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
+        readMap(parseTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
       ).resolves.toEqual({
         code: 'unexpectedType',
         path: [{}],
@@ -132,7 +132,7 @@ describe('UcMap deserializer', () => {
       });
     });
     it('rejects second item', async () => {
-      await expect(readMap(readTokens('foo(),'), { onError })).resolves.toBeUndefined();
+      await expect(readMap(parseTokens('foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -149,7 +149,7 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('rejects second item after $-prefixes map', async () => {
-      await expect(readMap(readTokens('$foo(),'), { onError })).resolves.toBeUndefined();
+      await expect(readMap(parseTokens('$foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -211,7 +211,7 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entries', async () => {
-      await expect(readMap(readTokens('foo(first)bar(second'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first)bar(second'))).resolves.toEqual({
         foo: 'first',
         bar: 'second',
       });
@@ -223,24 +223,24 @@ describe('UcMap deserializer', () => {
       });
     });
     it('deserializes $-escaped entries', async () => {
-      await expect(readMap(readTokens('foo(first)$bar(second'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first)$bar(second'))).resolves.toEqual({
         foo: 'first',
         bar: 'second',
       });
     });
     it('deserializes suffix', async () => {
-      await expect(readMap(readTokens('foo(first) \n  bar \r\n '))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first) \n  bar \r\n '))).resolves.toEqual({
         foo: 'first',
         bar: '',
       });
-      await expect(readMap(readTokens('foo(first) \n  bar )'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first) \n  bar )'))).resolves.toEqual({
         foo: 'first',
         bar: '',
       });
     });
     it('handles whitespace', async () => {
       await expect(
-        readMap(readTokens('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
+        readMap(parseTokens('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -250,7 +250,7 @@ describe('UcMap deserializer', () => {
       const errors: UcErrorInfo[] = [];
 
       await expect(
-        readMap(readTokens('foo(first)'), { onError: error => errors.push(error) }),
+        readMap(parseTokens('foo(first)'), { onError: error => errors.push(error) }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -266,7 +266,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects unknown entry', async () => {
       await expect(
-        readMap(readTokens('foo(first)wrong(123)bar(second'), { onError }),
+        readMap(parseTokens('foo(first)wrong(123)bar(second'), { onError }),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -285,7 +285,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects nested list', async () => {
       await expect(
-        readMap(readTokens('foo(first) bar(second) () '), { onError }),
+        readMap(parseTokens('foo(first) bar(second) () '), { onError }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -304,7 +304,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects second item', async () => {
       await expect(
-        readMap(readTokens('foo(first) bar(second) , '), { onError }),
+        readMap(parseTokens('foo(first) bar(second) , '), { onError }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -323,7 +323,7 @@ describe('UcMap deserializer', () => {
     });
     it('overwrites entry value', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: 'third',
         bar: 'second',
@@ -358,7 +358,7 @@ describe('UcMap deserializer', () => {
 
     it('rejects entry duplicate', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -402,7 +402,7 @@ describe('UcMap deserializer', () => {
 
     it('collects entry duplicates', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: ['first', 'third'],
         bar: 'second',
@@ -440,7 +440,7 @@ describe('UcMap deserializer', () => {
 
     it('collects entry duplicates', async () => {
       await expect(
-        readMap(readTokens('foo(first)foo(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)foo(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: ['first', 'second', 'third'],
       });
@@ -648,10 +648,10 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entry', async () => {
-      await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes null', async () => {
-      await expect(readMap(readTokens('--'))).resolves.toBeNull();
+      await expect(readMap(parseTokens('--'))).resolves.toBeNull();
     });
   });
 });

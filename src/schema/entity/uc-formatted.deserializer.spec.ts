@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import {
   ucdSupportTimestampFormat,
   ucdSupportTimestampFormatOnly,
@@ -40,7 +40,7 @@ describe('UcFormatted deserializer', () => {
     });
     const { readString } = await compiler.evaluate();
 
-    await expect(readString(readTokens("!plain'(bar(item1,item2)baz("))).resolves.toBe(
+    await expect(readString(parseTokens("!plain'(bar(item1,item2)baz("))).resolves.toBe(
       "!plain'(bar(item1,item2)baz())",
     );
   });

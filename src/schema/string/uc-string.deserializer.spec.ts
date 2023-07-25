@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UcdModels } from '../../compiler/deserialization/ucd-models.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { ucNullable } from '../uc-nullable.js';
@@ -32,54 +32,54 @@ describe('UcString deserializer', () => {
     });
 
     it('deserializes string', async () => {
-      await expect(readValue(readTokens('some string'))).resolves.toBe('some string');
+      await expect(readValue(parseTokens('some string'))).resolves.toBe('some string');
     });
     it('deserializes multiline string', async () => {
-      await expect(readValue(readTokens('prefix\r', '\n-end(suffix'))).resolves.toBe(
+      await expect(readValue(parseTokens('prefix\r', '\n-end(suffix'))).resolves.toBe(
         'prefix\r\n-end(suffix',
       );
-      await expect(readValue(readTokens('prefix\r', '\n!end(suffix'))).resolves.toBe(
+      await expect(readValue(parseTokens('prefix\r', '\n!end(suffix'))).resolves.toBe(
         'prefix\r\n!end(suffix',
       );
     });
     it('URI-decodes string', async () => {
-      await expect(readValue(readTokens('some%20string'))).resolves.toBe('some string');
+      await expect(readValue(parseTokens('some%20string'))).resolves.toBe('some string');
     });
     it('ignores leading and trailing whitespace', async () => {
-      await expect(readValue(readTokens('  \n some string  \n '))).resolves.toBe('some string');
+      await expect(readValue(parseTokens('  \n some string  \n '))).resolves.toBe('some string');
     });
     it('deserializes empty string', async () => {
-      await expect(readValue(readTokens(''))).resolves.toBe('');
-      await expect(readValue(readTokens(')'))).resolves.toBe('');
+      await expect(readValue(parseTokens(''))).resolves.toBe('');
+      await expect(readValue(parseTokens(')'))).resolves.toBe('');
     });
     it('deserializes number as string', async () => {
-      await expect(readValue(readTokens('123'))).resolves.toBe('123');
-      await expect(readValue(readTokens('-123'))).resolves.toBe('-123');
-      await expect(readValue(readTokens('0x123'))).resolves.toBe('0x123');
+      await expect(readValue(parseTokens('123'))).resolves.toBe('123');
+      await expect(readValue(parseTokens('-123'))).resolves.toBe('-123');
+      await expect(readValue(parseTokens('0x123'))).resolves.toBe('0x123');
     });
     it('deserializes hyphens', async () => {
-      await expect(readValue(readTokens('-'))).resolves.toBe('-');
-      await expect(readValue(readTokens('--'))).resolves.toBe('--');
-      await expect(readValue(readTokens('---'))).resolves.toBe('---');
+      await expect(readValue(parseTokens('-'))).resolves.toBe('-');
+      await expect(readValue(parseTokens('--'))).resolves.toBe('--');
+      await expect(readValue(parseTokens('---'))).resolves.toBe('---');
     });
     it('deserializes minus-prefixed string', async () => {
-      await expect(readValue(readTokens('-a%55c'))).resolves.toBe('-aUc');
-      await expect(readValue(readTokens('%2Da%55c'))).resolves.toBe('-aUc');
+      await expect(readValue(parseTokens('-a%55c'))).resolves.toBe('-aUc');
+      await expect(readValue(parseTokens('%2Da%55c'))).resolves.toBe('-aUc');
     });
     it('deserializes quoted string', async () => {
-      await expect(readValue(readTokens("'abc"))).resolves.toBe('abc');
+      await expect(readValue(parseTokens("'abc"))).resolves.toBe('abc');
     });
     it('respects trailing whitespace after quoted string', async () => {
-      await expect(readValue(readTokens("'abc  \n  "))).resolves.toBe('abc  \n  ');
+      await expect(readValue(parseTokens("'abc  \n  "))).resolves.toBe('abc  \n  ');
     });
     it('deserializes balanced parentheses within quoted string', async () => {
-      await expect(readValue(readTokens("'abc(def()))"))).resolves.toBe('abc(def())');
+      await expect(readValue(parseTokens("'abc(def()))"))).resolves.toBe('abc(def())');
     });
     it('does not close unbalanced parentheses within quoted string', async () => {
-      await expect(readValue(readTokens("'abc(def("))).resolves.toBe('abc(def(');
+      await expect(readValue(parseTokens("'abc(def("))).resolves.toBe('abc(def(');
     });
     it('rejects map', async () => {
-      await expect(readValue(readTokens('$foo(bar)'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('$foo(bar)'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -96,7 +96,7 @@ describe('UcString deserializer', () => {
       ]);
     });
     it('rejects empty map', async () => {
-      await expect(readValue(readTokens('$'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('$'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -113,7 +113,7 @@ describe('UcString deserializer', () => {
       ]);
     });
     it('rejects suffix', async () => {
-      await expect(readValue(readTokens('$foo'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('$foo'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {

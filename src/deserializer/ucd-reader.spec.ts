@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { Readable } from 'node:stream';
 import { UcError } from '../schema/uc-error.js';
-import { readTokens } from '../spec/read-chunks.js';
+import { parseTokens } from '../spec/read-chunks.js';
 import { UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
 import { AsyncUcdReader } from './async-ucd-reader.js';
 
@@ -168,6 +168,6 @@ describe('UcdReader', () => {
   });
 
   function readChunks(...chunks: string[]): AsyncUcdReader {
-    return new AsyncUcdReader(readTokens(...chunks));
+    return new AsyncUcdReader(parseTokens(...chunks));
   }
 });

@@ -1,6 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
-import { Readable } from 'node:stream';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
 import { ucList } from '../../schema/list/uc-list.js';
@@ -10,6 +9,7 @@ import { UcString, ucString } from '../../schema/string/uc-string.js';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcErrorInfo } from '../../schema/uc-error.js';
 import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
+import { readTokens } from '../../spec/read-chunks.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -18,7 +18,6 @@ import {
   UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
-  UcToken,
 } from '../uc-token.js';
 
 describe('UcPlainTextLexer', () => {
@@ -254,8 +253,4 @@ describe('UcPlainTextLexer', () => {
       ]);
     });
   });
-
-  function readTokens(...tokens: UcToken[]): ReadableStream<UcToken> {
-    return Readable.toWeb(Readable.from(tokens)) as ReadableStream<UcToken>;
-  }
 });

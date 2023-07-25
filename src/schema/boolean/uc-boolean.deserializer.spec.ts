@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { UcdModels } from '../../compiler/deserialization/ucd-models.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { ucNullable } from '../uc-nullable.js';
@@ -30,13 +30,13 @@ describe('UcBoolean deserializer', () => {
   });
 
   it('deserializes boolean', async () => {
-    await expect(readValue(readTokens('!'))).resolves.toBe(true);
-    await expect(readValue(readTokens(' ! '))).resolves.toBe(true);
-    await expect(readValue(readTokens('-'))).resolves.toBe(false);
-    await expect(readValue(readTokens(' -  '))).resolves.toBe(false);
+    await expect(readValue(parseTokens('!'))).resolves.toBe(true);
+    await expect(readValue(parseTokens(' ! '))).resolves.toBe(true);
+    await expect(readValue(parseTokens('-'))).resolves.toBe(false);
+    await expect(readValue(parseTokens(' -  '))).resolves.toBe(false);
   });
   it('rejects null', async () => {
-    await expect(readValue(readTokens('--'), { onError })).resolves.toBeUndefined();
+    await expect(readValue(parseTokens('--'), { onError })).resolves.toBeUndefined();
 
     expect(errors).toEqual([
       {
@@ -53,7 +53,7 @@ describe('UcBoolean deserializer', () => {
     ]);
   });
   it('rejects nested list', async () => {
-    await expect(readValue(readTokens('()'), { onError })).resolves.toBeUndefined();
+    await expect(readValue(parseTokens('()'), { onError })).resolves.toBeUndefined();
 
     expect(errors).toEqual([
       {
@@ -74,7 +74,7 @@ describe('UcBoolean deserializer', () => {
     ]);
   });
   it('rejects second item', async () => {
-    await expect(readValue(readTokens('!,-'), { onError })).resolves.toBeUndefined();
+    await expect(readValue(parseTokens('!,-'), { onError })).resolves.toBeUndefined();
 
     expect(errors).toEqual([
       {
@@ -105,18 +105,18 @@ describe('UcBoolean deserializer', () => {
     });
 
     it('deserializes boolean', async () => {
-      await expect(readValue(readTokens('!'))).resolves.toBe(true);
-      await expect(readValue(readTokens(' ! '))).resolves.toBe(true);
-      await expect(readValue(readTokens('-'))).resolves.toBe(false);
-      await expect(readValue(readTokens(' -  '))).resolves.toBe(false);
+      await expect(readValue(parseTokens('!'))).resolves.toBe(true);
+      await expect(readValue(parseTokens(' ! '))).resolves.toBe(true);
+      await expect(readValue(parseTokens('-'))).resolves.toBe(false);
+      await expect(readValue(parseTokens(' -  '))).resolves.toBe(false);
     });
     it('deserializes null', async () => {
-      await expect(readValue(readTokens('--'))).resolves.toBeNull();
-      await expect(readValue(readTokens('   --'))).resolves.toBeNull();
-      await expect(readValue(readTokens('--   \r\n'))).resolves.toBeNull();
+      await expect(readValue(parseTokens('--'))).resolves.toBeNull();
+      await expect(readValue(parseTokens('   --'))).resolves.toBeNull();
+      await expect(readValue(parseTokens('--   \r\n'))).resolves.toBeNull();
     });
     it('rejects number', async () => {
-      await expect(readValue(readTokens('-1'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('-1'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
