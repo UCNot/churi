@@ -1,5 +1,7 @@
+import { EsSnippet } from 'esgen';
 import { UcDeserializer } from '../../schema/uc-deserializer.js';
 import { UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 
 export interface UcdModels {
   readonly [reader: string]: UcdModels.Entry;
@@ -12,6 +14,7 @@ export namespace UcdModels {
   > {
     readonly model: TModel;
     readonly mode?: TMode | undefined;
+    readonly inset?: ((this: void, args: UcrxInsetSignature.Values) => EsSnippet) | undefined;
   }
 
   export type ModeOf<TEntry extends Entry> = TEntry extends Entry<any, infer TMode>

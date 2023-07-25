@@ -128,14 +128,14 @@ describe('UcURIParamsLexer', () => {
             bar: ucList(ucString()),
           }),
           mode: 'sync',
+          inset({ emit }) {
+            const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
+
+            return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
+          },
         },
       },
       presentations: ['uriParam', 'charge'],
-      inset({ emit }) {
-        const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
-
-        return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
-      },
     });
 
     const { readParams } = await compiler.evaluate();
@@ -161,14 +161,14 @@ describe('UcURIParamsLexer', () => {
             bar: ucList(ucString()),
           }),
           mode: 'sync',
+          inset({ emit }) {
+            const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
+
+            return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
+          },
         },
       },
       presentations: ['uriParam', 'charge'],
-      inset({ emit }) {
-        const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
-
-        return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
-      },
     });
 
     const { readParams } = await compiler.evaluate();

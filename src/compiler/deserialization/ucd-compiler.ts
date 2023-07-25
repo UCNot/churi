@@ -20,7 +20,6 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
-import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
@@ -350,7 +349,6 @@ export namespace UcdCompiler {
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
-    readonly inset?: ((this: void, args: UcrxInsetSignature.Values) => EsSnippet) | undefined;
     readonly validate?: boolean | undefined;
     readonly features?:
       | UccFeature<UcdCompiler.Any>

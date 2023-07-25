@@ -37,12 +37,14 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucUnknown() },
-        },
-        inset({ emit }) {
-          const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+          readValue: {
+            model: ucUnknown(),
+            inset({ emit }) {
+              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${UcPlainTextLexer}(${emit});`;
+            },
+          },
         },
       });
 
@@ -70,12 +72,14 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<UcString>(ucString()) },
-        },
-        inset({ emit }) {
-          const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+          readList: {
+            model: ucList<UcString>(ucString()),
+            inset({ emit }) {
+              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${UcPlainTextLexer}(${emit});`;
+            },
+          },
         },
       });
 
@@ -123,12 +127,18 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: { model: ucMap({ foo: ucNumber(), bar: ucString(), baz: ucString() }) },
-        },
-        inset({ emit }) {
-          const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+          readMap: {
+            model: ucMap({
+              foo: ucNumber(),
+              bar: ucString(),
+              baz: ucString(),
+            }),
+            inset({ emit }) {
+              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${UcPlainTextLexer}(${emit});`;
+            },
+          },
         },
       });
 
@@ -196,12 +206,14 @@ describe('UcPlainTextLexer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucUnknown() },
-        },
-        inset({ emit }) {
-          const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+          readValue: {
+            model: ucUnknown(),
+            inset({ emit }) {
+              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
 
-          return esline`return new ${UcPlainTextLexer}(${emit}, true);`;
+              return esline`return new ${UcPlainTextLexer}(${emit}, true);`;
+            },
+          },
         },
       });
 

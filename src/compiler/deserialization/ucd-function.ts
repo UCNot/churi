@@ -76,9 +76,9 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   exportFn(
     externalName: string,
-    { mode = 'universal' }: UcdModels.SchemaEntry<T, TSchema>,
+    { mode = 'universal', inset }: UcdModels.SchemaEntry<T, TSchema>,
   ): EsFunction<UcdExportSignature.Args> {
-    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta, inset } = this.lib;
+    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
