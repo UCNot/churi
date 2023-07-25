@@ -1,4 +1,9 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { ucMap } from '../../schema/map/uc-map.js';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
+import { scanUcTokens } from '../scan-uc-tokens.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -25,7 +30,8 @@ import {
   UC_TOKEN_SLASH,
   UcToken,
 } from '../uc-token.js';
-import { UcChargeLexer } from './uc-charge.lexer.js';
+import { UcChargeLexer, ucInsetCharge } from './uc-charge.lexer.js';
+import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
 describe('UcChargeLexer', () => {
   let lexer: UcChargeLexer;
@@ -222,4 +228,58 @@ describe('UcChargeLexer', () => {
       ]);
     });
   });
+});
+
+describe('ucInsetCharge', () => {
+  describe('in default mode', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucUnknown({ within: { uriParam: ucInsetCharge() } }),
+            }),
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('URI-decodes values', () => {
+      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `te st'` });
+      expect(readValue(scan(`a=te+st`))).toEqual({ a: 'te+st' });
+      expect(readValue(scan(`a=%33`))).toEqual({ a: 3 });
+    });
+  });
+
+  describe('in plus-as-space mode', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucUnknown({ within: { uriParam: ucInsetCharge({ plusAsSpace: true }) } }),
+            }),
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('decodes URI charge values', () => {
+      expect(readValue(scan(`a='te%20st'`))).toEqual({ a: `te st'` });
+      expect(readValue(scan(`a='te+st'`))).toEqual({ a: `te st'` });
+      expect(readValue(scan(`a=%33`))).toEqual({ a: 3 });
+    });
+  });
+
+  function scan(...input: string[]): UcToken[] {
+    return scanUcTokens(emit => new UcURIParamsLexer(emit), ...input);
+  }
 });
