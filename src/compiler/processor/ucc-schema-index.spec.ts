@@ -13,7 +13,7 @@ describe('UccSchemaIndex', () => {
   let index: UccSchemaIndex;
 
   beforeEach(() => {
-    index = new UccSchemaIndex(['deserializer', 'validator'], ['charge']);
+    index = new UccSchemaIndex(['deserializer', 'validator'], []);
   });
 
   it('uses stable IDs for primitives', () => {
@@ -36,7 +36,7 @@ describe('UccSchemaIndex', () => {
     expect(index.schemaId(ucOptional(ucNumber()))).not.toBe(index.schemaId(ucNumber()));
   });
   it('distinguishes between presentations', () => {
-    const index2 = new UccSchemaIndex(['deserializer', 'validator'], []);
+    const index2 = new UccSchemaIndex(['deserializer', 'validator'], ['uriParam']);
     const schema = ucString({ within: { charge: ucItHasMaxChars(13) } });
 
     expect(index.schemaId(schema)).not.toBe(index2.schemaId(schema));

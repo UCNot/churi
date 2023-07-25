@@ -34,15 +34,10 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({
-    processorNames,
-    presentationNames = ['charge'] as const,
-    models,
-    features,
-  }: UccProcessorInit<TProcessor>) {
+  constructor({ processors, presentations = [], models, features }: UccProcessorInit<TProcessor>) {
     this.#schemaIndex = new UccSchemaIndex(
-      asArray<UcProcessorName>(processorNames),
-      asArray<UcPresentationName>(presentationNames),
+      asArray<UcProcessorName>(processors),
+      asArray<UcPresentationName>(presentations),
     );
     this.#models = models;
     this.#features = features && asArray(features);
@@ -120,8 +115,8 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
     const schema = ucSchema(model);
 
     this.#applyConstraints<T>(schema, schema.where, {});
-    for (const within of this.schemaIndex.presentations) {
-      this.#applyConstraints(schema, schema.within?.[within], { within });
+    for (const within of this.schemaIndex.listPresentations(schema.within)) {
+      this.#applyConstraints(schema, schema.within![within], { within });
     }
 
     return this;
@@ -198,14 +193,14 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Processor names within {@link churi!UcConstraints schema constraints}.
    */
-  readonly processorNames: UcProcessorName | readonly UcProcessorName[];
+  readonly processors: UcProcessorName | readonly UcProcessorName[];
 
   /**
    * Schema instance presentation names within {@link churi!UcPresentations presentation constraints}.
    *
-   * @defaultValue `['charge']`
+   * All presentations enabled when missing or empty.
    */
-  readonly presentationNames?: UcPresentationName | readonly UcPresentationName[] | undefined;
+  readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
   /**
    * Models with constraints to extract processing instructions from.

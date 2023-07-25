@@ -127,7 +127,7 @@ describe('ChURIParamsLexer', () => {
           mode: 'sync',
         },
       },
-      presentation: ['uriParam', 'charge'],
+      presentations: ['uriParam', 'charge'],
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 
@@ -160,7 +160,7 @@ describe('ChURIParamsLexer', () => {
           mode: 'sync',
         },
       },
-      presentation: ['uriParam', 'charge'],
+      presentations: ['uriParam', 'charge'],
       inset({ emit }) {
         const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
 

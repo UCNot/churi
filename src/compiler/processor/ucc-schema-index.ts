@@ -33,6 +33,16 @@ export class UccSchemaIndex {
     return this.#presentations;
   }
 
+  listPresentations(presentations: UcPresentations | undefined): readonly UcPresentationName[] {
+    if (!presentations) {
+      return [];
+    }
+
+    const names = this.presentations;
+
+    return names.length ? names : (Object.keys(presentations) as UcPresentationName[]);
+  }
+
   schemaId(schema: UcSchema): string {
     let schemaId = this.#schemaIds.get(schema);
 
@@ -57,10 +67,10 @@ export class UccSchemaIndex {
     return `${fullId}${this.#constraintsId(schema, where)}${this.#presentationsId(schema, within)}`;
   }
 
-  #presentationsId(schema: UcSchema, presentations: UcPresentations = {}): string {
-    return this.presentations
+  #presentationsId(schema: UcSchema, presentations?: UcPresentations): string {
+    return this.listPresentations(presentations)
       .map(presentationName => {
-        const constraintsId = this.#constraintsId(schema, presentations[presentationName]);
+        const constraintsId = this.#constraintsId(schema, presentations![presentationName]);
 
         return constraintsId ? `,~${presentationName}(${constraintsId.slice(1)})` : '';
       })

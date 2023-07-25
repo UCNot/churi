@@ -39,7 +39,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     const { models, features } = options;
 
     super({
-      processorNames: 'serializer',
+      processors: 'serializer',
       models: Object.values(models),
       features,
     });

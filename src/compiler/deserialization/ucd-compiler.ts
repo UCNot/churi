@@ -55,11 +55,11 @@ export class UcdCompiler<
    * @param options - Compiler options.
    */
   constructor(options: UcdCompiler.Options<TModels>) {
-    const { models, presentation, validate = true, features } = options;
+    const { models, presentations, validate = true, features } = options;
 
     super({
-      processorNames: validate ? ['validator', 'deserializer'] : ['deserializer'],
-      presentationNames: presentation,
+      processors: validate ? ['validator', 'deserializer'] : ['deserializer'],
+      presentations,
       models: Object.values(models).map(({ model }) => model),
       features,
     });
@@ -349,7 +349,7 @@ export namespace UcdCompiler {
   export interface Options<out TModels extends UcdModels = UcdModels>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
-    readonly presentation?: UcPresentationName | UcPresentationName[] | undefined;
+    readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
     readonly inset?: ((this: void, args: UcrxInsetSignature.Values) => EsSnippet) | undefined;
     readonly validate?: boolean | undefined;
     readonly features?:
