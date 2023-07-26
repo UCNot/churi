@@ -198,17 +198,19 @@ export namespace UcDeserializer {
     readonly onMeta?: MetaUcrx;
   }
 
-  /**
-   * {@link UcDeserializer Universal} deserializer {@link createUcDeserializer compiler} configuration.
-   */
-  export interface Config {
+  export interface BaseConfig {
     /**
      * Target bundle the compiled deserializer will be included into.
      *
      * Default bundle will be used when omitted.
      */
     readonly bundle?: UcBundle | undefined;
+  }
 
+  /**
+   * {@link UcDeserializer Universal} deserializer {@link createUcDeserializer compiler} configuration.
+   */
+  export interface Config extends BaseConfig {
     readonly mode?: 'universal' | undefined;
 
     /**
@@ -220,16 +222,18 @@ export namespace UcDeserializer {
   }
 
   /**
+   * {@link UcDeserializer.ByTokens By-tokens} deserializer {@link createUcDeserializer compiler} configuration.
+   */
+  export interface ByTokensConfig extends BaseConfig {
+    readonly mode?: 'universal' | undefined;
+
+    readonly from: 'tokens';
+  }
+
+  /**
    * {@link Sync Synchronous} deserializer {@link createUcDeserializer compiler} configuration.
    */
-  export interface SyncConfig {
-    /**
-     * Target bundle the compiled deserializer will be included into.
-     *
-     * Default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
-
+  export interface SyncConfig extends BaseConfig {
     readonly mode: 'sync';
 
     /**
@@ -243,14 +247,7 @@ export namespace UcDeserializer {
   /**
    * {@link Async Asynchronous} deserializer {@link createUcDeserializer compiler} configuration.
    */
-  export interface AsyncConfig {
-    /**
-     * Target bundle the compiled deserializer will be included into.
-     *
-     * Default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
-
+  export interface AsyncConfig extends BaseConfig {
     readonly mode: 'async';
 
     /**
@@ -264,14 +261,7 @@ export namespace UcDeserializer {
   /**
    * {@link Async Asynchronous} by-tokens deserializer {@link createUcDeserializer compiler} configuration.
    */
-  export interface AsyncByTokensConfig {
-    /**
-     * Target bundle the compiled deserializer will be included into.
-     *
-     * Default bundle will be used when omitted.
-     */
-    readonly bundle?: UcBundle | undefined;
-
+  export interface AsyncByTokensConfig extends BaseConfig {
     readonly mode: 'async';
 
     readonly from: 'tokens';
@@ -296,6 +286,25 @@ export function createUcDeserializer<T>(
   model: UcModel<T>,
   config?: UcDeserializer.Config,
 ): UcDeserializer<T>;
+
+/**
+ * Compiles {@link UcDeserializer.ByTokens by-tokens deserializer} for the given data `model`.
+ *
+ * **This is a placeholder**. It is replaced with actual deserializer when TypeScript code compiled with
+ * [ts-transformer-churi] enabled. It is expected that the result of this function call is stored to constant.
+ *
+ * @typeParam T - Deserialized data type.
+ * @param model - Deserialized data model.
+ * @param config - Compiler configuration.
+ *
+ * @returns Universal deserializer instance.
+ *
+ * [ts-transformer-churi]: https://www.npmjs.com/package/ts-transformer-churi
+ */
+export function createUcDeserializer<T>(
+  model: UcModel<T>,
+  config?: UcDeserializer.ByTokensConfig,
+): UcDeserializer.ByTokens<T>;
 
 /**
  * Compiles {@link UcDeserializer.Sync synchronous deserializer} for the given data `model`.
@@ -358,6 +367,7 @@ export function createUcDeserializer<T>(
   model: UcModel<T>,
   _init?:
     | UcDeserializer.Config
+    | UcDeserializer.ByTokensConfig
     | UcDeserializer.SyncConfig
     | UcDeserializer.AsyncConfig
     | UcDeserializer.AsyncByTokensConfig,
