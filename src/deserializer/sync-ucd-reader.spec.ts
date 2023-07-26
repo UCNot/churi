@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { parseTokens } from '../spec/read-chunks.js';
+import { UcChargeLexer } from '../syntax/lexers/uc-charge.lexer.js';
 import { UC_TOKEN_CRLF, UC_TOKEN_LF } from '../syntax/uc-token.js';
 import { SyncUcdReader } from './sync-ucd-reader.js';
 
@@ -172,6 +172,6 @@ describe('SyncUcdReader', () => {
   });
 
   function readChunks(...chunks: string[]): SyncUcdReader {
-    return new SyncUcdReader(parseTokens(...chunks));
+    return new SyncUcdReader(UcChargeLexer.scan(...chunks));
   }
 });

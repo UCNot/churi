@@ -51,7 +51,6 @@ export class MapUcrxClass<
     };
   }
 
-  readonly #lib: UcrxLib;
   readonly #entries: EsSymbol | undefined;
   readonly #extra: EsSymbol | undefined;
   readonly #collector: MapUcrxClass$Collector;
@@ -64,6 +63,7 @@ export class MapUcrxClass<
     variant?: UcMap.Variant,
   ) {
     super({
+      lib,
       typeName: MapUcrxClass$typeName(lib, schema),
       schema,
       baseClass: lib.baseUcrx,
@@ -71,8 +71,6 @@ export class MapUcrxClass<
         args: UcrxSignature,
       },
     });
-
-    this.#lib = lib;
 
     this.#entries = this.#declareEntries();
     this.#extra = this.#declareExtra();
@@ -411,7 +409,7 @@ export class MapUcrxClass<
   }
 
   entryUcrxFor(key: string | null, schema: UcSchema): UcrxClass {
-    const entryClass = MapUcrxEntry.ucrxClass(this.#lib, this.schema, key, schema);
+    const entryClass = MapUcrxEntry.ucrxClass(this.lib, this.schema, key, schema);
 
     return this.#collector.rxs ? entryClass.associate(MultiEntryUcrxClass$associate) : entryClass;
   }
@@ -517,6 +515,7 @@ class MultiEntryUcrxClass<
 
   constructor(baseClass: UcrxClass<TArgs, T, TSchema>) {
     super({
+      lib: baseClass.lib,
       schema: baseClass.schema,
       baseClass,
       typeName: `${baseClass.typeName}$Entry`,

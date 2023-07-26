@@ -1,40 +1,34 @@
-import { EsCode, EsFunction, EsSnippet, EsSymbol, EsVarKind, EsVarSymbol, esline } from 'esgen';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
+import {
+  EsCallable,
+  EsCode,
+  EsFunction,
+  EsSnippet,
+  EsSymbol,
+  EsVarKind,
+  EsVarSymbol,
+  esline,
+} from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
-import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UC_MODULE_CHURI, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxClass } from '../rx/ucrx.class.js';
 import { UcdExportSignature } from './ucd-export.signature.js';
 import { UcdLib } from './ucd-lib.js';
+import { UcdModels } from './ucd-models.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #lib: UcdLib.Any;
   readonly #schema: TSchema;
   #ucrxClass?: UcrxClass;
-  readonly #createAsyncReader: Exclude<
-    UcdFunction.Options<T, TSchema>['createAsyncReader'],
-    undefined
-  >;
-
-  readonly #createSyncReader: Exclude<
-    UcdFunction.Options<T, TSchema>['createSyncReader'],
-    undefined
-  >;
 
   constructor(options: UcdFunction.Options<T, TSchema>);
-  constructor({
-    lib,
-    schema,
-    createAsyncReader: createReader = UcdFunction$createReader,
-    createSyncReader = UcdFunction$createSyncReader,
-  }: UcdFunction.Options<T, TSchema>) {
+  constructor({ lib, schema }: UcdFunction.Options<T, TSchema>) {
     this.#lib = lib;
     this.#schema = schema;
-    this.#createAsyncReader = createReader;
-    this.#createSyncReader = createSyncReader;
   }
 
   get lib(): UcdLib.Any {
@@ -64,8 +58,11 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#ucrxClass;
   }
 
-  exportFn(externalName: string, mode: UcDeserializer.Mode): EsFunction<UcdExportSignature.Args> {
-    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta, inset } = this.lib;
+  exportFn(
+    externalName: string,
+    { mode = 'universal', lexer, inset }: UcdModels.SchemaEntry<T, TSchema>,
+  ): EsFunction<UcdExportSignature.Args> {
+    const { opaqueUcrx, defaultEntities, defaultFormats, onMeta } = this.lib;
     const stream = new EsSymbol('stream');
     const options = (code: EsCode): void => {
       code.multiLine(code => {
@@ -78,7 +75,15 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             'formats,',
             'onMeta,',
             opaqueUcrx ? esline`opaqueRx: ${opaqueUcrx.instantiate()},` : EsCode.none,
-            inset ? esline`inset: ${inset},` : EsCode.none,
+            inset
+              ? code => {
+                  code.line(
+                    'inset: ',
+                    new EsCallable(UcrxInsetSignature).lambda(({ args }) => inset(args)),
+                    ',',
+                  );
+                }
+              : EsCode.none,
           )
           .write('}');
       });
@@ -94,8 +99,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
             code.write(
               mode === 'universal'
-                ? this.#universalBody({ input, options })
-                : this.#nonUniversalBody(mode, { input, options }),
+                ? this.#universalBody(lexer, { input, options })
+                : this.#nonUniversalBody(mode, lexer, { input, options }),
             );
           },
         args: {
@@ -128,7 +133,11 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     });
   }
 
-  #nonUniversalBody(mode: 'sync' | 'async', args: UcdExportSignature.AllValues): EsSnippet {
+  #nonUniversalBody(
+    mode: 'sync' | 'async',
+    lexer: UcdModels.Entry['lexer'],
+    args: UcdExportSignature.AllValues,
+  ): EsSnippet {
     return code => {
       const result = new EsVarSymbol('result');
       const reader = new EsVarSymbol('reader');
@@ -138,8 +147,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(
           reader.declare({
             value: () => mode === 'async'
-                ? this.#createAsyncReader(args, this)
-                : this.#createSyncReader(args, this),
+                ? this.#createAsyncReader(lexer, args)
+                : this.#createSyncReader(lexer, args),
           }),
         )
         .write(`try {`)
@@ -155,7 +164,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     };
   }
 
-  #universalBody(args: UcdExportSignature.AllValues): EsSnippet {
+  #universalBody(lexer: UcdModels.Entry['lexer'], args: UcdExportSignature.AllValues): EsSnippet {
     return code => {
       const result = new EsVarSymbol('result');
       const syncReader = new EsVarSymbol('syncReader');
@@ -164,7 +173,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
       code
         .write(result.declare({ as: EsVarKind.Let }))
-        .write(syncReader.declare({ value: () => this.#createSyncReader(args, this) }))
+        .write(syncReader.declare({ value: () => this.#createSyncReader(lexer, args) }))
         .write(esline`if (${syncReader}) {`)
         .indent(code => {
           code
@@ -180,7 +189,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             .write('return result;');
         })
         .write(`}`)
-        .write(reader.declare({ value: () => this.#createAsyncReader(args, this) }))
+        .write(reader.declare({ value: () => this.#createAsyncReader(lexer, args) }))
         .write(
           esline`return ${reader}.read(${this.ucrxClass.instantiate({
             set,
@@ -190,24 +199,48 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     };
   }
 
+  #createAsyncReader(
+    lexer: UcdModels.Entry['lexer'],
+    { input, options }: UcdExportSignature.AllValues,
+  ): EsSnippet {
+    let stream: EsSnippet;
+
+    if (lexer) {
+      const UcLexerStream = UC_MODULE_CHURI.import('UcLexerStream');
+      const createLexer = new EsCallable({ emit: {} }).lambda(({ args }) => lexer(args));
+
+      stream = esline`${input}.pipeThrough(new ${UcLexerStream}(${createLexer}))`;
+    } else {
+      stream = input;
+    }
+
+    const AsyncUcdReader = UC_MODULE_DESERIALIZER.import('AsyncUcdReader');
+
+    return esline`new ${AsyncUcdReader}(${stream}, ${options})`;
+  }
+
+  #createSyncReader(
+    lexer: UcdModels.Entry['lexer'],
+    { input, options }: UcdExportSignature.AllValues,
+  ): EsSnippet {
+    if (lexer) {
+      const createSyncUcdLexer = UC_MODULE_DESERIALIZER.import('createSyncUcdLexer');
+      const createLexer = new EsCallable({ emit: {} }).lambda(({ args }) => lexer(args));
+
+      return esline`${createSyncUcdLexer}(${input}, ${createLexer}, ${options})`;
+    }
+
+    const createSyncUcdReader = UC_MODULE_DESERIALIZER.import('createSyncUcdReader');
+
+    return esline`${createSyncUcdReader}(${input}, ${options})`;
+  }
+
 }
 
 export namespace UcdFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly lib: UcdLib.Any;
     readonly schema: TSchema;
-
-    createAsyncReader?(
-      this: void,
-      args: UcdExportSignature.AllValues,
-      deserializer: UcdFunction,
-    ): EsSnippet;
-
-    createSyncReader?(
-      this: void,
-      args: UcdExportSignature.AllValues,
-      deserializer: UcdFunction,
-    ): EsSnippet;
   }
 
   export interface Args {
@@ -260,16 +293,4 @@ export namespace UcdFunction {
      */
     readonly suffix: string;
   }
-}
-
-function UcdFunction$createReader({ input, options }: UcdExportSignature.AllValues): EsSnippet {
-  const AsyncUcdReader = UC_MODULE_DESERIALIZER.import('AsyncUcdReader');
-
-  return esline`new ${AsyncUcdReader}(${input}, ${options})`;
-}
-
-function UcdFunction$createSyncReader({ input, options }: UcdExportSignature.AllValues): EsSnippet {
-  const createSyncUcdReader = UC_MODULE_DESERIALIZER.import('createSyncUcdReader');
-
-  return esline`${createSyncUcdReader}(${input}, ${options})`;
 }

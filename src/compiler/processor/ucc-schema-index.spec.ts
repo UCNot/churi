@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
+import { ucItHasMaxChars } from 'churi';
 import { ucBoolean } from '../../schema/boolean/uc-boolean.js';
 import { ucBigInt } from '../../schema/numeric/uc-bigint.js';
 import { ucNumber } from '../../schema/numeric/uc-number.js';
@@ -12,7 +13,7 @@ describe('UccSchemaIndex', () => {
   let index: UccSchemaIndex;
 
   beforeEach(() => {
-    index = new UccSchemaIndex(['deserializer', 'validator']);
+    index = new UccSchemaIndex(['deserializer', 'validator'], []);
   });
 
   it('uses stable IDs for primitives', () => {
@@ -33,5 +34,11 @@ describe('UccSchemaIndex', () => {
   });
   it('provides different IDs for optional and required types', () => {
     expect(index.schemaId(ucOptional(ucNumber()))).not.toBe(index.schemaId(ucNumber()));
+  });
+  it('distinguishes between presentations', () => {
+    const index2 = new UccSchemaIndex(['deserializer', 'validator'], ['uriParam']);
+    const schema = ucString({ within: { charge: ucItHasMaxChars(13) } });
+
+    expect(index.schemaId(schema)).not.toBe(index2.schemaId(schema));
   });
 });

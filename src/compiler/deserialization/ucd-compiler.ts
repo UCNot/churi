@@ -15,6 +15,7 @@ import {
   esline,
 } from 'esgen';
 import { capitalize } from 'httongue';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcdHandlerRegistry } from '../impl/ucd-handler-registry.js';
 import { UccConfig } from '../processor/ucc-config.js';
@@ -22,10 +23,9 @@ import { UccFeature } from '../processor/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdFunction } from './ucd-function.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
-import { UcdExports, UcdModels, isUcdModelConfig } from './ucd-models.js';
+import { UcdExports, UcdModels } from './ucd-models.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
@@ -53,11 +53,12 @@ export class UcdCompiler<
    * @param options - Compiler options.
    */
   constructor(options: UcdCompiler.Options<TModels>) {
-    const { models, validate = true, features } = options;
+    const { models, presentations, validate = true, features } = options;
 
     super({
-      names: validate ? ['validator', 'deserializer'] : ['deserializer'],
-      models: Object.values(models).map(entry => (isUcdModelConfig(entry) ? entry[1] : entry)),
+      processors: validate ? ['validator', 'deserializer'] : ['deserializer'],
+      presentations,
+      models: Object.values(models).map(({ model }) => model),
       features,
     });
 
@@ -92,7 +93,7 @@ export class UcdCompiler<
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure();
+    defaultConfig.configure(undefined, {});
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();
@@ -343,19 +344,15 @@ export class UcdCompiler<
 export namespace UcdCompiler {
   export type Any = UcdCompiler<UcdModels>;
 
-  export interface Options<out TModels extends UcdModels> extends Omit<UcrxLib.Options, 'methods'> {
+  export interface Options<out TModels extends UcdModels = UcdModels>
+    extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
+    readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
     readonly validate?: boolean | undefined;
     readonly features?:
       | UccFeature<UcdCompiler.Any>
       | readonly UccFeature<UcdCompiler.Any>[]
       | undefined;
-    readonly inset?: EsSnippet | undefined;
     readonly exportDefaults?: boolean | undefined;
-
-    createDeserializer?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      options: UcdFunction.Options<T, TSchema>,
-    ): UcdFunction<T, TSchema>;
   }
 }

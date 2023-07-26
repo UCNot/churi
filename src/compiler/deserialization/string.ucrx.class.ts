@@ -31,14 +31,11 @@ export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcS
     };
   }
 
-  constructor(
-    { baseUcrx }: UcrxLib,
-    schema: UcString.Schema,
-    { raw = 'escape' }: UcString.Variant = {},
-  ) {
+  constructor(lib: UcrxLib, schema: UcString.Schema, { raw = 'escape' }: UcString.Variant = {}) {
     super({
+      lib,
       schema,
-      baseClass: baseUcrx,
+      baseClass: lib.baseUcrx,
     });
     if (raw !== 'parse') {
       UcrxCore.raw.overrideIn(this, {

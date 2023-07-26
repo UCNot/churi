@@ -1,5 +1,10 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
-import { UcLexer } from './uc-lexer.js';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { esline } from 'esgen';
+import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
+import { ucMap } from '../../schema/map/uc-map.js';
+import { UcDeserializer } from '../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -25,65 +30,67 @@ import {
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
   UcToken,
-} from './uc-token.js';
+} from '../uc-token.js';
+import { UcChargeLexer, ucInsetCharge } from './uc-charge.lexer.js';
+import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
-describe('UcLexer', () => {
-  let tokenizer: UcLexer;
+describe('UcChargeLexer', () => {
+  let lexer: UcChargeLexer;
   let tokens: UcToken[];
 
   beforeEach(() => {
-    tokenizer = new UcLexer(token => {
+    lexer = new UcChargeLexer(token => {
       tokens.push(token);
     });
     tokens = [];
   });
 
   it('handles Windows-style line separators', () => {
-    tokenizer.scan('abc\r');
-    tokenizer.scan('\ndef');
-    tokenizer.flush();
+    lexer.scan('abc\r');
+    lexer.scan('\ndef');
+    lexer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_CRLF, 'def']);
   });
   it('handles CR', () => {
-    tokenizer.scan('abc\rdef');
-    tokenizer.flush();
+    lexer.scan('abc\rdef');
+    lexer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_CR, 'def']);
   });
   it('handles CR as first char', () => {
-    tokenizer.scan('\rdef');
-    tokenizer.flush();
+    lexer.scan('\rdef');
+    lexer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_CR, 'def']);
   });
   it('handles CR after CR', () => {
-    tokenizer.scan('\r\rdef');
-    tokenizer.flush();
+    lexer.scan('\r\rdef');
+    lexer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_CR, UC_TOKEN_CR, 'def']);
   });
   it('handles CR after LF', () => {
-    tokenizer.scan('\n\rdef');
-    tokenizer.flush();
+    lexer.scan('\n\rdef');
+    lexer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, UC_TOKEN_CR, 'def']);
   });
   it('handles LF', () => {
-    tokenizer.scan('abc\ndef');
-    tokenizer.flush();
+    lexer.scan('abc\ndef');
+    lexer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_LF, 'def']);
   });
   it('handles LF as first char', () => {
-    tokenizer.scan('\ndef');
-    tokenizer.flush();
+    lexer.scan('\ndef');
+    lexer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, 'def']);
   });
   it('handles LF after LF', () => {
-    tokenizer.scan('\n\ndef');
-    tokenizer.flush();
+    lexer.scan('\n\ndef');
+    lexer.flush();
 
     expect(tokens).toEqual([UC_TOKEN_LF, UC_TOKEN_LF, 'def']);
   });
@@ -109,8 +116,8 @@ describe('UcLexer', () => {
     ['closing bracket', ']', UC_TOKEN_CLOSING_BRACKET],
   ])('around %s', (_name, char, token) => {
     it('reports pads', () => {
-      tokenizer.scan(`abc   ${char}    def`);
-      tokenizer.flush();
+      lexer.scan(`abc   ${char}    def`);
+      lexer.flush();
 
       expect(tokens).toEqual([
         'abc',
@@ -128,12 +135,12 @@ describe('UcLexer', () => {
       ]);
     });
     it('concatenates leading pads', () => {
-      tokenizer.scan('abc  ');
-      tokenizer.scan(' ');
-      tokenizer.scan(char);
-      tokenizer.scan('  ');
-      tokenizer.scan('  def');
-      tokenizer.flush();
+      lexer.scan('abc  ');
+      lexer.scan(' ');
+      lexer.scan(char);
+      lexer.scan('  ');
+      lexer.scan('  def');
+      lexer.flush();
 
       expect(tokens).toEqual([
         'abc',
@@ -145,8 +152,8 @@ describe('UcLexer', () => {
       ]);
     });
     it('handles mixed pads', () => {
-      tokenizer.scan(`abc   ${char}   \t\tdef`);
-      tokenizer.flush();
+      lexer.scan(`abc   ${char}   \t\tdef`);
+      lexer.flush();
 
       expect(tokens).toEqual([
         'abc',
@@ -160,8 +167,8 @@ describe('UcLexer', () => {
   });
 
   it('handles too long padding', () => {
-    tokenizer.scan('abc' + ' '.repeat(1000));
-    tokenizer.flush();
+    lexer.scan('abc' + ' '.repeat(1000));
+    lexer.flush();
 
     expect(tokens).toEqual([
       'abc',
@@ -172,9 +179,9 @@ describe('UcLexer', () => {
     ]);
   });
   it('handles paddings at the begin of input', () => {
-    tokenizer.scan('  ');
-    tokenizer.scan('  abc');
-    tokenizer.flush();
+    lexer.scan('  ');
+    lexer.scan('  abc');
+    lexer.flush();
 
     expect(tokens).toEqual([
       UC_TOKEN_PREFIX_SPACE | (1 << 8),
@@ -183,17 +190,17 @@ describe('UcLexer', () => {
     ]);
   });
   it('handles paddings at the end of input', () => {
-    tokenizer.scan('');
-    tokenizer.scan('abc  ');
-    tokenizer.scan('  ');
-    tokenizer.flush();
+    lexer.scan('');
+    lexer.scan('abc  ');
+    lexer.scan('  ');
+    lexer.flush();
 
     expect(tokens).toEqual(['abc', UC_TOKEN_PREFIX_SPACE | (3 << 8)]);
   });
   it('concatenates string tokens', () => {
-    tokenizer.scan('abc ');
-    tokenizer.scan('  def');
-    tokenizer.flush();
+    lexer.scan('abc ');
+    lexer.scan('  def');
+    lexer.flush();
 
     expect(tokens).toEqual(['abc   def']);
   });
@@ -201,10 +208,89 @@ describe('UcLexer', () => {
     const input = '\u042a';
     const encoded = encodeURIComponent('\u042a');
 
-    tokenizer.scan(encoded.slice(0, 1));
-    tokenizer.scan(encoded.slice(1));
-    tokenizer.flush();
+    lexer.scan(encoded.slice(0, 1));
+    lexer.scan(encoded.slice(1));
+    lexer.flush();
 
     expect(tokens).toEqual([input]);
+  });
+
+  describe('scanParam', () => {
+    it('decodes plus sign as space', () => {
+      expect(UcChargeLexer.scanParam('abc++', '++def')).toEqual(['abc    def']);
+    });
+    it('decodes plus sign as space padding', () => {
+      expect(UcChargeLexer.scanParam('++++abcdef')).toEqual([
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        UC_TOKEN_PREFIX_SPACE,
+        'abcdef',
+      ]);
+    });
+  });
+});
+
+describe('ucInsetCharge', () => {
+  describe('in default mode', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucUnknown({ within: { uriParam: ucInsetCharge() } }),
+            }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('URI-decodes values', () => {
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a=te+st`)).toEqual({ a: 'te+st' });
+      expect(readValue(`a=%33`)).toEqual({ a: 3 });
+    });
+  });
+
+  describe('in plus-as-space mode', () => {
+    let readValue: UcDeserializer<unknown>;
+
+    beforeAll(async () => {
+      const compiler = new UcdCompiler({
+        models: {
+          readValue: {
+            model: ucMap({
+              a: ucUnknown({
+                within: {
+                  uriParam: ucInsetCharge({ plusAsSpace: true }),
+                },
+              }),
+            }),
+            lexer: ({ emit }) => {
+              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
+
+              return esline`return new ${Lexer}(${emit})`;
+            },
+          },
+        },
+      });
+
+      ({ readValue } = await compiler.evaluate());
+    });
+
+    it('decodes URI charge values', () => {
+      expect(readValue(`a='te%20st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a='te+st'`)).toEqual({ a: `te st'` });
+      expect(readValue(`a=%33`)).toEqual({ a: 3 });
+    });
   });
 });

@@ -6,7 +6,7 @@ import {
 } from '../impl/ucrx-decode-raw.js';
 import { UcEntity } from '../schema/entity/uc-entity.js';
 import { UcFormatted } from '../schema/entity/uc-formatted.js';
-import { UcInputLexer } from '../syntax/uc-input-lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { UcrxContext } from './ucrx-context.js';
 import {
@@ -50,8 +50,8 @@ export class VoidUcrx implements Ucrx {
     return this.any(new UcFormatted(format, data)) || cx.reject(ucrxRejectFormat(format, data));
   }
 
-  ins(emit: (token: UcToken) => void, cx: UcrxContext): UcInputLexer | undefined;
-  ins(_emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
+  ins(id: number | string, emit: (token: UcToken) => void, cx: UcrxContext): UcLexer | undefined;
+  ins(_id: number | string, _emit: (token: UcToken) => void, _cx: UcrxContext): undefined {
     // Inset is not expected by default.
   }
 

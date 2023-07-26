@@ -1,8 +1,13 @@
 import { asArray, lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { esQuoteKey, esStringLiteral } from 'esgen';
-import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import {
+  UcConstraints,
+  UcFeatureConstraint,
+  UcProcessorName,
+} from '../../schema/uc-constraints.js';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from './ucc-config.js';
+import { UccConfig, UccConfigContext } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
@@ -29,21 +34,17 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ names, models, features }: UccProcessorInit<TProcessor>) {
-    this.#schemaIndex = new UccSchemaIndex(asArray<UcProcessorName>(names));
+  constructor({ processors, presentations = [], models, features }: UccProcessorInit<TProcessor>) {
+    this.#schemaIndex = new UccSchemaIndex(
+      asArray<UcProcessorName>(processors),
+      asArray<UcPresentationName>(presentations),
+    );
     this.#models = models;
     this.#features = features && asArray(features);
   }
 
   get schemaIndex(): UccSchemaIndex {
     return this.#schemaIndex;
-  }
-
-  /**
-   * Processor names within {@link churi!UcConstraints schema constraints}.
-   */
-  get names(): readonly UcProcessorName[] {
-    return this.schemaIndex.processors;
   }
 
   /**
@@ -84,7 +85,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
       this.#configs.set(feature, getConfig);
     }
 
-    getConfig().configure(options!);
+    getConfig().configure(options!, {});
 
     return this;
   }
@@ -113,16 +114,28 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    for (const name of this.names) {
-      asArray(schema.where?.[name]).forEach(useFeature => this.#useFeature(schema, useFeature));
+    this.#applyConstraints<T>(schema, schema.where, {});
+    for (const within of this.schemaIndex.listPresentations(schema.within)) {
+      this.#applyConstraints(schema, schema.within![within], { within });
     }
 
     return this;
   }
 
+  #applyConstraints<T>(
+    schema: UcSchema<T>,
+    constraints: UcConstraints<T> | undefined,
+    context: UccConfigContext,
+  ): void {
+    for (const processorName of this.schemaIndex.processors) {
+      asArray(constraints?.[processorName]).forEach(feature => this.#useFeature(schema, feature, context));
+    }
+  }
+
   #useFeature<TOptions>(
     schema: UcSchema,
     { use: feature, from, with: options }: UcFeatureConstraint,
+    context: UccConfigContext,
   ): void {
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
     let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TProcessor, TOptions> | undefined;
@@ -133,7 +146,7 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
       this.#uses.set(useId, use);
     }
 
-    use.configure(options as TOptions);
+    use.configure(options as TOptions, context);
   }
 
   protected async processInstructions(): Promise<void> {
@@ -180,7 +193,14 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Processor names within {@link churi!UcConstraints schema constraints}.
    */
-  readonly names: UcProcessorName | readonly UcProcessorName[];
+  readonly processors: UcProcessorName | readonly UcProcessorName[];
+
+  /**
+   * Schema instance presentation names within {@link churi!UcPresentations presentation constraints}.
+   *
+   * All presentations enabled when missing or empty.
+   */
+  readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
   /**
    * Models with constraints to extract processing instructions from.
@@ -201,7 +221,7 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
   readonly #schema: UcSchema;
   readonly #from: string;
   readonly #name: string;
-  readonly #options: TOptions[] = [];
+  readonly #options: [TOptions, UccConfigContext][] = [];
   #enabled = false;
 
   constructor(schema: UcSchema, from: string, name: string) {
@@ -210,8 +230,8 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
     this.#name = name;
   }
 
-  configure(options: TOptions): void {
-    this.#options.push(options);
+  configure(options: TOptions, context: UccConfigContext): void {
+    this.#options.push([options, context]);
   }
 
   async enableIn(processor: TProcessor): Promise<void> {
@@ -259,8 +279,8 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
   }
 
   #configure(config: UccConfig<TOptions>): void {
-    for (const options of this.#options) {
-      config.configure(options);
+    for (const [options, context] of this.#options) {
+      config.configure(options, context);
     }
   }
 

@@ -1,18 +1,18 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucMultiValue } from './uc-multi-value.js';
 
 describe('UcMultiValue deserializer', () => {
   describe('with single: as-is', () => {
-    let readList: UcDeserializer<number | number[]>;
+    let readList: UcDeserializer.ByTokens<number | number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucMultiValue<number>(Number),
+          readList: { model: ucMultiValue<number>(Number) },
         },
       });
 
@@ -20,27 +20,27 @@ describe('UcMultiValue deserializer', () => {
     });
 
     it('deserializes list', async () => {
-      await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(parseTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes list with single item', async () => {
-      await expect(readList(readTokens('1,'))).resolves.toEqual([1]);
-      await expect(readList(readTokens(',1'))).resolves.toEqual([1]);
+      await expect(readList(parseTokens('1,'))).resolves.toEqual([1]);
+      await expect(readList(parseTokens(',1'))).resolves.toEqual([1]);
     });
     it('deserializes empty list', async () => {
-      await expect(readList(readTokens(','))).resolves.toEqual([]);
+      await expect(readList(parseTokens(','))).resolves.toEqual([]);
     });
     it('deserializes single item', async () => {
-      await expect(readList(readTokens('13'))).resolves.toBe(13);
+      await expect(readList(parseTokens('13'))).resolves.toBe(13);
     });
   });
 
   describe('nullable with single: as-is', () => {
-    let readList: UcDeserializer<number | number[] | null>;
+    let readList: UcDeserializer.ByTokens<number | number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucMultiValue<number>(Number)),
+          readList: { model: ucNullable(ucMultiValue<number>(Number)) },
         },
       });
 
@@ -48,17 +48,17 @@ describe('UcMultiValue deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readList(readTokens('--'))).resolves.toBeNull();
+      await expect(readList(parseTokens('--'))).resolves.toBeNull();
     });
   });
 
   describe('with single: prefer', () => {
-    let readList: UcDeserializer<number | number[]>;
+    let readList: UcDeserializer.ByTokens<number | number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucMultiValue<number>(Number, { single: 'prefer' }),
+          readList: { model: ucMultiValue<number>(Number, { single: 'prefer' }) },
         },
       });
 
@@ -66,27 +66,27 @@ describe('UcMultiValue deserializer', () => {
     });
 
     it('deserializes list', async () => {
-      await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(parseTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes single list item', async () => {
-      await expect(readList(readTokens('1,'))).resolves.toBe(1);
-      await expect(readList(readTokens(',1'))).resolves.toBe(1);
+      await expect(readList(parseTokens('1,'))).resolves.toBe(1);
+      await expect(readList(parseTokens(',1'))).resolves.toBe(1);
     });
     it('deserializes empty list', async () => {
-      await expect(readList(readTokens(','))).resolves.toEqual([]);
+      await expect(readList(parseTokens(','))).resolves.toEqual([]);
     });
     it('deserializes single item', async () => {
-      await expect(readList(readTokens('13'))).resolves.toBe(13);
+      await expect(readList(parseTokens('13'))).resolves.toBe(13);
     });
   });
 
   describe('nullable with single: prefer', () => {
-    let readList: UcDeserializer<number | number[] | null>;
+    let readList: UcDeserializer.ByTokens<number | number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucMultiValue<number>(Number, { single: 'prefer' })),
+          readList: { model: ucNullable(ucMultiValue<number>(Number, { single: 'prefer' })) },
         },
       });
 
@@ -94,7 +94,7 @@ describe('UcMultiValue deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readList(readTokens('--'))).resolves.toBeNull();
+      await expect(readList(parseTokens('--'))).resolves.toBeNull();
     });
   });
 });

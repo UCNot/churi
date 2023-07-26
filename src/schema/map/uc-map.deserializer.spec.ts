@@ -1,7 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { parseTokens, readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
+import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { ucList } from '../list/uc-list.js';
 import { ucMultiValue } from '../list/uc-multi-value.js';
 import { ucNumber } from '../numeric/uc-number.js';
@@ -24,12 +25,12 @@ describe('UcMap deserializer', () => {
   });
 
   describe('empty map', () => {
-    let readMap: UcDeserializer<UcMap>;
+    let readMap: UcDeserializer.ByTokens<UcMap>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({}),
+          readMap: { model: ucMap({}) },
         },
       });
 
@@ -71,14 +72,16 @@ describe('UcMap deserializer', () => {
   });
 
   describe('single entry', () => {
-    let readMap: UcDeserializer<{ foo: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string> }>({
-            foo: String,
-          }),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string> }>({
+              foo: String,
+            }),
+          },
         },
       });
 
@@ -86,23 +89,23 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entry', async () => {
-      await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
-      await expect(readMap(readTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes entry synchronously', () => {
-      expect(readMap(parseTokens('foo(bar)'))).toEqual({ foo: 'bar' });
-      expect(readMap(parseTokens('foo(bar'))).toEqual({ foo: 'bar' });
+      expect(readMap(UcChargeLexer.scan('foo(bar)'))).toEqual({ foo: 'bar' });
+      expect(readMap(UcChargeLexer.scan('foo(bar'))).toEqual({ foo: 'bar' });
     });
     it('deserializes $-escaped entry', async () => {
-      await expect(readMap(readTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('$foo(bar)'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes $-escaped suffix', async () => {
-      await expect(readMap(readTokens('$foo'))).resolves.toEqual({ foo: '' });
-      await expect(readMap(readTokens('$foo \r\n   '))).resolves.toEqual({ foo: '' });
-      await expect(readMap(readTokens('\r\n $foo'))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('$foo'))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('$foo \r\n   '))).resolves.toEqual({ foo: '' });
+      await expect(readMap(parseTokens('\r\n $foo'))).resolves.toEqual({ foo: '' });
     });
     it('handles whitespace', async () => {
-      await expect(readMap(readTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
+      await expect(readMap(parseTokens(' \n foo \r  \n  (\n  bar  \n)\n'))).resolves.toEqual({
         foo: 'bar',
       });
     });
@@ -110,12 +113,12 @@ describe('UcMap deserializer', () => {
       const errors: unknown[] = [];
 
       await expect(
-        readMap(readTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
+        readMap(parseTokens('foo(bar)foo'), { onError: error => errors.push(error) }),
       ).resolves.toEqual({ foo: '' });
     });
     it('rejects null', async () => {
       await expect(
-        readMap(readTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
+        readMap(parseTokens('--')).catch(error => (error as UcError)?.toJSON?.()),
       ).resolves.toEqual({
         code: 'unexpectedType',
         path: [{}],
@@ -129,7 +132,7 @@ describe('UcMap deserializer', () => {
       });
     });
     it('rejects second item', async () => {
-      await expect(readMap(readTokens('foo(),'), { onError })).resolves.toBeUndefined();
+      await expect(readMap(parseTokens('foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -146,7 +149,7 @@ describe('UcMap deserializer', () => {
       ]);
     });
     it('rejects second item after $-prefixes map', async () => {
-      await expect(readMap(readTokens('$foo(),'), { onError })).resolves.toBeUndefined();
+      await expect(readMap(parseTokens('$foo(),'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -165,9 +168,11 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized entity schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap({
-            test: { type: 'test-type' },
-          }),
+          readMap: {
+            model: ucMap({
+              test: { type: 'test-type' },
+            }),
+          },
         },
       });
 
@@ -188,15 +193,17 @@ describe('UcMap deserializer', () => {
   });
 
   describe('multiple entries', () => {
-    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string; bar: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
-            foo: String,
-            bar: String,
-          }),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>({
+              foo: String,
+              bar: String,
+            }),
+          },
         },
       });
 
@@ -204,36 +211,36 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entries', async () => {
-      await expect(readMap(readTokens('foo(first)bar(second'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first)bar(second'))).resolves.toEqual({
         foo: 'first',
         bar: 'second',
       });
     });
     it('deserializes entries synchronously', () => {
-      expect(readMap(parseTokens('foo(first)bar(second'))).toEqual({
+      expect(readMap(UcChargeLexer.scan('foo(first)bar(second'))).toEqual({
         foo: 'first',
         bar: 'second',
       });
     });
     it('deserializes $-escaped entries', async () => {
-      await expect(readMap(readTokens('foo(first)$bar(second'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first)$bar(second'))).resolves.toEqual({
         foo: 'first',
         bar: 'second',
       });
     });
     it('deserializes suffix', async () => {
-      await expect(readMap(readTokens('foo(first) \n  bar \r\n '))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first) \n  bar \r\n '))).resolves.toEqual({
         foo: 'first',
         bar: '',
       });
-      await expect(readMap(readTokens('foo(first) \n  bar )'))).resolves.toEqual({
+      await expect(readMap(parseTokens('foo(first) \n  bar )'))).resolves.toEqual({
         foo: 'first',
         bar: '',
       });
     });
     it('handles whitespace', async () => {
       await expect(
-        readMap(readTokens('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
+        readMap(parseTokens('foo(first\r  \n) \n $bar \r \n ( \r second \n )')),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -243,7 +250,7 @@ describe('UcMap deserializer', () => {
       const errors: UcErrorInfo[] = [];
 
       await expect(
-        readMap(readTokens('foo(first)'), { onError: error => errors.push(error) }),
+        readMap(parseTokens('foo(first)'), { onError: error => errors.push(error) }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -259,7 +266,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects unknown entry', async () => {
       await expect(
-        readMap(readTokens('foo(first)wrong(123)bar(second'), { onError }),
+        readMap(parseTokens('foo(first)wrong(123)bar(second'), { onError }),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -278,7 +285,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects nested list', async () => {
       await expect(
-        readMap(readTokens('foo(first) bar(second) () '), { onError }),
+        readMap(parseTokens('foo(first) bar(second) () '), { onError }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -297,7 +304,7 @@ describe('UcMap deserializer', () => {
     });
     it('rejects second item', async () => {
       await expect(
-        readMap(readTokens('foo(first) bar(second) , '), { onError }),
+        readMap(parseTokens('foo(first) bar(second) , '), { onError }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -316,7 +323,7 @@ describe('UcMap deserializer', () => {
     });
     it('overwrites entry value', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: 'third',
         bar: 'second',
@@ -327,20 +334,22 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: reject', () => {
-    let readMap: UcDeserializer<{ foo: string; bar: string }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string; bar: string }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
-            {
-              foo: String,
-              bar: String,
-            },
-            {
-              duplicates: 'reject',
-            },
-          ),
+          readMap: {
+            model: ucMap<{ foo: UcModel<string>; bar: UcModel<string> }>(
+              {
+                foo: String,
+                bar: String,
+              },
+              {
+                duplicates: 'reject',
+              },
+            ),
+          },
         },
       });
 
@@ -349,7 +358,7 @@ describe('UcMap deserializer', () => {
 
     it('rejects entry duplicate', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: 'first',
         bar: 'second',
@@ -369,20 +378,22 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: collect', () => {
-    let readMap: UcDeserializer<{ foo: string | string[]; bar: string | string[] }>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string | string[]; bar: string | string[] }>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              foo: ucMultiValue<string>(String),
-              bar: ucMultiValue<string>(String),
-            },
-            {
-              duplicates: 'collect',
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                foo: ucMultiValue<string>(String),
+                bar: ucMultiValue<string>(String),
+              },
+              {
+                duplicates: 'collect',
+              },
+            ),
+          },
         },
       });
 
@@ -391,7 +402,7 @@ describe('UcMap deserializer', () => {
 
     it('collects entry duplicates', async () => {
       await expect(
-        readMap(readTokens('foo(first)bar(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)bar(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: ['first', 'third'],
         bar: 'second',
@@ -402,7 +413,7 @@ describe('UcMap deserializer', () => {
   });
 
   describe('with duplicates: collect and without required members', () => {
-    let readMap: UcDeserializer<{
+    let readMap: UcDeserializer.ByTokens<{
       foo?: string | string[] | undefined;
       bar?: string | string[] | undefined;
     }>;
@@ -410,15 +421,17 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              foo: ucOptional(ucMultiValue<string>(String)),
-              bar: ucOptional(ucMultiValue<string>(String)),
-            },
-            {
-              duplicates: 'collect',
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                foo: ucOptional(ucMultiValue<string>(String)),
+                bar: ucOptional(ucMultiValue<string>(String)),
+              },
+              {
+                duplicates: 'collect',
+              },
+            ),
+          },
         },
       });
 
@@ -427,7 +440,7 @@ describe('UcMap deserializer', () => {
 
     it('collects entry duplicates', async () => {
       await expect(
-        readMap(readTokens('foo(first)foo(second)foo(third)'), { onError }),
+        readMap(parseTokens('foo(first)foo(second)foo(third)'), { onError }),
       ).resolves.toEqual({
         foo: ['first', 'second', 'third'],
       });
@@ -437,19 +450,23 @@ describe('UcMap deserializer', () => {
   });
 
   describe('extra entries', () => {
-    let readMap: UcDeserializer<{ length: number } & { [key in Exclude<string, 'foo'>]: string }>;
+    let readMap: UcDeserializer.ByTokens<
+      { length: number } & { [key in Exclude<string, 'foo'>]: string }
+    >;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              length: ucNumber(),
-            },
-            {
-              extra: ucString(),
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                length: ucNumber(),
+              },
+              {
+                extra: ucString(),
+              },
+            ),
+          },
         },
       });
 
@@ -466,14 +483,16 @@ describe('UcMap deserializer', () => {
     it('does not deserialize unrecognized extra schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              test: String,
-            },
-            {
-              extra: { type: 'test-type' },
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                test: String,
+              },
+              {
+                extra: { type: 'test-type' },
+              },
+            ),
+          },
         },
       });
 
@@ -494,21 +513,23 @@ describe('UcMap deserializer', () => {
   });
 
   describe('optional entries', () => {
-    let readMap: UcDeserializer<
+    let readMap: UcDeserializer.ByTokens<
       { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
     >;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucMap(
-            {
-              length: ucOptional<number>(Number),
-            },
-            {
-              extra: String as UcDataType<string>,
-            },
-          ),
+          readMap: {
+            model: ucMap(
+              {
+                length: ucOptional<number>(Number),
+              },
+              {
+                extra: String as UcDataType<string>,
+              },
+            ),
+          },
         },
       });
 
@@ -538,13 +559,13 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: [
-            'sync',
-            ucMap({
+          readMap: {
+            model: ucMap({
               foo: ucList<string>(String),
               bar: ucList<number>(Number),
             }),
-          ],
+            mode: 'sync',
+          },
         },
       });
 
@@ -610,16 +631,18 @@ describe('UcMap deserializer', () => {
   });
 
   describe('nullable', () => {
-    let readMap: UcDeserializer<{ foo: string } | null>;
+    let readMap: UcDeserializer.ByTokens<{ foo: string } | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: ucNullable(
-            ucMap<{ foo: UcModel<string> }>({
-              foo: String,
-            }),
-          ),
+          readMap: {
+            model: ucNullable(
+              ucMap<{ foo: UcModel<string> }>({
+                foo: String,
+              }),
+            ),
+          },
         },
       });
 
@@ -627,10 +650,10 @@ describe('UcMap deserializer', () => {
     });
 
     it('deserializes entry', async () => {
-      await expect(readMap(readTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
+      await expect(readMap(parseTokens('foo(bar)'))).resolves.toEqual({ foo: 'bar' });
     });
     it('deserializes null', async () => {
-      await expect(readMap(readTokens('--'))).resolves.toBeNull();
+      await expect(readMap(parseTokens('--'))).resolves.toBeNull();
     });
   });
 });

@@ -9,7 +9,7 @@ describe('UcrxSetter', () => {
   beforeEach(() => {
     compiler = new UcdCompiler({
       models: {
-        readValue: Number,
+        readValue: { model: Number },
       },
       features: [
         ucdSupportDefaults,

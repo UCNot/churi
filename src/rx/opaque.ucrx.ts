@@ -1,4 +1,5 @@
-import { UcInputLexer, ucOpaqueLexer } from '../syntax/uc-input-lexer.js';
+import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { AllUcrx } from './all.ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
@@ -18,8 +19,8 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
     // Ignore metadata.
   }
 
-  override ins(emit: (token: UcToken) => void): UcInputLexer;
-  override ins(_emit: (token: UcToken) => void): UcInputLexer {
+  override ins(id: number | string, emit: (token: UcToken) => void): UcLexer;
+  override ins(_id: number | string, _emit: (token: UcToken) => void): UcLexer {
     return ucOpaqueLexer;
   }
 

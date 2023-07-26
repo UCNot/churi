@@ -12,6 +12,7 @@ export * from './uc-error.js';
 export * from './uc-model-name.js';
 export * from './uc-nullable.js';
 export * from './uc-optional.js';
+export * from './uc-presentations.js';
 export * from './uc-schema.js';
 export * from './uc-serializer.js';
 export * from './unknown/mod.js';

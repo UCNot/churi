@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { ucNullable } from '../uc-nullable.js';
@@ -17,12 +17,12 @@ describe('UcBigInt deserializer', () => {
   });
 
   describe('by default', () => {
-    let readValue: UcDeserializer<bigint>;
+    let readValue: UcDeserializer.ByTokens<bigint>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: BigInt,
+          readValue: { model: BigInt },
         },
       });
 
@@ -30,21 +30,21 @@ describe('UcBigInt deserializer', () => {
     });
 
     it('deserializes bigint', async () => {
-      await expect(readValue(readTokens(' 0n123   '))).resolves.toBe(123n);
-      await expect(readValue(readTokens('-0n123'))).resolves.toBe(-123n);
+      await expect(readValue(parseTokens(' 0n123   '))).resolves.toBe(123n);
+      await expect(readValue(parseTokens('-0n123'))).resolves.toBe(-123n);
     });
     it('deserializes hexadecimal bigint', async () => {
-      await expect(readValue(readTokens('0n0x123'))).resolves.toBe(0x123n);
-      await expect(readValue(readTokens('-0n0x123'))).resolves.toBe(-0x123n);
+      await expect(readValue(parseTokens('0n0x123'))).resolves.toBe(0x123n);
+      await expect(readValue(parseTokens('-0n0x123'))).resolves.toBe(-0x123n);
     });
     it('deserializes bigint zero', async () => {
-      await expect(readValue(readTokens('0n0'))).resolves.toBe(0n);
-      await expect(readValue(readTokens('-0n0'))).resolves.toBe(-0n);
-      await expect(readValue(readTokens('0n'))).resolves.toBe(0n);
-      await expect(readValue(readTokens('-0n'))).resolves.toBe(-0n);
+      await expect(readValue(parseTokens('0n0'))).resolves.toBe(0n);
+      await expect(readValue(parseTokens('-0n0'))).resolves.toBe(-0n);
+      await expect(readValue(parseTokens('0n'))).resolves.toBe(0n);
+      await expect(readValue(parseTokens('-0n'))).resolves.toBe(-0n);
     });
     it('rejects null', async () => {
-      await expect(readValue(readTokens('--'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('--'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -56,7 +56,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects malformed bigint', async () => {
-      await expect(readValue(readTokens('0nz'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('0nz'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -69,7 +69,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects malformed number', async () => {
-      await expect(readValue(readTokens('1z'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('1z'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -82,25 +82,25 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('parses number', async () => {
-      await expect(readValue(readTokens('123'), { onError })).resolves.toBe(123n);
-      await expect(readValue(readTokens('-123'), { onError })).resolves.toBe(-123n);
-      await expect(readValue(readTokens('0x123'), { onError })).resolves.toBe(0x123n);
-      await expect(readValue(readTokens('-0x123'), { onError })).resolves.toBe(-0x123n);
+      await expect(readValue(parseTokens('123'), { onError })).resolves.toBe(123n);
+      await expect(readValue(parseTokens('-123'), { onError })).resolves.toBe(-123n);
+      await expect(readValue(parseTokens('0x123'), { onError })).resolves.toBe(0x123n);
+      await expect(readValue(parseTokens('-0x123'), { onError })).resolves.toBe(-0x123n);
     });
     it('parses numeric string without 0n prefix', async () => {
-      await expect(readValue(readTokens("'123"), { onError })).resolves.toBe(123n);
-      await expect(readValue(readTokens("'-123"), { onError })).resolves.toBe(-123n);
-      await expect(readValue(readTokens("'0x123"), { onError })).resolves.toBe(0x123n);
-      await expect(readValue(readTokens("'-0x123"), { onError })).resolves.toBe(-0x123n);
+      await expect(readValue(parseTokens("'123"), { onError })).resolves.toBe(123n);
+      await expect(readValue(parseTokens("'-123"), { onError })).resolves.toBe(-123n);
+      await expect(readValue(parseTokens("'0x123"), { onError })).resolves.toBe(0x123n);
+      await expect(readValue(parseTokens("'-0x123"), { onError })).resolves.toBe(-0x123n);
     });
     it('parses numeric string with 0n prefix', async () => {
-      await expect(readValue(readTokens("'0n123"), { onError })).resolves.toBe(123n);
-      await expect(readValue(readTokens("'-0n123"), { onError })).resolves.toBe(-123n);
-      await expect(readValue(readTokens("'0n0x123"), { onError })).resolves.toBe(0x123n);
-      await expect(readValue(readTokens("'-0n0x123"), { onError })).resolves.toBe(-0x123n);
+      await expect(readValue(parseTokens("'0n123"), { onError })).resolves.toBe(123n);
+      await expect(readValue(parseTokens("'-0n123"), { onError })).resolves.toBe(-123n);
+      await expect(readValue(parseTokens("'0n0x123"), { onError })).resolves.toBe(0x123n);
+      await expect(readValue(parseTokens("'-0n0x123"), { onError })).resolves.toBe(-0x123n);
     });
     it('rejects malformed bigint string', async () => {
-      await expect(readValue(readTokens("'0nz"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens("'0nz"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -113,7 +113,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects malformed number string', async () => {
-      await expect(readValue(readTokens("'1z"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens("'1z"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -127,12 +127,12 @@ describe('UcBigInt deserializer', () => {
     });
 
     describe('when strings rejected', () => {
-      let readValue: UcDeserializer<bigint>;
+      let readValue: UcDeserializer.ByTokens<bigint>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
-            readValue: ucBigInt({ string: 'reject' }),
+            readValue: { model: ucBigInt({ string: 'reject' }) },
           },
         });
 
@@ -140,7 +140,7 @@ describe('UcBigInt deserializer', () => {
       });
 
       it('rejects numeric string without 0n prefix', async () => {
-        await expect(readValue(readTokens("'123"), { onError })).resolves.toBeUndefined();
+        await expect(readValue(parseTokens("'123"), { onError })).resolves.toBeUndefined();
 
         expect(errors).toEqual([
           {
@@ -152,7 +152,7 @@ describe('UcBigInt deserializer', () => {
         ]);
       });
       it('rejects numeric string with 0n prefix', async () => {
-        await expect(readValue(readTokens("'0n123"), { onError })).resolves.toBeUndefined();
+        await expect(readValue(parseTokens("'0n123"), { onError })).resolves.toBeUndefined();
 
         expect(errors).toEqual([
           {
@@ -167,12 +167,12 @@ describe('UcBigInt deserializer', () => {
   });
 
   describe('when nullable', () => {
-    let readValue: UcDeserializer<bigint | null>;
+    let readValue: UcDeserializer.ByTokens<bigint | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucNullable(BigInt),
+          readValue: { model: ucNullable(BigInt) },
         },
       });
 
@@ -180,21 +180,21 @@ describe('UcBigInt deserializer', () => {
     });
 
     it('deserializes bigint', async () => {
-      await expect(readValue(readTokens(' 0n123   '))).resolves.toBe(123n);
-      await expect(readValue(readTokens('-0n123'))).resolves.toBe(-123n);
+      await expect(readValue(parseTokens(' 0n123   '))).resolves.toBe(123n);
+      await expect(readValue(parseTokens('-0n123'))).resolves.toBe(-123n);
     });
     it('deserializes null', async () => {
-      await expect(readValue(readTokens(' --   '))).resolves.toBeNull();
+      await expect(readValue(parseTokens(' --   '))).resolves.toBeNull();
     });
   });
 
   describe('when numbers rejected', () => {
-    let readValue: UcDeserializer<bigint>;
+    let readValue: UcDeserializer.ByTokens<bigint>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucBigInt({ number: 'reject' }),
+          readValue: { model: ucBigInt({ number: 'reject' }) },
         },
       });
 
@@ -202,11 +202,11 @@ describe('UcBigInt deserializer', () => {
     });
 
     it('deserializes bigint', async () => {
-      await expect(readValue(readTokens(' 0n123   '))).resolves.toBe(123n);
-      await expect(readValue(readTokens('-0n123'))).resolves.toBe(-123n);
+      await expect(readValue(parseTokens(' 0n123   '))).resolves.toBe(123n);
+      await expect(readValue(parseTokens('-0n123'))).resolves.toBe(-123n);
     });
     it('rejects number', async () => {
-      await expect(readValue(readTokens('123'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('123'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -218,7 +218,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects negative number', async () => {
-      await expect(readValue(readTokens('-123'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('-123'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -230,7 +230,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects NaN', async () => {
-      await expect(readValue(readTokens('0nz'), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens('0nz'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -243,7 +243,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects numeric string without 0n prefix', async () => {
-      await expect(readValue(readTokens("'123"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens("'123"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -255,7 +255,7 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('rejects negative numeric string without 0n prefix', async () => {
-      await expect(readValue(readTokens("'-123"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens("'-123"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -267,13 +267,13 @@ describe('UcBigInt deserializer', () => {
       ]);
     });
     it('parses numeric string with 0n prefix', async () => {
-      await expect(readValue(readTokens("'0n123"), { onError })).resolves.toBe(123n);
-      await expect(readValue(readTokens("'-0n123"), { onError })).resolves.toBe(-123n);
-      await expect(readValue(readTokens("'0n0x123"), { onError })).resolves.toBe(0x123n);
-      await expect(readValue(readTokens("'-0n0x123"), { onError })).resolves.toBe(-0x123n);
+      await expect(readValue(parseTokens("'0n123"), { onError })).resolves.toBe(123n);
+      await expect(readValue(parseTokens("'-0n123"), { onError })).resolves.toBe(-123n);
+      await expect(readValue(parseTokens("'0n0x123"), { onError })).resolves.toBe(0x123n);
+      await expect(readValue(parseTokens("'-0n0x123"), { onError })).resolves.toBe(-0x123n);
     });
     it('rejects malformed bigint string', async () => {
-      await expect(readValue(readTokens("'0nz"), { onError })).resolves.toBeUndefined();
+      await expect(readValue(parseTokens("'0nz"), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -287,12 +287,12 @@ describe('UcBigInt deserializer', () => {
     });
 
     describe('when strings rejected', () => {
-      let readValue: UcDeserializer<bigint>;
+      let readValue: UcDeserializer.ByTokens<bigint>;
 
       beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
-            readValue: ucBigInt({ string: 'reject', number: 'reject' }),
+            readValue: { model: ucBigInt({ string: 'reject', number: 'reject' }) },
           },
         });
 
@@ -300,7 +300,7 @@ describe('UcBigInt deserializer', () => {
       });
 
       it('rejects numeric string without 0n prefix', async () => {
-        await expect(readValue(readTokens("'123"), { onError })).resolves.toBeUndefined();
+        await expect(readValue(parseTokens("'123"), { onError })).resolves.toBeUndefined();
 
         expect(errors).toEqual([
           {
@@ -312,7 +312,7 @@ describe('UcBigInt deserializer', () => {
         ]);
       });
       it('rejects numeric string with 0n prefix', async () => {
-        await expect(readValue(readTokens("'0n123"), { onError })).resolves.toBeUndefined();
+        await expect(readValue(parseTokens("'0n123"), { onError })).resolves.toBeUndefined();
 
         expect(errors).toEqual([
           {

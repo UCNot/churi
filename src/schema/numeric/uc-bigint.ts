@@ -102,7 +102,7 @@ export namespace UcBigInt {
 /*#__NO_SIDE_EFFECTS__*/
 export function ucBigInt(options?: UcBigInt.Options): UcBigInt.Schema {
   if (options) {
-    const { where, string, number } = options;
+    const { where, within, string, number } = options;
     const variant: UcBigInt.Variant | undefined = string || number ? { string, number } : undefined;
 
     return ucSchema<UcBigInt>(BigInt, {
@@ -123,6 +123,7 @@ export function ucBigInt(options?: UcBigInt.Options): UcBigInt.Schema {
             ...asArray(where),
           ]
         : where,
+      within,
     });
   }
 

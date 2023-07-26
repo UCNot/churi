@@ -7,7 +7,7 @@ import { URICharge } from '../uri-charge/uri-charge.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportDefaults } from '../../compiler/deserialization/ucd-support-defaults.js';
 import { ucdSupportMetaMapEntity } from '../../spec/meta-map.entity.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import '../../spec/uri-charge-matchers.js';
 import { ucString } from '../string/uc-string.js';
 import { ucUnknown } from '../unknown/uc-unknown.js';
@@ -81,12 +81,12 @@ describe('UcMeta deserializer', () => {
   });
 
   describe('within unknown input', () => {
-    let parse: UcDeserializer.Async<unknown>;
+    let parse: UcDeserializer.AsyncByTokens<unknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          parse: ucUnknown(),
+          parse: { model: ucUnknown() },
         },
         features: [ucdSupportDefaults, ucdSupportMetaMapEntity],
       });
@@ -102,13 +102,13 @@ describe('UcMeta deserializer', () => {
     });
 
     it('attached to single value', async () => {
-      await expect(parse(readTokens('!test(value)!meta-map'))).resolves.toEqual({
+      await expect(parse(parseTokens('!test(value)!meta-map'))).resolves.toEqual({
         test: ['value'],
       });
     });
     it('attached to list items', async () => {
       await expect(
-        parse(readTokens('!test(value1)!meta-map,!test(value2)!meta-map')),
+        parse(parseTokens('!test(value1)!meta-map,!test(value2)!meta-map')),
       ).resolves.toEqual([
         {
           test: ['value1'],
@@ -120,7 +120,7 @@ describe('UcMeta deserializer', () => {
     });
     it('attached to map entity', async () => {
       await expect(
-        parse(readTokens('first(!test(value1)!meta-map)second(!test(value2)!meta-map)')),
+        parse(parseTokens('first(!test(value1)!meta-map)second(!test(value2)!meta-map)')),
       ).resolves.toEqual({
         first: {
           test: ['value1'],
@@ -137,7 +137,7 @@ describe('UcMeta deserializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
-        models: { parse: ucUnknown() },
+        models: { parse: { model: ucUnknown() } },
         features: [
           ucdSupportDefaults,
           compiler => ({

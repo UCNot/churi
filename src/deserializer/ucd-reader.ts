@@ -45,8 +45,12 @@ export abstract class UcdReader {
     return this.#opaqueRx;
   }
 
-  inset(emit: (token: UcToken) => void, cx: UcrxContext): UcrxInsetLexer | undefined {
-    return this.#inset?.(emit, cx);
+  inset(
+    id: number | string,
+    emit: (token: UcToken) => void,
+    cx: UcrxContext,
+  ): UcrxInsetLexer | undefined {
+    return this.#inset?.(id, emit, cx);
   }
 
   abstract hasNext(): boolean;

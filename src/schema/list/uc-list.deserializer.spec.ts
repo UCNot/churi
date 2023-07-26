@@ -2,11 +2,12 @@ import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { asis } from '@proc7ts/primitives';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { parseTokens, readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
+import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';
-import { UcNullable, ucNullable } from '../uc-nullable.js';
+import { ucNullable } from '../uc-nullable.js';
 import { UcModel } from '../uc-schema.js';
 import { ucList } from './uc-list.js';
 
@@ -21,12 +22,12 @@ describe('UcList deserializer', () => {
   });
 
   describe('with single: reject', () => {
-    let readList: UcDeserializer<number[]>;
+    let readList: UcDeserializer.ByTokens<number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<number>(Number),
+          readList: { model: ucList<number>(Number) },
         },
       });
 
@@ -34,28 +35,28 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes list', async () => {
-      await expect(readList(readTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(parseTokens('1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes list synchronously', () => {
-      expect(readList(parseTokens('1 , 2, 3  '))).toEqual([1, 2, 3]);
+      expect(readList(UcChargeLexer.scan('1 , 2, 3  '))).toEqual([1, 2, 3]);
     });
     it('deserializes empty list', async () => {
-      await expect(readList(readTokens(', '))).resolves.toEqual([]);
+      await expect(readList(parseTokens(', '))).resolves.toEqual([]);
     });
     it('deserializes list with leading comma', async () => {
-      await expect(readList(readTokens(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(parseTokens(' , 1 , 2, 3  '))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes list with trailing comma', async () => {
-      await expect(readList(readTokens('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
+      await expect(readList(parseTokens('1, 2, 3,'))).resolves.toEqual([1, 2, 3]);
     });
     it('deserializes single item with leading comma', async () => {
-      await expect(readList(readTokens(' ,13  '))).resolves.toEqual([13]);
+      await expect(readList(parseTokens(' ,13  '))).resolves.toEqual([13]);
     });
     it('deserializes single item with trailing comma', async () => {
-      await expect(readList(readTokens('13 ,  '))).resolves.toEqual([13]);
+      await expect(readList(parseTokens('13 ,  '))).resolves.toEqual([13]);
     });
     it('rejects item instead of list', async () => {
-      await expect(readList(readTokens('13'), { onError })).resolves.toBeUndefined();
+      await expect(readList(parseTokens('13'), { onError })).resolves.toBeUndefined();
 
       expect(errors).toEqual([
         {
@@ -74,7 +75,7 @@ describe('UcList deserializer', () => {
     it('does not deserialize unrecognized schema', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<number>({ type: 'test-type' }),
+          readList: { model: ucList<number>({ type: 'test-type' }) },
         },
       });
 
@@ -95,12 +96,12 @@ describe('UcList deserializer', () => {
   });
 
   describe('with single: accept', () => {
-    let readList: UcDeserializer<number[]>;
+    let readList: UcDeserializer.ByTokens<number[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<number>(Number, { single: 'accept' }),
+          readList: { model: ucList<number>(Number, { single: 'accept' }) },
         },
       });
 
@@ -108,19 +109,19 @@ describe('UcList deserializer', () => {
     });
 
     it('accepts item instead of list', async () => {
-      await expect(readList(readTokens('13'), { onError })).resolves.toEqual([13]);
+      await expect(readList(parseTokens('13'), { onError })).resolves.toEqual([13]);
 
       expect(errors).toEqual([]);
     });
   });
 
   describe('nullable with single: accept', () => {
-    let readList: UcDeserializer<number[] | null>;
+    let readList: UcDeserializer.ByTokens<number[] | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucList<number>(Number, { single: 'accept' })),
+          readList: { model: ucNullable(ucList<number>(Number, { single: 'accept' })) },
         },
       });
 
@@ -128,24 +129,24 @@ describe('UcList deserializer', () => {
     });
 
     it('accepts item instead of list', async () => {
-      await expect(readList(readTokens('13'), { onError })).resolves.toEqual([13]);
+      await expect(readList(parseTokens('13'), { onError })).resolves.toEqual([13]);
 
       expect(errors).toEqual([]);
     });
     it('accepts null', async () => {
-      await expect(readList(readTokens('--'), { onError })).resolves.toBeNull();
+      await expect(readList(parseTokens('--'), { onError })).resolves.toBeNull();
 
       expect(errors).toEqual([]);
     });
   });
 
   describe('of booleans', () => {
-    let readList: UcDeserializer<boolean[]>;
+    let readList: UcDeserializer.ByTokens<boolean[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<boolean>(Boolean),
+          readList: { model: ucList<boolean>(Boolean) },
         },
       });
 
@@ -153,17 +154,17 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes items', async () => {
-      await expect(readList(readTokens('-, ! , -  '))).resolves.toEqual([false, true, false]);
+      await expect(readList(parseTokens('-, ! , -  '))).resolves.toEqual([false, true, false]);
     });
   });
 
   describe('of strings', () => {
-    let readList: UcDeserializer<string[]>;
+    let readList: UcDeserializer.ByTokens<string[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<string>(String),
+          readList: { model: ucList<string>(String) },
         },
       });
 
@@ -171,22 +172,24 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes quoted strings', async () => {
-      await expect(readList(readTokens("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
+      await expect(readList(parseTokens("'a, 'b , 'c"))).resolves.toEqual(['a', 'b ', 'c']);
     });
     it('deserializes empty list item', async () => {
-      await expect(readList(readTokens(',,'))).resolves.toEqual(['']);
-      await expect(readList(readTokens(', ,'))).resolves.toEqual(['']);
-      await expect(readList(readTokens(' , ,  '))).resolves.toEqual(['']);
+      await expect(readList(parseTokens(',,'))).resolves.toEqual(['']);
+      await expect(readList(parseTokens(', ,'))).resolves.toEqual(['']);
+      await expect(readList(parseTokens(' , ,  '))).resolves.toEqual(['']);
     });
   });
 
   describe('of maps', () => {
-    let readList: UcDeserializer<{ foo: string }[]>;
+    let readList: UcDeserializer.ByTokens<{ foo: string }[]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
+          readList: {
+            model: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
+          },
         },
       });
 
@@ -194,27 +197,27 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes items', async () => {
-      await expect(readList(readTokens('$foo, foo(bar) , $foo(baz)'))).resolves.toEqual([
+      await expect(readList(parseTokens('$foo, foo(bar) , $foo(baz)'))).resolves.toEqual([
         { foo: '' },
         { foo: 'bar' },
         { foo: 'baz' },
       ]);
-      await expect(readList(readTokens('$foo(), foo(bar) , foo(baz),'))).resolves.toEqual([
+      await expect(readList(parseTokens('$foo(), foo(bar) , foo(baz),'))).resolves.toEqual([
         { foo: '' },
         { foo: 'bar' },
         { foo: 'baz' },
       ]);
-      await expect(readList(readTokens('foo(), foo(bar) , foo(baz)'))).resolves.toEqual([
+      await expect(readList(parseTokens('foo(), foo(bar) , foo(baz)'))).resolves.toEqual([
         { foo: '' },
         { foo: 'bar' },
         { foo: 'baz' },
       ]);
-      await expect(readList(readTokens(',foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+      await expect(readList(parseTokens(',foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
         { foo: '' },
         { foo: 'bar' },
         { foo: 'baz' },
       ]);
-      await expect(readList(readTokens(',$foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
+      await expect(readList(parseTokens(',$foo(), foo(bar) , foo(baz))'))).resolves.toEqual([
         { foo: '' },
         { foo: 'bar' },
         { foo: 'baz' },
@@ -222,7 +225,7 @@ describe('UcList deserializer', () => {
     });
     it('rejects nested list', async () => {
       await expect(
-        readList(readTokens('foo() () foo(bar) , $foo(baz)'), { onError }),
+        readList(parseTokens('foo() () foo(bar) , $foo(baz)'), { onError }),
       ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
 
       expect(errors).toEqual([
@@ -241,7 +244,7 @@ describe('UcList deserializer', () => {
     });
     it('rejects nested list after $-prefixed map', async () => {
       await expect(
-        readList(readTokens('$foo() () foo(bar) , $foo(baz)'), { onError }),
+        readList(parseTokens('$foo() () foo(bar) , $foo(baz)'), { onError }),
       ).resolves.toEqual([{ foo: '' }, { foo: 'bar' }, { foo: 'baz' }]);
 
       expect(errors).toEqual([
@@ -261,13 +264,13 @@ describe('UcList deserializer', () => {
   });
 
   describe('with nullable items', () => {
-    let readList: UcDeserializer<(number | null)[]>;
+    let readList: UcDeserializer.ByTokens<(number | null)[]>;
 
     beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
       const compiler = new UcdCompiler({
         models: {
-          readList: ucList<number | null>(nullableNumber),
+          readList: { model: ucList<number | null>(nullableNumber) },
         },
       });
 
@@ -275,13 +278,13 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes null item', async () => {
-      await expect(readList(readTokens('--,'))).resolves.toEqual([null]);
-      await expect(readList(readTokens(',--'))).resolves.toEqual([null]);
-      await expect(readList(readTokens('--,1'))).resolves.toEqual([null, 1]);
-      await expect(readList(readTokens('1, --'))).resolves.toEqual([1, null]);
+      await expect(readList(parseTokens('--,'))).resolves.toEqual([null]);
+      await expect(readList(parseTokens(',--'))).resolves.toEqual([null]);
+      await expect(readList(parseTokens('--,1'))).resolves.toEqual([null, 1]);
+      await expect(readList(parseTokens('1, --'))).resolves.toEqual([1, null]);
     });
     it('rejects null', async () => {
-      const error = await readList(readTokens('--')).catch(asis);
+      const error = await readList(parseTokens('--')).catch(asis);
 
       expect((error as UcError).toJSON()).toEqual({
         code: 'unexpectedType',
@@ -298,12 +301,12 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable', () => {
-    let readList: UcDeserializer<number[] | null>;
+    let readList: UcDeserializer.ByTokens<number[] | null>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readList: UcNullable<number[]> }>({
+      const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucList<number>(Number)),
+          readList: { model: ucNullable(ucList<number>(Number)) },
         },
       });
 
@@ -311,11 +314,11 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readList(readTokens('--'))).resolves.toBeNull();
+      await expect(readList(parseTokens('--'))).resolves.toBeNull();
     });
     it('rejects null items', async () => {
       await expect(
-        readList(readTokens('--,'))
+        readList(parseTokens('--,'))
           .catch(asis)
           .then(error => (error as UcError).toJSON()),
       ).resolves.toEqual({
@@ -330,7 +333,7 @@ describe('UcList deserializer', () => {
         message: 'Unexpected null instead of number',
       });
       await expect(
-        readList(readTokens(',--'))
+        readList(parseTokens(',--'))
           .catch(asis)
           .then(error => (error as UcError).toJSON()),
       ).resolves.toEqual({
@@ -346,18 +349,18 @@ describe('UcList deserializer', () => {
       });
     });
     it('deserializes list', async () => {
-      await expect(readList(readTokens('1, 2'))).resolves.toEqual([1, 2]);
+      await expect(readList(parseTokens('1, 2'))).resolves.toEqual([1, 2]);
     });
   });
 
   describe('nullable with nullable items', () => {
-    let readList: UcDeserializer<(number | null)[] | null>;
+    let readList: UcDeserializer.ByTokens<(number | null)[] | null>;
 
     beforeAll(async () => {
       const nullableNumber = ucNullable<number>(Number);
-      const compiler = new UcdCompiler<{ readList: UcNullable<(number | null)[]> }>({
+      const compiler = new UcdCompiler({
         models: {
-          readList: ucNullable(ucList<number | null>(nullableNumber)),
+          readList: { model: ucNullable(ucList<number | null>(nullableNumber)) },
         },
       });
 
@@ -365,16 +368,16 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readList(readTokens('--'))).resolves.toBeNull();
+      await expect(readList(parseTokens('--'))).resolves.toBeNull();
     });
     it('deserializes list', async () => {
-      await expect(readList(readTokens('1, 2'))).resolves.toEqual([1, 2]);
+      await expect(readList(parseTokens('1, 2'))).resolves.toEqual([1, 2]);
     });
     it('deserializes null item', async () => {
-      await expect(readList(readTokens('--,'))).resolves.toEqual([null]);
-      await expect(readList(readTokens(',--'))).resolves.toEqual([null]);
-      await expect(readList(readTokens('--,1'))).resolves.toEqual([null, 1]);
-      await expect(readList(readTokens('1, --'))).resolves.toEqual([1, null]);
+      await expect(readList(parseTokens('--,'))).resolves.toEqual([null]);
+      await expect(readList(parseTokens(',--'))).resolves.toEqual([null]);
+      await expect(readList(parseTokens('--,1'))).resolves.toEqual([null, 1]);
+      await expect(readList(parseTokens('1, --'))).resolves.toEqual([1, null]);
     });
   });
 
@@ -385,12 +388,12 @@ describe('UcList deserializer', () => {
       errors = [];
     });
 
-    let readMatrix: UcDeserializer<number[][]>;
+    let readMatrix: UcDeserializer.ByTokens<number[][]>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: ucList<number[]>(ucList<number>(Number)),
+          readMatrix: { model: ucList<number[]>(ucList<number>(Number)) },
         },
       });
 
@@ -398,11 +401,11 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes nested list', async () => {
-      await expect(readMatrix(readTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
+      await expect(readMatrix(parseTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
     });
     it('rejects missing items', async () => {
       await expect(
-        readMatrix(readTokens(''), { onError: error => errors.push(error) }),
+        readMatrix(parseTokens(''), { onError: error => errors.push(error) }),
       ).resolves.toBeUndefined();
 
       expect(errors).toEqual([
@@ -420,13 +423,13 @@ describe('UcList deserializer', () => {
       ]);
     });
     it('deserializes comma-separated lists', async () => {
-      await expect(readMatrix(readTokens(' (13, 14), (15, 16) '))).resolves.toEqual([
+      await expect(readMatrix(parseTokens(' (13, 14), (15, 16) '))).resolves.toEqual([
         [13, 14],
         [15, 16],
       ]);
     });
     it('deserializes lists', async () => {
-      await expect(readMatrix(readTokens(' (13, 14) (15, 16) '))).resolves.toEqual([
+      await expect(readMatrix(parseTokens(' (13, 14) (15, 16) '))).resolves.toEqual([
         [13, 14],
         [15, 16],
       ]);
@@ -434,37 +437,37 @@ describe('UcList deserializer', () => {
     it('deserializes deeply nested lists', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readCube: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))),
+          readCube: { model: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))) },
         },
       });
 
       const { readCube } = await compiler.evaluate();
 
-      await expect(readCube(readTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
+      await expect(readCube(parseTokens('((13, 14))'))).resolves.toEqual([[[13, 14]]]);
     });
     it('recognized empty item of nested list', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: ucList<string[]>(ucList<string>(String)),
+          readMatrix: { model: ucList<string[]>(ucList<string>(String)) },
         },
       });
 
       const { readMatrix } = await compiler.evaluate();
 
-      await expect(readMatrix(readTokens('(,,)'))).resolves.toEqual([['']]);
-      await expect(readMatrix(readTokens('(, ,)'))).resolves.toEqual([['']]);
-      await expect(readMatrix(readTokens('( , ,  )'))).resolves.toEqual([['']]);
+      await expect(readMatrix(parseTokens('(,,)'))).resolves.toEqual([['']]);
+      await expect(readMatrix(parseTokens('(, ,)'))).resolves.toEqual([['']]);
+      await expect(readMatrix(parseTokens('( , ,  )'))).resolves.toEqual([['']]);
     });
   });
 
   describe('nested or null', () => {
-    let readMatrix: UcDeserializer<(number[] | null)[]>;
+    let readMatrix: UcDeserializer.ByTokens<(number[] | null)[]>;
 
     beforeAll(async () => {
       const list = ucList<number>(Number);
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: ucList<number[] | null>(ucNullable(list)),
+          readMatrix: { model: ucList<number[] | null>(ucNullable(list)) },
         },
       });
 
@@ -472,15 +475,15 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes nested list', async () => {
-      await expect(readMatrix(readTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
+      await expect(readMatrix(parseTokens(' ( 13 ) '))).resolves.toEqual([[13]]);
     });
     it('deserializes null items', async () => {
-      await expect(readMatrix(readTokens('--,'))).resolves.toEqual([null]);
-      await expect(readMatrix(readTokens(', --'))).resolves.toEqual([null]);
-      await expect(readMatrix(readTokens('(13)--'))).resolves.toEqual([[13], null]);
+      await expect(readMatrix(parseTokens('--,'))).resolves.toEqual([null]);
+      await expect(readMatrix(parseTokens(', --'))).resolves.toEqual([null]);
+      await expect(readMatrix(parseTokens('(13)--'))).resolves.toEqual([[13], null]);
     });
     it('rejects null', async () => {
-      const error = await readMatrix(readTokens('--')).catch(error => (error as UcError)?.toJSON?.());
+      const error = await readMatrix(parseTokens('--')).catch(error => (error as UcError)?.toJSON?.());
 
       expect(error).toEqual({
         code: 'unexpectedType',
@@ -497,13 +500,13 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with nested', () => {
-    let readMatrix: UcDeserializer<number[][] | null>;
+    let readMatrix: UcDeserializer.ByTokens<number[][] | null>;
 
     beforeAll(async () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: ucNullable(matrix),
+          readMatrix: { model: ucNullable(matrix) },
         },
       });
 
@@ -511,11 +514,11 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readMatrix(readTokens('--'))).resolves.toBeNull();
+      await expect(readMatrix(parseTokens('--'))).resolves.toBeNull();
     });
     it('rejects null items', async () => {
       await expect(
-        readMatrix(readTokens('--,')).catch(error => (error as UcError)?.toJSON?.()),
+        readMatrix(parseTokens('--,')).catch(error => (error as UcError)?.toJSON?.()),
       ).resolves.toEqual({
         code: 'unexpectedType',
         path: [{ index: 0 }],
@@ -528,7 +531,7 @@ describe('UcList deserializer', () => {
         message: 'Unexpected null instead of nested list',
       });
       await expect(
-        readMatrix(readTokens(',--')).catch(error => (error as UcError)?.toJSON?.()),
+        readMatrix(parseTokens(',--')).catch(error => (error as UcError)?.toJSON?.()),
       ).resolves.toEqual({
         code: 'unexpectedType',
         path: [{ index: 1 }],
@@ -544,14 +547,14 @@ describe('UcList deserializer', () => {
   });
 
   describe('nullable with nested or null', () => {
-    let readMatrix: UcDeserializer<(number[] | null)[] | null>;
+    let readMatrix: UcDeserializer.ByTokens<(number[] | null)[] | null>;
 
     beforeAll(async () => {
       const list = ucList<number>(Number);
       const matrix = ucList<number[] | null>(ucNullable(list));
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: ucNullable(matrix),
+          readMatrix: { model: ucNullable(matrix) },
         },
       });
 
@@ -559,12 +562,12 @@ describe('UcList deserializer', () => {
     });
 
     it('deserializes null', async () => {
-      await expect(readMatrix(readTokens('--'))).resolves.toBeNull();
+      await expect(readMatrix(parseTokens('--'))).resolves.toBeNull();
     });
     it('deserializes null items', async () => {
-      await expect(readMatrix(readTokens('--,'))).resolves.toEqual([null]);
-      await expect(readMatrix(readTokens(', --'))).resolves.toEqual([null]);
-      await expect(readMatrix(readTokens('(13)--'))).resolves.toEqual([[13], null]);
+      await expect(readMatrix(parseTokens('--,'))).resolves.toEqual([null]);
+      await expect(readMatrix(parseTokens(', --'))).resolves.toEqual([null]);
+      await expect(readMatrix(parseTokens('(13)--'))).resolves.toEqual([[13], null]);
     });
   });
 });

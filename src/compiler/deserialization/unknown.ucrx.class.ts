@@ -52,6 +52,7 @@ export class UnknownUcrxClass extends UcrxClass {
 
   constructor(lib: UcrxLib, schema: UcSchema) {
     super({
+      lib,
       typeName: schema.nullable ? 'Any' : 'NonNull',
       schema,
       baseClass: lib.baseUcrx,

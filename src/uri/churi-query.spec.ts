@@ -72,7 +72,6 @@ describe('ChURIQuery', () => {
     ]);
     expect(String(params)).toBe(input);
     expect([...params]).toEqual([...urlParams]);
-    // expect(String(params)).toBe(String(urlParams));
   });
   it('handles empty key', () => {
     const input = '=1&=2';
@@ -103,6 +102,16 @@ describe('ChURIQuery', () => {
     const urlParams = new URLSearchParams(input);
 
     expect([...params]).toEqual([['key+foo', 'value+bar']]);
+    expect(String(params)).toBe(input);
+    expect([...params]).toEqual([...urlParams]);
+    expect(String(params)).toBe(String(urlParams));
+  });
+  it('handles plus-encoded space', () => {
+    const input = 'key+foo=value++bar';
+    const params = new ChURIQuery(input);
+    const urlParams = new URLSearchParams(input);
+
+    expect([...params]).toEqual([['key foo', 'value  bar']]);
     expect(String(params)).toBe(input);
     expect([...params]).toEqual([...urlParams]);
     expect(String(params)).toBe(String(urlParams));
@@ -304,6 +313,13 @@ describe('ChURIQuery', () => {
 
       expect(params.getCharge('foo')).toHaveURIChargeItems('bar(test)', 1);
       expect(params.getCharge('baz')).toHaveURIChargeItems('(21)(22)');
+      expect(params.getCharge('test')).toHaveURIChargeItems('');
+    });
+    it('decodes plus as spaces', () => {
+      const params = new ChURIQuery('?foo=bar+(+te+++st+)+&foo=+1&baz=21+,+22&test');
+
+      expect(params.getCharge('foo')).toHaveURIChargeItems({ bar: 'te   st' }, 1);
+      expect(params.getCharge('baz')).toHaveURIChargeItems(21, 22);
       expect(params.getCharge('test')).toHaveURIChargeItems('');
     });
   });

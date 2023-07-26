@@ -1,6 +1,7 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer.js';
 import { URICharge$List } from '../schema/uri-charge/impl/uri-charge.some.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
+import { UcChargeLexer } from '../syntax/lexers/uc-charge.lexer.js';
 import {
   ChURIAnchor$splitter,
   ChURIMatrix$splitter,
@@ -312,12 +313,14 @@ export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
 
 function ChURIParams$parse(rawValues: string[], _key: string | null, _params: ChURIParams): any {
   if (rawValues.length < 2) {
-    return rawValues.length ? parseURICharge(rawValues[0]) : URICharge.none;
+    return rawValues.length
+      ? parseURICharge(UcChargeLexer.scanParam(rawValues[0]))
+      : URICharge.none;
   }
 
   return new URICharge$List(
     rawValues
-      .map(rawValue => parseURICharge(rawValue))
+      .map(rawValue => parseURICharge(UcChargeLexer.scanParam(rawValue)))
       .filter<URICharge.Some>((charge: URICharge): charge is URICharge.Some => charge.isSome()),
   );
 }

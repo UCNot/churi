@@ -80,6 +80,7 @@ export class ListUcrxClass<
     const isMatrix = itemClass.isMemberOverridden(UcrxCore.and);
 
     super({
+      lib,
       schema,
       typeName:
         (single === 'reject' || single === 'accept' ? 'List' : 'MultiValue')

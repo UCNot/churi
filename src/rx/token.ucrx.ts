@@ -1,7 +1,8 @@
 import { encodeURIPart } from 'httongue';
 import { UC_KEY_ESCAPED, isEscapedUcString } from '../impl/uc-string-escapes.js';
+import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
 import { printUcToken } from '../syntax/print-uc-token.js';
-import { UcInputLexer, ucOpaqueLexer } from '../syntax/uc-input-lexer.js';
+import { UcLexer } from '../syntax/uc-lexer.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -82,8 +83,8 @@ export class TokenUcrx implements AllUcrx {
     return 1;
   }
 
-  ins(emit: (token: UcToken) => void): UcInputLexer;
-  ins(_emit: (token: UcToken) => void): UcInputLexer {
+  ins(id: number | string, emit: (token: UcToken) => void): UcLexer;
+  ins(_id: number | string, _emit: (token: UcToken) => void): UcLexer {
     return ucOpaqueLexer;
   }
 

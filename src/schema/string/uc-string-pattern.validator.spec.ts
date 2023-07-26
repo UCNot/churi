@@ -67,7 +67,10 @@ describe('ucItMatches', () => {
     schema: UcSchema<string>,
     options?: Partial<UcdCompiler.Options<UcdModels>>,
   ): Promise<UcDeserializer.Sync<string>> {
-    const compiler = new UcdCompiler({ ...options, models: { readValue: ['sync', schema] } });
+    const compiler = new UcdCompiler({
+      ...options,
+      models: { readValue: { model: schema, mode: 'sync' } },
+    });
     const { readValue } = await compiler.evaluate();
 
     return readValue;

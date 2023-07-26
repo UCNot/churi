@@ -5,7 +5,7 @@ import { Ucrx } from '../../rx/ucrx.js';
 import { UcMeta } from '../../schema/meta/uc-meta.js';
 import { UcRejection } from '../../schema/uc-error.js';
 import type { URIChargePath } from '../../schema/uri-charge/uri-charge-path.js';
-import { ucOpaqueLexer } from '../../syntax/uc-input-lexer.js';
+import { ucOpaqueLexer } from '../../syntax/lexers/uc-opaque.lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
@@ -102,8 +102,8 @@ export class UcrxHandle implements UcrxContext {
     }
   }
 
-  ins(emit: (token: UcToken) => void): UcrxInsetLexer {
-    const lexer = this.#rx.ins(emit, this) ?? this.#reader.inset(emit, this);
+  ins(id: number | string, emit: (token: UcToken) => void): UcrxInsetLexer {
+    const lexer = this.#rx.ins(id, emit, this) ?? this.#reader.inset(id, emit, this);
 
     if (lexer) {
       return lexer;
@@ -111,6 +111,9 @@ export class UcrxHandle implements UcrxContext {
 
     this.#reject({
       code: 'unexpectedInset',
+      details: {
+        insetId: id,
+      },
       message: 'Unrecognized inset',
     });
 

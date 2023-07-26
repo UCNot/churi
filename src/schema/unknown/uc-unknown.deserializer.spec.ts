@@ -6,7 +6,7 @@ import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
 import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
-import { UcNullable, ucNullable } from '../uc-nullable.js';
+import { ucNullable } from '../uc-nullable.js';
 import { UcUnknown, ucUnknown } from './uc-unknown.js';
 
 describe('UcUnknown deserializer', () => {
@@ -111,11 +111,11 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('for non-nullable', () => {
-    let readValue: UcDeserializer<UcUnknown>;
+    let readValue: UcDeserializer.ByTokens<UcUnknown>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
-        models: { readValue: ucNullable(ucUnknown(), false) },
+        models: { readValue: { model: ucNullable(ucUnknown(), false) } },
       });
 
       ({ readValue } = await compiler.evaluate());
@@ -138,14 +138,14 @@ describe('UcUnknown deserializer', () => {
   });
 
   describe('with custom entity', () => {
-    let compiler: UcdCompiler<{ readValue: UcNullable<unknown, UcUnknown.Schema> }>;
-    let readValue: UcDeserializer<unknown>;
+    let readValue: UcDeserializer.ByTokens<unknown>;
 
     beforeAll(async () => {
-      compiler = new UcdCompiler({
-        models: { readValue: ucUnknown() },
+      const compiler = new UcdCompiler({
+        models: { readValue: { model: ucUnknown() } },
         features: [ucdSupportPrimitives, ucdSupportPlainEntity, ucdSupportTimestampFormat],
       });
+
       ({ readValue } = await compiler.evaluate());
     });
 

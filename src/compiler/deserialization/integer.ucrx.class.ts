@@ -21,13 +21,14 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, U
   }
 
   constructor(
-    { baseUcrx }: UcrxLib,
+    lib: UcrxLib,
     schema: UcInteger.Schema,
     { string = 'parse' }: UcInteger.Variant = {},
   ) {
     super({
+      lib,
       schema,
-      baseClass: baseUcrx,
+      baseClass: lib.baseUcrx,
     });
 
     UcrxCore.num.overrideIn(this, {

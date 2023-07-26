@@ -37,6 +37,11 @@ export interface UcConstraints<out T = unknown, out TSchema extends UcSchema<T> 
 }
 
 /**
+ * Omnivorous constraints that can be applied to any schema.
+ */
+export type UcOmniConstraints = UcConstraints<never, never>;
+
+/**
  * Name of schema processor.
  *
  * Used to provide {@link UcConstraints schema constraints} for particular processor.
@@ -103,27 +108,21 @@ export function ucConstraints<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   }
 
   const result: {
-    -readonly [processorName in keyof UcConstraints<T, TSchema>]: UcConstraints<
-      T,
-      TSchema
-    >[processorName];
+    -readonly [processorName in UcProcessorName]?: UcConstraints<T, TSchema>[processorName];
   } = {};
 
   for (const constr of constraints) {
-    for (const [processorName, forProcessor] of Object.entries(constr) as [
+    for (const [processorName, features] of Object.entries(constr) as [
       UcProcessorName,
       UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined,
     ][]) {
-      if (forProcessor) {
-        const prevForProcessor = result[processorName];
+      if (features) {
+        const prevFeatures = result[processorName];
 
-        if (prevForProcessor) {
-          result[processorName] = elementOrArray([
-            ...asArray(prevForProcessor),
-            ...asArray(forProcessor),
-          ]);
+        if (prevFeatures) {
+          result[processorName] = elementOrArray([...asArray(prevFeatures), ...asArray(features)]);
         } else {
-          result[processorName] = forProcessor;
+          result[processorName] = features;
         }
       }
     }

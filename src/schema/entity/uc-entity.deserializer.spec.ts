@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { parseTokens } from '../../spec/read-chunks.js';
 import { UcErrorInfo } from '../uc-error.js';
 
 describe('UcEntity deserializer', () => {
@@ -17,14 +17,14 @@ describe('UcEntity deserializer', () => {
   it('(async) does not recognize unknown entity', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: ['async', Number],
+        readNumber: { model: Number, mode: 'async' },
       },
       features: ucdSupportPrimitives,
     });
 
     const { readNumber } = await compiler.evaluate();
 
-    await expect(readNumber(readTokens('!Infinity'), { onError })).resolves.toBeUndefined();
+    await expect(readNumber(parseTokens('!Infinity'), { onError })).resolves.toBeUndefined();
     expect(errors).toEqual([
       {
         code: 'unrecognizedEntity',
@@ -39,7 +39,7 @@ describe('UcEntity deserializer', () => {
   it('(sync) does not recognize unknown entity', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: ['sync', Number],
+        readNumber: { model: Number, mode: 'sync' },
       },
       features: ucdSupportPrimitives,
     });

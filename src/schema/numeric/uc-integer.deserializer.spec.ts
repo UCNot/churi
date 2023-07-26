@@ -16,12 +16,12 @@ describe('UcInteger deserializer', () => {
   });
 
   describe('by default', () => {
-    let readValue: UcDeserializer<UcInteger>;
+    let readValue: UcDeserializer.ByTokens<UcInteger>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucInteger(),
+          readValue: { model: ucInteger() },
         },
       });
 
@@ -122,12 +122,12 @@ describe('UcInteger deserializer', () => {
   });
 
   describe('when string parsed', () => {
-    let readValue: UcDeserializer<UcInteger>;
+    let readValue: UcDeserializer.ByTokens<UcInteger>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucInteger({}),
+          readValue: { model: ucInteger({}) },
         },
       });
 
@@ -142,12 +142,12 @@ describe('UcInteger deserializer', () => {
   });
 
   describe('when nullable', () => {
-    let readValue: UcDeserializer<number | null>;
+    let readValue: UcDeserializer.ByTokens<number | null>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucNullable(ucInteger()),
+          readValue: { model: ucNullable(ucInteger()) },
         },
       });
 
@@ -235,12 +235,12 @@ describe('UcInteger deserializer', () => {
   });
 
   describe('when strings rejected', () => {
-    let readValue: UcDeserializer<number>;
+    let readValue: UcDeserializer.ByTokens<number>;
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: ucInteger({ string: 'reject' }),
+          readValue: { model: ucInteger({ string: 'reject' }) },
         },
       });
 
