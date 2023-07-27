@@ -44,7 +44,7 @@ export async function writeValue(stream, value, options) {
       });
 
       await expect(compiler.generate()).rejects.toThrow(
-        `test_x2D_type$serialize(writer, value, asItem?): Can not serialize type "test-type"`,
+        `test_x2D_type$charge(writer, value, asItem?): Can not serialize type "test-type"`,
       );
     });
   });

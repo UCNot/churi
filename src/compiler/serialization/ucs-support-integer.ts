@@ -10,7 +10,7 @@ export function ucsSupportInteger(
 ): UccConfig<UcInteger.Variant | undefined> {
   return {
     configure({ string = 'parse' } = {}) {
-      compiler.formatWith(target, ({ writer, value }) => code => {
+      compiler.formatWith('charge', target, ({ writer, value }) => code => {
         const writeAsIs = UC_MODULE_SERIALIZER.import('ucsWriteAsIs');
 
         if (string === 'serialize') {

@@ -7,7 +7,7 @@ import { UcsFormatterSignature } from './ucs-formatter.js';
 export function ucsSupportBoolean(compiler: UcsCompiler): UccConfig {
   return {
     configure() {
-      compiler.formatWith(Boolean, ucsWriteBoolean);
+      compiler.formatWith('charge', Boolean, ucsWriteBoolean);
     },
   };
 }

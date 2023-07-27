@@ -25,7 +25,7 @@ export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): UccC
 export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): UccConfig {
   return {
     configure() {
-      compiler.formatWith('map', ucsWriteMap);
+      compiler.formatWith('charge', 'map', ucsWriteMap);
       Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {

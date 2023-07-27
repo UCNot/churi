@@ -11,7 +11,7 @@ export function ucsSupportString(
 ): UccConfig<UcString.Variant | void> {
   return {
     configure({ raw = 'escape' } = {}) {
-      compiler.formatWith(target, ({ writer, value, asItem }, schema) => {
+      compiler.formatWith('charge', target, ({ writer, value, asItem }, schema) => {
         const writeString = UC_MODULE_SERIALIZER.import(
           raw === 'escape'
             ? 'ucsWriteString'

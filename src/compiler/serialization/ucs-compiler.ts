@@ -7,6 +7,7 @@ import {
   esEvaluate,
   esGenerate,
 } from 'esgen';
+import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccFeature } from '../processor/ucc-feature.js';
@@ -26,7 +27,7 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
 export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProcessor<UcsCompiler> {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #perType = new Map<string | UcDataType, UcsTypeEntry>();
+  readonly #formats = new Map<UcFormatName, Map<string | UcDataType, UcsTypeEntry>>();
 
   #bootstrapped = false;
 
@@ -54,12 +55,14 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
+   * @typeParam format - Name of target format.
    * @param target - Name or class of target value type, or target schema instance.
    * @param formatter - Assigned formatter.
    *
    * @returns `this` instance.
    */
   formatWith<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    format: UcFormatName,
     target: TSchema['type'] | TSchema,
     formatter: UcsFormatter<T, TSchema>,
   ): this {
@@ -70,20 +73,30 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     };
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(target.type).formatSchemaWith(target, fullFormatter);
+      this.#typeEntryFor(format, target.type).formatSchemaWith(target, fullFormatter);
     } else {
-      this.#typeEntryFor(target).formatTypeWith(fullFormatter);
+      this.#typeEntryFor(format, target).formatTypeWith(fullFormatter);
     }
 
     return this;
   }
 
-  #typeEntryFor<T, TSchema extends UcSchema<T>>(type: TSchema['type']): UcsTypeEntry<T, TSchema> {
-    let typeEntry = this.#perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
+  #typeEntryFor<T, TSchema extends UcSchema<T>>(
+    format: UcFormatName,
+    type: TSchema['type'],
+  ): UcsTypeEntry<T, TSchema> {
+    let perType = this.#formats.get(format);
+
+    if (!perType) {
+      perType = new Map();
+      this.#formats.set(format, perType);
+    }
+
+    let typeEntry = perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
 
     if (!typeEntry) {
       typeEntry = new UcsTypeEntry(this.schemaIndex);
-      this.#perType.set(type, typeEntry);
+      perType.set(type, typeEntry);
     }
 
     return typeEntry;
@@ -174,9 +187,10 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   }
 
   #formatterFor<T, TSchema extends UcSchema<T>>(
+    format: UcFormatName,
     schema: TSchema,
   ): UcsFormatter<T, TSchema> | undefined {
-    return this.#typeEntryFor<T, TSchema>(schema.type).formatterFor(schema);
+    return this.#typeEntryFor<T, TSchema>(format, schema.type).formatterFor(schema);
   }
 
 }

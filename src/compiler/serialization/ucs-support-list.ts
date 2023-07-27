@@ -19,7 +19,7 @@ export function ucsSupportList(
     configure(options) {
       compiler
         .processModel(schema.item)
-        .formatWith(schema, (args, schema, context) => ucsWriteList(args, schema, context, options));
+        .formatWith('charge', schema, (args, schema, context) => ucsWriteList(args, schema, context, options));
     },
   };
 }

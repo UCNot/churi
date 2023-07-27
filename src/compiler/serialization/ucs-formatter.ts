@@ -1,4 +1,5 @@
 import { EsArg, EsSignature, EsSnippet } from 'esgen';
+import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 
 /**
@@ -21,11 +22,14 @@ export type UcsFormatter<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 }['format'];
 
 export interface UcsFormatterContext {
+  readonly formatName: UcFormatName;
+
   format(
     schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
     onUnknownSchema?: (schema: UcSchema, context: UcsFormatterContext) => never,
   ): EsSnippet;
+
   toString(): string;
 }
 

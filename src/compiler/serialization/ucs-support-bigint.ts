@@ -11,7 +11,7 @@ export function ucsSupportBigInt(
 ): UccConfig<UcBigInt.Variant | void> {
   return {
     configure({ string = 'parse', number = 'parse' } = {}) {
-      compiler.formatWith(target, ({ writer, value }) => code => {
+      compiler.formatWith('charge', target, ({ writer, value }) => code => {
         if (string === 'serialize') {
           const ucsApostrophe = UC_MODULE_SERIALIZER.import('UCS_APOSTROPHE');
 

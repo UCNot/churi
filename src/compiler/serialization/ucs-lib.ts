@@ -8,9 +8,9 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
+import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
-import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsModels } from './ucs-models.js';
@@ -60,10 +60,10 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     ) as UcsSchemaConfigs<TModels>;
     this.#createSerializer = createSerializer;
 
-    for (const [externalName, { model }] of Object.entries<UcsSchemaConfig>(this.#models)) {
-      const fn = this.serializerFor(model);
+    for (const [externalName, entry] of Object.entries<UcsSchemaConfig>(this.#models)) {
+      const fn = this.serializerFor(entry.model);
 
-      ns.refer(fn.exportFn(externalName, UcsExportSignature));
+      ns.refer(fn.exportFn(externalName, entry));
     }
 
     return this;
@@ -84,9 +84,10 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   }
 
   formatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    format: UcFormatName,
     schema: TSchema,
   ): UcsFormatter<T> | undefined {
-    return this.#options.formatterFor?.(schema);
+    return this.#options.formatterFor?.(format, schema);
   }
 
   binConst(value: string): EsSymbol {
@@ -121,6 +122,7 @@ export namespace UcsLib {
 
     formatterFor?<T, TSchema extends UcSchema<T>>(
       this: void,
+      format: UcFormatName,
       schema: TSchema,
     ): UcsFormatter<T, TSchema> | undefined;
 

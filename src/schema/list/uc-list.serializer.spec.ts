@@ -200,7 +200,7 @@ describe('UcList serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'list$serialize(writer, value, asItem?): Can not serialize list item of type "test-type"',
+      'list$charge(writer, value, asItem?): Can not serialize list item of type "test-type"',
     );
   });
 });

@@ -217,7 +217,7 @@ describe('UcMap serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'map$serialize(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
+      'map$charge(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
   });
 });
