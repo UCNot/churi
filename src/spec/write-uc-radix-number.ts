@@ -17,7 +17,7 @@ export const UcsSupportNumberWithRadix: UccFeature.Object<UcsCompiler> = {
   uccProcess(compiler) {
     return {
       configure() {
-        compiler.useUcsGenerator<number>(Number, (_fn, _schema, { writer, value }) => {
+        compiler.formatWith<number>(Number, ({ writer, value }) => {
           const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;
@@ -31,7 +31,7 @@ export const UcsSupportRadixNumber: UccFeature.Object<UcsCompiler> = {
   uccProcess(compiler) {
     return {
       configure() {
-        compiler.useUcsGenerator<number>('radixNumber', (_fn, _schema, { writer, value }) => {
+        compiler.formatWith<number>('radixNumber', ({ writer, value }) => {
           const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;
@@ -45,7 +45,7 @@ export const UcsSupportRadixNumberSchema: UccSchemaFeature.Object<UcsCompiler> =
   uccProcessSchema(compiler, schema: UcSchema<number>) {
     return {
       configure() {
-        compiler.useUcsGenerator(schema.type, (_fn, _schema, { writer, value }) => {
+        compiler.formatWith(schema.type, ({ writer, value }) => {
           const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
 
           return esline`await ${write}(${writer}, ${value});`;

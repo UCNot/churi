@@ -11,8 +11,8 @@ import {
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
+import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsGenerator } from './ucs-generator.js';
 import { UcsModels } from './ucs-models.js';
 
 /**
@@ -83,10 +83,10 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     return serializer;
   }
 
-  generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  formatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
-  ): UcsGenerator<T> | undefined {
-    return this.#options.generatorFor?.(schema);
+  ): UcsFormatter<T> | undefined {
+    return this.#options.formatterFor?.(schema);
   }
 
   binConst(value: string): EsSymbol {
@@ -119,10 +119,10 @@ export namespace UcsLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
 
-    generatorFor?<T, TSchema extends UcSchema<T>>(
+    formatterFor?<T, TSchema extends UcSchema<T>>(
       this: void,
       schema: TSchema,
-    ): UcsGenerator<T, TSchema> | undefined;
+    ): UcsFormatter<T, TSchema> | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
       this: void,

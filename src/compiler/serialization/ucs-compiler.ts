@@ -12,8 +12,8 @@ import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsGenerator } from './ucs-generator.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsExports, UcsModels } from './ucs-models.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
@@ -48,31 +48,31 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   }
 
   /**
-   * Assigns serialization code generator to use for `target` value type or schema.
+   * Assigns formatter to use for `target` value type or schema.
    *
-   * Generator provided for particular schema takes precedence over the one provided for the type.
+   * Formatter provided for particular schema takes precedence over the one provided for the type.
    *
    * @typeParam T - Implied data type.
    * @typeParam TSchema - Schema type.
    * @param target - Name or class of target value type, or target schema instance.
-   * @param generator - Assigned generator.
+   * @param formatter - Assigned formatter.
    *
    * @returns `this` instance.
    */
-  useUcsGenerator<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  formatWith<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     target: TSchema['type'] | TSchema,
-    generator: UcsGenerator<T, TSchema>,
+    formatter: UcsFormatter<T, TSchema>,
   ): this {
-    const fullGenerator: UcsGenerator<T, TSchema> = (fn, schema, args) => {
-      const onValue = generator(fn, schema, args);
+    const fullGenerator: UcsFormatter<T, TSchema> = (args, schema, fn) => {
+      const onValue = formatter(args, schema, fn);
 
       return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
     };
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(target.type).useGeneratorFor(target, fullGenerator);
+      this.#typeEntryFor(target.type).formatSchemaWith(target, fullGenerator);
     } else {
-      this.#typeEntryFor(target).useGenerator(fullGenerator);
+      this.#typeEntryFor(target).formatTypeWith(fullGenerator);
     }
 
     return this;
@@ -150,7 +150,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     return {
       ...this.#options,
       schemaIndex: this.schemaIndex,
-      generatorFor: this.#generatorFor.bind(this),
+      formatterFor: this.#formatterFor.bind(this),
       createSerializer,
     };
   }
@@ -173,10 +173,10 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     }
   }
 
-  #generatorFor<T, TSchema extends UcSchema<T>>(
+  #formatterFor<T, TSchema extends UcSchema<T>>(
     schema: TSchema,
-  ): UcsGenerator<T, TSchema> | undefined {
-    return this.#typeEntryFor<T, TSchema>(schema.type).generatorFor(schema);
+  ): UcsFormatter<T, TSchema> | undefined {
+    return this.#typeEntryFor<T, TSchema>(schema.type).formatterFor(schema);
   }
 
 }
@@ -196,27 +196,27 @@ export namespace UcsCompiler {
 class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #perSchema = new Map<string, UcsGenerator<T, TSchema>>();
-  #generator: UcsGenerator<T, TSchema> | undefined;
+  readonly #perSchema = new Map<string, UcsFormatter<T, TSchema>>();
+  #formatter: UcsFormatter<T, TSchema> | undefined;
 
   constructor(schemaIndex: UccSchemaIndex) {
     this.#schemaIndex = schemaIndex;
   }
 
-  useGenerator(generator: UcsGenerator<T, TSchema>): void {
-    this.#generator = generator;
+  formatTypeWith(formatter: UcsFormatter<T, TSchema>): void {
+    this.#formatter = formatter;
   }
 
-  useGeneratorFor(schema: TSchema, generator: UcsGenerator<T, TSchema>): void {
+  formatSchemaWith(schema: TSchema, formatter: UcsFormatter<T, TSchema>): void {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
-    this.#perSchema.set(schemaId, generator);
+    this.#perSchema.set(schemaId, formatter);
   }
 
-  generatorFor(schema: TSchema): UcsGenerator<T, TSchema> | undefined {
+  formatterFor(schema: TSchema): UcsFormatter<T, TSchema> | undefined {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
-    return this.#perSchema.get(schemaId) ?? this.#generator;
+    return this.#perSchema.get(schemaId) ?? this.#formatter;
   }
 
 }

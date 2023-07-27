@@ -9,8 +9,8 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
+import { UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsSignature } from './ucs.signature.js';
 
 export function ucsSupportList(
   compiler: UcsCompiler,
@@ -20,15 +20,15 @@ export function ucsSupportList(
     configure(options) {
       compiler
         .processModel(schema.item)
-        .useUcsGenerator(schema, (fn, schema, args) => ucsWriteList(fn, schema, args, options));
+        .formatWith(schema, (args, schema, fn) => ucsWriteList(args, schema, fn, options));
     },
   };
 }
 
 function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
-  fn: UcsFunction,
+  args: UcsFormatterSignature.AllValues,
   schema: UcList.Schema<TItem, TItemModel>,
-  args: UcsSignature.AllValues,
+  fn: UcsFunction,
   { single }: UccListOptions,
 ): EsSnippet {
   const { writer, value } = args;
@@ -41,33 +41,33 @@ function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
       return code => {
         code
           .write(esline`if (!Array.isArray(${value})) {`)
-          .indent(ucsWriteItem(fn, itemSchema, { writer, value }))
+          .indent(ucsWriteItem({ writer, value }, itemSchema, fn))
           .write(esline`} else if (${value}.length === 1) {`)
-          .indent(ucsWriteItem(fn, itemSchema, { writer, value: esline`${value}[0]` }))
+          .indent(ucsWriteItem({ writer, value: esline`${value}[0]` }, itemSchema, fn))
           .write('} else {')
-          .indent(ucsWriteListItems(fn, schema, args))
+          .indent(ucsWriteListItems(args, schema, fn))
           .write('}');
       };
     case 'as-is':
       return code => {
         code
           .write(esline`if (Array.isArray(${value})) {`)
-          .indent(ucsWriteListItems(fn, schema, args))
+          .indent(ucsWriteListItems(args, schema, fn))
           .write(esline`} else {`)
-          .indent(ucsWriteItem(fn, itemSchema, { writer, value }))
+          .indent(ucsWriteItem({ writer, value }, itemSchema, fn))
           .write('}');
       };
     case 'accept':
     case 'reject':
       // Always an array.
-      return ucsWriteListItems(fn, schema, args);
+      return ucsWriteListItems(args, schema, fn);
   }
 }
 
 function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
-  fn: UcsFunction,
+  { writer, value, asItem }: UcsFormatterSignature.AllValues,
   schema: UcList.Schema<TItem, TItemModel>,
-  { writer, value, asItem }: UcsSignature.AllValues,
+  fn: UcsFunction,
 ): EsSnippet {
   const openingParenthesis = UC_MODULE_SERIALIZER.import('UCS_OPENING_PARENTHESIS');
   const closingParenthesis = UC_MODULE_SERIALIZER.import('UCS_CLOSING_PARENTHESIS');
@@ -88,7 +88,7 @@ function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
         esline`await ${writer}.ready;`,
         esline`${writer}.write(${itemWritten} || !${asItem} ? ${comma} : ${openingParenthesis});`,
         esline`${itemWritten} = true;`,
-        ucsWriteItem(fn, itemSchema, { writer, value: itemValue }),
+        ucsWriteItem({ writer, value: itemValue }, itemSchema, fn),
       )
       .write(`}`)
       .write(esline`if (${asItem}) {`)
@@ -103,9 +103,9 @@ function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
 }
 
 function ucsWriteItem(
-  fn: UcsFunction,
+  args: Omit<UcsFormatterSignature.AllValues, 'asItem'>,
   itemSchema: UcSchema,
-  args: Omit<UcsSignature.AllValues, 'asItem'>,
+  fn: UcsFunction,
 ): EsSnippet {
   return fn.serialize(itemSchema, { ...args, asItem: '1' }, (schema, fn) => {
     throw new UnsupportedUcSchemaError(

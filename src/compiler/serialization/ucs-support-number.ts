@@ -11,7 +11,7 @@ export function ucsSupportNumber(
 ): UccConfig<UcNumber.Variant | void> {
   return {
     configure({ string = 'parse' } = {}) {
-      compiler.useUcsGenerator(target, (_fn, _schema, { writer, value }) => {
+      compiler.formatWith(target, ({ writer, value }) => {
         const writeNumber = UC_MODULE_SERIALIZER.import(
           string === 'serialize' ? 'ucsWriteNumberAsString' : 'ucsWriteNumber',
         );

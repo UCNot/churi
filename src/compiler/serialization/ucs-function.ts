@@ -5,14 +5,14 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
+import { UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
-import { UcsSignature } from './ucs.signature.js';
 
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schema: TSchema;
-  readonly #fn: EsFunction<UcsSignature.Args>;
+  readonly #fn: EsFunction<UcsFormatterSignature.Args>;
   readonly #createWriter: Exclude<UcsFunction.Options<T, TSchema>['createWriter'], undefined>;
 
   constructor(options: UcsFunction.Options<T, TSchema>);
@@ -24,7 +24,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     this.#createWriter = createWriter;
     this.#fn = new EsFunction(
       `${ucSchemaSymbol(this.schema)}$serialize${ucSchemaVariant(this.schema)}`,
-      UcsSignature,
+      UcsFormatterSignature,
       {
         declare: {
           at: 'bundle',
@@ -39,18 +39,18 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#schema;
   }
 
-  get fn(): EsFunction<UcsSignature.Args> {
+  get fn(): EsFunction<UcsFormatterSignature.Args> {
     return this.#fn;
   }
 
   serialize(
     schema: UcSchema,
-    args: UcsSignature.AllValues,
+    args: UcsFormatterSignature.AllValues,
     onUnknownSchema: (schema: UcSchema, fn: UcsFunction) => never = UcsFunction$onUnknownSchema,
   ): EsSnippet {
     return (code, scope) => {
       const lib = scope.get(UcsLib);
-      const serializer = lib.generatorFor(schema)?.(this, schema, args);
+      const serializer = lib.formatterFor(schema)?.(args, schema, this);
 
       if (serializer == null) {
         onUnknownSchema(schema, this);

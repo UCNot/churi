@@ -18,15 +18,15 @@ import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
+import { UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';
-import { UcsSignature } from './ucs.signature.js';
 
 export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): UccConfig;
 export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): UccConfig {
   return {
     configure() {
-      compiler.useUcsGenerator('map', ucsWriteMap);
+      compiler.formatWith('map', ucsWriteMap);
       Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
@@ -38,9 +38,9 @@ export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.S
 }
 
 function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
-  fn: UcsFunction,
+  { writer, value }: UcsFormatterSignature.AllValues,
   schema: UcMap.Schema<TEntriesModel>,
-  { writer, value }: UcsSignature.AllValues,
+  fn: UcsFunction,
 ): EsSnippet {
   return (code, scope) => {
     const lib = scope.get(UcsLib);

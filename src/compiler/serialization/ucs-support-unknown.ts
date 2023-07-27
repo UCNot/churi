@@ -6,7 +6,7 @@ import { UcsCompiler } from './ucs-compiler.js';
 export function ucsSupportUnknown(compiler: UcsCompiler): UccConfig {
   return {
     configure() {
-      compiler.useUcsGenerator('unknown', (_fn, _schema, { writer, value, asItem }) => {
+      compiler.formatWith('unknown', ({ writer, value, asItem }) => {
         const chargeURI = UC_MODULE_CHURI.import('chargeURI');
         const writeAsIs = UC_MODULE_SERIALIZER.import('ucsWriteAsIs');
 
