@@ -63,16 +63,16 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     target: TSchema['type'] | TSchema,
     formatter: UcsFormatter<T, TSchema>,
   ): this {
-    const fullGenerator: UcsFormatter<T, TSchema> = (args, schema, fn) => {
-      const onValue = formatter(args, schema, fn);
+    const fullFormatter: UcsFormatter<T, TSchema> = (args, schema, context) => {
+      const onValue = formatter(args, schema, context);
 
-      return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
+      return onValue && ucsCheckConstraints(args, schema, onValue);
     };
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(target.type).formatSchemaWith(target, fullGenerator);
+      this.#typeEntryFor(target.type).formatSchemaWith(target, fullFormatter);
     } else {
-      this.#typeEntryFor(target).formatTypeWith(fullGenerator);
+      this.#typeEntryFor(target).formatTypeWith(fullFormatter);
     }
 
     return this;
@@ -196,27 +196,27 @@ export namespace UcsCompiler {
 class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #perSchema = new Map<string, UcsFormatter<T, TSchema>>();
-  #formatter: UcsFormatter<T, TSchema> | undefined;
+  readonly #schemaFormatters = new Map<string, UcsFormatter<T, TSchema>>();
+  #typeFormatter: UcsFormatter<T, TSchema> | undefined;
 
   constructor(schemaIndex: UccSchemaIndex) {
     this.#schemaIndex = schemaIndex;
   }
 
   formatTypeWith(formatter: UcsFormatter<T, TSchema>): void {
-    this.#formatter = formatter;
+    this.#typeFormatter = formatter;
   }
 
   formatSchemaWith(schema: TSchema, formatter: UcsFormatter<T, TSchema>): void {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
-    this.#perSchema.set(schemaId, formatter);
+    this.#schemaFormatters.set(schemaId, formatter);
   }
 
   formatterFor(schema: TSchema): UcsFormatter<T, TSchema> | undefined {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
-    return this.#perSchema.get(schemaId) ?? this.#formatter;
+    return this.#schemaFormatters.get(schemaId) ?? this.#typeFormatter;
   }
 
 }

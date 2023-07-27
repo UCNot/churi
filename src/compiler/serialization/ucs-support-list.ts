@@ -9,8 +9,7 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
-import { UcsFormatterSignature } from './ucs-formatter.js';
-import { UcsFunction } from './ucs-function.js';
+import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 
 export function ucsSupportList(
   compiler: UcsCompiler,
@@ -20,7 +19,7 @@ export function ucsSupportList(
     configure(options) {
       compiler
         .processModel(schema.item)
-        .formatWith(schema, (args, schema, fn) => ucsWriteList(args, schema, fn, options));
+        .formatWith(schema, (args, schema, context) => ucsWriteList(args, schema, context, options));
     },
   };
 }
@@ -28,7 +27,7 @@ export function ucsSupportList(
 function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
   args: UcsFormatterSignature.AllValues,
   schema: UcList.Schema<TItem, TItemModel>,
-  fn: UcsFunction,
+  context: UcsFormatterContext,
   { single }: UccListOptions,
 ): EsSnippet {
   const { writer, value } = args;
@@ -41,33 +40,33 @@ function ucsWriteList<TItem, TItemModel extends UcModel<TItem>>(
       return code => {
         code
           .write(esline`if (!Array.isArray(${value})) {`)
-          .indent(ucsWriteItem({ writer, value }, itemSchema, fn))
+          .indent(ucsWriteItem({ writer, value }, itemSchema, context))
           .write(esline`} else if (${value}.length === 1) {`)
-          .indent(ucsWriteItem({ writer, value: esline`${value}[0]` }, itemSchema, fn))
+          .indent(ucsWriteItem({ writer, value: esline`${value}[0]` }, itemSchema, context))
           .write('} else {')
-          .indent(ucsWriteListItems(args, schema, fn))
+          .indent(ucsWriteListItems(args, schema, context))
           .write('}');
       };
     case 'as-is':
       return code => {
         code
           .write(esline`if (Array.isArray(${value})) {`)
-          .indent(ucsWriteListItems(args, schema, fn))
+          .indent(ucsWriteListItems(args, schema, context))
           .write(esline`} else {`)
-          .indent(ucsWriteItem({ writer, value }, itemSchema, fn))
+          .indent(ucsWriteItem({ writer, value }, itemSchema, context))
           .write('}');
       };
     case 'accept':
     case 'reject':
       // Always an array.
-      return ucsWriteListItems(args, schema, fn);
+      return ucsWriteListItems(args, schema, context);
   }
 }
 
 function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
   { writer, value, asItem }: UcsFormatterSignature.AllValues,
   schema: UcList.Schema<TItem, TItemModel>,
-  fn: UcsFunction,
+  context: UcsFormatterContext,
 ): EsSnippet {
   const openingParenthesis = UC_MODULE_SERIALIZER.import('UCS_OPENING_PARENTHESIS');
   const closingParenthesis = UC_MODULE_SERIALIZER.import('UCS_CLOSING_PARENTHESIS');
@@ -88,7 +87,7 @@ function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
         esline`await ${writer}.ready;`,
         esline`${writer}.write(${itemWritten} || !${asItem} ? ${comma} : ${openingParenthesis});`,
         esline`${itemWritten} = true;`,
-        ucsWriteItem({ writer, value: itemValue }, itemSchema, fn),
+        ucsWriteItem({ writer, value: itemValue }, itemSchema, context),
       )
       .write(`}`)
       .write(esline`if (${asItem}) {`)
@@ -105,12 +104,12 @@ function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
 function ucsWriteItem(
   args: Omit<UcsFormatterSignature.AllValues, 'asItem'>,
   itemSchema: UcSchema,
-  fn: UcsFunction,
+  context: UcsFormatterContext,
 ): EsSnippet {
-  return fn.serialize(itemSchema, { ...args, asItem: '1' }, (schema, fn) => {
+  return context.format(itemSchema, { ...args, asItem: '1' }, (schema, context) => {
     throw new UnsupportedUcSchemaError(
       schema,
-      `${fn}: Can not serialize list item of type "${ucModelName(schema)}"`,
+      `${context}: Can not serialize list item of type "${ucModelName(schema)}"`,
     );
   });
 }

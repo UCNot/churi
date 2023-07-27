@@ -18,8 +18,7 @@ import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsCompiler } from './ucs-compiler.js';
-import { UcsFormatterSignature } from './ucs-formatter.js';
-import { UcsFunction } from './ucs-function.js';
+import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 
 export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): UccConfig;
@@ -40,7 +39,7 @@ export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.S
 function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
   { writer, value }: UcsFormatterSignature.AllValues,
   schema: UcMap.Schema<TEntriesModel>,
-  fn: UcsFunction,
+  context: UcsFormatterContext,
 ): EsSnippet {
   return (code, scope) => {
     const lib = scope.get(UcsLib);
@@ -90,26 +89,25 @@ function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
       code.write(
         esline`${entryValue} = ${value}${esMemberAccessor(key).accessor};`,
         ucsCheckConstraints(
-          fn,
+          { writer, value: entryValue },
           entrySchema,
-          entryValue,
           code => {
             const closingParenthesis = UC_MODULE_SERIALIZER.import('UCS_CLOSING_PARENTHESIS');
 
             code
               .write(writeEntryPrefix(key))
               .write(
-                fn.serialize(
+                context.format(
                   ucOptional(ucNullable(entrySchema, false), false),
                   {
                     writer,
                     value: entryValue,
                     asItem: '0',
                   },
-                  (schema, fn) => {
+                  (schema, context) => {
                     throw new UnsupportedUcSchemaError(
                       schema,
-                      `${fn}: Can not serialize entry "${esEscapeString(
+                      `${context}: Can not serialize entry "${esEscapeString(
                         key,
                       )}" of type "${ucModelName(schema)}"`,
                     );

@@ -1,16 +1,10 @@
 import { EsCode, EsSnippet, esline } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcsFunction } from '../serialization/ucs-function.js';
 import { UC_MODULE_SERIALIZER } from './uc-modules.js';
 
 export function ucsCheckConstraints(
-  {
-    fn: {
-      args: { writer },
-    },
-  }: UcsFunction,
+  { writer, value }: { readonly writer: EsSnippet; readonly value: EsSnippet },
   schema: UcSchema,
-  value: EsSnippet,
   onValue: EsSnippet,
   {
     onNull = code => {

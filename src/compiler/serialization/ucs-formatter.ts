@@ -1,6 +1,5 @@
 import { EsArg, EsSignature, EsSnippet } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcsFunction } from './ucs-function.js';
 
 /**
  * Type formatter generates code for type instance formatting.
@@ -9,7 +8,7 @@ import { UcsFunction } from './ucs-function.js';
  * @typeParam TSchema - Schema type.
  * @param args - Serializer argument values.
  * @param schema - Schema of serialized value.
- * @param fn - Enclosing serializer function. Not necessarily for the target value.
+ * @param context - Formatter context.
  *
  * @returns Serializer code snippet, or `undefined` if the value serializer can not be generated.
  */
@@ -17,9 +16,18 @@ export type UcsFormatter<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   format(
     args: UcsFormatterSignature.AllValues,
     schema: TSchema,
-    fn: UcsFunction,
+    context: UcsFormatterContext,
   ): EsSnippet | undefined;
 }['format'];
+
+export interface UcsFormatterContext {
+  format(
+    schema: UcSchema,
+    args: UcsFormatterSignature.AllValues,
+    onUnknownSchema?: (schema: UcSchema, context: UcsFormatterContext) => never,
+  ): EsSnippet;
+  toString(): string;
+}
 
 export const UcsFormatterSignature: UcsFormatterSignature = /*#__PURE__*/ new EsSignature({
   writer: {},

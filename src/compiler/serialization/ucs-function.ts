@@ -5,11 +5,12 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
-import { UcsFormatterSignature } from './ucs-formatter.js';
+import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
 
-export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
+  implements UcsFormatterContext {
 
   readonly #schema: TSchema;
   readonly #fn: EsFunction<UcsFormatterSignature.Args>;
@@ -29,7 +30,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         declare: {
           at: 'bundle',
           async: true,
-          body: ({ args }) => this.serialize(this.schema, args),
+          body: ({ args }) => this.format(this.schema, args),
         },
       },
     );
@@ -39,14 +40,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     return this.#schema;
   }
 
-  get fn(): EsFunction<UcsFormatterSignature.Args> {
-    return this.#fn;
-  }
-
-  serialize(
+  format(
     schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
-    onUnknownSchema: (schema: UcSchema, fn: UcsFunction) => never = UcsFunction$onUnknownSchema,
+    onUnknownSchema: (
+      schema: UcSchema,
+      context: UcsFormatterContext,
+    ) => never = UcsFunction$onUnknownSchema,
   ): EsSnippet {
     return (code, scope) => {
       const lib = scope.get(UcsLib);
@@ -79,7 +79,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
                 }),
               )
               .write(`try {`)
-              .indent(esline`await ${this.fn.call({ writer, value })};`)
+              .indent(esline`await ${this.#fn.call({ writer, value })};`)
               .write(`} finally {`)
               .indent(esline`await ${writer}.done();`)
               .write(`}`);
@@ -89,7 +89,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   toString(): string {
-    return this.fn.toString();
+    return this.#fn.toString();
   }
 
 }
@@ -102,10 +102,10 @@ function UcsFunction$createWriter(args: UcsWriterSignature.Values): EsSnippet {
   };
 }
 
-function UcsFunction$onUnknownSchema(schema: UcSchema, fn: UcsFunction): never {
+function UcsFunction$onUnknownSchema(schema: UcSchema, context: UcsFormatterContext): never {
   throw new UnsupportedUcSchemaError(
     schema,
-    `${fn}: Can not serialize type "${ucModelName(schema)}"`,
+    `${context}: Can not serialize type "${ucModelName(schema)}"`,
   );
 }
 
