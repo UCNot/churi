@@ -17,20 +17,20 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
+import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportMap(compiler: UcsCompiler, schema: UcMap.Schema): UccConfig;
-export function ucsSupportMap(compiler: UcsCompiler, { entries, extra }: UcMap.Schema): UccConfig {
+export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): UccConfig;
+export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): UccConfig {
   return {
     configure() {
-      compiler.formatWith('charge', 'map', ucsWriteMap);
-      Object.values(entries).forEach(entrySchema => compiler.processModel(entrySchema));
+      setup.formatWith('charge', 'map', ucsWriteMap);
+      Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
         // TODO Implement extra entries serialization.
-        compiler.processModel(extra);
+        setup.processModel(extra);
       }
     },
   };

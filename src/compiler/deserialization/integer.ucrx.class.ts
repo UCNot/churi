@@ -4,18 +4,21 @@ import { UC_MODULE_CHURI, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxProcessor } from '../rx/ucrx-processor.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
   static uccProcessSchema(
-    processor: UcrxProcessor.Any,
+    setup: UcrxSetup,
     schema: UcInteger.Schema,
   ): UccConfig<UcInteger.Variant | undefined> {
     return {
       configure: variant => {
-        processor.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
+        setup.useUcrxClass(
+          schema,
+          (lib, schema: UcInteger.Schema) => new this(lib, schema, variant),
+        );
       },
     };
   }

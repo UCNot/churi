@@ -1,48 +1,48 @@
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccConfig } from './ucc-config.js';
-import { UccProcessor } from './ucc-processor.js';
+import { UccSetup } from './ucc-setup.js';
 
 /**
  * Schema-specific processing feature.
  *
  * Can be enabled by {@link churi!UcConstraints schema constraints}.
  *
- * @typeParam TProcessor - Supported schema processor type.
+ * @typeParam TSetup - Schema processing setup type.
  * @typeParam TOptions - Type of schema processing options.
  */
-export type UccSchemaFeature<TProcessor extends UccProcessor<TProcessor>, TOptions = unknown> =
-  | UccSchemaFeature.Object<TProcessor, TOptions>
-  | UccSchemaFeature.Function<TProcessor, TOptions>;
+export type UccSchemaFeature<TSetup extends UccSetup<TSetup>, TOptions = unknown> =
+  | UccSchemaFeature.Object<TSetup, TOptions>
+  | UccSchemaFeature.Function<TSetup, TOptions>;
 
 export namespace UccSchemaFeature {
   /**
    * Schema-specific processing feature interface.
    *
-   * @typeParam TProcessor - Supported schema processor type.
+   * @typeParam TSetup - Schema processing setup type.
    * @typeParam TOptions - Type of schema processing options.
    */
-  export interface Object<in TProcessor extends UccProcessor<TProcessor>, in TOptions = unknown> {
+  export interface Object<in TSetup extends UccSetup<TSetup>, in TOptions = unknown> {
     /**
      * Enables particular `schema` processing.
      *
-     * Called when feature enabled in processor, at least once per schema per processor.
+     * Called when feature enabled in processor, at most once per schema per processor.
      *
-     * @param processor - Schema processor to enable processing in.
+     * @param setup - Target schema processing setup.
      * @param schema - Schema to process.
      *
      * @returns Configuration of schema processing.
      */
-    uccProcessSchema(processor: TProcessor, schema: UcSchema): UccConfig<TOptions>;
+    uccProcessSchema(setup: TSetup, schema: UcSchema): UccConfig<TOptions>;
   }
 
   /**
    * Schema-specific processing feature signature.
    *
-   * @typeParam TProcessor - Supported schema processor type.
+   * @typeParam TSetup - Schema processing setup type.
    * @typeParam TOptions - Type of schema processing options.
    */
   export type Function<
-    TProcessor extends UccProcessor<TProcessor>,
+    TSetup extends UccSetup<TSetup>,
     TOptions = unknown,
-  > = UccSchemaFeature.Object<TProcessor, TOptions>['uccProcessSchema'];
+  > = UccSchemaFeature.Object<TSetup, TOptions>['uccProcessSchema'];
 }

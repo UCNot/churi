@@ -1,5 +1,5 @@
 import { EsFunction, EsVarSymbol, esline } from 'esgen';
-import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
 import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UccFeature } from '../compiler/processor/ucc-feature.js';
@@ -23,10 +23,10 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   typeName: 'date',
 });
 
-export function ucdSupportTimestampFormat(compiler: UcdCompiler.Any): UccConfig {
+export function ucdSupportTimestampFormat(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      compiler.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampFormatOnly);
+      setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampFormatOnly);
     },
   };
 }
@@ -58,10 +58,10 @@ const readTimestampEntityFn = new EsFunction(
   },
 );
 
-export function ucdSupportTimestampFormatOnly(compiler: UcdCompiler.Any): UccConfig {
+export function ucdSupportTimestampFormatOnly(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      compiler.handleFormat('timestamp', ({ register, refer }) => code => {
+      setup.handleFormat('timestamp', ({ register, refer }) => code => {
         refer(readTimestampEntityFn);
 
         code.write(register(readTimestampEntityFn.symbol));
@@ -70,11 +70,11 @@ export function ucdSupportTimestampFormatOnly(compiler: UcdCompiler.Any): UccCon
   };
 }
 
-export const UcdSupportTimestamp: UccFeature.Object<UcdCompiler.Any> = {
-  uccProcess(compiler) {
+export const UcdSupportTimestamp: UccFeature.Object<UcdSetup> = {
+  uccProcess(setup) {
     return {
       configure() {
-        compiler
+        setup
           .enable(ucdSupportTimestampFormat)
           .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
       },
@@ -82,23 +82,20 @@ export const UcdSupportTimestamp: UccFeature.Object<UcdCompiler.Any> = {
   },
 };
 
-export const UcdSupportTimestampSchema: UccSchemaFeature.Object<UcdCompiler.Any> = {
-  uccProcessSchema(compiler, _schema) {
+export const UcdSupportTimestampSchema: UccSchemaFeature.Object<UcdSetup> = {
+  uccProcessSchema(setup, _schema) {
     return {
       configure() {
-        compiler.enable(UcdSupportTimestamp);
+        setup.enable(UcdSupportTimestamp);
       },
     };
   },
 };
 
-export function ucdSupportTimestampSchema(
-  compiler: UcdCompiler.Any,
-  _schema: UcSchema<number>,
-): UccConfig {
+export function ucdSupportTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): UccConfig {
   return {
     configure() {
-      compiler.enable(UcdSupportTimestamp);
+      setup.enable(UcdSupportTimestamp);
     },
   };
 }

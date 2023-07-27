@@ -19,9 +19,9 @@ import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
-import { UcdCompiler } from './ucd-compiler.js';
 
 export class MapUcrxClass<
   in out TEntriesModel extends UcMap.EntriesModel = UcMap.EntriesModel,
@@ -32,20 +32,17 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccProcessSchema(
-    compiler: UcdCompiler.Any,
-    schema: UcMap.Schema,
-  ): UccConfig<UcMap.Variant> {
+  static uccProcessSchema(setup: UcrxSetup, schema: UcMap.Schema): UccConfig<UcMap.Variant> {
     const { entries, extra } = schema;
 
     return {
       configure: variant => {
-        compiler.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
+        setup.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, variant));
         for (const entrySchema of Object.values(entries)) {
-          compiler.processModel(entrySchema);
+          setup.processModel(entrySchema);
         }
         if (extra) {
-          compiler.processModel(extra);
+          setup.processModel(extra);
         }
       },
     };

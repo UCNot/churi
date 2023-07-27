@@ -3,15 +3,15 @@ import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcDataType } from '../../schema/uc-schema.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { UcsCompiler } from './ucs-compiler.js';
+import { UcsSetup } from './ucs-setup.js';
 
 export function ucsSupportBigInt(
-  compiler: UcsCompiler,
+  setup: UcsSetup,
   target: UcBigInt.Schema | UcDataType<UcBigInt> = BigInt,
 ): UccConfig<UcBigInt.Variant | void> {
   return {
     configure({ string = 'parse', number = 'parse' } = {}) {
-      compiler.formatWith('charge', target, ({ writer, value }) => code => {
+      setup.formatWith('charge', target, ({ writer, value }) => code => {
         if (string === 'serialize') {
           const ucsApostrophe = UC_MODULE_SERIALIZER.import('UCS_APOSTROPHE');
 

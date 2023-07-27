@@ -1,13 +1,13 @@
 import { EsSnippet, esline } from 'esgen';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { UcsCompiler } from './ucs-compiler.js';
 import { UcsFormatterSignature } from './ucs-formatter.js';
+import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportBoolean(compiler: UcsCompiler): UccConfig {
+export function ucsSupportBoolean(setup: UcsSetup): UccConfig {
   return {
     configure() {
-      compiler.formatWith('charge', Boolean, ucsWriteBoolean);
+      setup.formatWith('charge', Boolean, ucsWriteBoolean);
     },
   };
 }

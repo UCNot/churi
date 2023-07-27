@@ -4,30 +4,26 @@ import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxProcessor } from '../rx/ucrx-processor.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdCompiler } from './ucd-compiler.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
-  static uccProcess(compiler: UcdCompiler.Any): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig {
     return {
       configure: () => {
-        compiler.useUcrxClass<UcBigInt, UcBigInt.Schema>(
-          BigInt,
-          (lib, schema) => new this(lib, schema),
-        );
+        setup.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
       },
     };
   }
 
-  static uccProcessSchema(
-    processor: UcrxProcessor.Any,
-    schema: UcBigInt.Schema,
-  ): UccConfig<UcBigInt.Variant> {
+  static uccProcessSchema(setup: UcrxSetup, schema: UcBigInt.Schema): UccConfig<UcBigInt.Variant> {
     return {
       configure: variant => {
-        processor.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
+        setup.useUcrxClass(
+          schema,
+          (lib, schema) => new this(lib, schema as UcBigInt.Schema, variant),
+        );
       },
     };
   }

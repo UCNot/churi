@@ -11,21 +11,24 @@ import { UccConfig, UccConfigContext } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
+import { UccSetup } from './ucc-setup.js';
 
 /**
  * Abstract schema processor.
  *
  * Supports processing {@link UccFeature features}.
  *
- * @typeParam TProcessor - Type of this schema processor.
+ * @typeParam TSetup - Schema processing setup type.
  */
-export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor>> {
+export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
+  implements UccSetup<TSetup> {
 
   readonly #schemaIndex: UccSchemaIndex;
   readonly #models: readonly UcModel[] | undefined;
-  readonly #features: readonly UccFeature<TProcessor, void>[] | undefined;
-  readonly #configs = new Map<UccFeature<TProcessor, never>, () => UccConfig<never>>();
-  readonly #uses = new Map<UcSchema['type'], UccProcessor$FeatureUse<TProcessor>>();
+  readonly #features: readonly UccFeature<TSetup, void>[] | undefined;
+  readonly #configs = new Map<UccFeature<TSetup, never>, () => UccConfig<never>>();
+  readonly #uses = new Map<UcSchema['type'], UccProcessor$FeatureUse<TSetup>>();
+  #setup?: TSetup;
   #hasPendingInstructions = false;
 
   /**
@@ -33,8 +36,8 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
    *
    * @param init - Processor initialization options.
    */
-  constructor(init: UccProcessorInit<TProcessor>);
-  constructor({ processors, presentations = [], models, features }: UccProcessorInit<TProcessor>) {
+  constructor(init: UccProcessorInit<TSetup>);
+  constructor({ processors, presentations = [], models, features }: UccProcessorInit<TSetup>) {
     this.#schemaIndex = new UccSchemaIndex(
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
@@ -47,70 +50,23 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
     return this.#schemaIndex;
   }
 
-  /**
-   * Enables the given processing `feature`.
-   *
-   * @typeParam TOptions - Type of schema processing options.
-   * @param feature - Feature to enable.
-   * @param options - Processing options.
-   *
-   * @returns `this` instance.
-   */
-  enable<TOptions>(feature: UccFeature<TProcessor, TOptions>, options: TOptions): this;
-
-  /**
-   * Enables the given processing `feature` that does not require options.
-   *
-   * @typeParam TOptions - Type of schema processing options.
-   * @param feature - Feature to enable.
-   *
-   * @returns `this` instance.
-   */
-  enable(feature: UccFeature<TProcessor, void>): this;
-
-  /**
-   * Enables the given processing `feature`.
-   *
-   * @typeParam TOptions - Type of schema processing options.
-   * @param feature - Feature to enable.
-   * @param options - Processing options.
-   *
-   * @returns `this` instance.
-   */
-  enable<TOptions>(feature: UccFeature<TProcessor, TOptions>, options?: TOptions): this {
+  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
     let getConfig = this.#configs.get(feature) as (() => UccConfig<TOptions>) | undefined;
 
     if (!getConfig) {
-      getConfig = lazyValue(() => this.createConfig(feature));
+      getConfig = lazyValue(() => this.createConfig(this.#getSetup(), feature));
       this.#configs.set(feature, getConfig);
     }
 
-    getConfig().configure(options!, {});
+    this.configure(getConfig(), options!, {});
 
     return this;
   }
 
-  /**
-   * Creates schema processing configuration for just {@link enable enabled} `feature`.
-   *
-   * @param feature - Enabled feature.
-   *
-   * @returns Schema processing configuration.
-   */
-  protected createConfig<TOptions>(feature: UccFeature<TProcessor, TOptions>): UccConfig<TOptions> {
-    return 'uccProcess' in feature
-      ? feature.uccProcess(this as unknown as TProcessor)
-      : feature(this as unknown as TProcessor);
+  #getSetup(): TSetup {
+    return (this.#setup ??= this.createSetup());
   }
 
-  /**
-   * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.
-   *
-   * @typeParam T - Implied data type.
-   * @param model - Target model.
-   *
-   * @returns `this` instance.
-   */
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
@@ -138,12 +94,12 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
     context: UccConfigContext,
   ): void {
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
-    let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TProcessor, TOptions> | undefined;
+    let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TSetup, TOptions> | undefined;
 
     if (!use) {
       this.#hasPendingInstructions = true;
       use = new UccProcessor$FeatureUse(schema, from, feature);
-      this.#uses.set(useId, use);
+      this.#uses.set(useId, use as UccProcessor$FeatureUse<TSetup>);
     }
 
     use.configure(options as TOptions, context);
@@ -170,7 +126,10 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
       this.#hasPendingInstructions = false;
       await Promise.all(
         [...this.#uses.values()].map(
-          async use => await use.enableIn(this as unknown as TProcessor),
+          async use => await use.enableIn(
+              schema => this.createSchemaSetup(schema),
+              (config, options, context) => this.configure(config, options, context),
+            ),
         ),
       );
     }
@@ -182,14 +141,56 @@ export abstract class UccProcessor<in TProcessor extends UccProcessor<TProcessor
     });
   }
 
+  /**
+   * Creates processing setup for the {@link UccFeature features}.
+   */
+  protected abstract createSetup(): TSetup;
+
+  /**
+   * Creates processing setup for {@link UccSchemaFeature schema-specific feature}.
+   *
+   * @param schema - Target schema.
+   */
+  protected abstract createSchemaSetup(schema: UcSchema): TSetup;
+
+  /**
+   * Creates schema processing configuration for just {@link enable enabled} `feature`.
+   *
+   * @param setup - Schema processing setup.
+   * @param feature - Enabled feature.
+   *
+   * @returns Schema processing configuration.
+   */
+  protected createConfig<TOptions>(
+    setup: TSetup,
+    feature: UccFeature<TSetup, TOptions>,
+  ): UccConfig<TOptions> {
+    return 'uccProcess' in feature ? feature.uccProcess(setup) : feature(setup);
+  }
+
+  /**
+   * Configures feature.
+   *
+   * @param config - Schema processing configuration.
+   * @param options - Configuration options.
+   * @param context - Configuration context.
+   */
+  protected configure<TOptions>(
+    config: UccConfig<TOptions>,
+    options: TOptions,
+    context: UccConfigContext,
+  ): void {
+    config.configure(options, context);
+  }
+
 }
 
 /**
  * Schema {@link UccProcessor processor} initialization options.
  *
- * @typeParam TProcessor - Schema processor type.
+ * @typeParam TSetup - Schema processing setup type.
  */
-export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
+export interface UccProcessorInit<TSetup extends UccSetup<TSetup>> {
   /**
    * Processor names within {@link churi!UcConstraints schema constraints}.
    */
@@ -210,13 +211,10 @@ export interface UccProcessorInit<TProcessor extends UccProcessor<TProcessor>> {
   /**
    * Additional schema processing features to enable and use.
    */
-  readonly features?:
-    | UccFeature<TProcessor, void>
-    | readonly UccFeature<TProcessor, void>[]
-    | undefined;
+  readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
 }
 
-class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TOptions = unknown> {
+class UccProcessor$FeatureUse<in TSetup extends UccSetup<TSetup>, TOptions = unknown> {
 
   readonly #schema: UcSchema;
   readonly #from: string;
@@ -234,7 +232,10 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
     this.#options.push([options, context]);
   }
 
-  async enableIn(processor: TProcessor): Promise<void> {
+  async enableIn(
+    createSetup: (schema: UcSchema) => TSetup,
+    configure: (config: UccConfig<TOptions>, options: TOptions, context: UccConfigContext) => void,
+  ): Promise<void> {
     if (this.#enabled) {
       return;
     }
@@ -243,20 +244,22 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
 
     const {
       [this.#name]: feature,
-    }: { [name: string]: UccFeature<TProcessor, unknown> | UccSchemaFeature<TProcessor, unknown> } =
+    }: { [name: string]: UccFeature<TSetup, unknown> | UccSchemaFeature<TSetup, unknown> } =
       await import(this.#from);
 
     if (mayHaveProperties(feature)) {
       let configured = false;
 
+      const setup = createSetup(this.#schema);
+
       if ('uccProcess' in feature) {
-        for (const options of this.#options) {
-          processor.enable(feature, options);
+        for (const [options] of this.#options) {
+          setup.enable(feature, options);
         }
         configured = true;
       }
       if ('uccProcessSchema' in feature) {
-        this.#configure(feature.uccProcessSchema(processor, this.#schema));
+        this.#configure(feature.uccProcessSchema(setup, this.#schema), configure);
         configured = true;
       }
 
@@ -265,7 +268,7 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
       }
 
       if (typeof feature === 'function') {
-        this.#configure(feature(processor, this.#schema));
+        this.#configure(feature(setup, this.#schema), configure);
 
         return;
       }
@@ -278,9 +281,12 @@ class UccProcessor$FeatureUse<in TProcessor extends UccProcessor<TProcessor>, TO
     throw new ReferenceError(`Not a schema processing feature: ${this}`);
   }
 
-  #configure(config: UccConfig<TOptions>): void {
+  #configure(
+    config: UccConfig<TOptions>,
+    configure: (config: UccConfig<TOptions>, options: TOptions, context: UccConfigContext) => void,
+  ): void {
     for (const [options, context] of this.#options) {
-      config.configure(options, context);
+      configure(config, options, context);
     }
   }
 

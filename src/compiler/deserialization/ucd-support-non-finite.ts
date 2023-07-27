@@ -1,12 +1,12 @@
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { UcdCompiler } from './ucd-compiler.js';
 import { UcdHandlerFeature, UcdHandlerSetup } from './ucd-handler-feature.js';
+import { UcdSetup } from './ucd-setup.js';
 
-export function ucdSupportNonFinite(compiler: UcdCompiler.Any): UccConfig {
+export function ucdSupportNonFinite(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      compiler
+      setup
         .handleEntity('Infinity', handleUcdNonFinite('ucdInfinity'))
         .handleEntity('-Infinity', handleUcdNonFinite('ucdNegativeInfinity'))
         .handleEntity('NaN', handleUcdNonFinite('ucdNaN'));

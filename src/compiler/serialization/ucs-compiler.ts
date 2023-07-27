@@ -17,6 +17,7 @@ import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsExports, UcsModels } from './ucs-models.js';
+import { UcsSetup } from './ucs-setup.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
@@ -24,7 +25,9 @@ import { ucsSupportDefaults } from './ucs-support-defaults.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProcessor<UcsCompiler> {
+export class UcsCompiler<TModels extends UcsModels = UcsModels>
+  extends UccProcessor<UcsSetup>
+  implements UcsSetup {
 
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #formats = new Map<UcFormatName, Map<string | UcDataType, UcsTypeEntry>>();
@@ -48,25 +51,21 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     this.#options = options;
   }
 
-  /**
-   * Assigns formatter to use for `target` value type or schema.
-   *
-   * Formatter provided for particular schema takes precedence over the one provided for the type.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   * @typeParam format - Name of target format.
-   * @param target - Name or class of target value type, or target schema instance.
-   * @param formatter - Assigned formatter.
-   *
-   * @returns `this` instance.
-   */
-  formatWith<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  protected override createSetup(): UcsSetup {
+    return this;
+  }
+
+  protected override createSchemaSetup(schema: UcSchema<unknown>): UcsSetup;
+  protected override createSchemaSetup(_schema: UcSchema<unknown>): UcsSetup {
+    return this;
+  }
+
+  formatWith<T>(
     format: UcFormatName,
-    target: TSchema['type'] | TSchema,
-    formatter: UcsFormatter<T, TSchema>,
+    target: UcSchema<T>['type'] | UcSchema<T>,
+    formatter: UcsFormatter<T>,
   ): this {
-    const fullFormatter: UcsFormatter<T, TSchema> = (args, schema, context) => {
+    const fullFormatter: UcsFormatter<T> = (args, schema, context) => {
       const onValue = formatter(args, schema, context);
 
       return onValue && ucsCheckConstraints(args, schema, onValue);
@@ -198,7 +197,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
 export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
     readonly models: TModels;
-    readonly features?: UccFeature<UcsCompiler> | readonly UccFeature<UcsCompiler>[] | undefined;
+    readonly features?: UccFeature<UcsSetup> | readonly UccFeature<UcsSetup>[] | undefined;
 
     createSerializer?<T, TSchema extends UcSchema<T>>(
       this: void,

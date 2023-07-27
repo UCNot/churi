@@ -5,15 +5,12 @@ import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
 import { UcrxCore$stubBody } from '../impl/ucrx-core.stub.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcdCompiler } from './ucd-compiler.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 
-export function ucdSupportInset(
-  compiler: UcdCompiler.Any,
-  schema: UcSchema,
-): UccConfig<UcdInsetOptions> {
+export function ucdSupportInset(setup: UcrxSetup, schema: UcSchema): UccConfig<UcdInsetOptions> {
   return {
     configure({ lexer, from, method, args }, { within }) {
-      compiler
+      setup
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
             if (!ucrxClass.findMember(UcrxCore.ins)?.declared) {

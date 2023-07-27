@@ -3,8 +3,8 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { ucvValidate } from './ucv-validate.js';
 
 export type UcvNumericRange = [
@@ -14,7 +14,7 @@ export type UcvNumericRange = [
 ];
 
 export function ucvSupportNumericRange(
-  processor: UcrxProcessor.Any,
+  setup: UcrxSetup,
   schema: UcSchema<number | bigint>,
 ): UccConfig<UcvNumericRange> {
   return {
@@ -32,7 +32,7 @@ export function ucvSupportNumericRange(
 
       const message = or != null ? `, ${esStringLiteral(or)}` : '';
 
-      processor.modifyUcrxMethod(schema, setter, {
+      setup.modifyUcrxMethod(schema, setter, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {
             const ucvReject = UC_MODULE_VALIDATOR.import(`ucvViolate${constraint}`);

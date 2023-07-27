@@ -6,41 +6,41 @@ import { UccProcessor } from './ucc-processor.js';
  *
  * Can be enabled by {@link churi!UcConstraints schema constraints} or {@link UccProcessor#enable explicitly}.
  *
- * @typeParam TProcessor - Supported schema processor type.
+ * @typeParam TSetup - Schema processing setup type.
  * @typeParam TOptions - Type of schema processing options.
  */
-export type UccFeature<TProcessor extends UccProcessor<TProcessor>, TOptions = void> =
-  | UccFeature.Object<TProcessor, TOptions>
-  | UccFeature.Function<TProcessor, TOptions>;
+export type UccFeature<TSetup, TOptions = void> =
+  | UccFeature.Object<TSetup, TOptions>
+  | UccFeature.Function<TSetup, TOptions>;
 
 export namespace UccFeature {
   /**
    * Schema processing feature interface.
    *
-   * @typeParam TProcessor - Supported schema processor type.
+   * @typeParam TSetup - Schema processing setup type.
    * @typeParam TOptions - Type of schema processing options.
    */
-  export interface Object<in TProcessor extends UccProcessor<TProcessor>, in TOptions = void> {
+  export interface Object<in TSetup, in TOptions = void> {
     /**
      * Enables this feature in schema `processor` during setup.
      *
-     * Called when feature {@link UccProcessor#enable enabled} in processor, at least once per processor.
+     * Called when feature {@link UccProcessor#enable enabled} in processor, at most once per processor.
      *
-     * @param processor - Schema processor to enable.
+     * @param setup - Schema processing setup.
      *
      * @returns Configuration of schema processing.
      */
-    uccProcess(processor: TProcessor): UccConfig<TOptions>;
+    uccProcess(setup: TSetup): UccConfig<TOptions>;
   }
 
   /**
    * Schema processing feature signature.
    *
-   * @typeParam TProcessor - Supported schema processor type.
+   * @typeParam TSetup - Schema processing setup type.
    * @typeParam TOptions - Type of schema processing options.
    */
-  export type Function<
-    in TProcessor extends UccProcessor<TProcessor>,
-    in TOptions = void,
-  > = UccFeature.Object<TProcessor, TOptions>['uccProcess'];
+  export type Function<in TSetup, in TOptions = void> = UccFeature.Object<
+    TSetup,
+    TOptions
+  >['uccProcess'];
 }

@@ -26,6 +26,7 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
+import { UcdSetup } from './ucd-setup.js';
 import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
@@ -33,9 +34,9 @@ import { ucdSupportDefaults } from './ucd-support-defaults.js';
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcdCompiler<
-  out TModels extends UcdModels = UcdModels,
-> extends UcrxProcessor<UcdCompiler.Any> {
+export class UcdCompiler<out TModels extends UcdModels = UcdModels>
+  extends UcrxProcessor<UcdSetup>
+  implements UcdSetup {
 
   readonly #options: UcdCompiler.Options<TModels>;
 
@@ -68,14 +69,24 @@ export class UcdCompiler<
     this.#meta = new UcdHandlerRegistry('defaultMeta');
   }
 
+  protected override createSetup(): UcdSetup {
+    return this;
+  }
+
+  protected override createSchemaSetup(schema: UcSchema): UcdSetup;
+  protected override createSchemaSetup(_schema: UcSchema): UcdSetup {
+    return this;
+  }
+
   protected override createConfig<TOptions>(
-    feature: UccFeature<UcdCompiler.Any, TOptions>,
+    setup: UcdSetup,
+    feature: UccFeature<UcdSetup, TOptions>,
   ): UccConfig<TOptions> {
     if (feature === ucdSupportDefaults) {
       return this.#enableDefault() as UccConfig<TOptions>;
     }
 
-    return super.createConfig(feature);
+    return super.createConfig(setup, feature);
   }
 
   #enableDefault(): UccConfig {
@@ -100,24 +111,13 @@ export class UcdCompiler<
     this.#meta.makeDefault();
   }
 
-  /**
-   * Requests the given `schema` to be compiled.
-   *
-   * Once compiled, an {@link UcrxClass} will be reported to the given `whenCompiled` callback. It can be used
-   * to generated parser code for the input matching the schema.
-   *
-   * @param schema - Schema to compile.
-   * @param whenCompiled - Callback function to call when schema compiled.
-   *
-   * @returns `this` instance.
-   */
-  compileSchema<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
+  compileSchema<T>(
+    schema: UcSchema<T>,
     whenCompiled: (
       /**
        * Compiled charge receiver class.
        */
-      ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>,
+      ucrxClass: UcrxClass<UcrxSignature.Args, T>,
     ) => void,
   ): this {
     this.#internalModels.push({ schema, whenCompiled });
@@ -125,86 +125,34 @@ export class UcdCompiler<
     return this;
   }
 
-  /**
-   * Configures entity handler.
-   *
-   * @param entity - Matching entity name.
-   * @param feature - Entity support feature.
-   *
-   * @returns `this` instance.
-   */
   handleEntity(entity: string, feature: UcdHandlerFeature): this {
     this.#entities.addHandler(entity, feature);
 
     return this;
   }
 
-  /**
-   * Configures data format handler.
-   *
-   * @param format - Matching format name.
-   * @param feature - Format support feature.
-   *
-   * @returns `this` instance.
-   */
   handleFormat(format: string, feature: UcdHandlerFeature): this {
     this.#formats.addHandler(format, feature);
 
     return this;
   }
 
-  /**
-   * Configures metadata attribute handler.
-   *
-   * @param attribute - Matching metadata attribute name.
-   * @param feature - Metadata support feature.
-   *
-   * @returns `this` instance.
-   */
   handleMeta(attribute: string, feature: UcdHandlerFeature): this {
     this.#meta.addHandler(attribute, feature);
 
     return this;
   }
 
-  /**
-   * Requests the given `attribute` value to be parsed with the given `schema`.
-   *
-   * @param attribute - Target attribute.
-   * @param schema - Attribute value schema.
-   * @param set - Emits code for attribute value assignment.
-   *
-   * By default, attribute will be added to metadata.
-   *
-   * @returns `this` instance.
-   */
   parseMetaValue<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     attribute: string,
     schema: TSchema,
     set: (
       this: void,
-      /**
-       * Attribute value assignment arguments.
-       */
       args: {
-        /**
-         * Charge processing context.
-         */
         readonly cx: EsSnippet;
-
-        /**
-         * Charge receiver.
-         */
         readonly rx: EsSnippet;
-
-        /**
-         * Attribute value.
-         */
         readonly value: EsSnippet;
       },
-      /**
-       * Declaration context of attribute handler function.
-       */
       context: EsDeclarationContext,
     ) => EsSnippet = ({ cx, value }) => esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
   ): this {
@@ -342,17 +290,12 @@ export class UcdCompiler<
 }
 
 export namespace UcdCompiler {
-  export type Any = UcdCompiler<UcdModels>;
-
   export interface Options<out TModels extends UcdModels = UcdModels>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly models: TModels;
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
     readonly validate?: boolean | undefined;
-    readonly features?:
-      | UccFeature<UcdCompiler.Any>
-      | readonly UccFeature<UcdCompiler.Any>[]
-      | undefined;
+    readonly features?: UccFeature<UcdSetup> | readonly UccFeature<UcdSetup>[] | undefined;
     readonly exportDefaults?: boolean | undefined;
   }
 }

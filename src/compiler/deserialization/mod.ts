@@ -12,6 +12,7 @@ export * from './ucd-function.js';
 export * from './ucd-handler-feature.js';
 export * from './ucd-lib.js';
 export * from './ucd-models.js';
+export * from './ucd-setup.js';
 export * from './ucd-support-defaults.js';
 export * from './ucd-support-inset.js';
 export * from './ucd-support-non-finite.js';
