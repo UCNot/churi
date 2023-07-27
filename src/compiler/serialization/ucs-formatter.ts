@@ -1,5 +1,5 @@
 import { EsArg, EsSignature, EsSnippet } from 'esgen';
-import { UcFormatName } from '../../schema/uc-presentations.js';
+import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 
 /**
@@ -27,6 +27,14 @@ export interface UcsFormatterContext {
   format(
     schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
+    onUnknownSchema?: (schema: UcSchema, context: UcsFormatterContext) => never,
+  ): EsSnippet;
+
+  formatInset(
+    format: UcInsetName,
+    schema: UcSchema,
+    args: UcsFormatterSignature.AllValues,
+    onUnknownInset?: (schema: UcSchema, inset: UcInsetName) => never,
     onUnknownSchema?: (schema: UcSchema, context: UcsFormatterContext) => never,
   ): EsSnippet;
 

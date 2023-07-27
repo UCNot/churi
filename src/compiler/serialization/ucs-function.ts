@@ -1,12 +1,12 @@
 import { EsFunction, EsSnippet, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
-import { UcFormatName } from '../../schema/uc-presentations.js';
+import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { ucSchemaSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
-import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
+import { UcsFormatter, UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsModels } from './ucs-models.js';
 import { UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
@@ -15,7 +15,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   readonly #schema: TSchema;
   readonly #createWriter: Exclude<UcsFunction.Options<T, TSchema>['createWriter'], undefined>;
-  readonly #formats = new Map<UcFormatName, UcsFunction$Context>();
+  readonly #formats = new Map<
+    UcFormatName | `${UcInsetName}(${UcFormatName})`,
+    UcsFunction$Context
+  >();
 
   constructor(options: UcsFunction.Options<T, TSchema>);
   constructor({
@@ -31,24 +34,52 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   format(
-    format: UcFormatName,
+    {
+      format,
+      inset,
+    }:
+      | {
+          format: UcFormatName;
+          inset?: undefined;
+        }
+      | {
+          format?: undefined;
+          inset: UcInsetName;
+        },
     schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
     onUnknownSchema: (
       schema: UcSchema,
       context: UcsFormatterContext,
     ) => never = UcsFunction$onUnknownSchema,
+    onUnknownInset: (schema: UcSchema, inset: UcInsetName) => never = UcsFunction$onUnknownInset,
   ): EsSnippet {
     return (code, scope) => {
-      const context = this.#contextFor(format);
       const lib = scope.get(UcsLib);
-      const serializer = lib.formatterFor(format, schema)?.(args, schema, context);
+      let context: UcsFunction$Context;
+      let formatter: UcsFormatter | undefined;
 
-      if (serializer == null) {
+      if (inset) {
+        const insetFormatter = lib.insetFormatterFor(inset, schema);
+
+        if (!insetFormatter) {
+          onUnknownInset(schema, inset);
+        }
+
+        context = this.#contextFor(insetFormatter[0], inset);
+        formatter = insetFormatter[1];
+      } else {
+        context = this.#contextFor(format);
+        formatter = lib.formatterFor(format, schema);
+      }
+
+      const write = formatter?.(args, schema, context);
+
+      if (write == null) {
         onUnknownSchema(schema, context);
       }
 
-      code.write(serializer);
+      code.write(write);
     };
   }
 
@@ -80,12 +111,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     });
   }
 
-  #contextFor(format: UcFormatName): UcsFunction$Context {
-    let context = this.#formats.get(format);
+  #contextFor(format: UcFormatName, inset?: UcInsetName): UcsFunction$Context {
+    const id = inset ? (`${inset}(${format})` as const) : format;
+    let context = this.#formats.get(id);
 
     if (!context) {
       context = new UcsFunction$Context(this, format);
-      this.#formats.set(format, context);
+      this.#formats.set(id, context);
     }
 
     return context;
@@ -113,6 +145,13 @@ function UcsFunction$onUnknownSchema(schema: UcSchema, context: UcsFormatterCont
   throw new UnsupportedUcSchemaError(
     schema,
     `${context}: Can not serialize type "${ucModelName(schema)}"`,
+  );
+}
+
+function UcsFunction$onUnknownInset(schema: UcSchema, inset: UcInsetName): never {
+  throw new UnsupportedUcSchemaError(
+    schema,
+    `Can not serialize inset "${inset} of type "${ucModelName(schema)}"`,
   );
 }
 
@@ -150,13 +189,23 @@ class UcsFunction$Context implements UcsFormatterContext {
   }
 
   format(
-    schema: UcSchema<unknown>,
+    schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
     onUnknownSchema?:
       | ((schema: UcSchema<unknown>, context: UcsFormatterContext) => never)
       | undefined,
   ): EsSnippet {
-    return this.#serializer.format(this.formatName, schema, args, onUnknownSchema);
+    return this.#serializer.format({ format: this.formatName }, schema, args, onUnknownSchema);
+  }
+
+  formatInset(
+    inset: UcInsetName,
+    schema: UcSchema,
+    args: UcsFormatterSignature.AllValues,
+    onUnknownInset?: (schema: UcSchema, inset: UcInsetName) => never,
+    onUnknownSchema?: (schema: UcSchema<unknown>, context: UcsFormatterContext) => never,
+  ): EsSnippet {
+    return this.#serializer.format({ inset }, schema, args, onUnknownSchema, onUnknownInset);
   }
 
   toString(): string {

@@ -7,9 +7,10 @@ import {
   esEvaluate,
   esGenerate,
 } from 'esgen';
-import { UcFormatName } from '../../schema/uc-presentations.js';
+import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
+import { UccConfig, UccConfigContext } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
@@ -30,8 +31,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   implements UcsSetup {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #formats = new Map<UcFormatName, Map<string | UcDataType, UcsTypeEntry>>();
+  readonly #presentations = new Map<UcsPresentationId, Map<string | UcDataType, UcsTypeEntry>>();
 
+  #configContext: UccConfigContext | undefined;
   #bootstrapped = false;
 
   /**
@@ -60,11 +62,25 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return this;
   }
 
+  protected override configure<TOptions>(
+    config: UccConfig<TOptions>,
+    options: TOptions,
+    context: UccConfigContext,
+  ): void {
+    const prevContext = this.#configContext;
+
+    this.#configContext = context;
+    super.configure(config, options, context);
+    this.#configContext = prevContext;
+  }
+
   formatWith<T>(
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
     formatter: UcsFormatter<T>,
   ): this {
+    const inset = this.#configContext?.within as UcInsetName | undefined;
+    const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
     const fullFormatter: UcsFormatter<T> = (args, schema, context) => {
       const onValue = formatter(args, schema, context);
 
@@ -72,33 +88,41 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     };
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(format, target.type).formatSchemaWith(target, fullFormatter);
+      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, fullFormatter);
     } else {
-      this.#typeEntryFor(format, target).formatTypeWith(fullFormatter);
+      this.#typeEntryFor(id, format, target).formatTypeWith(fullFormatter);
     }
 
     return this;
   }
 
   #typeEntryFor<T, TSchema extends UcSchema<T>>(
+    id: UcsPresentationId,
     format: UcFormatName,
     type: TSchema['type'],
   ): UcsTypeEntry<T, TSchema> {
-    let perType = this.#formats.get(format);
+    let perType = this.#presentations.get(id);
 
     if (!perType) {
       perType = new Map();
-      this.#formats.set(format, perType);
+      this.#presentations.set(id, perType);
     }
 
     let typeEntry = perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
 
     if (!typeEntry) {
-      typeEntry = new UcsTypeEntry(this.schemaIndex);
+      typeEntry = new UcsTypeEntry(this.schemaIndex, format);
       perType.set(type, typeEntry);
     }
 
     return typeEntry;
+  }
+
+  #findTypeEntryFor<T, TSchema extends UcSchema<T>>(
+    id: UcsPresentationId,
+    type: TSchema['type'],
+  ): UcsTypeEntry<T, TSchema> | undefined {
+    return this.#presentations.get(id)?.get(type) as UcsTypeEntry<T, TSchema> | undefined;
   }
 
   /**
@@ -163,6 +187,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       ...this.#options,
       schemaIndex: this.schemaIndex,
       formatterFor: this.#formatterFor.bind(this),
+      insetFormatterFor: this.#insetFormatterFor.bind(this),
       createSerializer,
     };
   }
@@ -189,7 +214,26 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     format: UcFormatName,
     schema: TSchema,
   ): UcsFormatter<T, TSchema> | undefined {
-    return this.#typeEntryFor<T, TSchema>(format, schema.type).formatterFor(schema);
+    return this.#findTypeEntryFor<T, TSchema>(`format:${format}`, schema.type)?.formatterFor(
+      schema,
+    );
+  }
+
+  #insetFormatterFor<T, TSchema extends UcSchema<T>>(
+    inset: UcInsetName,
+    schema: TSchema,
+  ): [UcFormatName, UcsFormatter<T, TSchema>] | undefined {
+    const typeEntry = this.#findTypeEntryFor<T, TSchema>(`inset:${inset}`, schema.type);
+
+    if (typeEntry) {
+      const formatter = typeEntry?.formatterFor(schema);
+
+      if (formatter) {
+        return [typeEntry.format, formatter];
+      }
+    }
+
+    return;
   }
 
 }
@@ -206,13 +250,15 @@ export namespace UcsCompiler {
   }
 }
 
+type UcsPresentationId = `format:${UcFormatName}` | `inset:${UcInsetName}`;
+
 class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schemaIndex: UccSchemaIndex;
   readonly #schemaFormatters = new Map<string, UcsFormatter<T, TSchema>>();
   #typeFormatter: UcsFormatter<T, TSchema> | undefined;
 
-  constructor(schemaIndex: UccSchemaIndex) {
+  constructor(schemaIndex: UccSchemaIndex, readonly format: UcFormatName) {
     this.#schemaIndex = schemaIndex;
   }
 

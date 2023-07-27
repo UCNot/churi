@@ -8,7 +8,7 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcFormatName } from '../../schema/uc-presentations.js';
+import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsFormatter } from './ucs-formatter.js';
@@ -90,6 +90,13 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     return this.#options.formatterFor?.(format, schema);
   }
 
+  insetFormatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    inset: UcInsetName,
+    schema: TSchema,
+  ): [UcFormatName, UcsFormatter<T, TSchema>] | undefined {
+    return this.#options.insetFormatterFor?.(inset, schema);
+  }
+
   binConst(value: string): EsSymbol {
     const encoder = (this.#textEncoder ??= esConst('TEXT_ENCODER', 'new TextEncoder()'));
 
@@ -125,6 +132,12 @@ export namespace UcsLib {
       format: UcFormatName,
       schema: TSchema,
     ): UcsFormatter<T, TSchema> | undefined;
+
+    insetFormatterFor?<T, TSchema extends UcSchema<T>>(
+      this: void,
+      inset: UcInsetName,
+      schema: TSchema,
+    ): [UcFormatName, UcsFormatter<T, TSchema>] | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
       this: void,
