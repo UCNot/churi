@@ -8,12 +8,12 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
-import { UcsModels } from './ucs-compiler.js';
 import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
+import { UcsModels } from './ucs-models.js';
 
 /**
  * Serializer library allocated by {@link UcsCompiler#bootstrap compiler}.
@@ -34,9 +34,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
   readonly #options: UcsLib.Options<TModels>;
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #models: {
-    readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
-  };
+  readonly #models: UcsSchemaConfigs<TModels>;
 
   readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
   readonly #serializers = new Map<string, UcsFunction>();
@@ -52,14 +50,18 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
     this.#schemaIndex = schemaIndex;
     this.#models = Object.fromEntries(
-      Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
-    ) as {
-      readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
-    };
+      Object.entries(models).map(([externalName, entry]) => [
+        externalName,
+        {
+          ...entry,
+          model: ucSchema(entry.model),
+        },
+      ]),
+    ) as UcsSchemaConfigs<TModels>;
     this.#createSerializer = createSerializer;
 
-    for (const [externalName, schema] of Object.entries(this.#models)) {
-      const fn = this.serializerFor(schema);
+    for (const [externalName, { model }] of Object.entries<UcsSchemaConfig>(this.#models)) {
+      const fn = this.serializerFor(model);
 
       ns.refer(fn.exportFn(externalName, UcsExportSignature));
     }
@@ -128,3 +130,11 @@ export namespace UcsLib {
     ): UcsFunction<T, TSchema>;
   }
 }
+
+type UcsSchemaConfigs<TModels extends UcsModels> = {
+  readonly [externalName in keyof TModels]: UcsSchemaConfig<
+    UcsModels.ModelOf<TModels[externalName]>
+  >;
+};
+
+type UcsSchemaConfig<TModel extends UcModel = UcModel> = UcsModels.Entry<UcSchema.Of<TModel>>;

@@ -3,16 +3,15 @@ import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucOptional } from '../uc-optional.js';
-import { UcModel } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 
 describe('UcBoolean serializer', () => {
   let writeValue: UcSerializer<boolean>;
 
   beforeAll(async () => {
-    const compiler = new UcsCompiler<{ writeValue: UcModel<boolean> }>({
+    const compiler = new UcsCompiler({
       models: {
-        writeValue: Boolean,
+        writeValue: { model: Boolean },
       },
     });
 
@@ -26,7 +25,7 @@ describe('UcBoolean serializer', () => {
   it('serializes optional boolean', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeValue: ucOptional(Boolean),
+        writeValue: { model: ucOptional(Boolean) },
       },
     });
     const { writeValue } = await compiler.evaluate();
@@ -38,7 +37,7 @@ describe('UcBoolean serializer', () => {
   it('serializes nullable boolean', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeValue: ucNullable(Boolean),
+        writeValue: { model: ucNullable(Boolean) },
       },
     });
     const { writeValue } = await compiler.evaluate();
@@ -50,7 +49,7 @@ describe('UcBoolean serializer', () => {
   it('serializes optional nullable boolean', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeValue: ucOptional(ucNullable(Boolean)),
+        writeValue: { model: ucOptional(ucNullable(Boolean)) },
       },
     });
     const { writeValue } = await compiler.evaluate();

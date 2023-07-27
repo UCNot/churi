@@ -16,7 +16,7 @@ describe('UcString serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: String,
+          writeValue: { model: String },
         },
       });
 
@@ -63,7 +63,7 @@ describe('UcString serializer', () => {
     it('writes multiple chunks', async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: String,
+          writeValue: { model: String },
         },
         createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {
           return new UcsFunction<T, TSchema>({
@@ -94,7 +94,7 @@ describe('UcString serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucString({ raw: 'asString' }),
+          writeValue: { model: ucString({ raw: 'asString' }) },
         },
       });
 
@@ -128,7 +128,7 @@ describe('UcString serializer', () => {
       beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
-            writeValue: ucNullable(ucString({ raw: 'asString' })),
+            writeValue: { model: ucNullable(ucString({ raw: 'asString' })) },
           },
         });
 

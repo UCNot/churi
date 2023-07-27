@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { SPEC_MODULE } from '../../impl/module-names.js';
-import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import {
   UcsSupportNumberWithRadix,
@@ -10,8 +10,8 @@ import { UcsCompiler } from './ucs-compiler.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
-    const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-      models: { writeValue: Number },
+    const compiler = new UcsCompiler({
+      models: { writeValue: { model: Number } },
       features: UcsSupportNumberWithRadix,
     });
 
@@ -25,8 +25,8 @@ describe('UcsCompiler', () => {
 
   describe('generate', () => {
     it('generates module', async () => {
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: Number },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: Number } },
       });
       const module = await compiler.generate();
 
@@ -38,8 +38,8 @@ export async function writeValue(stream, value, options) {
       );
     });
     it('fails to serialize unknown schema', async () => {
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: { type: 'test-type' } },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: { type: 'test-type' } } },
         features: UcsSupportRadixNumber,
       });
 
@@ -61,8 +61,8 @@ export async function writeValue(stream, value, options) {
         },
       };
 
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: schema },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: schema } },
       });
       const { writeValue } = await compiler.evaluate();
 
@@ -79,8 +79,8 @@ export async function writeValue(stream, value, options) {
         },
       };
 
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: schema },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: schema } },
       });
       const { writeValue } = await compiler.evaluate();
 
@@ -98,8 +98,8 @@ export async function writeValue(stream, value, options) {
       };
 
       await expect(
-        new UcsCompiler<{ writeValue: UcModel<number> }>({
-          models: { writeValue: schema },
+        new UcsCompiler({
+          models: { writeValue: { model: schema } },
         }).generate(),
       ).rejects.toThrow(
         new ReferenceError(
@@ -119,8 +119,8 @@ export async function writeValue(stream, value, options) {
       };
 
       await expect(
-        new UcsCompiler<{ writeValue: UcModel<number> }>({
-          models: { writeValue: schema },
+        new UcsCompiler({
+          models: { writeValue: { model: schema } },
         }).generate(),
       ).rejects.toThrow(
         new ReferenceError(

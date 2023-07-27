@@ -7,8 +7,7 @@ import {
   esEvaluate,
   esGenerate,
 } from 'esgen';
-import { UcDataType, UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UcSerializer } from '../../schema/uc-serializer.js';
+import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
@@ -16,6 +15,7 @@ import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsGenerator } from './ucs-generator.js';
 import { UcsLib } from './ucs-lib.js';
+import { UcsExports, UcsModels } from './ucs-models.js';
 import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
@@ -40,7 +40,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
 
     super({
       processors: 'serializer',
-      models: Object.values(models),
+      models: Object.values(models).map(({ model }) => model),
       features,
     });
 
@@ -192,14 +192,6 @@ export namespace UcsCompiler {
     ): UcsFunction<T, TSchema>;
   }
 }
-
-export interface UcsModels {
-  readonly [writer: string]: UcModel;
-}
-
-export type UcsExports<out TModels extends UcsModels> = {
-  readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
-};
 
 class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 

@@ -3,6 +3,7 @@ export * from './ucs-export.signature.js';
 export * from './ucs-function.js';
 export * from './ucs-generator.js';
 export * from './ucs-lib.js';
+export * from './ucs-models.js';
 export * from './ucs-support-bigint.js';
 export * from './ucs-support-boolean.js';
 export * from './ucs-support-defaults.js';

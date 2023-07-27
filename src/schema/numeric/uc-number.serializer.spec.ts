@@ -11,7 +11,7 @@ describe('UcNumber serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: Number,
+          writeValue: { model: Number },
         },
       });
 
@@ -41,7 +41,7 @@ describe('UcNumber serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucNumber({ string: 'serialize' }),
+          writeValue: { model: ucNumber({ string: 'serialize' }) },
         },
       });
 
