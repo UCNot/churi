@@ -1,4 +1,6 @@
-import { UcModel } from '../../schema/uc-schema.js';
+import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import { UcPresentationName } from '../../schema/uc-presentations.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from './ucc-feature.js';
 
 /**
@@ -9,6 +11,26 @@ import { UccFeature } from './ucc-feature.js';
  * @typeParam TSetup - Schema processing setup type.
  */
 export interface UccSetup<in TSetup = unknown> {
+  /**
+   * Currently working schema processor name.
+   */
+  get currentProcessor(): UcProcessorName | undefined;
+
+  /**
+   * Currently processed schema, if any
+   */
+  get currentSchema(): UcSchema | undefined;
+
+  /**
+   * Current presentation name, if any.
+   */
+  get currentPresentation(): UcPresentationName | undefined;
+
+  /**
+   * Currently processed schema constraint, if any
+   */
+  get currentConstraint(): UcFeatureConstraint | undefined;
+
   /**
    * Enables the given processing `feature`.
    *

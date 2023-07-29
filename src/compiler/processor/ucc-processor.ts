@@ -7,8 +7,9 @@ import {
 } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccConfig, UccConfigContext } from './ucc-config.js';
+import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
+import { UccProfile } from './ucc-profile.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 import { UccSetup } from './ucc-setup.js';
@@ -24,12 +25,17 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   implements UccSetup<TSetup> {
 
   readonly #schemaIndex: UccSchemaIndex;
+  readonly #profiles: readonly UccProfile<TSetup>[] | undefined;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TSetup, void>[] | undefined;
+  readonly #getSetup = lazyValue(() => this.createSetup());
+  readonly #profiler = new UccProcessor$Profiler<TSetup>(this, this.#configureAsync.bind(this));
+
   readonly #configs = new Map<UccFeature<TSetup, never>, () => UccConfig<never>>();
   readonly #uses = new Map<UcSchema['type'], UccProcessor$FeatureUse<TSetup>>();
-  #setup?: TSetup;
+
   #hasPendingInstructions = false;
+  #current: UccProcessor$Current = {};
 
   /**
    * Constructs schema processor.
@@ -37,42 +43,93 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
    * @param init - Processor initialization options.
    */
   constructor(init: UccProcessorInit<TSetup>);
-  constructor({ processors, presentations = [], models, features }: UccProcessorInit<TSetup>) {
+  constructor({
+    processors,
+    presentations = [],
+    profiles,
+    models,
+    features,
+  }: UccProcessorInit<TSetup>) {
     this.#schemaIndex = new UccSchemaIndex(
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
     );
+    this.#profiles = profiles && asArray(profiles);
     this.#models = models;
     this.#features = features && asArray(features);
+  }
+
+  get setup(): TSetup {
+    return this.#getSetup();
   }
 
   get schemaIndex(): UccSchemaIndex {
     return this.#schemaIndex;
   }
 
+  get currentProcessor(): UcProcessorName | undefined {
+    return this.#current.processor;
+  }
+
+  get currentSchema(): UcSchema | undefined {
+    return this.#current.schema;
+  }
+
+  get currentPresentation(): UcPresentationName | undefined {
+    return this.#current.within;
+  }
+
+  get currentConstraint(): UcFeatureConstraint | undefined {
+    return this.#current.constraint;
+  }
+
   enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
     let getConfig = this.#configs.get(feature) as (() => UccConfig<TOptions>) | undefined;
 
     if (!getConfig) {
-      getConfig = lazyValue(() => this.createConfig(this.#getSetup(), feature));
+      getConfig = lazyValue(() => this.createConfig(this.setup, feature));
       this.#configs.set(feature, getConfig);
     }
 
-    this.configure(getConfig(), options!, {});
+    this.#configureSync({}, () => getConfig!().configure(options!));
 
     return this;
   }
 
-  #getSetup(): TSetup {
-    return (this.#setup ??= this.createSetup());
+  #configureSync(current: UccProcessor$Current, action: () => void): void {
+    const prev = this.#pushCurrent(current);
+
+    try {
+      action();
+    } finally {
+      this.#current = prev;
+    }
+  }
+
+  async #configureAsync(current: UccProcessor$Current, action: () => Promise<void>): Promise<void> {
+    const prev = this.#pushCurrent(current);
+
+    try {
+      await action();
+    } finally {
+      this.#current = prev;
+    }
+  }
+
+  #pushCurrent(current: UccProcessor$Current): UccProcessor$Current {
+    const prev = this.#current;
+
+    this.#current = current.processor ? current : { ...current, processor: prev.processor };
+
+    return prev;
   }
 
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    this.#applyConstraints<T>(schema, schema.where, {});
+    this.#applyConstraints<T>(schema, undefined, schema.where);
     for (const within of this.schemaIndex.listPresentations(schema.within)) {
-      this.#applyConstraints(schema, schema.within![within], { within });
+      this.#applyConstraints(schema, within, schema.within![within]);
     }
 
     return this;
@@ -80,36 +137,47 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
 
   #applyConstraints<T>(
     schema: UcSchema<T>,
+    within: UcPresentationName | undefined,
     constraints: UcConstraints<T> | undefined,
-    context: UccConfigContext,
   ): void {
-    for (const processorName of this.schemaIndex.processors) {
-      asArray(constraints?.[processorName]).forEach(feature => this.#useFeature(schema, feature, context));
+    for (const processor of this.schemaIndex.processors) {
+      for (const feature of asArray(constraints?.[processor])) {
+        this.#useFeature(processor, schema, within, feature);
+      }
     }
   }
 
-  #useFeature<TOptions>(
+  #useFeature(
+    processor: UcProcessorName,
     schema: UcSchema,
-    { use: feature, from, with: options }: UcFeatureConstraint,
-    context: UccConfigContext,
+    within: UcPresentationName | undefined,
+    constraint: UcFeatureConstraint,
   ): void {
+    const { use: feature, from } = constraint;
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
-    let use = this.#uses.get(useId) as UccProcessor$FeatureUse<TSetup, TOptions> | undefined;
+    let use = this.#uses.get(useId);
 
     if (!use) {
       this.#hasPendingInstructions = true;
-      use = new UccProcessor$FeatureUse(schema, from, feature);
-      this.#uses.set(useId, use as UccProcessor$FeatureUse<TSetup>);
+      use = new UccProcessor$FeatureUse(this.#profiler, schema);
+      this.#uses.set(useId, use);
     }
 
-    use.configure(options as TOptions, context);
+    use.addConfig(processor, within, constraint);
   }
 
   protected async processInstructions(): Promise<void> {
+    this.#applyProfiles();
     this.#collectInstructions();
     await this.#processInstructions();
     this.#enableExplicitFeatures();
     await this.#processInstructions(); // More instructions may be added by explicit features.
+  }
+
+  #applyProfiles(): void {
+    this.#profiles?.forEach(profile => {
+      profile(new UccProcessor$ProfileActivation(this.#profiler));
+    });
   }
 
   #collectInstructions(): void {
@@ -124,14 +192,9 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   async #processInstructions(): Promise<void> {
     while (this.#hasPendingInstructions) {
       this.#hasPendingInstructions = false;
-      await Promise.all(
-        [...this.#uses.values()].map(
-          async use => await use.enableIn(
-              schema => this.createSchemaSetup(schema),
-              (config, options, context) => this.configure(config, options, context),
-            ),
-        ),
-      );
+      for (const use of this.#uses.values()) {
+        await use.apply();
+      }
     }
   }
 
@@ -145,13 +208,6 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
    * Creates processing setup for the {@link UccFeature features}.
    */
   protected abstract createSetup(): TSetup;
-
-  /**
-   * Creates processing setup for {@link UccSchemaFeature schema-specific feature}.
-   *
-   * @param schema - Target schema.
-   */
-  protected abstract createSchemaSetup(schema: UcSchema): TSetup;
 
   /**
    * Creates schema processing configuration for just {@link enable enabled} `feature`.
@@ -168,21 +224,6 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     return 'uccProcess' in feature ? feature.uccProcess(setup) : feature(setup);
   }
 
-  /**
-   * Configures feature.
-   *
-   * @param config - Schema processing configuration.
-   * @param options - Configuration options.
-   * @param context - Configuration context.
-   */
-  protected configure<TOptions>(
-    config: UccConfig<TOptions>,
-    options: TOptions,
-    context: UccConfigContext,
-  ): void {
-    config.configure(options, context);
-  }
-
 }
 
 /**
@@ -190,7 +231,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
  *
  * @typeParam TSetup - Schema processing setup type.
  */
-export interface UccProcessorInit<TSetup extends UccSetup<TSetup>> {
+export interface UccProcessorInit<in TSetup extends UccSetup<TSetup>> {
   /**
    * Processor names within {@link churi!UcConstraints schema constraints}.
    */
@@ -204,6 +245,11 @@ export interface UccProcessorInit<TSetup extends UccSetup<TSetup>> {
   readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
   /**
+   * Processor profiles to enable.
+   */
+  readonly profiles?: UccProfile<TSetup> | readonly UccProfile<TSetup>[] | undefined;
+
+  /**
    * Models with constraints to extract processing instructions from.
    */
   readonly models?: readonly UcModel[] | undefined;
@@ -214,52 +260,168 @@ export interface UccProcessorInit<TSetup extends UccSetup<TSetup>> {
   readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
 }
 
-class UccProcessor$FeatureUse<in TSetup extends UccSetup<TSetup>, TOptions = unknown> {
+interface UccProcessor$Current {
+  readonly processor?: UcProcessorName | undefined;
+  readonly schema?: UcSchema | undefined;
+  readonly within?: UcPresentationName | undefined;
+  readonly constraint?: UcFeatureConstraint | undefined;
+}
 
-  readonly #schema: UcSchema;
-  readonly #from: string;
-  readonly #name: string;
-  readonly #options: [TOptions, UccConfigContext][] = [];
-  #enabled = false;
+class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 
-  constructor(schema: UcSchema, from: string, name: string) {
-    this.#schema = schema;
-    this.#from = from;
-    this.#name = name;
+  readonly #processor: UccProcessor<TSetup>;
+  readonly #configure: (
+    current: UccProcessor$Current,
+    action: () => Promise<void>,
+  ) => Promise<void>;
+
+  readonly #handlers = new Map<string, UccProfile.ConstraintHandler>();
+
+  constructor(
+    processor: UccProcessor<TSetup>,
+    configure: (current: UccProcessor$Current, action: () => Promise<void>) => Promise<void>,
+  ) {
+    this.#processor = processor;
+    this.#configure = configure;
   }
 
-  configure(options: TOptions, context: UccConfigContext): void {
-    this.#options.push([options, context]);
+  get setup(): TSetup {
+    return this.#processor.setup;
   }
 
-  async enableIn(
-    createSetup: (schema: UcSchema) => TSetup,
-    configure: (config: UccConfig<TOptions>, options: TOptions, context: UccConfigContext) => void,
+  onConstraint(
+    { processor, within, use, from }: UccProfile.ConstraintCriterion,
+    handler: UccProfile.ConstraintHandler,
+  ): void {
+    const handlerId = this.#handlerId(processor, within, use, from);
+    const prevHandler = this.#handlers.get(handlerId);
+
+    if (prevHandler) {
+      this.#handlers.set(handlerId, async application => {
+        await prevHandler(application);
+        await handler(application);
+      });
+    } else {
+      this.#handlers.set(handlerId, handler);
+    }
+  }
+
+  async applyConstraint(
+    processor: UcProcessorName,
+    schema: UcSchema,
+    within: UcPresentationName | undefined,
+    constraint: UcFeatureConstraint,
   ): Promise<void> {
-    if (this.#enabled) {
+    const application = new UccProcessor$ConstraintApplication(
+      this,
+      processor,
+      schema,
+      within,
+      constraint,
+    );
+
+    await this.#configure({ processor, schema, within, constraint }, async () => {
+      await this.#findHandler(processor, within, constraint)?.(application);
+      if (within) {
+        // Apply any presentation handler.
+        await this.#findHandler(processor, undefined, constraint)?.(application);
+      }
+      if (!application.isIgnored()) {
+        await application.apply();
+      }
+    });
+  }
+
+  #findHandler(
+    processor: UcProcessorName,
+    within: UcPresentationName | undefined,
+    { use, from }: UcFeatureConstraint,
+  ): UccProfile.ConstraintHandler | undefined {
+    return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
+  }
+
+  #handlerId(
+    processor: UcProcessorName,
+    within: UcPresentationName | undefined,
+    use: string,
+    from: string,
+  ): string {
+    return `${processor}(${within} ?? '*'):${use}@${from}`;
+  }
+
+}
+
+class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
+  implements UccProfile.ConstraintApplication {
+
+  readonly #profiler: UccProcessor$Profiler<TSetup>;
+  readonly #processor: UcProcessorName;
+  readonly #schema: UcSchema;
+  readonly #within: UcPresentationName | undefined;
+  readonly #constraint: UcFeatureConstraint;
+  #applied = 0;
+
+  constructor(
+    profiler: UccProcessor$Profiler<TSetup>,
+    processor: UcProcessorName,
+    schema: UcSchema,
+    within: UcPresentationName | undefined,
+    constraint: UcFeatureConstraint,
+  ) {
+    this.#profiler = profiler;
+    this.#processor = processor;
+    this.#schema = schema;
+    this.#within = within;
+    this.#constraint = constraint;
+  }
+
+  get schema(): UcSchema {
+    return this.#schema;
+  }
+
+  get processor(): UcProcessorName {
+    return this.#processor;
+  }
+
+  get within(): UcPresentationName | undefined {
+    return this.#within;
+  }
+
+  get constraint(): UcFeatureConstraint {
+    return this.#constraint;
+  }
+
+  isApplied(): boolean {
+    return this.#applied > 0;
+  }
+
+  isIgnored(): boolean {
+    return this.#applied < 0;
+  }
+
+  async apply(): Promise<void> {
+    if (this.isApplied()) {
       return;
     }
 
-    this.#enabled = true;
+    this.#applied = 1;
+
+    const { use, from, with: options } = this.constraint;
 
     const {
-      [this.#name]: feature,
+      [use]: constraint,
     }: { [name: string]: UccFeature<TSetup, unknown> | UccSchemaFeature<TSetup, unknown> } =
-      await import(this.#from);
+      await import(from);
 
-    if (mayHaveProperties(feature)) {
+    if (mayHaveProperties(constraint)) {
       let configured = false;
 
-      const setup = createSetup(this.#schema);
-
-      if ('uccProcess' in feature) {
-        for (const [options] of this.#options) {
-          setup.enable(feature, options);
-        }
+      if ('uccProcess' in constraint) {
+        this.#profiler.setup.enable(constraint, options);
         configured = true;
       }
-      if ('uccProcessSchema' in feature) {
-        this.#configure(feature.uccProcessSchema(setup, this.#schema), configure);
+      if ('uccProcessSchema' in constraint) {
+        constraint.uccProcessSchema(this.#profiler.setup, this.schema).configure(options);
         configured = true;
       }
 
@@ -267,31 +429,90 @@ class UccProcessor$FeatureUse<in TSetup extends UccSetup<TSetup>, TOptions = unk
         return;
       }
 
-      if (typeof feature === 'function') {
-        this.#configure(feature(setup, this.#schema), configure);
+      if (typeof constraint === 'function') {
+        constraint(this.#profiler.setup, this.schema).configure(options);
 
         return;
       }
     }
 
-    if (feature === undefined) {
+    if (constraint === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${this}`);
     }
 
     throw new ReferenceError(`Not a schema processing feature: ${this}`);
   }
 
-  #configure(
-    config: UccConfig<TOptions>,
-    configure: (config: UccConfig<TOptions>, options: TOptions, context: UccConfigContext) => void,
-  ): void {
-    for (const [options, context] of this.#options) {
-      configure(config, options, context);
+  ignore(): void {
+    if (!this.isApplied()) {
+      this.#applied = -1;
     }
   }
 
   toString(): string {
-    return `import(${esStringLiteral(this.#from)}).${esQuoteKey(this.#name)}`;
+    const { use, from } = this.#constraint;
+
+    return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
+  }
+
+}
+
+class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
+  implements UccProfile.Activation<TSetup> {
+
+  readonly #profiler: UccProcessor$Profiler<TSetup>;
+
+  constructor(profiler: UccProcessor$Profiler<TSetup>) {
+    this.#profiler = profiler;
+  }
+
+  get setup(): TSetup {
+    return this.#profiler.setup;
+  }
+
+  onConstraint(
+    criterion: UccProfile.ConstraintCriterion,
+    handler: UccProfile.ConstraintHandler,
+  ): this {
+    this.#profiler.onConstraint(criterion, handler);
+
+    return this;
+  }
+
+}
+
+class UccProcessor$FeatureUse<in out TSetup extends UccSetup<TSetup>> {
+
+  readonly #schema: UcSchema;
+  readonly #constraints: [UcProcessorName, UcPresentationName | undefined, UcFeatureConstraint][] =
+    [];
+
+  #applied = false;
+  #profiler: UccProcessor$Profiler<TSetup>;
+
+  constructor(profiler: UccProcessor$Profiler<TSetup>, schema: UcSchema) {
+    this.#profiler = profiler;
+    this.#schema = schema;
+  }
+
+  addConfig(
+    processor: UcProcessorName,
+    presentation: UcPresentationName | undefined,
+    constraint: UcFeatureConstraint,
+  ): void {
+    this.#constraints.push([processor, presentation, constraint]);
+  }
+
+  async apply(): Promise<void> {
+    if (this.#applied) {
+      return;
+    }
+
+    this.#applied = true;
+
+    for (const [processor, within, constraint] of this.#constraints) {
+      await this.#profiler.applyConstraint(processor, this.#schema, within, constraint);
+    }
   }
 
 }

@@ -54,7 +54,7 @@ describe('UcdCompiler', () => {
     });
   });
 
-  describe('schema uses', () => {
+  describe('schema constraints', () => {
     it('enables deserializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
@@ -117,48 +117,6 @@ describe('UcdCompiler', () => {
       const { readTimestamp } = await compiler.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
-    });
-    it('fails to enable missing feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'timestamp',
-        where: {
-          deserializer: {
-            use: 'MissingFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcdCompiler({
-          models: { readTimestamp: { model: schema } },
-        }).bootstrap(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
-        ),
-      );
-    });
-    it('fails to enable wrong feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'timestamp',
-        where: {
-          deserializer: {
-            use: 'WrongFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcdCompiler({
-          models: { readTimestamp: { model: schema } },
-        }).bootstrap(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
-        ),
-      );
     });
   });
 

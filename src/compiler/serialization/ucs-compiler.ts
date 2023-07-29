@@ -10,7 +10,6 @@ import {
 import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
-import { UccConfig, UccConfigContext } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
@@ -33,7 +32,6 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #presentations = new Map<UcsPresentationId, Map<string | UcDataType, UcsTypeEntry>>();
 
-  #configContext: UccConfigContext | undefined;
   #bootstrapped = false;
 
   /**
@@ -57,29 +55,12 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return this;
   }
 
-  protected override createSchemaSetup(schema: UcSchema<unknown>): UcsSetup;
-  protected override createSchemaSetup(_schema: UcSchema<unknown>): UcsSetup {
-    return this;
-  }
-
-  protected override configure<TOptions>(
-    config: UccConfig<TOptions>,
-    options: TOptions,
-    context: UccConfigContext,
-  ): void {
-    const prevContext = this.#configContext;
-
-    this.#configContext = context;
-    super.configure(config, options, context);
-    this.#configContext = prevContext;
-  }
-
   formatWith<T>(
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
     formatter: UcsFormatter<T>,
   ): this {
-    const inset = this.#configContext?.within as UcInsetName | undefined;
+    const inset = this.currentPresentation as UcInsetName | undefined;
     const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
     const fullFormatter: UcsFormatter<T> = (args, schema, context) => {
       const onValue = formatter(args, schema, context);

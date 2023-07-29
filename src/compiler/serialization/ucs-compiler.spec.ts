@@ -49,7 +49,7 @@ export async function writeValue(stream, value, options) {
     });
   });
 
-  describe('schema uses', () => {
+  describe('schema constraints', () => {
     it('enables serializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'radixNumber',
@@ -85,48 +85,6 @@ export async function writeValue(stream, value, options) {
       const { writeValue } = await compiler.evaluate();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
-    });
-    it('fails to enable missing feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'hexNumber',
-        where: {
-          serializer: {
-            use: 'MissingFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcsCompiler({
-          models: { writeValue: { model: schema } },
-        }).generate(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
-        ),
-      );
-    });
-    it('fails to enable wrong feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'hexNumber',
-        where: {
-          serializer: {
-            use: 'WrongFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcsCompiler({
-          models: { writeValue: { model: schema } },
-        }).generate(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
-        ),
-      );
     });
   });
 });

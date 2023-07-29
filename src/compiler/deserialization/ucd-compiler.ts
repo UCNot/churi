@@ -73,11 +73,6 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     return this;
   }
 
-  protected override createSchemaSetup(schema: UcSchema): UcdSetup;
-  protected override createSchemaSetup(_schema: UcSchema): UcdSetup {
-    return this;
-  }
-
   protected override createConfig<TOptions>(
     setup: UcdSetup,
     feature: UccFeature<UcdSetup, TOptions>,
@@ -104,7 +99,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure(undefined, {});
+    defaultConfig.configure(undefined);
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();

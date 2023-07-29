@@ -9,7 +9,9 @@ import { UcrxSetup } from '../rx/ucrx-setup.js';
 
 export function ucdSupportInset(setup: UcrxSetup, schema: UcSchema): UccConfig<UcdInsetOptions> {
   return {
-    configure({ lexer, from, method, args }, { within }) {
+    configure({ lexer, from, method, args }) {
+      const within = setup.currentPresentation;
+
       setup
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
