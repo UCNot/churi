@@ -1,13 +1,13 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
-import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
-import { ucList } from '../../schema/list/uc-list.js';
-import { ucMap } from '../../schema/map/uc-map.js';
-import { ucString } from '../../schema/string/uc-string.js';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
-import { scanUcTokens } from '../scan-uc-tokens.js';
+import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
+import { ucList } from '../../../schema/list/uc-list.js';
+import { ucMap } from '../../../schema/map/uc-map.js';
+import { ucString } from '../../../schema/string/uc-string.js';
+import { UcDeserializer } from '../../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
+import { scanUcTokens } from '../../scan-uc-tokens.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_DOLLAR_SIGN,
@@ -15,9 +15,9 @@ import {
   UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
-} from '../uc-token.js';
-import { ucInsetPlainText } from './uc-plain-text.lexer.js';
-import { ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
+} from '../../uc-token.js';
+import { ucInsetPlainText } from '../plain-text/uc-plain-text.lexer.js';
+import { ucInsetURIEncoded } from '../uri-encoded/uc-uri-encoded.lexer.js';
 import { UcURIParamsLexer, ucInsetURIParams } from './uc-uri-params.lexer.js';
 
 describe('UcURIParamsLexer', () => {

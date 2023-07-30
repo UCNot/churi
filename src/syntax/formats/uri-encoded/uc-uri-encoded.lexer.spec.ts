@@ -1,15 +1,15 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
-import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
-import { ucMap } from '../../schema/map/uc-map.js';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
-import { readChunks } from '../../spec/read-chunks.js';
-import { scanUcTokens } from '../scan-uc-tokens.js';
-import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
+import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
+import { ucMap } from '../../../schema/map/uc-map.js';
+import { UcDeserializer } from '../../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
+import { readChunks } from '../../../spec/read-chunks.js';
+import { scanUcTokens } from '../../scan-uc-tokens.js';
+import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
+import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
 import { UcURIEncodedLexer, ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
-import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
 describe('UcURIEncodedLexer', () => {
   it('decodes percent-encoded entities', () => {

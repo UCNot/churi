@@ -1,6 +1,6 @@
 import { encodeURIPart } from 'httongue';
 import { UC_KEY_ESCAPED, isEscapedUcString } from '../impl/uc-string-escapes.js';
-import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
+import { ucOpaqueLexer } from '../syntax/formats/uc-opaque.lexer.js';
 import { printUcToken } from '../syntax/print-uc-token.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import {

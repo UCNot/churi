@@ -1,7 +1,7 @@
 import { parseURICharge } from '#churi/uri-charge/deserializer.js';
 import { URICharge$List } from '../schema/uri-charge/impl/uri-charge.some.js';
 import { URICharge } from '../schema/uri-charge/uri-charge.js';
-import { UcChargeLexer } from '../syntax/lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from '../syntax/formats/charge/uc-charge.lexer.js';
 import {
   ChURIAnchor$splitter,
   ChURIMatrix$splitter,

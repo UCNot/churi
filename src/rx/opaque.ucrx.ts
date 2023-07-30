@@ -1,4 +1,4 @@
-import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
+import { ucOpaqueLexer } from '../syntax/formats/uc-opaque.lexer.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';
 import { AllUcrx } from './all.ucrx.js';

@@ -1,8 +1,8 @@
-import { UcdInsetOptions } from '../../compiler/deserialization/ucd-support-inset.js';
-import { CHURI_MODULE, COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcOmniConstraints } from '../../schema/uc-constraints.js';
-import { UcLexer } from '../uc-lexer.js';
-import { UC_TOKEN_APOSTROPHE, UcToken } from '../uc-token.js';
+import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-support-inset.js';
+import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
+import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
+import { UcLexer } from '../../uc-lexer.js';
+import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
 
 /**
  * Plain text lexer.

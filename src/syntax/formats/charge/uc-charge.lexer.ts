@@ -1,8 +1,8 @@
-import { UcdInsetOptions } from '../../compiler/deserialization/ucd-support-inset.js';
-import { CHURI_MODULE, COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcOmniConstraints } from '../../schema/uc-constraints.js';
-import { scanUcTokens } from '../scan-uc-tokens.js';
-import { UcLexer } from '../uc-lexer.js';
+import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-support-inset.js';
+import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
+import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
+import { scanUcTokens } from '../../scan-uc-tokens.js';
+import { UcLexer } from '../../uc-lexer.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -26,7 +26,7 @@ import {
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
   UcToken,
-} from '../uc-token.js';
+} from '../../uc-token.js';
 
 /**
  * URI charge lexer that splits input string(s) onto tokens.

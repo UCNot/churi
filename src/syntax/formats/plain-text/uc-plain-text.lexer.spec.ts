@@ -1,15 +1,15 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
-import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
-import { ucList } from '../../schema/list/uc-list.js';
-import { ucMap } from '../../schema/map/uc-map.js';
-import { UcNumber, ucNumber } from '../../schema/numeric/uc-number.js';
-import { UcString, ucString } from '../../schema/string/uc-string.js';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { UcErrorInfo } from '../../schema/uc-error.js';
-import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
-import { readTokens } from '../../spec/read-chunks.js';
+import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
+import { ucList } from '../../../schema/list/uc-list.js';
+import { ucMap } from '../../../schema/map/uc-map.js';
+import { UcNumber, ucNumber } from '../../../schema/numeric/uc-number.js';
+import { UcString, ucString } from '../../../schema/string/uc-string.js';
+import { UcDeserializer } from '../../../schema/uc-deserializer.js';
+import { UcErrorInfo } from '../../../schema/uc-error.js';
+import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
+import { readTokens } from '../../../spec/read-chunks.js';
 import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -18,7 +18,7 @@ import {
   UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
-} from '../uc-token.js';
+} from '../../uc-token.js';
 
 describe('UcPlainTextLexer', () => {
   let errors: UcErrorInfo[];

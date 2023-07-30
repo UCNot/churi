@@ -1,4 +1,4 @@
-export * from './lexers/mod.js';
+export * from './formats/mod.js';
 export * from './print-uc-token.js';
 export * from './scan-uc-tokens.js';
 export * from './trim-uc-tokens-tail.js';

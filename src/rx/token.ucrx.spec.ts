@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { noop } from '@proc7ts/primitives';
-import { ucOpaqueLexer } from '../syntax/lexers/uc-opaque.lexer.js';
+import { ucOpaqueLexer } from '../syntax/formats/uc-opaque.lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_INSET_URI_PARAM,

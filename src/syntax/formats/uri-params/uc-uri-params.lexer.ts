@@ -1,9 +1,9 @@
 import { esStringLiteral } from 'esgen';
 import { decodeURISearchPart } from 'httongue';
-import { UcdInsetOptions } from '../../compiler/deserialization/ucd-support-inset.js';
-import { CHURI_MODULE, COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcOmniConstraints } from '../../schema/uc-constraints.js';
-import { UcLexer } from '../uc-lexer.js';
+import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-support-inset.js';
+import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
+import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
+import { UcLexer } from '../../uc-lexer.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_DOLLAR_SIGN,
@@ -11,7 +11,7 @@ import {
   UC_TOKEN_INSET_URI_PARAM,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
-} from '../uc-token.js';
+} from '../../uc-token.js';
 
 /**
  * URI parameters lexer.

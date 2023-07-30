@@ -3,7 +3,7 @@ import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportNonFinite } from '../../compiler/deserialization/ucd-support-non-finite.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
 import { parseTokens } from '../../spec/read-chunks.js';
-import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from '../../syntax/formats/charge/uc-charge.lexer.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcErrorInfo } from '../uc-error.js';
 import { UcDataType } from '../uc-schema.js';

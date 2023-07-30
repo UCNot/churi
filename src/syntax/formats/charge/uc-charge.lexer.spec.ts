@@ -1,10 +1,10 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
-import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../compiler/impl/uc-modules.js';
-import { ucMap } from '../../schema/map/uc-map.js';
-import { UcDeserializer } from '../../schema/uc-deserializer.js';
-import { ucUnknown } from '../../schema/unknown/uc-unknown.js';
+import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
+import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
+import { ucMap } from '../../../schema/map/uc-map.js';
+import { UcDeserializer } from '../../../schema/uc-deserializer.js';
+import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
 import {
   UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
@@ -30,9 +30,9 @@ import {
   UC_TOKEN_SEMICOLON,
   UC_TOKEN_SLASH,
   UcToken,
-} from '../uc-token.js';
+} from '../../uc-token.js';
+import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
 import { UcChargeLexer, ucInsetCharge } from './uc-charge.lexer.js';
-import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
 describe('UcChargeLexer', () => {
   let lexer: UcChargeLexer;

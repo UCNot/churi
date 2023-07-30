@@ -1,4 +1,4 @@
-import { UcChargeLexer } from './lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from './formats/charge/uc-charge.lexer.js';
 import { UcLexer } from './uc-lexer.js';
 import { UcToken } from './uc-token.js';
 

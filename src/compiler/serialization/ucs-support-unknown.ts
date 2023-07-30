@@ -1,4 +1,5 @@
 import { esline } from 'esgen';
+import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
 import { UC_MODULE_CHURI, UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsSetup } from './ucs-setup.js';
@@ -8,7 +9,7 @@ export function ucsSupportUnknown(setup: UcsSetup): UccConfig {
     configure() {
       setup.formatWith('charge', 'unknown', ({ writer, value, asItem }) => {
         const chargeURI = UC_MODULE_CHURI.import('chargeURI');
-        const writeAsIs = UC_MODULE_SERIALIZER.import('ucsWriteAsIs');
+        const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
 
         return esline`await ${writeAsIs}(${writer}, ${chargeURI}(${value}, { asItem: ${asItem} }));`;
       });
