@@ -1,5 +1,6 @@
 export * from './ucs-compiler.js';
 export * from './ucs-enable-plain-text.js';
+export * from './ucs-enable-uri-encoded.js';
 export * from './ucs-export.signature.js';
 export * from './ucs-formatter.js';
 export * from './ucs-function.js';
