@@ -8,23 +8,24 @@ import { UccListOptions } from '../common/ucc-list-options.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
+import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsSetup } from './ucs-setup.js';
 
 export function ucsSupportList(setup: UcsSetup, schema: UcList.Schema): UccConfig<UccListOptions> {
   return {
     configure(options) {
-      setup
-        .processModel(schema.item)
-        .formatWith(
-          'charge',
-          schema,
+      setup.processModel(schema.item).formatWith(
+        'charge',
+        schema,
+        ucsFormatCharge(
           (
             args: UcsFormatterSignature.AllValues,
             schema: UcList.Schema,
             context: UcsFormatterContext,
           ) => ucsWriteList(args, schema, context, options),
-        );
+        ),
+      );
     },
   };
 }

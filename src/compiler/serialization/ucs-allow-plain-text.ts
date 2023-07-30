@@ -2,7 +2,9 @@ import { esline } from 'esgen';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcString } from '../../schema/string/uc-string.js';
+import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
+import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccProfile } from '../processor/ucc-profile.js';
@@ -29,7 +31,7 @@ export function ucsAllowPlainText(activation: UccProfile.Activation<UcsSetup>): 
       ({ setup, schema, constraint: { with: options } }) => {
         const { number = 'parse' } = options as UcBigInt.Variant;
 
-        setup.formatWith('plainText', schema, ucsFormatBigInt({ string: 'parse', number }));
+        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatBigInt({ number })));
       },
     )
     .onConstraint(
@@ -39,7 +41,7 @@ export function ucsAllowPlainText(activation: UccProfile.Activation<UcsSetup>): 
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatInteger());
+        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatInteger()));
       },
     )
     .onConstraint(
@@ -49,7 +51,7 @@ export function ucsAllowPlainText(activation: UccProfile.Activation<UcsSetup>): 
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatNumber());
+        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatNumber()));
       },
     )
     .onConstraint(
@@ -68,18 +70,41 @@ function ucsSupportPlainText(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup
-        .formatWith('plainText', BigInt, ucsFormatBigInt())
-        .formatWith('plainText', Boolean, ucsFormatBoolean())
-        .formatWith('plainText', Number, ucsFormatNumber())
+        .formatWith('plainText', BigInt, ucsFormatPlainText(ucsFormatBigInt()))
+        .formatWith('plainText', Boolean, ucsFormatPlainText(ucsFormatBoolean()))
+        .formatWith('plainText', Number, ucsFormatPlainText(ucsFormatNumber()))
         .formatWith('plainText', String, ucsFormatStringAsPlainText());
     },
   };
 }
 
-function ucsFormatStringAsPlainText(): UcsFormatter<UcString, UcString.Schema> {
-  return ({ writer, value }) => {
+function ucsFormatStringAsPlainText(): UcsFormatter<UcString> {
+  return ucsFormatPlainText(({ writer, value }) => {
     const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
 
     return esline`await ${writeAsIs}(${writer}, ${value});`;
+  });
+}
+
+function ucsFormatPlainText<T>(formatter: UcsFormatter<T>): UcsFormatter<T> {
+  return (args, schema, context) => {
+    if (schema.nullable) {
+      throw new UnsupportedUcSchemaError(
+        schema,
+        `${context}: Can not serialize nullable values of type "${ucModelName(
+          schema,
+        )}" to plain text`,
+      );
+    }
+    if (schema.optional) {
+      throw new UnsupportedUcSchemaError(
+        schema,
+        `${context}: Can not serialize optional values of type "${ucModelName(
+          schema,
+        )}" to plain text`,
+      );
+    }
+
+    return formatter(args, schema, context);
   };
 }

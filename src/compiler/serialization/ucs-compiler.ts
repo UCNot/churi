@@ -14,7 +14,6 @@ import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccProfile } from '../processor/ucc-profile.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UccSetup } from '../processor/ucc-setup.js';
-import { ucsCheckConstraints } from './impl/ucs-check-constraints.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';
@@ -66,16 +65,11 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   ): this {
     const inset = this.currentPresentation as UcInsetName | undefined;
     const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
-    const fullFormatter: UcsFormatter<T> = (args, schema, context) => {
-      const onValue = formatter(args, schema, context);
-
-      return onValue && ucsCheckConstraints(args, schema, onValue);
-    };
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, fullFormatter);
+      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, formatter);
     } else {
-      this.#typeEntryFor(id, format, target).formatTypeWith(fullFormatter);
+      this.#typeEntryFor(id, format, target).formatTypeWith(formatter);
     }
 
     return this;

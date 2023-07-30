@@ -16,7 +16,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { ucsCheckConstraints } from './impl/ucs-check-constraints.js';
+import { ucsCheckCharge, ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
@@ -25,7 +25,7 @@ export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): UccConfig;
 export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): UccConfig {
   return {
     configure() {
-      setup.formatWith('charge', 'map', ucsWriteMap);
+      setup.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
       Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
@@ -88,7 +88,7 @@ function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
     for (const [key, entrySchema] of Object.entries<UcSchema>(schema.entries)) {
       code.write(
         esline`${entryValue} = ${value}${esMemberAccessor(key).accessor};`,
-        ucsCheckConstraints(
+        ucsCheckCharge(
           { writer, value: entryValue },
           entrySchema,
           code => {

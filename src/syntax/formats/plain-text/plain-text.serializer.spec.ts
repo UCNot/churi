@@ -1,11 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
-import { ucBoolean, ucInteger, ucMap, ucString } from 'churi';
 import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { ucsAllowPlainText } from '../../../compiler/serialization/ucs-allow-plain-text.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
+import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
 import { ucList } from '../../../schema/list/uc-list.js';
+import { ucMap } from '../../../schema/map/uc-map.js';
 import { ucBigInt } from '../../../schema/numeric/uc-bigint.js';
+import { ucInteger } from '../../../schema/numeric/uc-integer.js';
 import { ucNumber } from '../../../schema/numeric/uc-number.js';
+import { ucString } from '../../../schema/string/uc-string.js';
+import { ucNullable } from '../../../schema/uc-nullable.js';
+import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
 
 describe('plain text serializer', () => {
@@ -126,7 +131,7 @@ describe('plain text serializer', () => {
     const compiler = new UcsCompiler({
       profiles: ucsAllowPlainText,
       models: {
-        writeList: { model: schema, format: 'plainText' },
+        writeMap: { model: schema, format: 'plainText' },
       },
     });
 
@@ -134,6 +139,40 @@ describe('plain text serializer', () => {
       new UnsupportedUcSchemaError(
         schema,
         'map$plainText(writer, value, asItem?): Can not serialize type "{foo: Number}"',
+      ),
+    );
+  });
+  it('can not serialize nullable values', async () => {
+    const schema = ucNullable(ucNumber());
+    const compiler = new UcsCompiler({
+      profiles: ucsAllowPlainText,
+      models: {
+        write: { model: schema, format: 'plainText' },
+      },
+    });
+
+    await expect(compiler.evaluate()).rejects.toThrow(
+      new UnsupportedUcSchemaError(
+        schema,
+        'Number$plainTextN(writer, value, asItem?): Can not serialize nullable values'
+          + ' of type "(Number | null)" to plain text',
+      ),
+    );
+  });
+  it('can not serialize optional values', async () => {
+    const schema = ucOptional(ucNumber());
+    const compiler = new UcsCompiler({
+      profiles: ucsAllowPlainText,
+      models: {
+        write: { model: schema, format: 'plainText' },
+      },
+    });
+
+    await expect(compiler.evaluate()).rejects.toThrow(
+      new UnsupportedUcSchemaError(
+        schema,
+        'Number$plainTextO(writer, value, asItem?): Can not serialize optional values'
+          + ' of type "Number?" to plain text',
       ),
     );
   });
