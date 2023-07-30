@@ -275,7 +275,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     action: () => Promise<void>,
   ) => Promise<void>;
 
-  readonly #handlers = new Map<string, UccProfile.ConstraintHandler>();
+  readonly #handlers = new Map<string, UccProfile.ConstraintHandler<TSetup>>();
 
   constructor(
     processor: UccProcessor<TSetup>,
@@ -291,7 +291,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 
   onConstraint(
     { processor, within, use, from }: UccProfile.ConstraintCriterion,
-    handler: UccProfile.ConstraintHandler,
+    handler: UccProfile.ConstraintHandler<TSetup>,
   ): void {
     const handlerId = this.#handlerId(processor, within, use, from);
     const prevHandler = this.#handlers.get(handlerId);
@@ -336,7 +336,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     processor: UcProcessorName,
     within: UcPresentationName | undefined,
     { use, from }: UcFeatureConstraint,
-  ): UccProfile.ConstraintHandler | undefined {
+  ): UccProfile.ConstraintHandler<TSetup> | undefined {
     return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
   }
 
@@ -352,7 +352,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 }
 
 class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
-  implements UccProfile.ConstraintApplication {
+  implements UccProfile.ConstraintApplication<TSetup> {
 
   readonly #profiler: UccProcessor$Profiler<TSetup>;
   readonly #processor: UcProcessorName;
@@ -373,6 +373,10 @@ class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
     this.#schema = schema;
     this.#within = within;
     this.#constraint = constraint;
+  }
+
+  get setup(): TSetup {
+    return this.#profiler.setup;
   }
 
   get schema(): UcSchema {
@@ -417,11 +421,11 @@ class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
       let configured = false;
 
       if ('uccProcess' in constraint) {
-        this.#profiler.setup.enable(constraint, options);
+        this.setup.enable(constraint, options);
         configured = true;
       }
       if ('uccProcessSchema' in constraint) {
-        constraint.uccProcessSchema(this.#profiler.setup, this.schema).configure(options);
+        constraint.uccProcessSchema(this.setup, this.schema).configure(options);
         configured = true;
       }
 
@@ -430,7 +434,7 @@ class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
       }
 
       if (typeof constraint === 'function') {
-        constraint(this.#profiler.setup, this.schema).configure(options);
+        constraint(this.setup, this.schema).configure(options);
 
         return;
       }
@@ -472,7 +476,7 @@ class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
 
   onConstraint(
     criterion: UccProfile.ConstraintCriterion,
-    handler: UccProfile.ConstraintHandler,
+    handler: UccProfile.ConstraintHandler<TSetup>,
   ): this {
     this.#profiler.onConstraint(criterion, handler);
 

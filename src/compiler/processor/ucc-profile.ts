@@ -9,7 +9,7 @@ import { UccSetup } from './ucc-setup.js';
  * Can be used e.g. to refine {@link churi!UcConstraints schema constraints}, or to enable {@link UccFeature processing
  * features}.
  *
- * @typeParam TSetup - Schema processing setup type.
+ * @typeParam TSetup - Type of schema processing setup.
  * @param activation - Activation context.
  */
 export type UccProfile<in TSetup extends UccSetup<TSetup>> = (
@@ -20,13 +20,10 @@ export type UccProfile<in TSetup extends UccSetup<TSetup>> = (
 export namespace UccProfile {
   /**
    * Activation context of {@link UccProfile schema processing profile}.
+   *
+   * @typeParam TSetup - Type of schema processing setup.
    */
   export interface Activation<out TSetup extends UccSetup<TSetup>> {
-    /**
-     * Schema processing setup.
-     */
-    readonly setup: TSetup;
-
     /**
      * Registers {@link churi!UcFeatureConstraint schema constraint} application handler.
      *
@@ -37,7 +34,7 @@ export namespace UccProfile {
      * @param handler - Constraint application handler to call each time the matching constraint is about to be
      * applied.
      */
-    onConstraint(criterion: ConstraintCriterion, handler: ConstraintHandler): this;
+    onConstraint(criterion: ConstraintCriterion, handler: ConstraintHandler<TSetup>): this;
   }
 
   /**
@@ -48,14 +45,15 @@ export namespace UccProfile {
    * If the handler neither {@link ConstraintApplication#apply applies}, nor {@link ConstraintApplication#ignore
    * ignores} the constraint, the latter will be applied automatically after the the handler ends its work.
    *
+   * @typeParam TSetup - Type of schema processing setup.
    * @param application - Constraint application context.
    *
    * @returns Either none if constraint application handled immediately, or promise-like instance resolved when
    * constraint application handle asynchronously.
    */
-  export type ConstraintHandler = (
+  export type ConstraintHandler<in TSetup extends UccSetup<TSetup>> = (
     this: void,
-    application: ConstraintApplication,
+    application: ConstraintApplication<TSetup>,
   ) => void | PromiseLike<void>;
 
   /**
@@ -85,8 +83,15 @@ export namespace UccProfile {
 
   /**
    * Schema constraint application context.
+   *
+   * @typeParam TSetup - Type of schema processing setup.
    */
-  export interface ConstraintApplication {
+  export interface ConstraintApplication<out TSetup extends UccSetup<TSetup>> {
+    /**
+     * Schema processing setup.
+     */
+    get setup(): TSetup;
+
     /**
      * Schema processor name.
      */

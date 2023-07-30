@@ -256,7 +256,7 @@ describe('UccProcessor', () => {
               },
               application => {
                 application.ignore();
-                activation.setup.record({
+                application.setup.record({
                   processor: application.processor,
                   schema: application.schema,
                   within: application.within,
@@ -270,8 +270,8 @@ describe('UccProcessor', () => {
                 use: ucTestSupportRecord.name,
                 from: SPEC_MODULE,
               },
-              () => {
-                recordUcTestData(activation.setup, 2);
+              ({ setup }) => {
+                recordUcTestData(setup, 2);
               },
             );
         },
