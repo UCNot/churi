@@ -132,12 +132,12 @@ describe('UccProcessor', () => {
     });
   });
 
-  describe('profiles', () => {
+  describe('capabilities', () => {
     it('applies constraint at most once', async () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        profiles: activation => {
+        capabilities: activation => {
           activation.onConstraint(
             {
               processor: 'deserializer',
@@ -173,7 +173,7 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        profiles: activation => {
+        capabilities: activation => {
           activation.onConstraint(
             {
               processor: 'deserializer',
@@ -197,7 +197,7 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        profiles: activation => {
+        capabilities: activation => {
           activation.onConstraint(
             {
               processor: 'deserializer',
@@ -221,7 +221,7 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        profiles: activation => {
+        capabilities: activation => {
           activation.onConstraint(
             {
               processor: 'deserializer',
@@ -246,7 +246,7 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        profiles: activation => {
+        capabilities: activation => {
           activation
             .onConstraint(
               {

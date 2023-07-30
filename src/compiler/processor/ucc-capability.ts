@@ -5,22 +5,24 @@ import { UccFeature } from './ucc-feature.js';
 import { UccSetup } from './ucc-setup.js';
 
 /**
- * Schema {@link UccProcessor processing} profile.
+ * Schema {@link UccProcessor processing} capability.
  *
- * Can be used e.g. to refine {@link churi!UcConstraints schema constraints}, or to enable {@link UccFeature processing
- * features}.
+ * Called by {@lint UccProcessorInit#capabilities schema processor} to activate the capability.
+ *
+ * Capabilities used e.g. to refine {@link churi!UcConstraints schema constraints}, or to enable
+ * {@link UccFeature processing features}.
  *
  * @typeParam TSetup - Type of schema processing setup.
  * @param activation - Activation context.
  */
-export type UccProfile<in TSetup extends UccSetup<TSetup>> = (
+export type UccCapability<in TSetup extends UccSetup<TSetup>> = (
   this: void,
-  activation: UccProfile.Activation<TSetup>,
+  activation: UccCapability.Activation<TSetup>,
 ) => void;
 
-export namespace UccProfile {
+export namespace UccCapability {
   /**
-   * Activation context of {@link UccProfile schema processing profile}.
+   * Activation context of {@link UccCapability schema processing capability}.
    *
    * @typeParam TSetup - Type of schema processing setup.
    */

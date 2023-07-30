@@ -6,8 +6,8 @@ import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
+import { UccCapability } from '../processor/ucc-capability.js';
 import { UccConfig } from '../processor/ucc-config.js';
-import { UccProfile } from '../processor/ucc-profile.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatBoolean } from './impl/ucs-format-boolean.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
@@ -19,9 +19,9 @@ import { ucsSupportInteger } from './ucs-support-integer.js';
 import { ucsSupportNumber } from './ucs-support-number.js';
 import { ucsSupportString } from './ucs-support-string.js';
 
-export function ucsAllowPlainText(activation: UccProfile.Activation<UcsSetup>): void {
+export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup>): void {
   activation
-    .enable(ucsSupportPlainText)
+    .enable(ucsSupportPlainTextDefaults)
     .onConstraint(
       {
         processor: 'serializer',
@@ -66,7 +66,7 @@ export function ucsAllowPlainText(activation: UccProfile.Activation<UcsSetup>): 
     );
 }
 
-function ucsSupportPlainText(setup: UcsSetup): UccConfig {
+function ucsSupportPlainTextDefaults(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup

@@ -17,9 +17,9 @@ import {
 import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccCapability } from '../processor/ucc-capability.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UccFeature } from '../processor/ucc-feature.js';
-import { UccProfile } from '../processor/ucc-profile.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
@@ -55,12 +55,12 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
    * @param options - Compiler options.
    */
   constructor(options: UcdCompiler.Options<TModels>) {
-    const { presentations, profiles, models, validate = true, features } = options;
+    const { presentations, capabilities, models, validate = true, features } = options;
 
     super({
       processors: validate ? ['validator', 'deserializer'] : ['deserializer'],
       presentations,
-      profiles,
+      capabilities,
       models: Object.values(models).map(({ model }) => model),
       features,
     });
@@ -290,7 +290,10 @@ export namespace UcdCompiler {
   export interface Options<out TModels extends UcdModels = UcdModels>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
-    readonly profiles?: UccProfile<UcdSetup> | readonly UccProfile<UcdSetup>[] | undefined;
+    readonly capabilities?:
+      | UccCapability<UcdSetup>
+      | readonly UccCapability<UcdSetup>[]
+      | undefined;
     readonly models: TModels;
     readonly validate?: boolean | undefined;
     readonly features?: UccFeature<UcdSetup> | readonly UccFeature<UcdSetup>[] | undefined;

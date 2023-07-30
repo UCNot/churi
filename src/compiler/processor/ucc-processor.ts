@@ -7,9 +7,9 @@ import {
 } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UccCapability } from './ucc-capability.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
-import { UccProfile } from './ucc-profile.js';
 import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 import { UccSetup } from './ucc-setup.js';
@@ -25,7 +25,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   implements UccSetup<TSetup> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #profiles: readonly UccProfile<TSetup>[] | undefined;
+  readonly #capabilities: readonly UccCapability<TSetup>[] | undefined;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TSetup, void>[] | undefined;
   readonly #getSetup = lazyValue(() => this.createSetup());
@@ -46,7 +46,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   constructor({
     processors,
     presentations = [],
-    profiles,
+    capabilities,
     models,
     features,
   }: UccProcessorInit<TSetup>) {
@@ -54,7 +54,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
     );
-    this.#profiles = profiles && asArray(profiles);
+    this.#capabilities = capabilities && asArray(capabilities);
     this.#models = models;
     this.#features = features && asArray(features);
   }
@@ -167,7 +167,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   }
 
   protected async processInstructions(): Promise<void> {
-    this.#applyProfiles();
+    this.#activateCapabilities();
     this.#profiler.init();
     this.#collectInstructions();
     await this.#processInstructions();
@@ -175,9 +175,9 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     await this.#processInstructions(); // More instructions may be added by explicit features.
   }
 
-  #applyProfiles(): void {
-    this.#profiles?.forEach(profile => {
-      profile(new UccProcessor$ProfileActivation(this.#profiler));
+  #activateCapabilities(): void {
+    this.#capabilities?.forEach(capability => {
+      capability(new UccProcessor$CapabilityActivation(this.#profiler));
     });
   }
 
@@ -246,9 +246,9 @@ export interface UccProcessorInit<in TSetup extends UccSetup<TSetup>> {
   readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
   /**
-   * Processor profiles to enable.
+   * Processor capabilities to activate.
    */
-  readonly profiles?: UccProfile<TSetup> | readonly UccProfile<TSetup>[] | undefined;
+  readonly capabilities?: UccCapability<TSetup> | readonly UccCapability<TSetup>[] | undefined;
 
   /**
    * Models with constraints to extract processing instructions from.
@@ -277,7 +277,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     action: () => Promise<void>,
   ) => Promise<void>;
 
-  readonly #handlers = new Map<string, UccProfile.ConstraintHandler<TSetup>>();
+  readonly #handlers = new Map<string, UccCapability.ConstraintHandler<TSetup>>();
 
   constructor(
     processor: UccProcessor<TSetup>,
@@ -304,8 +304,8 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
   }
 
   onConstraint(
-    { processor, within, use, from }: UccProfile.ConstraintCriterion,
-    handler: UccProfile.ConstraintHandler<TSetup>,
+    { processor, within, use, from }: UccCapability.ConstraintCriterion,
+    handler: UccCapability.ConstraintHandler<TSetup>,
   ): void {
     const handlerId = this.#handlerId(processor, within, use, from);
     const prevHandler = this.#handlers.get(handlerId);
@@ -350,7 +350,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     processor: UcProcessorName,
     within: UcPresentationName | undefined,
     { use, from }: UcFeatureConstraint,
-  ): UccProfile.ConstraintHandler<TSetup> | undefined {
+  ): UccCapability.ConstraintHandler<TSetup> | undefined {
     return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
   }
 
@@ -366,7 +366,7 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 }
 
 class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
-  implements UccProfile.ConstraintApplication<TSetup> {
+  implements UccCapability.ConstraintApplication<TSetup> {
 
   readonly #profiler: UccProcessor$Profiler<TSetup>;
   readonly #processor: UcProcessorName;
@@ -475,8 +475,8 @@ class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
 
 }
 
-class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
-  implements UccProfile.Activation<TSetup> {
+class UccProcessor$CapabilityActivation<in out TSetup extends UccSetup<TSetup>>
+  implements UccCapability.Activation<TSetup> {
 
   readonly #profiler: UccProcessor$Profiler<TSetup>;
 
@@ -491,8 +491,8 @@ class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
   }
 
   onConstraint(
-    criterion: UccProfile.ConstraintCriterion,
-    handler: UccProfile.ConstraintHandler<TSetup>,
+    criterion: UccCapability.ConstraintCriterion,
+    handler: UccCapability.ConstraintHandler<TSetup>,
   ): this {
     this.#profiler.onConstraint(criterion, handler);
 
