@@ -1,27 +1,27 @@
 import { EsCode, EsSignature, EsSnippet, esStringLiteral, esline } from 'esgen';
-import { COMPILER_MODULE } from '../../impl/module-names.js';
-import { UcList, ucList } from '../../schema/list/uc-list.js';
-import { UcMap, ucMap } from '../../schema/map/uc-map.js';
-import { UcNullable } from '../../schema/uc-nullable.js';
-import { UcSchema } from '../../schema/uc-schema.js';
-import { URICharge } from '../../schema/uri-charge/uri-charge.js';
-import { ListUcrxClass } from '../deserialization/list.ucrx.class.js';
-import { MapUcrxClass, MapUcrxStore } from '../deserialization/map.ucrx.class.js';
-import { UcdCompiler } from '../deserialization/ucd-compiler.js';
-import { UcdLib } from '../deserialization/ucd-lib.js';
-import { UcdModels } from '../deserialization/ucd-models.js';
-import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
-import { UnknownUcrxClass } from '../deserialization/unknown.ucrx.class.js';
-import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxEntitySetterSignature } from '../rx/ucrx-entity-setter.js';
-import { UcrxFormattedSetterSignature } from '../rx/ucrx-formatted-setter.js';
-import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../rx/ucrx-setter.js';
+import { COMPILER_MODULE } from '../../../impl/module-names.js';
+import { UcList, ucList } from '../../../schema/list/uc-list.js';
+import { UcMap, ucMap } from '../../../schema/map/uc-map.js';
+import { UcNullable } from '../../../schema/uc-nullable.js';
+import { UcSchema } from '../../../schema/uc-schema.js';
+import { URICharge } from '../../../schema/uri-charge/uri-charge.js';
 import {
   UC_MODULE_CHURI,
   UC_MODULE_UC_VALUE_DESERIALIZER,
   UC_MODULE_URI_CHARGE,
-} from './uc-modules.js';
+} from '../../impl/uc-modules.js';
+import { UcrxCore } from '../../rx/ucrx-core.js';
+import { UcrxEntitySetterSignature } from '../../rx/ucrx-entity-setter.js';
+import { UcrxFormattedSetterSignature } from '../../rx/ucrx-formatted-setter.js';
+import { UcrxBeforeMod, UcrxMethod } from '../../rx/ucrx-method.js';
+import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../../rx/ucrx-setter.js';
+import { ListUcrxClass } from '../list.ucrx.class.js';
+import { MapUcrxClass, MapUcrxStore } from '../map.ucrx.class.js';
+import { UcdCompiler } from '../ucd-compiler.js';
+import { UcdLib } from '../ucd-lib.js';
+import { UcdModels } from '../ucd-models.js';
+import { ucdSupportDefaults } from '../ucd-support-defaults.js';
+import { UnknownUcrxClass } from '../unknown.ucrx.class.js';
 
 export class URIChargeCompiler extends UcdCompiler<{
   parseURICharge: UcdModels.SyncEntry<UcSchema<URICharge>>;

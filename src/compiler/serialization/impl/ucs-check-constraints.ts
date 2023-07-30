@@ -1,6 +1,6 @@
 import { EsCode, EsSnippet, esline } from 'esgen';
-import { UcSchema } from '../../schema/uc-schema.js';
-import { UC_MODULE_SERIALIZER } from './uc-modules.js';
+import { UcSchema } from '../../../schema/uc-schema.js';
+import { UC_MODULE_SERIALIZER } from '../../impl/uc-modules.js';
 
 export function ucsCheckConstraints(
   { writer, value }: { readonly writer: EsSnippet; readonly value: EsSnippet },

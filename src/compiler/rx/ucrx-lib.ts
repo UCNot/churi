@@ -1,8 +1,8 @@
 import { EsArg, EsClass, EsScope, EsSignature } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { CustomBaseUcrxClass } from '../impl/custom-base.ucrx.class.js';
-import { CustomOpaqueUcrxClass } from '../impl/custom-opaque.ucrx.class.js';
-import { VoidUcrxClass } from '../impl/void.ucrx.class.js';
+import { CustomBaseUcrxClass } from './impl/custom-base.ucrx.class.js';
+import { CustomOpaqueUcrxClass } from './impl/custom-opaque.ucrx.class.js';
+import { VoidUcrxClass } from './impl/void.ucrx.class.js';
 import { UcrxMethod } from './ucrx-method.js';
 import { UcrxClass, UcrxProto } from './ucrx.class.js';
 

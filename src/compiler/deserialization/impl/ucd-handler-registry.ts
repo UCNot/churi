@@ -6,8 +6,8 @@ import {
   esMemberAccessor,
   esline,
 } from 'esgen';
-import { UcdHandlerFeature } from '../deserialization/ucd-handler-feature.js';
-import { UC_MODULE_DESERIALIZER_DEFAULTS } from './uc-modules.js';
+import { UC_MODULE_DESERIALIZER_DEFAULTS } from '../../impl/uc-modules.js';
+import { UcdHandlerFeature } from '../ucd-handler-feature.js';
 
 export class UcdHandlerRegistry {
 

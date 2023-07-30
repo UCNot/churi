@@ -1,9 +1,9 @@
 import { EsFunction, esline } from 'esgen';
-import { UcUnknown, ucUnknown } from '../../schema/unknown/uc-unknown.js';
-import { UcdCompiler } from '../deserialization/ucd-compiler.js';
-import { UcdLib } from '../deserialization/ucd-lib.js';
-import { UcdModels } from '../deserialization/ucd-models.js';
-import { UcrxLib } from '../rx/ucrx-lib.js';
+import { UcUnknown, ucUnknown } from '../../../schema/unknown/uc-unknown.js';
+import { UcrxLib } from '../../rx/ucrx-lib.js';
+import { UcdCompiler } from '../ucd-compiler.js';
+import { UcdLib } from '../ucd-lib.js';
+import { UcdModels } from '../ucd-models.js';
 
 export class UcValueCompiler extends UcdCompiler<{
   parseUcValue: UcdModels.SyncEntry<UcUnknown.Schema>;

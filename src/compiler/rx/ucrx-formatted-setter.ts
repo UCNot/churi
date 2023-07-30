@@ -1,5 +1,5 @@
 import { EsArg, EsSignature } from 'esgen';
-import { UcrxCore$stub } from '../impl/ucrx-core.stub.js';
+import { UcrxCore$stub } from './impl/ucrx-core.stub.js';
 import { UcrxMethod } from './ucrx-method.js';
 
 export class UcrxFormattedSetter extends UcrxMethod<UcrxFormattedSetterSignature.Args> {

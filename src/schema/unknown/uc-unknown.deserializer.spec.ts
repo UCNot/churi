@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { UcValueCompiler } from '../../compiler/deserialization/impl/uc-value.compiler.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { UcValueCompiler } from '../../compiler/impl/uc-value.compiler.js';
 import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
 import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcDeserializer } from '../uc-deserializer.js';

@@ -9,10 +9,10 @@ import {
 } from 'esgen';
 import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
-import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { ucsCheckConstraints } from './impl/ucs-check-constraints.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';

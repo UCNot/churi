@@ -1,8 +1,8 @@
 import { EsClass, EsField, esImportClass } from 'esgen';
-import { VoidUcrx } from '../../rx/void.ucrx.js';
-import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxSignature } from '../rx/ucrx.class.js';
-import { UC_MODULE_CHURI } from './uc-modules.js';
+import { VoidUcrx } from '../../../rx/void.ucrx.js';
+import { UC_MODULE_CHURI } from '../../impl/uc-modules.js';
+import { UcrxCore } from '../ucrx-core.js';
+import { UcrxSignature } from '../ucrx.class.js';
 
 export class VoidUcrxClass extends EsClass<UcrxSignature.Args> {
 

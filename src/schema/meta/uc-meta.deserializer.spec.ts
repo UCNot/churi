@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { EsEvaluationError, esline } from 'esgen';
-import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
+import { URIChargeCompiler } from '../../compiler/deserialization/impl/uri-charge.compiler.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { URICharge } from '../uri-charge/uri-charge.js';
 
