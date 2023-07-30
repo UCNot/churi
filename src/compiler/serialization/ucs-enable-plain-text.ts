@@ -61,7 +61,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatStringAsPlainText());
+        setup.formatWith('plainText', schema, ucsFormatPlainTextString());
       },
     );
 }
@@ -73,12 +73,12 @@ function ucsSupportPlainTextDefaults(setup: UcsSetup): UccConfig {
         .formatWith('plainText', BigInt, ucsFormatPlainText(ucsFormatBigInt()))
         .formatWith('plainText', Boolean, ucsFormatPlainText(ucsFormatBoolean()))
         .formatWith('plainText', Number, ucsFormatPlainText(ucsFormatNumber()))
-        .formatWith('plainText', String, ucsFormatStringAsPlainText());
+        .formatWith('plainText', String, ucsFormatPlainTextString());
     },
   };
 }
 
-function ucsFormatStringAsPlainText(): UcsFormatter<UcString> {
+function ucsFormatPlainTextString(): UcsFormatter<UcString> {
   return ucsFormatPlainText(({ writer, value }) => {
     const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
 
