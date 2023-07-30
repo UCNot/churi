@@ -470,10 +470,6 @@ class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
     this.#profiler = profiler;
   }
 
-  get setup(): TSetup {
-    return this.#profiler.setup;
-  }
-
   onConstraint(
     criterion: UccProfile.ConstraintCriterion,
     handler: UccProfile.ConstraintHandler<TSetup>,
