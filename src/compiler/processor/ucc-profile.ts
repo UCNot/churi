@@ -1,6 +1,7 @@
 import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccFeature } from './ucc-feature.js';
 import { UccSetup } from './ucc-setup.js';
 
 /**
@@ -24,6 +25,27 @@ export namespace UccProfile {
    * @typeParam TSetup - Type of schema processing setup.
    */
   export interface Activation<out TSetup extends UccSetup<TSetup>> {
+    /**
+     * Enables the given processing `feature`.
+     *
+     * @typeParam TOptions - Type of schema processing options.
+     * @param feature - Feature to enable.
+     * @param options - Processing options.
+     *
+     * @returns `this` instance.
+     */
+    enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): this;
+
+    /**
+     * Enables the given processing `feature` that does not require options.
+     *
+     * @typeParam TOptions - Type of schema processing options.
+     * @param feature - Feature to enable.
+     *
+     * @returns `this` instance.
+     */
+    enable(feature: UccFeature<TSetup, void>): this;
+
     /**
      * Registers {@link churi!UcFeatureConstraint schema constraint} application handler.
      *

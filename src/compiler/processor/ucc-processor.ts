@@ -168,6 +168,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
 
   protected async processInstructions(): Promise<void> {
     this.#applyProfiles();
+    this.#profiler.init();
     this.#collectInstructions();
     await this.#processInstructions();
     this.#enableExplicitFeatures();
@@ -270,6 +271,7 @@ interface UccProcessor$Current {
 class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 
   readonly #processor: UccProcessor<TSetup>;
+  readonly #init: ((setup: TSetup) => void)[] = [];
   readonly #configure: (
     current: UccProcessor$Current,
     action: () => Promise<void>,
@@ -287,6 +289,18 @@ class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
 
   get setup(): TSetup {
     return this.#processor.setup;
+  }
+
+  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): void {
+    this.#init.push(setup => setup.enable(feature, options));
+  }
+
+  init(): void {
+    const { setup } = this;
+
+    for (const init of this.#init) {
+      init(setup);
+    }
   }
 
   onConstraint(
@@ -468,6 +482,12 @@ class UccProcessor$ProfileActivation<in out TSetup extends UccSetup<TSetup>>
 
   constructor(profiler: UccProcessor$Profiler<TSetup>) {
     this.#profiler = profiler;
+  }
+
+  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
+    this.#profiler.enable(feature, options!);
+
+    return this;
   }
 
   onConstraint(

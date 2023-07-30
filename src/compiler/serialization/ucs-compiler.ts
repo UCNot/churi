@@ -7,11 +7,13 @@ import {
   esEvaluate,
   esGenerate,
 } from 'esgen';
-import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
+import { UcFormatName, UcInsetName, UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
+import { UccProfile } from '../processor/ucc-profile.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UccSetup } from '../processor/ucc-setup.js';
 import { ucsCheckConstraints } from './impl/ucs-check-constraints.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
@@ -40,10 +42,12 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
    * @param options - Setup options.
    */
   constructor(options: UcsCompiler.Options<TModels>) {
-    const { models, features } = options;
+    const { presentations, profiles, models, features } = options;
 
     super({
       processors: 'serializer',
+      presentations,
+      profiles,
       models: Object.values(models).map(({ model }) => model),
       features,
     });
@@ -221,6 +225,8 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
 
 export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
+    readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
+    readonly profiles?: UccProfile<UcsSetup> | readonly UccProfile<UccSetup>[] | undefined;
     readonly models: TModels;
     readonly features?: UccFeature<UcsSetup> | readonly UccFeature<UcsSetup>[] | undefined;
 
