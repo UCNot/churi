@@ -55,14 +55,11 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
    * @param options - Compiler options.
    */
   constructor(options: UcdCompiler.Options<TModels>) {
-    const { presentations, capabilities, models, validate = true, features } = options;
+    const { validate = true } = options;
 
     super({
+      ...options,
       processors: validate ? ['validator', 'deserializer'] : ['deserializer'],
-      presentations,
-      capabilities,
-      models: Object.values(models).map(({ model }) => model),
-      features,
     });
 
     this.#options = options;

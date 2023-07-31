@@ -1,4 +1,4 @@
-import { asArray, lazyValue } from '@proc7ts/primitives';
+import { asArray, isPresent, lazyValue } from '@proc7ts/primitives';
 import {
   UcConstraints,
   UcFeatureConstraint,
@@ -42,9 +42,9 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   /**
    * Constructs schema processor.
    *
-   * @param init - Processor initialization options.
+   * @param options - Schema processing options.
    */
-  constructor(init: UccProcessor.Options<TSetup>);
+  constructor(options: UccProcessor.Options<TSetup>);
   constructor({
     processors,
     presentations = [],
@@ -57,7 +57,11 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
       asArray<UcPresentationName>(presentations),
     );
     this.#capabilities = capabilities && asArray(capabilities);
-    this.#models = models;
+    this.#models =
+      models
+      && Object.values<UccProcessor.Entry | undefined>(models)
+        .filter(isPresent)
+        .map(({ model }: UccProcessor.Entry) => model);
     this.#features = features && asArray(features);
   }
 
@@ -231,7 +235,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
 
 export namespace UccProcessor {
   /**
-   * Schema {@link UccProcessor processor} initialization options.
+   * Schema {@link UccProcessor processing} options.
    *
    * @typeParam TSetup - Schema processing setup type.
    */
@@ -256,11 +260,21 @@ export namespace UccProcessor {
     /**
      * Models with constraints to extract processing instructions from.
      */
-    readonly models?: readonly UcModel[] | undefined;
+    readonly models?: { readonly [name in string]?: Entry | undefined } | undefined;
 
     /**
      * Additional schema processing features to enable and use.
      */
     readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
+  }
+
+  /**
+   * Processed model entry.
+   */
+  export interface Entry {
+    /**
+     * Model to process.
+     */
+    readonly model: UcModel;
   }
 }

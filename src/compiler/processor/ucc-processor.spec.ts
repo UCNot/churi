@@ -26,7 +26,7 @@ describe('UccProcessor', () => {
       await expect(
         new UccTestProcessor({
           processors: ['deserializer'],
-          models: [schema],
+          models: { test: { model: schema } },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(
@@ -48,7 +48,7 @@ describe('UccProcessor', () => {
       await expect(
         new UccTestProcessor({
           processors: ['deserializer'],
-          models: [schema],
+          models: { test: { model: schema } },
         }).bootstrap(),
       ).rejects.toThrow(
         new ReferenceError(
@@ -61,7 +61,7 @@ describe('UccProcessor', () => {
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -80,7 +80,7 @@ describe('UccProcessor', () => {
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -100,7 +100,7 @@ describe('UccProcessor', () => {
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -118,7 +118,6 @@ describe('UccProcessor', () => {
     it('enables feature', async () => {
       const processor = new UccTestProcessor({
         processors: [],
-        models: [],
         features: setup => ({
           configure(options) {
             recordUcTestData(setup, options);
@@ -155,7 +154,7 @@ describe('UccProcessor', () => {
           );
         },
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -186,7 +185,7 @@ describe('UccProcessor', () => {
           );
         },
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -210,7 +209,7 @@ describe('UccProcessor', () => {
           );
         },
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -235,7 +234,7 @@ describe('UccProcessor', () => {
           );
         },
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();
@@ -276,7 +275,7 @@ describe('UccProcessor', () => {
             );
         },
         processors: ['deserializer'],
-        models: [schema],
+        models: { test: { model: schema } },
       });
 
       await processor.bootstrap();

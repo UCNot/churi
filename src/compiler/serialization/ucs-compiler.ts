@@ -41,14 +41,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
    * @param options - Setup options.
    */
   constructor(options: UcsCompiler.Options<TModels>) {
-    const { presentations, capabilities, models, features } = options;
-
     super({
+      ...options,
       processors: 'serializer',
-      presentations,
-      capabilities,
-      models: Object.values(models).map(({ model }) => model),
-      features,
     });
 
     this.#options = options;
