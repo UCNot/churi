@@ -3,7 +3,7 @@ import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcString } from '../../schema/string/uc-string.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
-import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
+import { ucsWriteURIEncoded } from '../../serializer/ucs-write-string.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccCapability } from '../processor/ucc-capability.js';
@@ -19,9 +19,9 @@ import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup>): void {
+export function ucsSupportURIEncoded(activation: UccCapability.Activation<UcsSetup>): void {
   activation
-    .enable(ucsProcessPlainTextDefaults)
+    .enable(ucsProcessURIEncodedDefaults)
     .onConstraint(
       {
         processor: 'serializer',
@@ -31,7 +31,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
       ({ setup, schema, constraint: { with: options } }) => {
         const { number = 'parse' } = options as UcBigInt.Variant;
 
-        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatBigInt({ number })));
+        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
       },
     )
     .onConstraint(
@@ -41,7 +41,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatInteger()));
+        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
       },
     )
     .onConstraint(
@@ -51,7 +51,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatNumber()));
+        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
       },
     )
     .onConstraint(
@@ -61,47 +61,43 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
-        setup.formatWith('plainText', schema, ucsFormatPlainTextString());
+        setup.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
       },
     );
 }
 
-function ucsProcessPlainTextDefaults(setup: UcsSetup): UccConfig {
+function ucsProcessURIEncodedDefaults(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup
-        .formatWith('plainText', BigInt, ucsFormatPlainText(ucsFormatBigInt()))
-        .formatWith('plainText', Boolean, ucsFormatPlainText(ucsFormatBoolean()))
-        .formatWith('plainText', Number, ucsFormatPlainText(ucsFormatNumber()))
-        .formatWith('plainText', String, ucsFormatPlainTextString());
+        .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
+        .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
+        .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
+        .formatWith('uriEncoded', String, ucsFormatURIEncodedString());
     },
   };
 }
 
-function ucsFormatPlainTextString(): UcsFormatter<UcString> {
-  return ucsFormatPlainText(({ writer, value }) => {
-    const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
+export function ucsFormatURIEncodedString(): UcsFormatter<UcString> {
+  return ucsFormatURIEncoded(({ writer, value }) => {
+    const write = UC_MODULE_SERIALIZER.import(ucsWriteURIEncoded.name);
 
-    return esline`await ${writeAsIs}(${writer}, ${value});`;
+    return esline`await ${write}(${writer}, ${value});`;
   });
 }
 
-function ucsFormatPlainText<T>(formatter: UcsFormatter<T>): UcsFormatter<T> {
+function ucsFormatURIEncoded<T>(formatter: UcsFormatter<T>): UcsFormatter<T> {
   return (args, schema, context) => {
     if (schema.nullable) {
       throw new UnsupportedUcSchemaError(
         schema,
-        `${context}: Can not serialize nullable values of type "${ucModelName(
-          schema,
-        )}" to plain text`,
+        `${context}: Can not URI-encode nullable values of type "${ucModelName(schema)}"`,
       );
     }
     if (schema.optional) {
       throw new UnsupportedUcSchemaError(
         schema,
-        `${context}: Can not serialize optional values of type "${ucModelName(
-          schema,
-        )}" to plain text`,
+        `${context}: Can not URI-encode optional values of type "${ucModelName(schema)}"`,
       );
     }
 
