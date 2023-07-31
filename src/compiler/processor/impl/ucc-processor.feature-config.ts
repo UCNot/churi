@@ -15,7 +15,11 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
     this.#getConfig = lazyValue(createConfig);
   }
 
-  configureFeature(config: UccProcessor$Config<TSetup>, options: TOptions, data: unknown): void {
+  configureFeature(
+    config: UccProcessor$Config<TSetup>,
+    options: TOptions,
+    data: UccConfig.Data | undefined,
+  ): void {
     this.#configureFeature(config, {}, options, data);
   }
 
@@ -33,7 +37,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
     this.#configureFeature(config, { processor });
 
     config.configure({ ...issue, schema }, () => {
-      this.#getConfig().configureSchema?.(schema, options as TOptions, data);
+      this.#getConfig().configureSchema?.(schema, options as TOptions, data ?? {});
     });
   }
 
@@ -41,7 +45,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
     config: UccProcessor$Config<TSetup>,
     current: UccProcessor$Current,
     options?: TOptions,
-    data?: unknown,
+    data?: UccConfig.Data,
   ): void {
     if (options === undefined && data === undefined) {
       if (this.#autoConfigured) {
@@ -51,7 +55,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
       this.#autoConfigured = true;
     }
 
-    config.configure(current, () => this.#getConfig().configure?.(options!, data));
+    config.configure(current, () => this.#getConfig().configure?.(options!, data ?? {}));
   }
 
 }

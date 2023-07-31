@@ -91,14 +91,14 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   enable<TOptions>(
     feature: UccFeature<TSetup, TOptions>,
     options?: TOptions,
-    data?: unknown,
+    data?: UccConfig.Data,
   ): this {
     this.#config.enableFeature(feature, options!, data);
 
     return this;
   }
 
-  processModel<T>(model: UcModel<T>, data?: unknown): this {
+  processModel<T>(model: UcModel<T>, data?: UccConfig.Data): this {
     const schema = ucSchema(model);
 
     this.#applyConstraints<T>(schema, undefined, schema.where, data);
@@ -113,7 +113,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     schema: UcSchema<T>,
     within: UcPresentationName | undefined,
     constraints: UcConstraints<T> | undefined,
-    data: unknown,
+    data: UccConfig.Data | undefined,
   ): void {
     for (const processor of this.schemaIndex.processors) {
       for (const constraint of asArray(constraints?.[processor])) {

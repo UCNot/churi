@@ -1,4 +1,5 @@
 import { UcSchema } from '../../../schema/uc-schema.js';
+import { UccConfig } from '../ucc-config.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
@@ -32,7 +33,7 @@ export class UccProcessor$Config<in out TSetup extends UccSetup<TSetup>> {
   enableFeature<TOptions>(
     feature: UccFeature<TSetup, TOptions>,
     options: TOptions,
-    data: unknown,
+    data: UccConfig.Data | undefined,
   ): void {
     this.#featureConfig(feature).configureFeature(this, options, data);
   }

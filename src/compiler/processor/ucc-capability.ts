@@ -1,6 +1,7 @@
 import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSetup } from './ucc-setup.js';
 
@@ -139,7 +140,7 @@ export namespace UccCapability {
     /**
      * Custom data passed by parent schema processor.
      */
-    get data(): unknown;
+    get data(): UccConfig.Data | undefined;
 
     /**
      * Informs whether the {@link constraint} is {@link apply applied} already.

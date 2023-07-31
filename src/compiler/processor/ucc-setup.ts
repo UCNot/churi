@@ -1,6 +1,7 @@
 import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 
 /**
@@ -41,7 +42,11 @@ export interface UccSetup<in TSetup = unknown> {
    *
    * @returns `this` instance.
    */
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions, data?: unknown): this;
+  enable<TOptions>(
+    feature: UccFeature<TSetup, TOptions>,
+    options: TOptions,
+    data?: UccConfig.Data,
+  ): this;
 
   /**
    * Enables the given processing `feature` that does not require options.
@@ -52,7 +57,7 @@ export interface UccSetup<in TSetup = unknown> {
    *
    * @returns `this` instance.
    */
-  enable(feature: UccFeature<TSetup, void>, options?: void, data?: unknown): this;
+  enable(feature: UccFeature<TSetup, void>, options?: void, data?: UccConfig.Data): this;
 
   /**
    * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.
@@ -63,5 +68,5 @@ export interface UccSetup<in TSetup = unknown> {
    *
    * @returns `this` instance.
    */
-  processModel<T>(model: UcModel<T>, data?: unknown): this;
+  processModel<T>(model: UcModel<T>, data?: UccConfig.Data): this;
 }
