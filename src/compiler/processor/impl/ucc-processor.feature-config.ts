@@ -9,7 +9,7 @@ import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOptions = never> {
 
   readonly #getConfig: () => UccConfig<TOptions>;
-  #featureConfigured = false;
+  #autoConfigured = false;
 
   constructor(getConfig: () => UccConfig<TOptions>) {
     this.#getConfig = lazyValue(getConfig);
@@ -30,9 +30,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
     options: TOptions,
     data: unknown,
   ): void {
-    if (!this.#featureConfigured) {
-      this.#configureFeature(profiler, { processor: constraint.processor }, undefined!, undefined);
-    }
+    this.#configureFeature(profiler, { processor: constraint.processor });
 
     profiler.configureSync({ ...constraint, schema }, () => {
       this.#getConfig().configureSchema?.(schema, options, data);
@@ -42,11 +40,18 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
   #configureFeature(
     profiler: UccProcessor$Profiler<TSetup>,
     current: UccProcessor$Current,
-    options: TOptions,
-    data: unknown,
+    options?: TOptions,
+    data?: unknown,
   ): void {
-    this.#featureConfigured = true;
-    profiler.configureSync(current, () => this.#getConfig().configure?.(options, data));
+    if (options === undefined && data === undefined) {
+      if (this.#autoConfigured) {
+        return;
+      }
+
+      this.#autoConfigured = true;
+    }
+
+    profiler.configureSync(current, () => this.#getConfig().configure?.(options!, data));
   }
 
 }
