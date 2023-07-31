@@ -12,14 +12,22 @@ export const WrongFeature = 'WrongFeature';
 export function ucTestRecord(options?: unknown): UcOmniConstraints {
   return {
     deserializer: {
-      use: ucTestSupportRecord.name,
+      use: ucTestSupportSchemaRecord.name,
       from: SPEC_MODULE,
       with: options,
     },
   };
 }
 
-export function ucTestSupportRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestSupportSchemaRecord(setup: UccTestSetup): UccConfig<unknown> {
+  return {
+    configureSchema(_, options) {
+      recordUcTestData(setup, options);
+    },
+  };
+}
+
+export function ucTestSupportFeatureRecord(setup: UccTestSetup): UccConfig<unknown> {
   return {
     configure(options) {
       recordUcTestData(setup, options);
@@ -39,8 +47,8 @@ export function ucTestSubRecord(options?: unknown): UcOmniConstraints {
 
 export function ucTestSupportSubRecord(setup: UccTestSetup): UccConfig<unknown> {
   return {
-    configure(options) {
-      setup.enable(ucTestSupportRecord, options);
+    configureSchema(_, options) {
+      setup.enable(ucTestSupportFeatureRecord, options);
     },
   };
 }

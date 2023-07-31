@@ -1,7 +1,6 @@
 import { esline } from 'esgen';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
 import { UccFeature } from '../compiler/processor/ucc-feature.js';
-import { UccSchemaFeature } from '../compiler/processor/ucc-schema-feature.js';
 import { UcsSetup } from '../compiler/serialization/ucs-setup.js';
 import { UcSchema } from '../schema/uc-schema.js';
 import { ucsWriteAsIs } from '../serializer/ucs-write-asis.js';
@@ -18,7 +17,7 @@ export const UcsSupportNumberWithRadix: UccFeature.Object<UcsSetup> = {
     return {
       configure() {
         compiler.formatWith<number>('charge', Number, ({ writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
+          const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 
           return esline`await ${write}(${writer}, ${value});`;
         });
@@ -32,7 +31,7 @@ export const UcsSupportRadixNumber: UccFeature.Object<UcsSetup> = {
     return {
       configure() {
         compiler.formatWith<number>('charge', 'radixNumber', ({ writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
+          const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 
           return esline`await ${write}(${writer}, ${value});`;
         });
@@ -41,12 +40,12 @@ export const UcsSupportRadixNumber: UccFeature.Object<UcsSetup> = {
   },
 };
 
-export const UcsSupportRadixNumberSchema: UccSchemaFeature.Object<UcsSetup> = {
-  uccProcessSchema(compiler, schema: UcSchema<number>) {
+export const UcsSupportRadixNumberSchema: UccFeature.Object<UcsSetup> = {
+  uccProcess(setup) {
     return {
-      configure() {
-        compiler.formatWith('charge', schema.type, ({ writer, value }) => {
-          const write = UC_MODULE_SPEC.import('writeUcRadixNumber');
+      configureSchema(schema: UcSchema<number>) {
+        setup.formatWith('charge', schema.type, ({ writer, value }) => {
+          const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 
           return esline`await ${write}(${writer}, ${value});`;
         });

@@ -1,3 +1,4 @@
+import { ucdInfinity, ucdNaN, ucdNegativeInfinity } from '../../deserializer/ucd-non-finite.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcdHandlerFeature, UcdHandlerSetup } from './ucd-handler-feature.js';
@@ -7,9 +8,9 @@ export function ucdSupportNonFinite(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup
-        .handleEntity('Infinity', handleUcdNonFinite('ucdInfinity'))
-        .handleEntity('-Infinity', handleUcdNonFinite('ucdNegativeInfinity'))
-        .handleEntity('NaN', handleUcdNonFinite('ucdNaN'));
+        .handleEntity('Infinity', handleUcdNonFinite(ucdInfinity.name))
+        .handleEntity('-Infinity', handleUcdNonFinite(ucdNegativeInfinity.name))
+        .handleEntity('NaN', handleUcdNonFinite(ucdNaN.name));
     },
   };
 }

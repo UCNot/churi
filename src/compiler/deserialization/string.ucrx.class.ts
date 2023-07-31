@@ -8,21 +8,13 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcString.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcString.Variant | void> {
     return {
       configure: () => {
         setup.useUcrxClass(String, (lib, schema: UcString.Schema) => new this(lib, schema));
       },
-    };
-  }
-
-  static uccProcessSchema(
-    processor: UcrxSetup,
-    schema: UcString.Schema,
-  ): UccConfig<UcString.Variant> {
-    return {
-      configure: variant => {
-        processor.useUcrxClass(
+      configureSchema: (schema, variant) => {
+        setup.useUcrxClass(
           schema,
           (lib, schema: UcString.Schema) => new this(lib, schema, variant),
         );
@@ -30,7 +22,11 @@ export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcS
     };
   }
 
-  constructor(lib: UcrxLib, schema: UcString.Schema, { raw = 'escape' }: UcString.Variant = {}) {
+  constructor(
+    lib: UcrxLib,
+    schema: UcString.Schema,
+    { raw = 'escape' }: UcString.Variant | void = {},
+  ) {
     super({
       lib,
       schema,

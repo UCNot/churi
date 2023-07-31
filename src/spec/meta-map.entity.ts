@@ -29,7 +29,7 @@ export function ucdSupportMetaMapEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup.handleEntity('meta-map', ({ register }) => code => {
-        code.write(register(UC_MODULE_SPEC.import('readMetaMap')));
+        code.write(register(UC_MODULE_SPEC.import(readMetaMap.name)));
       });
     },
   };

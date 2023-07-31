@@ -11,10 +11,7 @@ export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, U
   static uccProcess(setup: UcrxSetup): UccConfig {
     return {
       configure: () => {
-        setup.useUcrxClass(
-          Boolean,
-          (lib, schema: UcBoolean.Schema) => new this(lib, schema),
-        );
+        setup.useUcrxClass(Boolean, (lib, schema: UcBoolean.Schema) => new this(lib, schema));
       },
     };
   }

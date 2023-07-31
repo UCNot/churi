@@ -12,9 +12,9 @@ import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportList(setup: UcsSetup, schema: UcList.Schema): UccConfig<UccListOptions> {
+export function ucsSupportList(setup: UcsSetup): UccConfig<UccListOptions> {
   return {
-    configure(options) {
+    configureSchema(schema: UcList.Schema, options) {
       setup.processModel(schema.item).formatWith(
         'charge',
         schema,

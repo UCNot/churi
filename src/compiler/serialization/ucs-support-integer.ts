@@ -4,13 +4,10 @@ import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportInteger(
-  setup: UcsSetup,
-  target: UcInteger.Schema,
-): UccConfig<UcInteger.Variant | undefined> {
+export function ucsSupportInteger(setup: UcsSetup): UccConfig<UcInteger.Variant | undefined> {
   return {
-    configure(variant) {
-      setup.formatWith('charge', target, ucsFormatCharge(ucsFormatInteger(variant)));
+    configureSchema(schema: UcInteger.Schema, variant) {
+      setup.formatWith('charge', schema, ucsFormatCharge(ucsFormatInteger(variant)));
     },
   };
 }

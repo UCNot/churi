@@ -3,12 +3,12 @@ import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
 import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UccFeature } from '../compiler/processor/ucc-feature.js';
-import { UccSchemaFeature } from '../compiler/processor/ucc-schema-feature.js';
 import { UcrxCore } from '../compiler/rx/ucrx-core.js';
 import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
 import { UcrxClass } from '../compiler/rx/ucrx.class.js';
 import { UcSchema } from '../schema/uc-schema.js';
+import { printUcTokens } from '../syntax/print-uc-token.js';
 
 export const TimestampUcrxMethod = new UcrxSetter('date', {
   stub: {
@@ -46,7 +46,7 @@ const readTimestampEntityFn = new EsFunction(
         return (code, scope) => {
           const lib = scope.get(UcrxLib);
           const date = new EsVarSymbol('date');
-          const printTokens = UC_MODULE_CHURI.import('printUcTokens');
+          const printTokens = UC_MODULE_CHURI.import(printUcTokens.name);
           const setDate = lib.baseUcrx.member(TimestampUcrxMethod);
 
           code
@@ -82,10 +82,10 @@ export const UcdSupportTimestamp: UccFeature.Object<UcdSetup> = {
   },
 };
 
-export const UcdSupportTimestampSchema: UccSchemaFeature.Object<UcdSetup> = {
-  uccProcessSchema(setup, _schema) {
+export const UcdSupportTimestampSchema: UccFeature.Object<UcdSetup> = {
+  uccProcess(setup) {
     return {
-      configure() {
+      configureSchema() {
         setup.enable(UcdSupportTimestamp);
       },
     };

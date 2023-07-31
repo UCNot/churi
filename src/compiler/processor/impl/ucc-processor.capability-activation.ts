@@ -13,7 +13,7 @@ export class UccProcessor$CapabilityActivation<in out TSetup extends UccSetup<TS
   }
 
   enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
-    this.#profiler.enable(feature, options!);
+    this.#profiler.addFeature(feature, options!);
 
     return this;
   }

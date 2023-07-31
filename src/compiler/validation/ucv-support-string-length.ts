@@ -1,5 +1,4 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -12,12 +11,9 @@ export type UcvStringLength = [
   or?: string | undefined,
 ];
 
-export function ucvSupportStringLength(
-  setup: UcrxSetup,
-  schema: UcSchema<string>,
-): UccConfig<UcvStringLength> {
+export function ucvSupportStringLength(setup: UcrxSetup): UccConfig<UcvStringLength> {
   return {
-    configure([constraint, than, or]) {
+    configureSchema(schema, [constraint, than, or]) {
       setup.modifyUcrxMethod(schema, UcrxCore.str, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {

@@ -5,7 +5,6 @@ import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccCapability } from '../ucc-capability.js';
 import { UccFeature } from '../ucc-feature.js';
-import { UccSchemaFeature } from '../ucc-schema-feature.js';
 import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
 import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
@@ -68,43 +67,19 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
     this.#applied = 1;
 
     const {
+      schema,
       constraint: { use, from, with: options },
       data,
     } = this;
+    const { [use]: feature }: { [name: string]: UccFeature<TSetup, unknown> } = await import(from);
 
-    const {
-      [use]: constraint,
-    }: { [name: string]: UccFeature<TSetup, unknown> | UccSchemaFeature<TSetup, unknown> } =
-      await import(from);
-
-    if (mayHaveProperties(constraint)) {
-      let configured = false;
-
-      if ('uccProcess' in constraint) {
-        this.setup.enable(constraint, options);
-        configured = true;
-      }
-      if ('uccProcessSchema' in constraint) {
-        constraint.uccProcessSchema(this.setup, this.schema).configure(options, data);
-        configured = true;
-      }
-
-      if (configured) {
-        return;
-      }
-
-      if (typeof constraint === 'function') {
-        constraint(this.setup, this.schema).configure(options, data);
-
-        return;
-      }
-    }
-
-    if (constraint === undefined) {
+    if ((mayHaveProperties(feature) && 'uccProcess' in feature) || typeof feature === 'function') {
+      this.#profiler.enableSchema(schema, this.#config, feature, options, data);
+    } else if (feature === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${this}`);
+    } else {
+      throw new ReferenceError(`Not a schema processing feature: ${this}`);
     }
-
-    throw new ReferenceError(`Not a schema processing feature: ${this}`);
   }
 
   ignore(): void {

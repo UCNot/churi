@@ -9,17 +9,12 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcBigInt.Variant | void> {
     return {
       configure: () => {
         setup.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
       },
-    };
-  }
-
-  static uccProcessSchema(setup: UcrxSetup, schema: UcBigInt.Schema): UccConfig<UcBigInt.Variant> {
-    return {
-      configure: variant => {
+      configureSchema: (schema, variant) => {
         setup.useUcrxClass(
           schema,
           (lib, schema) => new this(lib, schema as UcBigInt.Schema, variant),
@@ -31,7 +26,7 @@ export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcB
   constructor(
     lib: UcrxLib,
     schema: UcBigInt.Schema,
-    { string = 'parse', number = 'parse' }: UcBigInt.Variant = {},
+    { string = 'parse', number = 'parse' }: UcBigInt.Variant | void = {},
   ) {
     super({
       lib,

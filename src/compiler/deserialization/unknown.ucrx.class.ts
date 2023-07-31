@@ -24,9 +24,9 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static uccProcessSchema(setup: UcrxSetup, schema: UcSchema): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig {
     return {
-      configure: () => {
+      configureSchema: schema => {
         setup
           .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
           .processModel(this.listSchemaFor(schema))

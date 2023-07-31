@@ -19,7 +19,7 @@ export function ucdSupportPlainEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup.handleFormat('plain', ({ register }) => code => {
-        code.write(register(UC_MODULE_SPEC.import('readPlainFormat')));
+        code.write(register(UC_MODULE_SPEC.import(readPlainFormat.name)));
       });
     },
   };

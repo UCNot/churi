@@ -1,5 +1,4 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UcSchema } from '../../schema/uc-schema.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -13,12 +12,9 @@ export type UcvNumericRange = [
   or?: string | undefined,
 ];
 
-export function ucvSupportNumericRange(
-  setup: UcrxSetup,
-  schema: UcSchema<number | bigint>,
-): UccConfig<UcvNumericRange> {
+export function ucvSupportNumericRange(setup: UcrxSetup): UccConfig<UcvNumericRange> {
   return {
-    configure([constraint, than, or]) {
+    configureSchema(schema, [constraint, than, or]) {
       let setter: UcrxSetter;
       let bound: string;
 

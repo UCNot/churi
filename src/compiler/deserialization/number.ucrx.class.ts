@@ -9,17 +9,12 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcNumber.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcNumber.Variant | void> {
     return {
       configure: () => {
         setup.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
       },
-    };
-  }
-
-  static uccProcessSchema(setup: UcrxSetup, schema: UcNumber.Schema): UccConfig<UcNumber.Variant> {
-    return {
-      configure: variant => {
+      configureSchema: (schema, variant) => {
         setup.useUcrxClass(
           schema,
           (lib, schema: UcNumber.Schema) => new this(lib, schema, variant),
@@ -28,7 +23,11 @@ export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcN
     };
   }
 
-  constructor(lib: UcrxLib, schema: UcNumber.Schema, { string = 'parse' }: UcNumber.Variant = {}) {
+  constructor(
+    lib: UcrxLib,
+    schema: UcNumber.Schema,
+    { string = 'parse' }: UcNumber.Variant | void = {},
+  ) {
     super({
       lib,
       schema,

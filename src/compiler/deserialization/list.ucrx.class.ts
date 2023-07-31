@@ -31,9 +31,9 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccProcessSchema(setup: UcrxSetup, schema: UcList.Schema): UccConfig<UccListOptions> {
+  static uccProcess(setup: UcrxSetup): UccConfig<UccListOptions> {
     return {
-      configure: options => {
+      configureSchema: (schema: UcList.Schema, options) => {
         setup
           .processModel(schema.item)
           .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));

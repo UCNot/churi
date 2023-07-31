@@ -21,11 +21,12 @@ import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportMap(setup: UcsSetup, schema: UcMap.Schema): UccConfig;
-export function ucsSupportMap(setup: UcsSetup, { entries, extra }: UcMap.Schema): UccConfig {
+export function ucsSupportMap(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
+    },
+    configureSchema({ entries, extra }: UcMap.Schema) {
       Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {

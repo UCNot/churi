@@ -7,7 +7,7 @@ import { UccSetup } from './ucc-setup.js';
 /**
  * Schema {@link UccProcessor processing} capability.
  *
- * Called by {@lint UccProcessorInit#capabilities schema processor} to activate the capability.
+ * Called by {@link UccProcessor.Options#capabilities schema processor} to activate the capability.
  *
  * Capabilities used e.g. to refine {@link churi!UcConstraints schema constraints}, or to enable
  * {@link UccFeature processing features}.

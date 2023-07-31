@@ -1,3 +1,5 @@
+import { UcSchema } from '../../schema/uc-schema.js';
+
 /**
  * Schema processing configuration.
  *
@@ -14,5 +16,16 @@ export interface UccConfig<in TOptions = void> {
    * @param options - Configuration options.
    * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
    */
-  configure(options: TOptions, data: unknown): void;
+  configure?(options: TOptions, data: unknown): void;
+
+  /**
+   * Configures processing of concrete `schema`.
+   *
+   * May be called multiple times.
+   *
+   * @param schema - Schema which processing
+   * @param options - Configuration options.
+   * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
+   */
+  configureSchema?(schema: UcSchema, options: TOptions, data: unknown): void;
 }

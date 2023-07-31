@@ -32,11 +32,11 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccProcessSchema(setup: UcrxSetup, schema: UcMap.Schema): UccConfig<UcMap.Variant> {
-    const { entries, extra } = schema;
-
+  static uccProcess(setup: UcrxSetup): UccConfig<UcMap.Variant> {
     return {
-      configure: variant => {
+      configureSchema: (schema: UcMap.Schema, variant) => {
+        const { entries, extra } = schema;
+
         setup.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, variant));
         for (const entrySchema of Object.values(entries)) {
           setup.processModel(entrySchema);

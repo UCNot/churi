@@ -8,7 +8,6 @@ import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccProcessor$CapabilityActivation } from './impl/ucc-processor.capability-activation.js';
 import { UccProcessor$ConstraintConfig } from './impl/ucc-processor.constraint-config.js';
-import { UccProcessor$Current } from './impl/ucc-processor.current.js';
 import { UccProcessor$FeatureUse } from './impl/ucc-processor.feature-use.js';
 import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
 import { UccCapability } from './ucc-capability.js';
@@ -32,13 +31,10 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TSetup, void>[] | undefined;
   readonly #getSetup = lazyValue(() => this.createSetup());
-  readonly #profiler = new UccProcessor$Profiler<TSetup>(this, this.#configureAsync.bind(this));
-
-  readonly #configs = new Map<UccFeature<TSetup, never>, () => UccConfig<never>>();
+  readonly #profiler = new UccProcessor$Profiler<TSetup>(this);
   readonly #uses = new Map<UcSchema['type'], UccProcessor$FeatureUse<TSetup>>();
 
   #hasPendingInstructions = false;
-  #current: UccProcessor$Current = {};
 
   /**
    * Constructs schema processor.
@@ -75,19 +71,19 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   }
 
   get currentProcessor(): UcProcessorName | undefined {
-    return this.#current.processor;
+    return this.#profiler.current.processor;
   }
 
   get currentSchema(): UcSchema | undefined {
-    return this.#current.schema;
+    return this.#profiler.current.schema;
   }
 
   get currentPresentation(): UcPresentationName | undefined {
-    return this.#current.within;
+    return this.#profiler.current.within;
   }
 
   get currentConstraint(): UcFeatureConstraint | undefined {
-    return this.#current.constraint;
+    return this.#profiler.current.constraint;
   }
 
   enable<TOptions>(
@@ -95,44 +91,9 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     options?: TOptions,
     data?: unknown,
   ): this {
-    let getConfig = this.#configs.get(feature) as (() => UccConfig<TOptions>) | undefined;
-
-    if (!getConfig) {
-      getConfig = lazyValue(() => this.createConfig(this.setup, feature));
-      this.#configs.set(feature, getConfig);
-    }
-
-    this.#configureSync({}, () => getConfig!().configure(options!, data));
+    this.#profiler.enableFeature(feature, options!, data);
 
     return this;
-  }
-
-  #configureSync(current: UccProcessor$Current, action: () => void): void {
-    const prev = this.#pushCurrent(current);
-
-    try {
-      action();
-    } finally {
-      this.#current = prev;
-    }
-  }
-
-  async #configureAsync(current: UccProcessor$Current, action: () => Promise<void>): Promise<void> {
-    const prev = this.#pushCurrent(current);
-
-    try {
-      await action();
-    } finally {
-      this.#current = prev;
-    }
-  }
-
-  #pushCurrent(current: UccProcessor$Current): UccProcessor$Current {
-    const prev = this.#current;
-
-    this.#current = current.processor ? current : { ...current, processor: prev.processor };
-
-    return prev;
   }
 
   processModel<T>(model: UcModel<T>, data?: unknown): this {
@@ -220,14 +181,14 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   protected abstract createSetup(): TSetup;
 
   /**
-   * Creates schema processing configuration for just {@link enable enabled} `feature`.
+   * Creates schema processing feature configuration for just {@link enable enabled} `feature`.
    *
    * @param setup - Schema processing setup.
    * @param feature - Enabled feature.
    *
    * @returns Schema processing configuration.
    */
-  protected createConfig<TOptions>(
+  createConfig<TOptions>(
     setup: TSetup,
     feature: UccFeature<TSetup, TOptions>,
   ): UccConfig<TOptions> {

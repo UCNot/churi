@@ -9,12 +9,9 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
-  static uccProcessSchema(
-    setup: UcrxSetup,
-    schema: UcInteger.Schema,
-  ): UccConfig<UcInteger.Variant | undefined> {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcInteger.Variant | undefined> {
     return {
-      configure: variant => {
+      configureSchema: (schema, variant) => {
         setup.useUcrxClass(
           schema,
           (lib, schema: UcInteger.Schema) => new this(lib, schema, variant),
