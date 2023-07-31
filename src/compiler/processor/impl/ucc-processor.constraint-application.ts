@@ -6,29 +6,29 @@ import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccCapability } from '../ucc-capability.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccSetup } from '../ucc-setup.js';
-import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
-import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
+import { UccProcessor$Config } from './ucc-processor.config.js';
+import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
 
 export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
   implements UccCapability.ConstraintApplication<TSetup> {
 
-  readonly #profiler: UccProcessor$Profiler<TSetup>;
+  readonly #config: UccProcessor$Config<TSetup>;
   readonly #schema: UcSchema;
-  readonly #config: UccProcessor$ConstraintConfig;
+  readonly #issue: UccProcessor$ConstraintIssue;
   #applied = 0;
 
   constructor(
-    profiler: UccProcessor$Profiler<TSetup>,
+    config: UccProcessor$Config<TSetup>,
     schema: UcSchema,
-    config: UccProcessor$ConstraintConfig,
+    issue: UccProcessor$ConstraintIssue,
   ) {
-    this.#profiler = profiler;
-    this.#schema = schema;
     this.#config = config;
+    this.#schema = schema;
+    this.#issue = issue;
   }
 
   get setup(): TSetup {
-    return this.#profiler.setup;
+    return this.#config.setup;
   }
 
   get schema(): UcSchema {
@@ -36,19 +36,19 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
   }
 
   get processor(): UcProcessorName {
-    return this.#config.processor;
+    return this.#issue.processor;
   }
 
   get within(): UcPresentationName | undefined {
-    return this.#config.within;
+    return this.#issue.within;
   }
 
   get constraint(): UcFeatureConstraint {
-    return this.#config.constraint;
+    return this.#issue.constraint;
   }
 
   get data(): unknown {
-    return this.#config.data;
+    return this.#issue.data;
   }
 
   isApplied(): boolean {
@@ -68,13 +68,12 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
 
     const {
       schema,
-      constraint: { use, from, with: options },
-      data,
+      constraint: { use, from },
     } = this;
     const { [use]: feature }: { [name: string]: UccFeature<TSetup, unknown> } = await import(from);
 
     if ((mayHaveProperties(feature) && 'uccProcess' in feature) || typeof feature === 'function') {
-      this.#profiler.enableSchema(schema, this.#config, feature, options, data);
+      this.#config.enableSchema(schema, feature, this.#issue);
     } else if (feature === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${this}`);
     } else {
@@ -89,7 +88,7 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
   }
 
   toString(): string {
-    const { use, from } = this.#config.constraint;
+    const { use, from } = this.#issue.constraint;
 
     return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
   }

@@ -2,43 +2,43 @@ import { lazyValue } from '@proc7ts/primitives';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccConfig } from '../ucc-config.js';
 import { UccSetup } from '../ucc-setup.js';
-import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
+import { UccProcessor$Config } from './ucc-processor.config.js';
+import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
-import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 
 export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOptions = never> {
 
   readonly #getConfig: () => UccConfig<TOptions>;
   #autoConfigured = false;
 
-  constructor(getConfig: () => UccConfig<TOptions>) {
-    this.#getConfig = lazyValue(getConfig);
+  constructor(createConfig: () => UccConfig<TOptions>) {
+    this.#getConfig = lazyValue(createConfig);
   }
 
-  configureFeature(
-    profiler: UccProcessor$Profiler<TSetup>,
-    options: TOptions,
-    data: unknown,
-  ): void {
-    this.#configureFeature(profiler, {}, options, data);
+  configureFeature(config: UccProcessor$Config<TSetup>, options: TOptions, data: unknown): void {
+    this.#configureFeature(config, {}, options, data);
   }
 
   configureSchema(
-    profiler: UccProcessor$Profiler<TSetup>,
+    config: UccProcessor$Config<TSetup>,
     schema: UcSchema,
-    constraint: UccProcessor$ConstraintConfig,
-    options: TOptions,
-    data: unknown,
+    issue: UccProcessor$ConstraintIssue,
   ): void {
-    this.#configureFeature(profiler, { processor: constraint.processor });
+    const {
+      processor,
+      constraint: { with: options },
+      data,
+    } = issue;
 
-    profiler.configureSync({ ...constraint, schema }, () => {
-      this.#getConfig().configureSchema?.(schema, options, data);
+    this.#configureFeature(config, { processor });
+
+    config.configure({ ...issue, schema }, () => {
+      this.#getConfig().configureSchema?.(schema, options as TOptions, data);
     });
   }
 
   #configureFeature(
-    profiler: UccProcessor$Profiler<TSetup>,
+    config: UccProcessor$Config<TSetup>,
     current: UccProcessor$Current,
     options?: TOptions,
     data?: unknown,
@@ -51,7 +51,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
       this.#autoConfigured = true;
     }
 
-    profiler.configureSync(current, () => this.#getConfig().configure?.(options!, data));
+    config.configure(current, () => this.#getConfig().configure?.(options!, data));
   }
 
 }

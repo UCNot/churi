@@ -72,15 +72,12 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     return this;
   }
 
-  override createConfig<TOptions>(
-    setup: UcdSetup,
-    feature: UccFeature<UcdSetup, TOptions>,
-  ): UccConfig<TOptions> {
+  override createConfig<TOptions>(feature: UccFeature<UcdSetup, TOptions>): UccConfig<TOptions> {
     if (feature === ucdProcessDefaults) {
       return this.#enableDefault() as UccConfig<TOptions>;
     }
 
-    return super.createConfig(setup, feature);
+    return super.createConfig(feature);
   }
 
   #enableDefault(): UccConfig {
