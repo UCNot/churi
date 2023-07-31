@@ -4,9 +4,9 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import {
   UccTestSetup,
   recordUcTestData,
+  ucTestProcessSchemaRecord,
   ucTestRecord,
   ucTestSubRecord,
-  ucTestSupportSchemaRecord,
 } from '../../spec/ucc-test-setup.js';
 import { UccProcessor } from './ucc-processor.js';
 
@@ -140,7 +140,7 @@ describe('UccProcessor', () => {
           activation.onConstraint(
             {
               processor: 'deserializer',
-              use: ucTestSupportSchemaRecord.name,
+              use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
             async application => {
@@ -176,7 +176,7 @@ describe('UccProcessor', () => {
           activation.onConstraint(
             {
               processor: 'deserializer',
-              use: ucTestSupportSchemaRecord.name,
+              use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
             application => {
@@ -200,7 +200,7 @@ describe('UccProcessor', () => {
           activation.onConstraint(
             {
               processor: 'deserializer',
-              use: ucTestSupportSchemaRecord.name,
+              use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
             application => {
@@ -225,7 +225,7 @@ describe('UccProcessor', () => {
             {
               processor: 'deserializer',
               within: 'charge',
-              use: ucTestSupportSchemaRecord.name,
+              use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
             application => {
@@ -250,7 +250,7 @@ describe('UccProcessor', () => {
             .onConstraint(
               {
                 processor: 'deserializer',
-                use: ucTestSupportSchemaRecord.name,
+                use: ucTestProcessSchemaRecord.name,
                 from: SPEC_MODULE,
               },
               application => {
@@ -266,7 +266,7 @@ describe('UccProcessor', () => {
             .onConstraint(
               {
                 processor: 'deserializer',
-                use: ucTestSupportSchemaRecord.name,
+                use: ucTestProcessSchemaRecord.name,
                 from: SPEC_MODULE,
               },
               ({ setup }) => {

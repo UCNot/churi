@@ -12,14 +12,14 @@ export const WrongFeature = 'WrongFeature';
 export function ucTestRecord(options?: unknown): UcOmniConstraints {
   return {
     deserializer: {
-      use: ucTestSupportSchemaRecord.name,
+      use: ucTestProcessSchemaRecord.name,
       from: SPEC_MODULE,
       with: options,
     },
   };
 }
 
-export function ucTestSupportSchemaRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessSchemaRecord(setup: UccTestSetup): UccConfig<unknown> {
   return {
     configureSchema(_, options) {
       recordUcTestData(setup, options);
@@ -27,7 +27,7 @@ export function ucTestSupportSchemaRecord(setup: UccTestSetup): UccConfig<unknow
   };
 }
 
-export function ucTestSupportFeatureRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessFeatureRecord(setup: UccTestSetup): UccConfig<unknown> {
   return {
     configure(options) {
       recordUcTestData(setup, options);
@@ -38,17 +38,17 @@ export function ucTestSupportFeatureRecord(setup: UccTestSetup): UccConfig<unkno
 export function ucTestSubRecord(options?: unknown): UcOmniConstraints {
   return {
     deserializer: {
-      use: ucTestSupportSubRecord.name,
+      use: ucTestProcessSubRecord.name,
       from: SPEC_MODULE,
       with: options,
     },
   };
 }
 
-export function ucTestSupportSubRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessSubRecord(setup: UccTestSetup): UccConfig<unknown> {
   return {
     configureSchema(_, options) {
-      setup.enable(ucTestSupportFeatureRecord, options);
+      setup.enable(ucTestProcessFeatureRecord, options);
     },
   };
 }

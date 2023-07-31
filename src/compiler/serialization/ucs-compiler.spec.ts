@@ -3,8 +3,8 @@ import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import {
-  UcsSupportNumberWithRadix,
-  UcsSupportRadixNumber,
+  UcsProcessNumberWithRadix,
+  UcsProcessRadixNumber,
 } from '../../spec/write-uc-radix-number.js';
 import { UcsCompiler } from './ucs-compiler.js';
 
@@ -12,7 +12,7 @@ describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
     const compiler = new UcsCompiler({
       models: { writeValue: { model: Number } },
-      features: UcsSupportNumberWithRadix,
+      features: UcsProcessNumberWithRadix,
     });
 
     const { writeValue } = await compiler.evaluate();
@@ -40,7 +40,7 @@ export async function writeValue(stream, value, options) {
     it('fails to serialize unknown schema', async () => {
       const compiler = new UcsCompiler({
         models: { writeValue: { model: { type: 'test-type' } } },
-        features: UcsSupportRadixNumber,
+        features: UcsProcessRadixNumber,
       });
 
       await expect(compiler.generate()).rejects.toThrow(
@@ -55,7 +55,7 @@ export async function writeValue(stream, value, options) {
         type: 'radixNumber',
         where: {
           serializer: {
-            use: 'UcsSupportRadixNumber',
+            use: 'UcsProcessRadixNumber',
             from: SPEC_MODULE,
           },
         },
@@ -73,7 +73,7 @@ export async function writeValue(stream, value, options) {
         type: 'hexNumber',
         where: {
           serializer: {
-            use: 'UcsSupportRadixNumberSchema',
+            use: 'UcsProcessRadixNumberSchema',
             from: SPEC_MODULE,
           },
         },

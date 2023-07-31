@@ -5,7 +5,7 @@ import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportBigInt(setup: UcsSetup): UccConfig<UcBigInt.Variant | void> {
+export function ucsProcessBigInt(setup: UcsSetup): UccConfig<UcBigInt.Variant | void> {
   const configureSchema = (
     target: UcSchema | typeof BigInt,
     variant?: UcBigInt.Variant | void,

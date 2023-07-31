@@ -29,7 +29,7 @@ const UcUnknown$Schema: UcNullable<UcUnknown, UcUnknown.Schema> = {
       from: COMPILER_MODULE,
     },
     serializer: {
-      use: 'ucsSupportUnknown',
+      use: 'ucsProcessUnknown',
       from: COMPILER_MODULE,
     },
   },

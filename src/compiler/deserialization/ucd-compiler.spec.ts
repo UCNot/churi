@@ -2,9 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
+import { ucdProcessTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcdCompiler } from './ucd-compiler.js';
-import { ucdSupportDefaults } from './ucd-support-defaults.js';
+import { ucdProcessDefaults } from './ucd-process-defaults.js';
 
 describe('UcdCompiler', () => {
   describe('features', () => {
@@ -18,12 +18,12 @@ describe('UcdCompiler', () => {
             uccProcess(compiler) {
               return {
                 configure() {
-                  compiler.enable(ucdSupportTimestampFormat);
+                  compiler.enable(ucdProcessTimestampFormat);
                 },
               };
             },
           },
-          ucdSupportDefaults,
+          ucdProcessDefaults,
         ],
       });
 
@@ -40,7 +40,7 @@ describe('UcdCompiler', () => {
         models: {},
         exportDefaults: true,
         features(compiler) {
-          return ucdSupportDefaults(compiler);
+          return ucdProcessDefaults(compiler);
         },
       });
 
@@ -60,7 +60,7 @@ describe('UcdCompiler', () => {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'UcdSupportTimestamp',
+            use: 'UcdProcessTimestamp',
             from: SPEC_MODULE,
           },
         },
@@ -81,7 +81,7 @@ describe('UcdCompiler', () => {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'UcdSupportTimestampSchema',
+            use: 'UcdProcessTimestampSchema',
             from: SPEC_MODULE,
           },
         },
@@ -102,7 +102,7 @@ describe('UcdCompiler', () => {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'ucdSupportTimestampSchema',
+            use: 'ucdProcessTimestampSchema',
             from: SPEC_MODULE,
           },
         },

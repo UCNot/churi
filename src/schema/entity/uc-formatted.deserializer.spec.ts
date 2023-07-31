@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
-import { ucdSupportPlainEntity } from '../../spec/plain.format.js';
+import { ucdProcessPrimitives } from '../../compiler/deserialization/ucd-process-primitives.js';
+import { ucdProcessPlainEntity } from '../../spec/plain.format.js';
 import { parseTokens } from '../../spec/read-chunks.js';
 import {
-  ucdSupportTimestampFormat,
-  ucdSupportTimestampFormatOnly,
+  ucdProcessTimestampFormat,
+  ucdProcessTimestampFormatOnly,
 } from '../../spec/timestamp.format.js';
 import { UC_TOKEN_EXCLAMATION_MARK } from '../../syntax/uc-token.js';
 import { UcErrorInfo } from '../uc-error.js';
@@ -25,7 +25,7 @@ describe('UcFormatted deserializer', () => {
       models: {
         readString: { model: String, mode: 'sync' },
       },
-      features: [ucdSupportPrimitives, ucdSupportPlainEntity],
+      features: [ucdProcessPrimitives, ucdProcessPlainEntity],
     });
     const { readString } = await compiler.evaluate();
 
@@ -36,7 +36,7 @@ describe('UcFormatted deserializer', () => {
       models: {
         readString: { model: String, mode: 'async' },
       },
-      features: [ucdSupportPrimitives, ucdSupportPlainEntity],
+      features: [ucdProcessPrimitives, ucdProcessPlainEntity],
     });
     const { readString } = await compiler.evaluate();
 
@@ -49,7 +49,7 @@ describe('UcFormatted deserializer', () => {
       models: {
         readTimestamp: { model: Number, mode: 'sync' },
       },
-      features: [ucdSupportPrimitives, ucdSupportTimestampFormat],
+      features: [ucdProcessPrimitives, ucdProcessTimestampFormat],
     });
     const now = new Date();
     const { readTimestamp } = await compiler.evaluate();
@@ -61,7 +61,7 @@ describe('UcFormatted deserializer', () => {
       models: {
         readTimestamp: { model: Number, mode: 'sync' },
       },
-      features: [ucdSupportPrimitives, ucdSupportTimestampFormatOnly],
+      features: [ucdProcessPrimitives, ucdProcessTimestampFormatOnly],
     });
 
     await expect(compiler.evaluate()).rejects.toThrow(
@@ -73,7 +73,7 @@ describe('UcFormatted deserializer', () => {
       models: {
         readNumber: { model: Number, mode: 'sync' },
       },
-      features: ucdSupportPrimitives,
+      features: ucdProcessPrimitives,
     });
 
     const { readNumber } = await compiler.evaluate();

@@ -6,7 +6,7 @@ import { UcrxCore$stubBody } from '../rx/impl/ucrx-core.stub.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';
 
-export function ucdSupportInset(setup: UcrxSetup): UccConfig<UcdInsetOptions> {
+export function ucdProcessInset(setup: UcrxSetup): UccConfig<UcdInsetOptions> {
   return {
     configureSchema(schema, { lexer, from, method, args }) {
       const within = setup.currentPresentation;

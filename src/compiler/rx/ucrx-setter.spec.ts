@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../deserialization/ucd-compiler.js';
-import { ucdSupportDefaults } from '../deserialization/ucd-support-defaults.js';
+import { ucdProcessDefaults } from '../deserialization/ucd-process-defaults.js';
 import { UcrxSetter } from './ucrx-setter.js';
 
 describe('UcrxSetter', () => {
@@ -12,7 +12,7 @@ describe('UcrxSetter', () => {
         readValue: { model: Number },
       },
       features: [
-        ucdSupportDefaults,
+        ucdProcessDefaults,
         compiler => ({
           configure() {
             compiler.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));

@@ -1,4 +1,4 @@
-import { UcvStringPattern } from '../../compiler/validation/ucv-support-string-pattern.js';
+import { UcvStringPattern } from '../../compiler/validation/ucv-process-string-pattern.js';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcConstraints } from '../uc-constraints.js';
 import { UcString } from './uc-string.js';
@@ -9,7 +9,7 @@ export function ucItMatches(
 ): UcConstraints<UcString, UcString.Schema> {
   return {
     validator: {
-      use: 'ucvSupportStringPattern',
+      use: 'ucvProcessStringPattern',
       from: COMPILER_MODULE,
       with: [pattern, message] satisfies UcvStringPattern,
     },

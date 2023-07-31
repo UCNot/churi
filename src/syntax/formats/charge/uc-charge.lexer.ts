@@ -1,4 +1,4 @@
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-support-inset.js';
+import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
@@ -269,7 +269,7 @@ export function ucInsetCharge({
 } = {}): UcOmniConstraints {
   return {
     deserializer: {
-      use: 'ucdSupportInset',
+      use: 'ucdProcessInset',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcChargeLexer',

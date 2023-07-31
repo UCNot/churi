@@ -21,7 +21,7 @@ import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportMap(setup: UcsSetup): UccConfig {
+export function ucsProcessMap(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));

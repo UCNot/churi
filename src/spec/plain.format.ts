@@ -15,7 +15,7 @@ export function readPlainFormat(
   return rx.str(`!${format}'${printUcTokens(data)}`, context);
 }
 
-export function ucdSupportPlainEntity(setup: UcdSetup): UccConfig {
+export function ucdProcessPlainEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup.handleFormat('plain', ({ register }) => code => {

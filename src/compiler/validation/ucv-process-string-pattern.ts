@@ -8,7 +8,7 @@ import { ucvValidate } from './ucv-validate.js';
 
 export type UcvStringPattern = [match: RegExp, or?: string | undefined];
 
-export function ucvSupportStringPattern(setup: UcrxSetup): UccConfig<UcvStringPattern> {
+export function ucvProcessStringPattern(setup: UcrxSetup): UccConfig<UcvStringPattern> {
   return {
     configureSchema(schema, [match, or]) {
       setup.modifyUcrxMethod(schema, UcrxCore.str, {

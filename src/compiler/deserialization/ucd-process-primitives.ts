@@ -5,7 +5,7 @@ import { BooleanUcrxClass } from './boolean.ucrx.class.js';
 import { NumberUcrxClass } from './number.ucrx.class.js';
 import { StringUcrxClass } from './string.ucrx.class.js';
 
-export function ucdSupportPrimitives(setup: UcrxSetup): UccConfig {
+export function ucdProcessPrimitives(setup: UcrxSetup): UccConfig {
   return {
     configure() {
       setup

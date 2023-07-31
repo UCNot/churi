@@ -18,8 +18,8 @@ import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsExports, UcsModels } from './ucs-models.js';
+import { ucsProcessDefaults } from './ucs-process-defaults.js';
 import { UcsSetup } from './ucs-setup.js';
-import { ucsSupportDefaults } from './ucs-support-defaults.js';
 
 /**
  * Compiler of schema {@link churi!UcSerializer serializers}.
@@ -180,7 +180,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     const { features } = this.#options;
 
     if (!features) {
-      this.enable(ucsSupportDefaults);
+      this.enable(ucsProcessDefaults);
     }
   }
 

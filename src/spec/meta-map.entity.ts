@@ -25,7 +25,7 @@ export function readMetaMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
   return rx.map(context);
 }
 
-export function ucdSupportMetaMapEntity(setup: UcdSetup): UccConfig {
+export function ucdProcessMetaMapEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup.handleEntity('meta-map', ({ register }) => code => {

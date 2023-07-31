@@ -11,7 +11,7 @@ export type UcvStringLength = [
   or?: string | undefined,
 ];
 
-export function ucvSupportStringLength(setup: UcrxSetup): UccConfig<UcvStringLength> {
+export function ucvProcessStringLength(setup: UcrxSetup): UccConfig<UcvStringLength> {
   return {
     configureSchema(schema, [constraint, than, or]) {
       setup.modifyUcrxMethod(schema, UcrxCore.str, {

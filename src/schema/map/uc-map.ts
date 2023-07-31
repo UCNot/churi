@@ -186,7 +186,7 @@ export function ucMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel exte
           id: UcMap$id,
         },
         serializer: {
-          use: 'ucsSupportMap',
+          use: 'ucsProcessMap',
           from: COMPILER_MODULE,
           id: UcMap$id,
         },

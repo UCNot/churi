@@ -13,19 +13,19 @@ import { ucsFormatBoolean } from './impl/ucs-format-boolean.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
 import { ucsFormatNumber } from './impl/ucs-format-number.js';
 import { UcsFormatter } from './ucs-formatter.js';
+import { ucsProcessBigInt } from './ucs-process-bigint.js';
+import { ucsProcessInteger } from './ucs-process-integer.js';
+import { ucsProcessNumber } from './ucs-process-number.js';
+import { ucsProcessString } from './ucs-process-string.js';
 import { UcsSetup } from './ucs-setup.js';
-import { ucsSupportBigInt } from './ucs-support-bigint.js';
-import { ucsSupportInteger } from './ucs-support-integer.js';
-import { ucsSupportNumber } from './ucs-support-number.js';
-import { ucsSupportString } from './ucs-support-string.js';
 
 export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup>): void {
   activation
-    .enable(ucsSupportPlainTextDefaults)
+    .enable(ucsProcessPlainTextDefaults)
     .onConstraint(
       {
         processor: 'serializer',
-        use: ucsSupportBigInt.name,
+        use: ucsProcessBigInt.name,
         from: COMPILER_MODULE,
       },
       ({ setup, schema, constraint: { with: options } }) => {
@@ -37,7 +37,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
     .onConstraint(
       {
         processor: 'serializer',
-        use: ucsSupportInteger.name,
+        use: ucsProcessInteger.name,
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
@@ -47,7 +47,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
     .onConstraint(
       {
         processor: 'serializer',
-        use: ucsSupportNumber.name,
+        use: ucsProcessNumber.name,
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
@@ -57,7 +57,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
     .onConstraint(
       {
         processor: 'serializer',
-        use: ucsSupportString.name,
+        use: ucsProcessString.name,
         from: COMPILER_MODULE,
       },
       ({ setup, schema }) => {
@@ -66,7 +66,7 @@ export function ucsEnablePlainText(activation: UccCapability.Activation<UcsSetup
     );
 }
 
-function ucsSupportPlainTextDefaults(setup: UcsSetup): UccConfig {
+function ucsProcessPlainTextDefaults(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup

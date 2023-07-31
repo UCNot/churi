@@ -12,7 +12,7 @@ export type UcvNumericRange = [
   or?: string | undefined,
 ];
 
-export function ucvSupportNumericRange(setup: UcrxSetup): UccConfig<UcvNumericRange> {
+export function ucvProcessNumericRange(setup: UcrxSetup): UccConfig<UcvNumericRange> {
   return {
     configureSchema(schema, [constraint, than, or]) {
       let setter: UcrxSetter;

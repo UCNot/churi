@@ -5,7 +5,7 @@ import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatNumber } from './impl/ucs-format-number.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportNumber(setup: UcsSetup): UccConfig<UcNumber.Variant | void> {
+export function ucsProcessNumber(setup: UcsSetup): UccConfig<UcNumber.Variant | void> {
   const configureSchema = (
     target: UcSchema | typeof Number,
     variant?: UcNumber.Variant | void,

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { ucdSupportPrimitives } from '../../compiler/deserialization/ucd-support-primitives.js';
+import { ucdProcessPrimitives } from '../../compiler/deserialization/ucd-process-primitives.js';
 import { parseTokens } from '../../spec/read-chunks.js';
 import { UcErrorInfo } from '../uc-error.js';
 
@@ -19,7 +19,7 @@ describe('UcEntity deserializer', () => {
       models: {
         readNumber: { model: Number, mode: 'async' },
       },
-      features: ucdSupportPrimitives,
+      features: ucdProcessPrimitives,
     });
 
     const { readNumber } = await compiler.evaluate();
@@ -41,7 +41,7 @@ describe('UcEntity deserializer', () => {
       models: {
         readNumber: { model: Number, mode: 'sync' },
       },
-      features: ucdSupportPrimitives,
+      features: ucdProcessPrimitives,
     });
 
     const { readNumber } = await compiler.evaluate();

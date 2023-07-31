@@ -4,7 +4,7 @@ import { UC_MODULE_CHURI, UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportUnknown(setup: UcsSetup): UccConfig {
+export function ucsProcessUnknown(setup: UcsSetup): UccConfig {
   return {
     configure() {
       setup.formatWith('charge', 'unknown', ({ writer, value, asItem }) => {

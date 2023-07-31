@@ -23,10 +23,10 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   typeName: 'date',
 });
 
-export function ucdSupportTimestampFormat(setup: UcdSetup): UccConfig {
+export function ucdProcessTimestampFormat(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdSupportTimestampFormatOnly);
+      setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdProcessTimestampFormatOnly);
     },
   };
 }
@@ -58,7 +58,7 @@ const readTimestampEntityFn = new EsFunction(
   },
 );
 
-export function ucdSupportTimestampFormatOnly(setup: UcdSetup): UccConfig {
+export function ucdProcessTimestampFormatOnly(setup: UcdSetup): UccConfig {
   return {
     configure() {
       setup.handleFormat('timestamp', ({ register, refer }) => code => {
@@ -70,32 +70,32 @@ export function ucdSupportTimestampFormatOnly(setup: UcdSetup): UccConfig {
   };
 }
 
-export const UcdSupportTimestamp: UccFeature.Object<UcdSetup> = {
+export const UcdProcessTimestamp: UccFeature.Object<UcdSetup> = {
   uccProcess(setup) {
     return {
       configure() {
         setup
-          .enable(ucdSupportTimestampFormat)
+          .enable(ucdProcessTimestampFormat)
           .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
       },
     };
   },
 };
 
-export const UcdSupportTimestampSchema: UccFeature.Object<UcdSetup> = {
+export const UcdProcessTimestampSchema: UccFeature.Object<UcdSetup> = {
   uccProcess(setup) {
     return {
       configureSchema() {
-        setup.enable(UcdSupportTimestamp);
+        setup.enable(UcdProcessTimestamp);
       },
     };
   },
 };
 
-export function ucdSupportTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): UccConfig {
+export function ucdProcessTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): UccConfig {
   return {
     configure() {
-      setup.enable(UcdSupportTimestamp);
+      setup.enable(UcdProcessTimestamp);
     },
   };
 }

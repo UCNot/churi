@@ -78,7 +78,7 @@ function UcInteger$createSchema(variant?: UcNumber.Variant): UcInteger.Schema {
         with: variant,
       },
       serializer: {
-        use: 'ucsSupportInteger',
+        use: 'ucsProcessInteger',
         from: COMPILER_MODULE,
         with: variant,
       },

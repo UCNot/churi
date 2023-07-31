@@ -12,7 +12,7 @@ export async function writeUcRadixNumber(writer: UcsWriter, value: number): Prom
   await ucsWriteAsIs(writer, (radix === 16 ? '0x' : '') + value.toString(Number(radix)));
 }
 
-export const UcsSupportNumberWithRadix: UccFeature.Object<UcsSetup> = {
+export const UcsProcessNumberWithRadix: UccFeature.Object<UcsSetup> = {
   uccProcess(compiler) {
     return {
       configure() {
@@ -26,7 +26,7 @@ export const UcsSupportNumberWithRadix: UccFeature.Object<UcsSetup> = {
   },
 };
 
-export const UcsSupportRadixNumber: UccFeature.Object<UcsSetup> = {
+export const UcsProcessRadixNumber: UccFeature.Object<UcsSetup> = {
   uccProcess(compiler) {
     return {
       configure() {
@@ -40,7 +40,7 @@ export const UcsSupportRadixNumber: UccFeature.Object<UcsSetup> = {
   },
 };
 
-export const UcsSupportRadixNumberSchema: UccFeature.Object<UcsSetup> = {
+export const UcsProcessRadixNumberSchema: UccFeature.Object<UcsSetup> = {
   uccProcess(setup) {
     return {
       configureSchema(schema: UcSchema<number>) {

@@ -1,5 +1,5 @@
 import { esEscapeString } from 'esgen';
-import type { UcvNumericRange } from '../../compiler/validation/ucv-support-numeric-range.js';
+import type { UcvNumericRange } from '../../compiler/validation/ucv-process-numeric-range.js';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcConstraints } from '../uc-constraints.js';
 import { UcBigInt } from './uc-bigint.js';
@@ -72,7 +72,7 @@ function ucValidateNumericRange(
 ): UcConstraints<UcNumber, UcNumber.Schema> & UcConstraints<UcBigInt, UcBigInt.Schema> {
   return {
     validator: {
-      use: 'ucvSupportNumericRange',
+      use: 'ucvProcessNumericRange',
       from: COMPILER_MODULE,
       with: options,
       id(): string {

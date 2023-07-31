@@ -1,4 +1,4 @@
-import type { UcvStringLength } from '../../compiler/validation/ucv-support-string-length.js';
+import type { UcvStringLength } from '../../compiler/validation/ucv-process-string-length.js';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcConstraints } from '../uc-constraints.js';
 import { UcString } from './uc-string.js';
@@ -22,7 +22,7 @@ function ucvValidateStringLength(
 ): UcConstraints<UcString, UcString.Schema> {
   return {
     validator: {
-      use: 'ucvSupportStringLength',
+      use: 'ucvProcessStringLength',
       from: COMPILER_MODULE,
       with: options,
     },

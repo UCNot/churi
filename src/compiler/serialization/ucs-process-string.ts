@@ -5,7 +5,7 @@ import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatString } from './impl/ucs-format-string.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportString(setup: UcsSetup): UccConfig<UcString.Variant | void> {
+export function ucsProcessString(setup: UcsSetup): UccConfig<UcString.Variant | void> {
   const configureSchema = (target: UcSchema | typeof String, variant?: UcString.Variant): void => {
     setup.formatWith('charge', target, ucsFormatCharge(ucsFormatString(variant)));
   };

@@ -115,7 +115,7 @@ export function ucBigInt(options?: UcBigInt.Options): UcBigInt.Schema {
                 with: variant,
               },
               serializer: {
-                use: 'ucsSupportBigInt',
+                use: 'ucsProcessBigInt',
                 from: COMPILER_MODULE,
                 with: variant,
               },

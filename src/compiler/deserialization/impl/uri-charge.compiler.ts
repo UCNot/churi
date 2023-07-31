@@ -15,12 +15,13 @@ import { UcrxEntitySetterSignature } from '../../rx/ucrx-entity-setter.js';
 import { UcrxFormattedSetterSignature } from '../../rx/ucrx-formatted-setter.js';
 import { UcrxBeforeMod, UcrxMethod } from '../../rx/ucrx-method.js';
 import { UcrxSetter, UcrxSetterSignature, isUcrxSetter } from '../../rx/ucrx-setter.js';
+import { ucsProcessUnknown } from '../../serialization/ucs-process-unknown.js';
 import { ListUcrxClass } from '../list.ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from '../map.ucrx.class.js';
 import { UcdCompiler } from '../ucd-compiler.js';
 import { UcdLib } from '../ucd-lib.js';
 import { UcdModels } from '../ucd-models.js';
-import { ucdSupportDefaults } from '../ucd-support-defaults.js';
+import { ucdProcessDefaults } from '../ucd-process-defaults.js';
 import { UnknownUcrxClass } from '../unknown.ucrx.class.js';
 
 export class URIChargeCompiler extends UcdCompiler<{
@@ -34,7 +35,7 @@ export class URIChargeCompiler extends UcdCompiler<{
         return {
           configure: () => {
             compiler
-              .enable(ucdSupportDefaults)
+              .enable(ucdProcessDefaults)
               .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema))
               .useUcrxClass(
                 ucList(URICharge$Schema),
@@ -68,12 +69,12 @@ const URICharge$Schema: UcNullable<URICharge> = {
   nullable: true,
   where: {
     deserializer: {
-      use: 'UnknownUcrxClass',
+      use: UnknownUcrxClass.name,
       from: COMPILER_MODULE,
       with: 'charge',
     },
     serializer: {
-      use: 'ucsSupportUnknown',
+      use: ucsProcessUnknown.name,
       from: COMPILER_MODULE,
       with: 'charge',
     },

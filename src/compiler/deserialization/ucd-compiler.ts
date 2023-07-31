@@ -27,8 +27,8 @@ import { UcdHandlerRegistry } from './impl/ucd-handler-registry.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
+import { ucdProcessDefaults } from './ucd-process-defaults.js';
 import { UcdSetup } from './ucd-setup.js';
-import { ucdSupportDefaults } from './ucd-support-defaults.js';
 
 /**
  * Compiler of schema {@link churi!UcDeserializer deserializers}.
@@ -76,7 +76,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     setup: UcdSetup,
     feature: UccFeature<UcdSetup, TOptions>,
   ): UccConfig<TOptions> {
-    if (feature === ucdSupportDefaults) {
+    if (feature === ucdProcessDefaults) {
       return this.#enableDefault() as UccConfig<TOptions>;
     }
 
@@ -90,7 +90,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
   }
 
   #configureDefaults(): void {
-    const defaultConfig = ucdSupportDefaults(this);
+    const defaultConfig = ucdProcessDefaults(this);
 
     this.#entities.configureDefaults();
     this.#formats.configureDefaults();
@@ -277,7 +277,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     const { features } = this.#options;
 
     if (!features) {
-      this.enable(ucdSupportDefaults);
+      this.enable(ucdProcessDefaults);
     }
   }
 
