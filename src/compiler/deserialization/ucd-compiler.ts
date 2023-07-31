@@ -98,7 +98,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure(undefined);
+    defaultConfig.configure(undefined, undefined);
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();

@@ -12,6 +12,7 @@ export interface UccConfig<in TOptions = void> {
    * May be called multiple times.
    *
    * @param options - Configuration options.
+   * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
    */
-  configure(options: TOptions): void;
+  configure(options: TOptions, data: unknown): void;
 }

@@ -37,28 +37,31 @@ export interface UccSetup<in TSetup = unknown> {
    * @typeParam TOptions - Type of schema processing options.
    * @param feature - Feature to enable.
    * @param options - Processing options.
+   * @param data - Custom data to pass to {@link UccConfig#configure schema processing configuration}.
    *
    * @returns `this` instance.
    */
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): this;
+  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions, data?: unknown): this;
 
   /**
    * Enables the given processing `feature` that does not require options.
    *
    * @typeParam TOptions - Type of schema processing options.
    * @param feature - Feature to enable.
+   * @param data - Custom data to pass to {@link UccConfig#configure schema processing configuration}.
    *
    * @returns `this` instance.
    */
-  enable(feature: UccFeature<TSetup, void>): this;
+  enable(feature: UccFeature<TSetup, void>, options?: void, data?: unknown): this;
 
   /**
    * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.
    *
    * @typeParam T - Implied data type.
    * @param model - Target model.
+   * @param data - Custom data to pass to {@link UccConfig#configure schema processing configuration}.
    *
    * @returns `this` instance.
    */
-  processModel<T>(model: UcModel<T>): this;
+  processModel<T>(model: UcModel<T>, data?: unknown): this;
 }

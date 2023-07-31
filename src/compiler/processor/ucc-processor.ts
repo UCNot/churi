@@ -7,6 +7,7 @@ import {
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccProcessor$CapabilityActivation } from './impl/ucc-processor.capability-activation.js';
+import { UccProcessor$ConstraintConfig } from './impl/ucc-processor.constraint-config.js';
 import { UccProcessor$Current } from './impl/ucc-processor.current.js';
 import { UccProcessor$FeatureUse } from './impl/ucc-processor.feature-use.js';
 import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
@@ -89,7 +90,11 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     return this.#current.constraint;
   }
 
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
+  enable<TOptions>(
+    feature: UccFeature<TSetup, TOptions>,
+    options?: TOptions,
+    data?: unknown,
+  ): this {
     let getConfig = this.#configs.get(feature) as (() => UccConfig<TOptions>) | undefined;
 
     if (!getConfig) {
@@ -97,7 +102,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
       this.#configs.set(feature, getConfig);
     }
 
-    this.#configureSync({}, () => getConfig!().configure(options!));
+    this.#configureSync({}, () => getConfig!().configure(options!, data));
 
     return this;
   }
@@ -130,12 +135,12 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     return prev;
   }
 
-  processModel<T>(model: UcModel<T>): this {
+  processModel<T>(model: UcModel<T>, data?: unknown): this {
     const schema = ucSchema(model);
 
-    this.#applyConstraints<T>(schema, undefined, schema.where);
+    this.#applyConstraints<T>(schema, undefined, schema.where, data);
     for (const within of this.schemaIndex.listPresentations(schema.within)) {
-      this.#applyConstraints(schema, within, schema.within![within]);
+      this.#applyConstraints(schema, within, schema.within![within], data);
     }
 
     return this;
@@ -145,21 +150,19 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     schema: UcSchema<T>,
     within: UcPresentationName | undefined,
     constraints: UcConstraints<T> | undefined,
+    data: unknown,
   ): void {
     for (const processor of this.schemaIndex.processors) {
-      for (const feature of asArray(constraints?.[processor])) {
-        this.#useFeature(processor, schema, within, feature);
+      for (const constraint of asArray(constraints?.[processor])) {
+        this.#useFeature(schema, { processor, within, constraint, data });
       }
     }
   }
 
-  #useFeature(
-    processor: UcProcessorName,
-    schema: UcSchema,
-    within: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ): void {
-    const { use: feature, from } = constraint;
+  #useFeature(schema: UcSchema, config: UccProcessor$ConstraintConfig): void {
+    const {
+      constraint: { use: feature, from },
+    } = config;
     const useId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;
     let use = this.#uses.get(useId);
 
@@ -169,7 +172,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
       this.#uses.set(useId, use);
     }
 
-    use.addConfig(processor, within, constraint);
+    use.addConfig(config);
   }
 
   protected async processInstructions(): Promise<void> {

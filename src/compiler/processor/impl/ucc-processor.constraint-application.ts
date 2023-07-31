@@ -7,30 +7,25 @@ import { UccCapability } from '../ucc-capability.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccSchemaFeature } from '../ucc-schema-feature.js';
 import { UccSetup } from '../ucc-setup.js';
+import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
 import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 
 export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
   implements UccCapability.ConstraintApplication<TSetup> {
 
   readonly #profiler: UccProcessor$Profiler<TSetup>;
-  readonly #processor: UcProcessorName;
   readonly #schema: UcSchema;
-  readonly #within: UcPresentationName | undefined;
-  readonly #constraint: UcFeatureConstraint;
+  readonly #config: UccProcessor$ConstraintConfig;
   #applied = 0;
 
   constructor(
     profiler: UccProcessor$Profiler<TSetup>,
-    processor: UcProcessorName,
     schema: UcSchema,
-    within: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
+    config: UccProcessor$ConstraintConfig,
   ) {
     this.#profiler = profiler;
-    this.#processor = processor;
     this.#schema = schema;
-    this.#within = within;
-    this.#constraint = constraint;
+    this.#config = config;
   }
 
   get setup(): TSetup {
@@ -42,15 +37,19 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
   }
 
   get processor(): UcProcessorName {
-    return this.#processor;
+    return this.#config.processor;
   }
 
   get within(): UcPresentationName | undefined {
-    return this.#within;
+    return this.#config.within;
   }
 
   get constraint(): UcFeatureConstraint {
-    return this.#constraint;
+    return this.#config.constraint;
+  }
+
+  get data(): unknown {
+    return this.#config.data;
   }
 
   isApplied(): boolean {
@@ -68,7 +67,10 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
 
     this.#applied = 1;
 
-    const { use, from, with: options } = this.constraint;
+    const {
+      constraint: { use, from, with: options },
+      data,
+    } = this;
 
     const {
       [use]: constraint,
@@ -83,7 +85,7 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
         configured = true;
       }
       if ('uccProcessSchema' in constraint) {
-        constraint.uccProcessSchema(this.setup, this.schema).configure(options);
+        constraint.uccProcessSchema(this.setup, this.schema).configure(options, data);
         configured = true;
       }
 
@@ -92,7 +94,7 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
       }
 
       if (typeof constraint === 'function') {
-        constraint(this.setup, this.schema).configure(options);
+        constraint(this.setup, this.schema).configure(options, data);
 
         return;
       }
@@ -112,7 +114,7 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
   }
 
   toString(): string {
-    const { use, from } = this.#constraint;
+    const { use, from } = this.#config.constraint;
 
     return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
   }

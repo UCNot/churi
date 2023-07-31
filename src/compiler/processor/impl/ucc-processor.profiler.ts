@@ -6,6 +6,7 @@ import { UccFeature } from '../ucc-feature.js';
 import { UccProcessor } from '../ucc-processor.js';
 import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$ConstraintApplication } from './ucc-processor.constraint-application.js';
+import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
 export class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
@@ -60,19 +61,9 @@ export class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     }
   }
 
-  async applyConstraint(
-    processor: UcProcessorName,
-    schema: UcSchema,
-    within: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ): Promise<void> {
-    const application = new UccProcessor$ConstraintApplication(
-      this,
-      processor,
-      schema,
-      within,
-      constraint,
-    );
+  async applyConstraint(schema: UcSchema, config: UccProcessor$ConstraintConfig): Promise<void> {
+    const application = new UccProcessor$ConstraintApplication(this, schema, config);
+    const { processor, within, constraint } = config;
 
     await this.#configure({ processor, schema, within, constraint }, async () => {
       await this.#findHandler(processor, within, constraint)?.(application);

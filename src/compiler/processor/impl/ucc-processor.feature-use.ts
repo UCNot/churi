@@ -1,14 +1,12 @@
-import { UcFeatureConstraint, UcProcessorName } from '../../../schema/uc-constraints.js';
-import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccSetup } from '../ucc-setup.js';
+import { UccProcessor$ConstraintConfig } from './ucc-processor.constraint-config.js';
 import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 
 export class UccProcessor$FeatureUse<in out TSetup extends UccSetup<TSetup>> {
 
   readonly #schema: UcSchema;
-  readonly #constraints: [UcProcessorName, UcPresentationName | undefined, UcFeatureConstraint][] =
-    [];
+  readonly #configs: UccProcessor$ConstraintConfig[] = [];
 
   #applied = false;
   #profiler: UccProcessor$Profiler<TSetup>;
@@ -18,12 +16,8 @@ export class UccProcessor$FeatureUse<in out TSetup extends UccSetup<TSetup>> {
     this.#schema = schema;
   }
 
-  addConfig(
-    processor: UcProcessorName,
-    presentation: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ): void {
-    this.#constraints.push([processor, presentation, constraint]);
+  addConfig(config: UccProcessor$ConstraintConfig): void {
+    this.#configs.push(config);
   }
 
   async apply(): Promise<void> {
@@ -33,8 +27,8 @@ export class UccProcessor$FeatureUse<in out TSetup extends UccSetup<TSetup>> {
 
     this.#applied = true;
 
-    for (const [processor, within, constraint] of this.#constraints) {
-      await this.#profiler.applyConstraint(processor, this.#schema, within, constraint);
+    for (const config of this.#configs) {
+      await this.#profiler.applyConstraint(this.#schema, config);
     }
   }
 

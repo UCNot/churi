@@ -137,6 +137,11 @@ export namespace UccCapability {
     get constraint(): UcFeatureConstraint;
 
     /**
+     * Custom data passed by parent schema processor.
+     */
+    get data(): unknown;
+
+    /**
      * Informs whether the {@link constraint} is {@link apply applied} already.
      *
      * @returns `true` after {@link apply} method call, or `false` otherwise.
