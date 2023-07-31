@@ -1,5 +1,4 @@
-import { asArray, lazyValue, mayHaveProperties } from '@proc7ts/primitives';
-import { esQuoteKey, esStringLiteral } from 'esgen';
+import { asArray, lazyValue } from '@proc7ts/primitives';
 import {
   UcConstraints,
   UcFeatureConstraint,
@@ -7,10 +6,13 @@ import {
 } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UccProcessor$CapabilityActivation } from './impl/ucc-processor.capability-activation.js';
+import { UccProcessor$Current } from './impl/ucc-processor.current.js';
+import { UccProcessor$FeatureUse } from './impl/ucc-processor.feature-use.js';
+import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
 import { UccCapability } from './ucc-capability.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
-import { UccSchemaFeature } from './ucc-schema-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 import { UccSetup } from './ucc-setup.js';
 
@@ -42,14 +44,14 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
    *
    * @param init - Processor initialization options.
    */
-  constructor(init: UccProcessorInit<TSetup>);
+  constructor(init: UccProcessor.Options<TSetup>);
   constructor({
     processors,
     presentations = [],
     capabilities,
     models,
     features,
-  }: UccProcessorInit<TSetup>) {
+  }: UccProcessor.Options<TSetup>) {
     this.#schemaIndex = new UccSchemaIndex(
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
@@ -227,312 +229,38 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
 
 }
 
-/**
- * Schema {@link UccProcessor processor} initialization options.
- *
- * @typeParam TSetup - Schema processing setup type.
- */
-export interface UccProcessorInit<in TSetup extends UccSetup<TSetup>> {
+export namespace UccProcessor {
   /**
-   * Processor names within {@link churi!UcConstraints schema constraints}.
-   */
-  readonly processors: UcProcessorName | readonly UcProcessorName[];
-
-  /**
-   * Schema instance presentation names within {@link churi!UcPresentations presentation constraints}.
+   * Schema {@link UccProcessor processor} initialization options.
    *
-   * All presentations enabled when missing or empty.
+   * @typeParam TSetup - Schema processing setup type.
    */
-  readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
+  export interface Options<in TSetup extends UccSetup<TSetup>> {
+    /**
+     * Processor names within {@link churi!UcConstraints schema constraints}.
+     */
+    readonly processors: UcProcessorName | readonly UcProcessorName[];
 
-  /**
-   * Processor capabilities to activate.
-   */
-  readonly capabilities?: UccCapability<TSetup> | readonly UccCapability<TSetup>[] | undefined;
+    /**
+     * Schema instance presentation names within {@link churi!UcPresentations presentation constraints}.
+     *
+     * All presentations enabled when missing or empty.
+     */
+    readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
 
-  /**
-   * Models with constraints to extract processing instructions from.
-   */
-  readonly models?: readonly UcModel[] | undefined;
+    /**
+     * Processor capabilities to activate.
+     */
+    readonly capabilities?: UccCapability<TSetup> | readonly UccCapability<TSetup>[] | undefined;
 
-  /**
-   * Additional schema processing features to enable and use.
-   */
-  readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
-}
+    /**
+     * Models with constraints to extract processing instructions from.
+     */
+    readonly models?: readonly UcModel[] | undefined;
 
-interface UccProcessor$Current {
-  readonly processor?: UcProcessorName | undefined;
-  readonly schema?: UcSchema | undefined;
-  readonly within?: UcPresentationName | undefined;
-  readonly constraint?: UcFeatureConstraint | undefined;
-}
-
-class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
-
-  readonly #processor: UccProcessor<TSetup>;
-  readonly #init: ((setup: TSetup) => void)[] = [];
-  readonly #configure: (
-    current: UccProcessor$Current,
-    action: () => Promise<void>,
-  ) => Promise<void>;
-
-  readonly #handlers = new Map<string, UccCapability.ConstraintHandler<TSetup>>();
-
-  constructor(
-    processor: UccProcessor<TSetup>,
-    configure: (current: UccProcessor$Current, action: () => Promise<void>) => Promise<void>,
-  ) {
-    this.#processor = processor;
-    this.#configure = configure;
+    /**
+     * Additional schema processing features to enable and use.
+     */
+    readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
   }
-
-  get setup(): TSetup {
-    return this.#processor.setup;
-  }
-
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): void {
-    this.#init.push(setup => setup.enable(feature, options));
-  }
-
-  init(): void {
-    const { setup } = this;
-
-    for (const init of this.#init) {
-      init(setup);
-    }
-  }
-
-  onConstraint(
-    { processor, within, use, from }: UccCapability.ConstraintCriterion,
-    handler: UccCapability.ConstraintHandler<TSetup>,
-  ): void {
-    const handlerId = this.#handlerId(processor, within, use, from);
-    const prevHandler = this.#handlers.get(handlerId);
-
-    if (prevHandler) {
-      this.#handlers.set(handlerId, async application => {
-        await prevHandler(application);
-        await handler(application);
-      });
-    } else {
-      this.#handlers.set(handlerId, handler);
-    }
-  }
-
-  async applyConstraint(
-    processor: UcProcessorName,
-    schema: UcSchema,
-    within: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ): Promise<void> {
-    const application = new UccProcessor$ConstraintApplication(
-      this,
-      processor,
-      schema,
-      within,
-      constraint,
-    );
-
-    await this.#configure({ processor, schema, within, constraint }, async () => {
-      await this.#findHandler(processor, within, constraint)?.(application);
-      if (within) {
-        // Apply any presentation handler.
-        await this.#findHandler(processor, undefined, constraint)?.(application);
-      }
-      if (!application.isIgnored()) {
-        await application.apply();
-      }
-    });
-  }
-
-  #findHandler(
-    processor: UcProcessorName,
-    within: UcPresentationName | undefined,
-    { use, from }: UcFeatureConstraint,
-  ): UccCapability.ConstraintHandler<TSetup> | undefined {
-    return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
-  }
-
-  #handlerId(
-    processor: UcProcessorName,
-    within: UcPresentationName | undefined,
-    use: string,
-    from: string,
-  ): string {
-    return `${processor}(${within} ?? '*'):${use}@${from}`;
-  }
-
-}
-
-class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<TSetup>>
-  implements UccCapability.ConstraintApplication<TSetup> {
-
-  readonly #profiler: UccProcessor$Profiler<TSetup>;
-  readonly #processor: UcProcessorName;
-  readonly #schema: UcSchema;
-  readonly #within: UcPresentationName | undefined;
-  readonly #constraint: UcFeatureConstraint;
-  #applied = 0;
-
-  constructor(
-    profiler: UccProcessor$Profiler<TSetup>,
-    processor: UcProcessorName,
-    schema: UcSchema,
-    within: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ) {
-    this.#profiler = profiler;
-    this.#processor = processor;
-    this.#schema = schema;
-    this.#within = within;
-    this.#constraint = constraint;
-  }
-
-  get setup(): TSetup {
-    return this.#profiler.setup;
-  }
-
-  get schema(): UcSchema {
-    return this.#schema;
-  }
-
-  get processor(): UcProcessorName {
-    return this.#processor;
-  }
-
-  get within(): UcPresentationName | undefined {
-    return this.#within;
-  }
-
-  get constraint(): UcFeatureConstraint {
-    return this.#constraint;
-  }
-
-  isApplied(): boolean {
-    return this.#applied > 0;
-  }
-
-  isIgnored(): boolean {
-    return this.#applied < 0;
-  }
-
-  async apply(): Promise<void> {
-    if (this.isApplied()) {
-      return;
-    }
-
-    this.#applied = 1;
-
-    const { use, from, with: options } = this.constraint;
-
-    const {
-      [use]: constraint,
-    }: { [name: string]: UccFeature<TSetup, unknown> | UccSchemaFeature<TSetup, unknown> } =
-      await import(from);
-
-    if (mayHaveProperties(constraint)) {
-      let configured = false;
-
-      if ('uccProcess' in constraint) {
-        this.setup.enable(constraint, options);
-        configured = true;
-      }
-      if ('uccProcessSchema' in constraint) {
-        constraint.uccProcessSchema(this.setup, this.schema).configure(options);
-        configured = true;
-      }
-
-      if (configured) {
-        return;
-      }
-
-      if (typeof constraint === 'function') {
-        constraint(this.setup, this.schema).configure(options);
-
-        return;
-      }
-    }
-
-    if (constraint === undefined) {
-      throw new ReferenceError(`No such schema processing feature: ${this}`);
-    }
-
-    throw new ReferenceError(`Not a schema processing feature: ${this}`);
-  }
-
-  ignore(): void {
-    if (!this.isApplied()) {
-      this.#applied = -1;
-    }
-  }
-
-  toString(): string {
-    const { use, from } = this.#constraint;
-
-    return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
-  }
-
-}
-
-class UccProcessor$CapabilityActivation<in out TSetup extends UccSetup<TSetup>>
-  implements UccCapability.Activation<TSetup> {
-
-  readonly #profiler: UccProcessor$Profiler<TSetup>;
-
-  constructor(profiler: UccProcessor$Profiler<TSetup>) {
-    this.#profiler = profiler;
-  }
-
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
-    this.#profiler.enable(feature, options!);
-
-    return this;
-  }
-
-  onConstraint(
-    criterion: UccCapability.ConstraintCriterion,
-    handler: UccCapability.ConstraintHandler<TSetup>,
-  ): this {
-    this.#profiler.onConstraint(criterion, handler);
-
-    return this;
-  }
-
-}
-
-class UccProcessor$FeatureUse<in out TSetup extends UccSetup<TSetup>> {
-
-  readonly #schema: UcSchema;
-  readonly #constraints: [UcProcessorName, UcPresentationName | undefined, UcFeatureConstraint][] =
-    [];
-
-  #applied = false;
-  #profiler: UccProcessor$Profiler<TSetup>;
-
-  constructor(profiler: UccProcessor$Profiler<TSetup>, schema: UcSchema) {
-    this.#profiler = profiler;
-    this.#schema = schema;
-  }
-
-  addConfig(
-    processor: UcProcessorName,
-    presentation: UcPresentationName | undefined,
-    constraint: UcFeatureConstraint,
-  ): void {
-    this.#constraints.push([processor, presentation, constraint]);
-  }
-
-  async apply(): Promise<void> {
-    if (this.#applied) {
-      return;
-    }
-
-    this.#applied = true;
-
-    for (const [processor, within, constraint] of this.#constraints) {
-      await this.#profiler.applyConstraint(processor, this.#schema, within, constraint);
-    }
-  }
-
 }
