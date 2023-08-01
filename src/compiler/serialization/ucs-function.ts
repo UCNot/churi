@@ -37,14 +37,17 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     {
       format,
       inset,
+      hostFormat,
     }:
       | {
           format: UcFormatName;
           inset?: undefined;
+          hostFormat?: undefined;
         }
       | {
           format?: undefined;
           inset: UcInsetName;
+          hostFormat: UcFormatName;
         },
     schema: UcSchema,
     args: UcsFormatterSignature.AllValues,
@@ -60,14 +63,14 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       let formatter: UcsFormatter | undefined;
 
       if (inset) {
-        const insetFormatter = lib.insetFormatterFor(inset, schema);
+        const insetFormatter = lib.insetFormatterFor(hostFormat, this.schema, inset, schema);
 
         if (!insetFormatter) {
           onUnknownInset(schema, inset);
         }
 
-        context = this.#contextFor(insetFormatter[0], inset);
-        formatter = insetFormatter[1];
+        context = this.#contextFor(insetFormatter.insetFormat, inset);
+        formatter = insetFormatter.format;
       } else {
         context = this.#contextFor(format);
         formatter = lib.formatterFor(format, schema);
@@ -205,7 +208,13 @@ class UcsFunction$Context implements UcsFormatterContext {
     onUnknownInset?: (schema: UcSchema, inset: UcInsetName) => never,
     onUnknownSchema?: (schema: UcSchema<unknown>, context: UcsFormatterContext) => never,
   ): EsSnippet {
-    return this.#serializer.format({ inset }, schema, args, onUnknownSchema, onUnknownInset);
+    return this.#serializer.format(
+      { inset, hostFormat: this.formatName },
+      schema,
+      args,
+      onUnknownSchema,
+      onUnknownInset,
+    );
   }
 
   toString(): string {

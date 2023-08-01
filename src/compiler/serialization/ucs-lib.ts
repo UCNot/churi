@@ -13,6 +13,7 @@ import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
+import { UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsModels } from './ucs-models.js';
 
 /**
@@ -91,10 +92,12 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   }
 
   insetFormatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    hostFormat: UcFormatName,
+    hostSchema: UcSchema,
     inset: UcInsetName,
     schema: TSchema,
-  ): [UcFormatName, UcsFormatter<T, TSchema>] | undefined {
-    return this.#options.insetFormatterFor?.(inset, schema);
+  ): UcsInsetFormatter<T, TSchema> | undefined {
+    return this.#options.insetFormatterFor?.(hostFormat, hostSchema, inset, schema);
   }
 
   binConst(value: string): EsSymbol {
@@ -135,9 +138,11 @@ export namespace UcsLib {
 
     insetFormatterFor?<T, TSchema extends UcSchema<T>>(
       this: void,
+      hostFormat: UcFormatName,
+      hostSchema: UcSchema,
       inset: UcInsetName,
       schema: TSchema,
-    ): [UcFormatName, UcsFormatter<T, TSchema>] | undefined;
+    ): UcsInsetFormatter<T, TSchema> | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
       this: void,

@@ -2,6 +2,7 @@ export * from './ucs-compiler.js';
 export * from './ucs-export.signature.js';
 export * from './ucs-formatter.js';
 export * from './ucs-function.js';
+export * from './ucs-inset-formatter.js';
 export * from './ucs-lib.js';
 export * from './ucs-models.js';
 export * from './ucs-process-bigint.js';
