@@ -14,10 +14,9 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
    * Formatter provided for particular schema takes precedence over the one provided for the type.
    *
    * @typeParam T - Implied data type.
-   * @typeParam format - Name of target format.
+   * @param format - Name of target format.
    * @param target - Name or class of target value type, or target schema instance.
    * @param formatter - Assigned formatter.
-   * @param insetWrapper - Wrapper of inset formatters to use for target schema.
    *
    * @returns `this` instance.
    */
@@ -25,6 +24,27 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
     formatter: UcsFormatter<T>,
-    insetWrapper?: UcsInsetWrapper,
+  ): this;
+
+  /**
+   * Modifies inset formatters for the given `format`.
+   *
+   * @param format - Name of target format.
+   * @param wrapper - Wrapper to apply to matching inset formatters.
+   */
+  modifyInsets(format: UcFormatName, wrapper: UcsInsetWrapper): this;
+
+  /**
+   * Modifies inset formatters for the given type.
+   *
+   * @typeParam T - Implied data type.
+   * @param format - Name of target format.
+   * @param target - Name or class of target value type, or target schema instance.
+   * @param wrapper - Wrapper to apply to matching inset formatters.
+   */
+  modifyInsets<T>(
+    format: UcFormatName,
+    target: UcSchema<T>['type'] | UcSchema<T>,
+    wrapper: UcsInsetWrapper,
   ): this;
 }

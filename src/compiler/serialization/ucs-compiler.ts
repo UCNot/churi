@@ -33,6 +33,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
 
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #presentations = new Map<UcsPresentationId, Map<string | UcDataType, UcsTypeEntry>>();
+  readonly #insetWrappers = new Map<UcFormatName, UcsInsetWrapper>();
 
   #bootstrapped = false;
 
@@ -58,15 +59,43 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
     formatter: UcsFormatter<T>,
-    insetWrapper?: UcsInsetWrapper,
   ): this {
     const inset = this.currentPresentation as UcInsetName | undefined;
     const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, formatter, insetWrapper);
+      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, formatter);
     } else {
-      this.#typeEntryFor(id, format, target).formatTypeWith(formatter, insetWrapper);
+      this.#typeEntryFor(id, format, target).formatTypeWith(formatter);
+    }
+
+    return this;
+  }
+
+  modifyInsets(format: UcFormatName, wrapper: UcsInsetWrapper): this;
+  modifyInsets<T>(
+    format: UcFormatName,
+    target: UcSchema<T>['type'] | UcSchema<T>,
+    wrapper: UcsInsetWrapper,
+  ): this;
+
+  modifyInsets<T>(
+    format: UcFormatName,
+    targetOrWrapper: UcSchema<T>['type'] | UcSchema<T> | UcsInsetWrapper,
+    wrapper?: UcsInsetWrapper,
+  ): this {
+    if (wrapper) {
+      const target = targetOrWrapper as UcSchema<T>['type'] | UcSchema<T>;
+      const inset = this.currentPresentation as UcInsetName | undefined;
+      const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
+
+      if (typeof target === 'object') {
+        this.#typeEntryFor(id, format, target.type).modifySchemaInsets(target, wrapper);
+      } else {
+        this.#typeEntryFor(id, format, target).modifyTypeInsets(wrapper);
+      }
+    } else {
+      this.#insetWrappers.set(format, targetOrWrapper as UcsInsetWrapper);
     }
 
     return this;
@@ -203,10 +232,10 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   ): UcsInsetFormatter<T, TSchema> | undefined {
     const insetTypeEntry = this.#findTypeEntryFor<T, TSchema>(`inset:${insetName}`, schema.type);
     const insetFormatter = insetTypeEntry?.formatterFor(schema);
-    const insetWrapper = this.#findTypeEntryFor(
-      `format:${hostFormat}`,
-      hostSchema.type,
-    )?.insetWrapperFor(hostSchema);
+    const insetWrapper =
+      this.#findTypeEntryFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
+        hostSchema,
+      ) ?? this.#insetWrappers.get(hostFormat);
 
     if (insetWrapper) {
       return insetWrapper<T, TSchema>({
@@ -249,7 +278,7 @@ class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T
 
   readonly #schemaIndex: UccSchemaIndex;
   readonly #schemaFormatters = new Map<string, UcsFormatter<T, TSchema>>();
-  readonly #insetWrappers = new Map<string, UcsInsetWrapper>();
+  readonly #schemaInsetWrappers = new Map<string, UcsInsetWrapper>();
   #typeFormatter: UcsFormatter<T, TSchema> | undefined;
   #typeInsetWrapper?: UcsInsetWrapper | undefined;
 
@@ -257,25 +286,24 @@ class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T
     this.#schemaIndex = schemaIndex;
   }
 
-  formatTypeWith(
-    formatter: UcsFormatter<T, TSchema>,
-    insetWrapper: UcsInsetWrapper | undefined,
-  ): void {
+  formatTypeWith(formatter: UcsFormatter<T, TSchema>): void {
     this.#typeFormatter = formatter;
-    this.#typeInsetWrapper = insetWrapper;
   }
 
-  formatSchemaWith(
-    schema: TSchema,
-    formatter: UcsFormatter<T, TSchema>,
-    insetWrapper: UcsInsetWrapper | undefined,
-  ): void {
+  modifyTypeInsets(wrapper: UcsInsetWrapper): void {
+    this.#typeInsetWrapper = wrapper;
+  }
+
+  formatSchemaWith(schema: TSchema, formatter: UcsFormatter<T, TSchema>): void {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
     this.#schemaFormatters.set(schemaId, formatter);
-    if (insetWrapper) {
-      this.#insetWrappers.set(schemaId, insetWrapper);
-    }
+  }
+
+  modifySchemaInsets(schema: TSchema, wrapper: UcsInsetWrapper): void {
+    const schemaId = this.#schemaIndex.schemaId(schema);
+
+    this.#schemaInsetWrappers.set(schemaId, wrapper);
   }
 
   formatterFor(schema: TSchema): UcsFormatter<T, TSchema> | undefined {
@@ -287,7 +315,7 @@ class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T
   insetWrapperFor(schema: TSchema): UcsInsetWrapper | undefined {
     const schemaId = this.#schemaIndex.schemaId(schema);
 
-    return this.#insetWrappers.get(schemaId) ?? this.#typeInsetWrapper;
+    return this.#schemaInsetWrappers.get(schemaId) ?? this.#typeInsetWrapper;
   }
 
 }
