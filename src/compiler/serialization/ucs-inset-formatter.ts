@@ -33,11 +33,11 @@ export interface UcsInsetFormatter<out T, out TSchema extends UcSchema<T> = UcSc
  * @returns Either inset formatter, or nothing for unexpected inset.
  */
 export type UcsInsetWrapper = {
-  createInsetFormatter<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>>(
+  wrapInsetFormatter<T = unknown, TSchema extends UcSchema<T> = UcSchema<T>>(
     this: void,
     context: UcsInsetContext<T, TSchema>,
   ): UcsInsetFormatter<T, TSchema> | undefined;
-}['createInsetFormatter'];
+}['wrapInsetFormatter'];
 
 /**
  * Inset formatting context.

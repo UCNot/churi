@@ -72,30 +72,30 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return this;
   }
 
-  modifyInsets(format: UcFormatName, wrapper: UcsInsetWrapper): this;
+  modifyInsets(hostFormat: UcFormatName, wrapper: UcsInsetWrapper): this;
   modifyInsets<T>(
-    format: UcFormatName,
-    target: UcSchema<T>['type'] | UcSchema<T>,
+    hostFormat: UcFormatName,
+    host: UcSchema<T>['type'] | UcSchema<T>,
     wrapper: UcsInsetWrapper,
   ): this;
 
   modifyInsets<T>(
-    format: UcFormatName,
-    targetOrWrapper: UcSchema<T>['type'] | UcSchema<T> | UcsInsetWrapper,
+    hostFormat: UcFormatName,
+    hostOrWrapper: UcSchema<T>['type'] | UcSchema<T> | UcsInsetWrapper,
     wrapper?: UcsInsetWrapper,
   ): this {
     if (wrapper) {
-      const target = targetOrWrapper as UcSchema<T>['type'] | UcSchema<T>;
+      const target = hostOrWrapper as UcSchema<T>['type'] | UcSchema<T>;
       const inset = this.currentPresentation as UcInsetName | undefined;
-      const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
+      const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${hostFormat}`;
 
       if (typeof target === 'object') {
-        this.#typeEntryFor(id, format, target.type).modifySchemaInsets(target, wrapper);
+        this.#typeEntryFor(id, hostFormat, target.type).modifySchemaInsets(target, wrapper);
       } else {
-        this.#typeEntryFor(id, format, target).modifyTypeInsets(wrapper);
+        this.#typeEntryFor(id, hostFormat, target).modifyTypeInsets(wrapper);
       }
     } else {
-      this.#insetWrappers.set(format, targetOrWrapper as UcsInsetWrapper);
+      this.#insetWrappers.set(hostFormat, hostOrWrapper as UcsInsetWrapper);
     }
 
     return this;

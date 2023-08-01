@@ -27,24 +27,24 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
   ): this;
 
   /**
-   * Modifies inset formatters for the given `format`.
+   * Modifies insets of the given format.
    *
-   * @param format - Name of target format.
+   * @param hostFormat - Name of the format containing insets.
    * @param wrapper - Wrapper to apply to matching inset formatters.
    */
-  modifyInsets(format: UcFormatName, wrapper: UcsInsetWrapper): this;
+  modifyInsets(hostFormat: UcFormatName, wrapper: UcsInsetWrapper): this;
 
   /**
-   * Modifies inset formatters for the given type.
+   * Modifies inset of the given type.
    *
    * @typeParam T - Implied data type.
-   * @param format - Name of target format.
-   * @param target - Name or class of target value type, or target schema instance.
+   * @param hostFormat - Name of target format.
+   * @param host - Name or class of value type, or the schema instance containing insets.
    * @param wrapper - Wrapper to apply to matching inset formatters.
    */
   modifyInsets<T>(
-    format: UcFormatName,
-    target: UcSchema<T>['type'] | UcSchema<T>,
+    hostFormat: UcFormatName,
+    host: UcSchema<T>['type'] | UcSchema<T>,
     wrapper: UcsInsetWrapper,
   ): this;
 }
