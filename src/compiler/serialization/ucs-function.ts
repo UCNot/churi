@@ -154,7 +154,7 @@ function UcsFunction$onUnknownSchema(schema: UcSchema, context: UcsFormatterCont
 function UcsFunction$onUnknownInset(schema: UcSchema, inset: UcInsetName): never {
   throw new UnsupportedUcSchemaError(
     schema,
-    `Can not serialize inset "${inset} of type "${ucModelName(schema)}"`,
+    `Can not serialize inset "${inset}" of type "${ucModelName(schema)}"`,
   );
 }
 

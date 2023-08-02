@@ -9,7 +9,8 @@ import { readChunks } from '../../../spec/read-chunks.js';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
 import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
-import { UcURIEncodedLexer, ucInsetURIEncoded } from './uc-uri-encoded.lexer.js';
+import { ucInsetURIEncoded } from './uc-inset-uri-encoded.js';
+import { UcURIEncodedLexer } from './uc-uri-encoded.lexer.js';
 
 describe('UcURIEncodedLexer', () => {
   it('decodes percent-encoded entities', () => {

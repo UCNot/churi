@@ -15,8 +15,8 @@ export class UccProcessor$ConstraintUsage<in out TSetup extends UccSetup<TSetup>
     this.#schema = schema;
   }
 
-  issue(issues: UccProcessor$ConstraintIssue): void {
-    this.#issues.push(issues);
+  issue(issue: UccProcessor$ConstraintIssue): void {
+    this.#issues.push(issue);
   }
 
   async apply(): Promise<void> {

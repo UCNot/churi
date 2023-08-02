@@ -13,7 +13,6 @@ import { UccCapability } from '../processor/ucc-capability.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
-import { UccSetup } from '../processor/ucc-setup.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsInsetFormatter, UcsInsetWrapper } from './ucs-inset-formatter.js';
@@ -32,7 +31,11 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   implements UcsSetup {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #presentations = new Map<UcsPresentationId, Map<string | UcDataType, UcsTypeEntry>>();
+  readonly #presentations = new Map<
+    UcsPresentationId,
+    Map<string | UcDataType, UcsPresentationEntry>
+  >();
+
   readonly #insetWrappers = new Map<UcFormatName, UcsInsetWrapper>();
 
   #bootstrapped = false;
@@ -58,15 +61,15 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   formatWith<T>(
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
-    formatter: UcsFormatter<T>,
+    formatter?: UcsFormatter<T>,
   ): this {
     const inset = this.currentPresentation as UcInsetName | undefined;
     const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(id, format, target.type).formatSchemaWith(target, formatter);
+      this.#presentationFor(id, format, target.type).formatSchemaWith(target, formatter);
     } else {
-      this.#typeEntryFor(id, format, target).formatTypeWith(formatter);
+      this.#presentationFor(id, format, target).formatTypeWith(formatter);
     }
 
     return this;
@@ -90,9 +93,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${hostFormat}`;
 
       if (typeof target === 'object') {
-        this.#typeEntryFor(id, hostFormat, target.type).modifySchemaInsets(target, wrapper);
+        this.#presentationFor(id, hostFormat, target.type).modifySchemaInsets(target, wrapper);
       } else {
-        this.#typeEntryFor(id, hostFormat, target).modifyTypeInsets(wrapper);
+        this.#presentationFor(id, hostFormat, target).modifyTypeInsets(wrapper);
       }
     } else {
       this.#insetWrappers.set(hostFormat, hostOrWrapper as UcsInsetWrapper);
@@ -101,11 +104,11 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return this;
   }
 
-  #typeEntryFor<T, TSchema extends UcSchema<T>>(
+  #presentationFor<T, TSchema extends UcSchema<T>>(
     id: UcsPresentationId,
     format: UcFormatName,
     type: TSchema['type'],
-  ): UcsTypeEntry<T, TSchema> {
+  ): UcsPresentationEntry<T, TSchema> {
     let perType = this.#presentations.get(id);
 
     if (!perType) {
@@ -113,21 +116,21 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       this.#presentations.set(id, perType);
     }
 
-    let typeEntry = perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
+    let typeEntry = perType.get(type) as UcsPresentationEntry<T, TSchema> | undefined;
 
     if (!typeEntry) {
-      typeEntry = new UcsTypeEntry(this.schemaIndex, format);
+      typeEntry = new UcsPresentationEntry(this.schemaIndex, format);
       perType.set(type, typeEntry);
     }
 
     return typeEntry;
   }
 
-  #findTypeEntryFor<T, TSchema extends UcSchema<T>>(
+  #findPresentationFor<T, TSchema extends UcSchema<T>>(
     id: UcsPresentationId,
     type: TSchema['type'],
-  ): UcsTypeEntry<T, TSchema> | undefined {
-    return this.#presentations.get(id)?.get(type) as UcsTypeEntry<T, TSchema> | undefined;
+  ): UcsPresentationEntry<T, TSchema> | undefined {
+    return this.#presentations.get(id)?.get(type) as UcsPresentationEntry<T, TSchema> | undefined;
   }
 
   /**
@@ -219,7 +222,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     format: UcFormatName,
     schema: TSchema,
   ): UcsFormatter<T, TSchema> | undefined {
-    return this.#findTypeEntryFor<T, TSchema>(`format:${format}`, schema.type)?.formatterFor(
+    return this.#findPresentationFor<T, TSchema>(`format:${format}`, schema.type)?.formatterFor(
       schema,
     );
   }
@@ -230,10 +233,20 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     insetName: UcInsetName,
     schema: TSchema,
   ): UcsInsetFormatter<T, TSchema> | undefined {
-    const insetTypeEntry = this.#findTypeEntryFor<T, TSchema>(`inset:${insetName}`, schema.type);
-    const insetFormatter = insetTypeEntry?.formatterFor(schema);
+    const insetPresentationEntry = this.#findPresentationFor<T, TSchema>(
+      `inset:${insetName}`,
+      schema.type,
+    );
+    let insetFormatter: UcsFormatter<T, TSchema> | undefined;
+
+    if (insetPresentationEntry) {
+      insetFormatter =
+        insetPresentationEntry.formatterFor(schema)
+        ?? this.#formatterFor(insetPresentationEntry.format, schema);
+    }
+
     const insetWrapper =
-      this.#findTypeEntryFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
+      this.#findPresentationFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
         hostSchema,
       ) ?? this.#insetWrappers.get(hostFormat);
 
@@ -244,13 +257,15 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
         insetName,
         schema,
         formatter: insetFormatter && {
-          insetFormat: insetTypeEntry!.format,
+          insetFormat: insetPresentationEntry!.format,
           format: insetFormatter,
         },
       });
     }
 
-    return insetFormatter && { insetFormat: insetTypeEntry!.format, format: insetFormatter };
+    return (
+      insetFormatter && { insetFormat: insetPresentationEntry!.format, format: insetFormatter }
+    );
   }
 
 }
@@ -260,7 +275,7 @@ export namespace UcsCompiler {
     readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
     readonly capabilities?:
       | UccCapability<UcsSetup>
-      | readonly UccCapability<UccSetup>[]
+      | readonly UccCapability<UcsSetup>[]
       | undefined;
     readonly models: TModels;
     readonly features?: UccFeature<UcsSetup> | readonly UccFeature<UcsSetup>[] | undefined;
@@ -274,7 +289,7 @@ export namespace UcsCompiler {
 
 type UcsPresentationId = `format:${UcFormatName}` | `inset:${UcInsetName}`;
 
-class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+class UcsPresentationEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schemaIndex: UccSchemaIndex;
   readonly #schemaFormatters = new Map<string, UcsFormatter<T, TSchema>>();
@@ -286,18 +301,22 @@ class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T
     this.#schemaIndex = schemaIndex;
   }
 
-  formatTypeWith(formatter: UcsFormatter<T, TSchema>): void {
-    this.#typeFormatter = formatter;
+  formatTypeWith(formatter: UcsFormatter<T, TSchema> | undefined): void {
+    if (formatter) {
+      this.#typeFormatter = formatter;
+    }
   }
 
   modifyTypeInsets(wrapper: UcsInsetWrapper): void {
     this.#typeInsetWrapper = wrapper;
   }
 
-  formatSchemaWith(schema: TSchema, formatter: UcsFormatter<T, TSchema>): void {
-    const schemaId = this.#schemaIndex.schemaId(schema);
+  formatSchemaWith(schema: TSchema, formatter: UcsFormatter<T, TSchema> | undefined): void {
+    if (formatter) {
+      const schemaId = this.#schemaIndex.schemaId(schema);
 
-    this.#schemaFormatters.set(schemaId, formatter);
+      this.#schemaFormatters.set(schemaId, formatter);
+    }
   }
 
   modifySchemaInsets(schema: TSchema, wrapper: UcsInsetWrapper): void {

@@ -18,7 +18,7 @@ export type UcsFormatter<out T = unknown, out TSchema extends UcSchema<T> = UcSc
     args: UcsFormatterSignature.AllValues,
     schema: TSchema,
     context: UcsFormatterContext,
-  ): EsSnippet | undefined;
+  ): EsSnippet;
 }['format'];
 
 export interface UcsFormatterContext {

@@ -32,7 +32,8 @@ import {
   UcToken,
 } from '../../uc-token.js';
 import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
-import { UcChargeLexer, ucInsetCharge } from './uc-charge.lexer.js';
+import { UcChargeLexer } from './uc-charge.lexer.js';
+import { ucInsetCharge } from './uc-inset-charge.js';
 
 describe('UcChargeLexer', () => {
   let lexer: UcChargeLexer;

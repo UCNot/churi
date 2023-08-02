@@ -16,9 +16,10 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../../uc-token.js';
-import { ucInsetPlainText } from '../plain-text/uc-plain-text.lexer.js';
-import { ucInsetURIEncoded } from '../uri-encoded/uc-uri-encoded.lexer.js';
-import { UcURIParamsLexer, ucInsetURIParams } from './uc-uri-params.lexer.js';
+import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
+import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
+import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
+import { ucInsetURIParams } from './uc-inset-uri-params.js';
 
 describe('UcURIParamsLexer', () => {
   it('recognizes query params', () => {

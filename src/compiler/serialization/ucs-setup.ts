@@ -9,7 +9,7 @@ import { UcsInsetWrapper } from './ucs-inset-formatter.js';
  */
 export interface UcsSetup extends UccSetup<UcsSetup> {
   /**
-   * Assigns formatter to use for `target` value type or schema.
+   * Assigns formatter or format to use for `target` value type or schema.
    *
    * Formatter provided for particular schema takes precedence over the one provided for the type.
    *
@@ -18,12 +18,15 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
    * @param target - Name or class of target value type, or target schema instance.
    * @param formatter - Assigned formatter.
    *
+   * When omitted, the given `format` is assigned instead to {@link currentPresentation current inset}, given the
+   * formatter for that `format` is assigned somewhere else.
+   *
    * @returns `this` instance.
    */
   formatWith<T>(
     format: UcFormatName,
     target: UcSchema<T>['type'] | UcSchema<T>,
-    formatter: UcsFormatter<T>,
+    formatter?: UcsFormatter<T>,
   ): this;
 
   /**
