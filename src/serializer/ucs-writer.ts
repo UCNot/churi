@@ -1,3 +1,4 @@
+import { encodeUcsString } from '../impl/encode-ucs-string.js';
 import { UcSerializer } from '../schema/uc-serializer.js';
 import { UcsMemory } from './ucs-memory.js';
 
@@ -5,14 +6,19 @@ export class UcsWriter {
 
   readonly #writer: WritableStreamDefaultWriter;
   readonly #data: Record<PropertyKey, unknown>;
+  readonly #encodeURI: (this: void, value: string) => string;
   #whenWritten: Promise<unknown> = Promise.resolve();
 
   #memory?: UcsMemory;
   #encoder?: TextEncoder;
 
-  constructor(stream: WritableStream<Uint8Array>, options?: UcSerializer.Options);
-  constructor(stream: WritableStream<Uint8Array>, { data = {} }: UcSerializer.Options = {}) {
+  constructor(stream: WritableStream<Uint8Array>, options?: UcsWriter.Options);
+  constructor(
+    stream: WritableStream<Uint8Array>,
+    { encodeURI = encodeUcsString, data = {} }: UcsWriter.Options = {},
+  ) {
     this.#writer = stream.getWriter();
+    this.#encodeURI = encodeURI;
     this.#data = data;
   }
 
@@ -30,6 +36,10 @@ export class UcsWriter {
 
   get encoder(): TextEncoder {
     return (this.#encoder ??= new TextEncoder());
+  }
+
+  encodeURI(value: string): string {
+    return this.#encodeURI(value);
   }
 
   write(chunk: Uint8Array): void {
@@ -50,4 +60,10 @@ export class UcsWriter {
     await this.#whenWritten;
   }
 
+}
+
+export namespace UcsWriter {
+  export interface Options extends UcSerializer.Options {
+    readonly encodeURI?: (this: void, value: string) => string;
+  }
 }

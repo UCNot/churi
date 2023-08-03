@@ -2,10 +2,9 @@ import { beforeAll, describe, expect, it } from '@jest/globals';
 import { esline } from 'esgen';
 import { UC_MODULE_SPEC } from '../../compiler/impl/uc-modules.js';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
-import { UcsFunction } from '../../compiler/serialization/ucs-function.js';
+import { ucsProcessDefaults } from '../../compiler/serialization/ucs-process-defaults.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucNullable } from '../uc-nullable.js';
-import { UcSchema } from '../uc-schema.js';
 import { UcSerializer } from '../uc-serializer.js';
 import { ucString } from './uc-string.js';
 
@@ -62,18 +61,20 @@ describe('UcString serializer', () => {
     });
     it('writes multiple chunks', async () => {
       const compiler = new UcsCompiler({
+        features: [
+          ucsProcessDefaults,
+          setup => ({
+            configure() {
+              setup.writeWith('charge', ({ stream }) => {
+                const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
+
+                return esline`new ${UcsWriter}(${stream}, 4);`;
+              });
+            },
+          }),
+        ],
         models: {
           writeValue: { model: String },
-        },
-        createSerializer<T, TSchema extends UcSchema<T>>(options: UcsFunction.Options<T, TSchema>) {
-          return new UcsFunction<T, TSchema>({
-            ...options,
-            createWriter({ stream }) {
-              const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
-
-              return esline`new ${UcsWriter}(${stream}, 4);`;
-            },
-          });
         },
       });
       const { writeValue } = await compiler.evaluate();

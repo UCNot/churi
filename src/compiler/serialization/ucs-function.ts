@@ -9,24 +9,21 @@ import { UcsExportSignature } from './ucs-export.signature.js';
 import { UcsFormatter, UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsModels } from './ucs-models.js';
-import { UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
+import { CreateUcsWriterExpr, UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
 
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schema: TSchema;
-  readonly #createWriter: Exclude<UcsFunction.Options<T, TSchema>['createWriter'], undefined>;
+  readonly #createWriterFor: UcsFunction.Options<T, TSchema>['createWriterFor'];
   readonly #formats = new Map<
     UcFormatName | `${UcInsetName}(${UcFormatName})`,
     UcsFunction$Context
   >();
 
   constructor(options: UcsFunction.Options<T, TSchema>);
-  constructor({
-    schema,
-    createWriter = UcsFunction$createWriter,
-  }: UcsFunction.Options<T, TSchema>) {
+  constructor({ schema, createWriterFor }: UcsFunction.Options<T, TSchema>) {
     this.#schema = schema;
-    this.#createWriter = createWriter;
+    this.#createWriterFor = createWriterFor;
   }
 
   get schema(): TSchema {
@@ -88,6 +85,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
   exportFn(
     externalName: string,
+    entry: UcsModels.Entry<TSchema>,
+  ): EsFunction<UcsExportSignature.Args>;
+  exportFn(
+    externalName: string,
     { format = 'charge' }: UcsModels.Entry<TSchema>,
   ): EsFunction<UcsExportSignature.Args> {
     return new EsFunction(externalName, UcsExportSignature, {
@@ -101,7 +102,10 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             code
               .line(
                 writer.declare({
-                  value: () => this.#createWriter({ stream, options }, this),
+                  value: () => (this.#createWriterFor?.(format) ?? UcsFunction$createWriter)(
+                      { stream, options },
+                      this,
+                    ),
                 }),
               )
               .write(`try {`)
@@ -132,7 +136,7 @@ export namespace UcsFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly schema: TSchema;
 
-    createWriter?(this: void, args: UcsWriterSignature.Values, serializer: UcsFunction): EsSnippet;
+    createWriterFor?: ((format: UcFormatName) => CreateUcsWriterExpr | undefined) | undefined;
   }
 }
 

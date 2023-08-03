@@ -1,5 +1,5 @@
 import { encodeURIPart } from 'httongue';
-import { encodeUcsString, isEscapedUcsString } from '../impl/encode-ucs-string.js';
+import { isEscapedUcsString } from '../impl/encode-ucs-string.js';
 import { UCS_APOSTROPHE, UCS_ESCAPED_DOUBLE_HYPHEN } from './ucs-constants.js';
 import { ucsWriteAsIs } from './ucs-write-asis.js';
 import { UcsWriter } from './ucs-writer.js';
@@ -19,12 +19,14 @@ export async function ucsWriteString(
     return;
   }
 
-  if (isEscapedUcsString(value)) {
+  const encoded = ucsWriter.encodeURI(value);
+
+  if (isEscapedUcsString(encoded)) {
     // Always needs to be escaped.
     ucsWriter.write(UCS_APOSTROPHE);
   }
 
-  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, encoded);
 }
 
 export async function ucsWriteRawString(
@@ -42,7 +44,7 @@ export async function ucsWriteRawString(
     return;
   }
 
-  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, ucsWriter.encodeURI(value));
 }
 
 export async function ucsWriteURIEncoded(ucsWriter: UcsWriter, value: string): Promise<void> {
@@ -70,5 +72,5 @@ export async function ucsWriteNullableRawString(
     return;
   }
 
-  await ucsWriteAsIs(ucsWriter, encodeUcsString(value));
+  await ucsWriteAsIs(ucsWriter, ucsWriter.encodeURI(value));
 }

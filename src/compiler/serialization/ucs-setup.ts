@@ -3,6 +3,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSetup } from '../processor/ucc-setup.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetWrapper } from './ucs-inset-formatter.js';
+import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
  * Schema {@link UcsCompiler serializer} setup.
@@ -34,6 +35,8 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
    *
    * @param hostFormat - Name of the format containing insets.
    * @param wrapper - Wrapper to apply to matching inset formatters.
+   *
+   * @returns `this` instance.
    */
   modifyInsets(hostFormat: UcFormatName, wrapper: UcsInsetWrapper): this;
 
@@ -44,10 +47,22 @@ export interface UcsSetup extends UccSetup<UcsSetup> {
    * @param hostFormat - Name of target format.
    * @param host - Name or class of value type, or the schema instance containing insets.
    * @param wrapper - Wrapper to apply to matching inset formatters.
+   *
+   * @returns `this` instance.
    */
   modifyInsets<T>(
     hostFormat: UcFormatName,
     host: UcSchema<T>['type'] | UcSchema<T>,
     wrapper: UcsInsetWrapper,
   ): this;
+
+  /**
+   * Overrides {@link churi/serializer.js!UcsWriter UcsWriter} instantiation for the given `format`.
+   *
+   * @param format - Target format.
+   * @param createWriter - Builds `UcsWriter` instantiation expression.
+   *
+   * @returns `this` instance.
+   */
+  writeWith(format: UcFormatName, createWriter: CreateUcsWriterExpr): this;
 }

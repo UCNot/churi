@@ -8,6 +8,7 @@ import { UccCapability } from '../processor/ucc-capability.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
+import { UcsWriterClass } from './ucs-writer.class.js';
 
 export function ucsSupportURIParams(activation: UccCapability.Activation<UcsSetup>): void {
   activation.onConstraint(
@@ -18,6 +19,16 @@ export function ucsSupportURIParams(activation: UccCapability.Activation<UcsSetu
     },
     ({ setup }) => {
       setup
+        .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
+          const naming = await ns.refer(UcsWriterClass).whenNamed();
+
+          code.line(
+            naming.instantiate({
+              stream,
+              options: esline`{ ...${options}, encodeURI: encodeURIComponent }`,
+            }),
+          );
+        })
         .formatWith(
           'uriParams',
           'map',

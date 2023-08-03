@@ -15,6 +15,7 @@ import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsModels } from './ucs-models.js';
+import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
  * Serializer library allocated by {@link UcsCompiler#bootstrap compiler}.
@@ -77,6 +78,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     if (!serializer) {
       serializer = this.#createSerializer({
         schema,
+        createWriterFor: this.#options.createWriterFor,
       });
       this.#serializers.set(schemaId, serializer);
     }
@@ -130,19 +132,27 @@ export namespace UcsLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
 
-    formatterFor?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      format: UcFormatName,
-      schema: TSchema,
-    ): UcsFormatter<T, TSchema> | undefined;
+    readonly formatterFor?:
+      | (<T, TSchema extends UcSchema<T>>(
+          this: void,
+          format: UcFormatName,
+          schema: TSchema,
+        ) => UcsFormatter<T, TSchema> | undefined)
+      | undefined;
 
-    insetFormatterFor?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      hostFormat: UcFormatName,
-      hostSchema: UcSchema,
-      inset: UcInsetName,
-      schema: TSchema,
-    ): UcsInsetFormatter<T, TSchema> | undefined;
+    readonly insetFormatterFor?:
+      | (<T, TSchema extends UcSchema<T>>(
+          this: void,
+          hostFormat: UcFormatName,
+          hostSchema: UcSchema,
+          inset: UcInsetName,
+          schema: TSchema,
+        ) => UcsInsetFormatter<T, TSchema> | undefined)
+      | undefined;
+
+    readonly createWriterFor?:
+      | ((this: void, format: UcFormatName) => CreateUcsWriterExpr | undefined)
+      | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
       this: void,
