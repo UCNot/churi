@@ -14,9 +14,8 @@ export interface UccConfig<in TOptions = void> {
    * May be called multiple times.
    *
    * @param options - Configuration options.
-   * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
    */
-  configure?(options: TOptions, data: UccConfig.Data): void;
+  configure?(options: TOptions): void;
 
   /**
    * Configures processing of concrete `schema`.
@@ -27,12 +26,5 @@ export interface UccConfig<in TOptions = void> {
    * @param options - Configuration options.
    * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
    */
-  configureSchema?(schema: UcSchema, options: TOptions, data: UccConfig.Data): void;
-}
-
-export namespace UccConfig {
-  /**
-   * Custom data to pass to feature configurations.
-   */
-  export type Data = { readonly [key in PropertyKey]: unknown };
+  configureSchema?(schema: UcSchema, options: TOptions): void;
 }

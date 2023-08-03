@@ -4,7 +4,6 @@ import { UcFeatureConstraint, UcProcessorName } from '../../../schema/uc-constra
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccCapability } from '../ucc-capability.js';
-import { UccConfig } from '../ucc-config.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$Config } from './ucc-processor.config.js';
@@ -46,11 +45,6 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
 
   get constraint(): UcFeatureConstraint {
     return this.#issue.constraint;
-  }
-
-  /* istanbul ignore next */
-  get data(): UccConfig.Data | undefined {
-    return this.#issue.data;
   }
 
   isApplied(): boolean {
