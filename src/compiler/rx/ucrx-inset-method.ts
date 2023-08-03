@@ -9,7 +9,7 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcrxCore$stub } from '../impl/ucrx-core.stub.js';
+import { UcrxCore$stub } from './impl/ucrx-core.stub.js';
 import { UcrxBeforeMod, UcrxMethod, UcrxMethodInit } from './ucrx-method.js';
 import { UcrxClass } from './ucrx.class.js';
 

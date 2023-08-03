@@ -3,7 +3,7 @@ import { asis } from '@proc7ts/primitives';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
 import { parseTokens } from '../../spec/read-chunks.js';
-import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from '../../syntax/formats/charge/uc-charge.lexer.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';

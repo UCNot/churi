@@ -1,4 +1,4 @@
-import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
 import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
@@ -15,11 +15,11 @@ export function readPlainFormat(
   return rx.str(`!${format}'${printUcTokens(data)}`, context);
 }
 
-export function ucdSupportPlainEntity(compiler: UcdCompiler.Any): UccConfig {
+export function ucdProcessPlainEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      compiler.handleFormat('plain', ({ register }) => code => {
-        code.write(register(UC_MODULE_SPEC.import('readPlainFormat')));
+      setup.handleFormat('plain', ({ register }) => code => {
+        code.write(register(UC_MODULE_SPEC.import(readPlainFormat.name)));
       });
     },
   };

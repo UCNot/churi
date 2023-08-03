@@ -92,7 +92,7 @@ export function ucString(options?: UcString.Options): UcString.Schema {
                 with: variant,
               },
               serializer: {
-                use: 'ucsSupportString',
+                use: 'ucsProcessString',
                 from: COMPILER_MODULE,
                 with: variant,
               },

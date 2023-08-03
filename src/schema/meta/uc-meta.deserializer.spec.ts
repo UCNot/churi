@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { EsEvaluationError, esline } from 'esgen';
-import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
+import { URIChargeCompiler } from '../../compiler/deserialization/impl/uri-charge.compiler.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { URICharge } from '../uri-charge/uri-charge.js';
 
 import { UcdCompiler } from '../../compiler/deserialization/ucd-compiler.js';
-import { ucdSupportDefaults } from '../../compiler/deserialization/ucd-support-defaults.js';
-import { ucdSupportMetaMapEntity } from '../../spec/meta-map.entity.js';
+import { ucdProcessDefaults } from '../../compiler/deserialization/ucd-process-defaults.js';
+import { ucdProcessMetaMapEntity } from '../../spec/meta-map.entity.js';
 import { parseTokens } from '../../spec/read-chunks.js';
 import '../../spec/uri-charge-matchers.js';
 import { ucString } from '../string/uc-string.js';
@@ -88,7 +88,7 @@ describe('UcMeta deserializer', () => {
         models: {
           parse: { model: ucUnknown() },
         },
-        features: [ucdSupportDefaults, ucdSupportMetaMapEntity],
+        features: [ucdProcessDefaults, ucdProcessMetaMapEntity],
       });
 
       try {
@@ -139,7 +139,7 @@ describe('UcMeta deserializer', () => {
       const compiler = new UcdCompiler({
         models: { parse: { model: ucUnknown() } },
         features: [
-          ucdSupportDefaults,
+          ucdProcessDefaults,
           compiler => ({
             configure() {
               compiler.parseMetaValue('comment', ucString(), ({ cx, value }) => code => {

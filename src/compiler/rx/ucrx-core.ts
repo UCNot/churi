@@ -1,5 +1,5 @@
 import { EsArg } from 'esgen';
-import { UcrxCore$stub, UcrxCore$stubBody } from '../impl/ucrx-core.stub.js';
+import { UcrxCore$stub, UcrxCore$stubBody } from './impl/ucrx-core.stub.js';
 import { UcrxAttrSetter, UcrxAttrSetterSignature } from './ucrx-attr-setter.js';
 import { UcrxEntitySetter } from './ucrx-entity-setter.js';
 import { UcrxFormattedSetter } from './ucrx-formatted-setter.js';

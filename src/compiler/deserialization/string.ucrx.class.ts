@@ -3,35 +3,30 @@ import { UcString } from '../../schema/string/uc-string.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxProcessor } from '../rx/ucrx-processor.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdCompiler } from './ucd-compiler.js';
 
 export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcString.Schema> {
 
-  static uccProcess(compiler: UcdCompiler.Any): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcString.Variant | void> {
     return {
       configure: () => {
-        compiler.useUcrxClass<UcString, UcString.Schema>(
-          String,
-          (lib, schema) => new this(lib, schema),
+        setup.useUcrxClass(String, (lib, schema: UcString.Schema) => new this(lib, schema));
+      },
+      configureSchema: (schema, variant) => {
+        setup.useUcrxClass(
+          schema,
+          (lib, schema: UcString.Schema) => new this(lib, schema, variant),
         );
       },
     };
   }
 
-  static uccProcessSchema(
-    processor: UcrxProcessor.Any,
+  constructor(
+    lib: UcrxLib,
     schema: UcString.Schema,
-  ): UccConfig<UcString.Variant> {
-    return {
-      configure: variant => {
-        processor.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
-      },
-    };
-  }
-
-  constructor(lib: UcrxLib, schema: UcString.Schema, { raw = 'escape' }: UcString.Variant = {}) {
+    { raw = 'escape' }: UcString.Variant | void = {},
+  ) {
     super({
       lib,
       schema,

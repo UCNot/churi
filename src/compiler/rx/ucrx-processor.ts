@@ -4,36 +4,22 @@ import { UccProcessor } from '../processor/ucc-processor.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
+import { UcrxSetup } from './ucrx-setup.js';
 import { UcrxClass, UcrxClassMod, UcrxProto, UcrxSignature } from './ucrx.class.js';
 
 /**
- * Schema processor utilizing {@link churi!Ucrx charge receiver} code generation.
+ * Setup of schema {@link UcrxProcessor processing} utilizing {@link churi!Ucrx charge receiver} code generation.
  *
- * @typeParam TProcessor - Type of this schema processor.
+ * @typeParam TSetup - Schema processing setup type.
  */
-export abstract class UcrxProcessor<
-  in TProcessor extends UcrxProcessor<TProcessor>,
-> extends UccProcessor<TProcessor> {
+export abstract class UcrxProcessor<in out TSetup extends UcrxSetup<TSetup>>
+  extends UccProcessor<TSetup>
+  implements UcrxSetup<TSetup> {
 
   readonly #perType = new Map<string | UcDataType, UcrxTypeEntry>();
   readonly #methods = new Set<UcrxMethod<any>>();
 
-  /**
-   * Assigns {@link churi!Ucrx Ucrx} class to use for `target` value type or schema processing.
-   *
-   * The class prototype provided for particular schema takes precedence over the one provided for the type.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   * @param target - Name or class of target value type, or target schema instance.
-   * @param proto - Ucrx class prototype.
-   *
-   * @returns `this` instance.
-   */
-  useUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    target: TSchema['type'] | TSchema,
-    proto: UcrxProto<T, TSchema>,
-  ): this {
+  useUcrxClass<T>(target: UcSchema<T>['type'] | UcSchema<T>, proto: UcrxProto<T>): this {
     if (typeof target === 'object') {
       this.#typeEntryFor(target.type).useProtoFor(target, proto);
     } else {
@@ -43,24 +29,12 @@ export abstract class UcrxProcessor<
     return this;
   }
 
-  modifyUcrxClass<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    schema: TSchema,
-    mod: UcrxClassMod<T, TSchema>,
-  ): this {
+  modifyUcrxClass<T>(schema: UcSchema<T>, mod: UcrxClassMod<T>): this {
     this.#typeEntryFor(schema.type).modifyClass(schema, mod);
 
     return this;
   }
 
-  /**
-   * Declares `method` to present in all {@link churi!Ucrx charge receiver} implementations.
-   *
-   * @typeParam TArgs - Type of method arguments definition.
-   * @typeParam TMod - Type of method modifier.
-   * @param method - Declaration of method to add to charge receiver template.
-   *
-   * @returns `this` instance.
-   */
   declareUcrxMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
   ): this {
@@ -69,17 +43,6 @@ export abstract class UcrxProcessor<
     return this;
   }
 
-  /**
-   * Modifies the `method` of the target `type` receiver.
-   *
-   * @typeParam TArgs - Type of method arguments definition.
-   * @typeParam TMod - Type of method modifier.
-   * @param schema - Target schema.
-   * @param method - Method to modify.
-   * @param mod - Modifier to apply to target `method`.
-   *
-   * @returns `this` instance.
-   */
   modifyUcrxMethod<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     schema: UcSchema,
     method: UcrxMethod<TArgs, TMod>,
@@ -114,10 +77,6 @@ export abstract class UcrxProcessor<
     return typeEntry;
   }
 
-}
-
-export namespace UcrxProcessor {
-  export type Any = UcrxProcessor<UcrxProcessor.Any>;
 }
 
 class UcrxTypeEntry<in out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {

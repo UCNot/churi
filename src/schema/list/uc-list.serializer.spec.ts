@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UnsupportedUcSchemaError } from '../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../compiler/serialization/ucs-compiler.js';
+import { UcsModels } from '../../compiler/serialization/ucs-models.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucMap } from '../map/uc-map.js';
 import { UcString, ucString } from '../string/uc-string.js';
@@ -14,7 +15,7 @@ describe('UcList serializer', () => {
   it('serializes list', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList(Number),
+        writeList: { model: ucList(Number) },
       },
     });
 
@@ -27,7 +28,7 @@ describe('UcList serializer', () => {
   it('serializes empty list', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList(Number, { single: 'accept' }),
+        writeList: { model: ucList(Number, { single: 'accept' }) },
       },
     });
 
@@ -38,7 +39,7 @@ describe('UcList serializer', () => {
   it('serializes nulls', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList(ucNullable(Number)),
+        writeList: { model: ucList(ucNullable(Number)) },
       },
     });
 
@@ -51,7 +52,7 @@ describe('UcList serializer', () => {
   it('serializes missing items as nulls', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList(ucOptional(Number)),
+        writeList: { model: ucList(ucOptional(Number)) },
       },
     });
 
@@ -68,7 +69,7 @@ describe('UcList serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<UcString>(String),
+          writeList: { model: ucList<UcString>(String) },
         },
       });
 
@@ -88,7 +89,7 @@ describe('UcList serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<UcString>(ucString({ raw: 'asString' })),
+          writeList: { model: ucList<UcString>(ucString({ raw: 'asString' })) },
         },
       });
 
@@ -108,7 +109,7 @@ describe('UcList serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<UcString | null>(ucNullable(ucString({ raw: 'asString' }))),
+          writeList: { model: ucList<UcString | null>(ucNullable(ucString({ raw: 'asString' }))) },
         },
       });
 
@@ -128,7 +129,9 @@ describe('UcList serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
+          writeList: {
+            model: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
+          },
         },
       });
 
@@ -143,12 +146,12 @@ describe('UcList serializer', () => {
   });
 
   describe('nested list', () => {
-    let compiler: UcsCompiler<{ writeList: UcList.Schema<number[]> }>;
+    let compiler: UcsCompiler<{ writeList: UcsModels.Entry<UcList.Schema<number[]>> }>;
 
     beforeAll(() => {
       compiler = new UcsCompiler({
         models: {
-          writeList: ucList<number[]>(ucList<number>(Number)),
+          writeList: { model: ucList<number[]>(ucList<number>(Number)) },
         },
       });
     });
@@ -182,7 +185,7 @@ describe('UcList serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeList: ucList<number>({ type: 'test-type' }),
+        writeList: { model: ucList<number>({ type: 'test-type' }) },
       },
     });
 
@@ -197,7 +200,7 @@ describe('UcList serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'list$serialize(writer, value, asItem?): Can not serialize list item of type "test-type"',
+      'list$charge(writer, value, asItem?): Can not serialize list item of type "test-type"',
     );
   });
 });

@@ -87,7 +87,7 @@ export function ucNumber(options?: UcNumber.Options): UcNumber.Schema {
                 with: variant,
               },
               serializer: {
-                use: 'ucsSupportNumber',
+                use: 'ucsProcessNumber',
                 from: COMPILER_MODULE,
                 with: variant,
               },

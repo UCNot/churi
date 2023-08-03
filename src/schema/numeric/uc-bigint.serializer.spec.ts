@@ -11,7 +11,7 @@ describe('UcBigInt serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: BigInt,
+          writeValue: { model: BigInt },
         },
       });
 
@@ -32,7 +32,7 @@ describe('UcBigInt serializer', () => {
       beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
-            writeValue: ucBigInt({ string: 'serialize' }),
+            writeValue: { model: ucBigInt({ string: 'serialize' }) },
           },
         });
 
@@ -59,7 +59,7 @@ describe('UcBigInt serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucBigInt({ number: 'serialize' }),
+          writeValue: { model: ucBigInt({ number: 'serialize' }) },
         },
       });
 
@@ -84,7 +84,7 @@ describe('UcBigInt serializer', () => {
       beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
-            writeValue: ucBigInt({ string: 'serialize', number: 'serialize' }),
+            writeValue: { model: ucBigInt({ string: 'serialize', number: 'serialize' }) },
           },
         });
 
@@ -115,7 +115,7 @@ describe('UcBigInt serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucBigInt({ number: 'auto' }),
+          writeValue: { model: ucBigInt({ number: 'auto' }) },
         },
       });
 
@@ -150,7 +150,7 @@ describe('UcBigInt serializer', () => {
       beforeAll(async () => {
         const compiler = new UcsCompiler({
           models: {
-            writeValue: ucBigInt({ string: 'serialize', number: 'auto' }),
+            writeValue: { model: ucBigInt({ string: 'serialize', number: 'auto' }) },
           },
         });
 

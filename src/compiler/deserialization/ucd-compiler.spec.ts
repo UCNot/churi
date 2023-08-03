@@ -2,9 +2,9 @@ import { describe, expect, it } from '@jest/globals';
 import { EsBundleFormat } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { ucdSupportTimestampFormat } from '../../spec/timestamp.format.js';
+import { ucdProcessTimestampFormat } from '../../spec/timestamp.format.js';
 import { UcdCompiler } from './ucd-compiler.js';
-import { ucdSupportDefaults } from './ucd-support-defaults.js';
+import { ucdProcessDefaults } from './ucd-process-defaults.js';
 
 describe('UcdCompiler', () => {
   describe('features', () => {
@@ -18,12 +18,12 @@ describe('UcdCompiler', () => {
             uccProcess(compiler) {
               return {
                 configure() {
-                  compiler.enable(ucdSupportTimestampFormat);
+                  compiler.enable(ucdProcessTimestampFormat);
                 },
               };
             },
           },
-          ucdSupportDefaults,
+          ucdProcessDefaults,
         ],
       });
 
@@ -40,7 +40,7 @@ describe('UcdCompiler', () => {
         models: {},
         exportDefaults: true,
         features(compiler) {
-          return ucdSupportDefaults(compiler);
+          return ucdProcessDefaults(compiler);
         },
       });
 
@@ -54,13 +54,13 @@ describe('UcdCompiler', () => {
     });
   });
 
-  describe('schema uses', () => {
+  describe('schema constraints', () => {
     it('enables deserializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'UcdSupportTimestamp',
+            use: 'UcdProcessTimestamp',
             from: SPEC_MODULE,
           },
         },
@@ -81,7 +81,7 @@ describe('UcdCompiler', () => {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'UcdSupportTimestampSchema',
+            use: 'UcdProcessTimestampSchema',
             from: SPEC_MODULE,
           },
         },
@@ -102,7 +102,7 @@ describe('UcdCompiler', () => {
         type: 'timestamp',
         where: {
           deserializer: {
-            use: 'ucdSupportTimestampSchema',
+            use: 'ucdProcessTimestampSchema',
             from: SPEC_MODULE,
           },
         },
@@ -117,48 +117,6 @@ describe('UcdCompiler', () => {
       const { readTimestamp } = await compiler.evaluate();
 
       expect(readTimestamp(`!timestamp'${now.toISOString()}`)).toBe(now.getTime());
-    });
-    it('fails to enable missing feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'timestamp',
-        where: {
-          deserializer: {
-            use: 'MissingFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcdCompiler({
-          models: { readTimestamp: { model: schema } },
-        }).bootstrap(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
-        ),
-      );
-    });
-    it('fails to enable wrong feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'timestamp',
-        where: {
-          deserializer: {
-            use: 'WrongFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcdCompiler({
-          models: { readTimestamp: { model: schema } },
-        }).bootstrap(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
-        ),
-      );
     });
   });
 

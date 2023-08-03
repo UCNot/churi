@@ -1,6 +1,6 @@
 import { UcrxInsetLexer } from '../rx/ucrx-inset-syntax.js';
 import { Ucrx } from '../rx/ucrx.js';
-import { UcChargeLexer } from '../syntax/lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from '../syntax/formats/charge/uc-charge.lexer.js';
 import { scanUcTokens } from '../syntax/scan-uc-tokens.js';
 import { UcLexer } from '../syntax/uc-lexer.js';
 import { UcToken } from '../syntax/uc-token.js';

@@ -1,6 +1,6 @@
 import { UcValueCompiler } from '#churi/uc-value/compiler.js';
 import { URIChargeCompiler } from '#churi/uri-charge/compiler.js';
-import { UcdCompiler, ucdSupportDefaults } from 'churi/compiler.js';
+import { UcdCompiler, ucdProcessDefaults } from 'churi/compiler.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +26,7 @@ async function emitDeserializerDefaults() {
     exportDefaults: true,
     features(compiler) {
       // Call explicitly rather enable to force default handlers generation.
-      return ucdSupportDefaults(compiler);
+      return ucdProcessDefaults(compiler);
     },
   });
 

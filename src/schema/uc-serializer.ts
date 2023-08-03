@@ -1,5 +1,6 @@
 import { UcBundle } from './uc-bundle.js';
 import { ucModelName } from './uc-model-name.js';
+import { UcFormatName } from './uc-presentations.js';
 import { UcModel } from './uc-schema.js';
 
 /**
@@ -45,6 +46,13 @@ export namespace UcSerializer {
      * Default bundle will be used when omitted.
      */
     readonly bundle?: UcBundle | undefined;
+
+    /**
+     * Name of serialization format.
+     *
+     * @defaultValue `'charge'`
+     */
+    readonly to?: UcFormatName | undefined;
   }
 }
 

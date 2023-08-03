@@ -1,4 +1,4 @@
-import { UcdCompiler } from '../compiler/deserialization/ucd-compiler.js';
+import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
 import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
@@ -25,11 +25,11 @@ export function readMetaMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
   return rx.map(context);
 }
 
-export function ucdSupportMetaMapEntity(compiler: UcdCompiler.Any): UccConfig {
+export function ucdProcessMetaMapEntity(setup: UcdSetup): UccConfig {
   return {
     configure() {
-      compiler.handleEntity('meta-map', ({ register }) => code => {
-        code.write(register(UC_MODULE_SPEC.import('readMetaMap')));
+      setup.handleEntity('meta-map', ({ register }) => code => {
+        code.write(register(UC_MODULE_SPEC.import(readMetaMap.name)));
       });
     },
   };

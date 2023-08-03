@@ -11,10 +11,12 @@ describe('UcMap serializer', () => {
   it('serializes map', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          foo: String,
-          bar: Number,
-        }),
+        writeMap: {
+          model: ucMap({
+            foo: String,
+            bar: Number,
+          }),
+        },
       },
     });
 
@@ -27,14 +29,16 @@ describe('UcMap serializer', () => {
   it('serializes nested map', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          foo: ucMap({
-            test1: Number,
+        writeMap: {
+          model: ucMap({
+            foo: ucMap({
+              test1: Number,
+            }),
+            bar: ucMap({
+              test2: Number,
+            }),
           }),
-          bar: ucMap({
-            test2: Number,
-          }),
-        }),
+        },
       },
     });
 
@@ -49,10 +53,12 @@ describe('UcMap serializer', () => {
   it('serializes list entry', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          foo: ucList(Number),
-          bar: ucList<number[]>(ucList(Number)),
-        }),
+        writeMap: {
+          model: ucMap({
+            foo: ucList(Number),
+            bar: ucList<number[]>(ucList(Number)),
+          }),
+        },
       },
     });
 
@@ -65,9 +71,11 @@ describe('UcMap serializer', () => {
   it('serializes entry with empty key', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          '': String,
-        }),
+        writeMap: {
+          model: ucMap({
+            '': String,
+          }),
+        },
       },
     });
 
@@ -81,13 +89,15 @@ describe('UcMap serializer', () => {
     const specialKey = '(%)\r\n\t\uD83D\uDFB1 ' as const;
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          "'": String,
-          '!': String,
-          $: String,
-          '\\': Number,
-          [specialKey]: String,
-        }),
+        writeMap: {
+          model: ucMap({
+            "'": String,
+            '!': String,
+            $: String,
+            '\\': Number,
+            [specialKey]: String,
+          }),
+        },
       },
     });
 
@@ -108,9 +118,11 @@ describe('UcMap serializer', () => {
   it('serializes nullable entry', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          test: ucNullable(String),
-        }),
+        writeMap: {
+          model: ucMap({
+            test: ucNullable(String),
+          }),
+        },
       },
     });
 
@@ -126,9 +138,11 @@ describe('UcMap serializer', () => {
   it('serializes optional nullable entry', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          test: ucOptional(ucNullable(String)),
-        }),
+        writeMap: {
+          model: ucMap({
+            test: ucOptional(ucNullable(String)),
+          }),
+        },
       },
     });
 
@@ -145,10 +159,12 @@ describe('UcMap serializer', () => {
   it('serializes second entry with empty key', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          first: Number,
-          '': String,
-        }),
+        writeMap: {
+          model: ucMap({
+            first: Number,
+            '': String,
+          }),
+        },
       },
     });
 
@@ -161,10 +177,12 @@ describe('UcMap serializer', () => {
   it('serializes second entry with empty key when first one is optional', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          first: ucOptional(Number),
-          '': String,
-        }),
+        writeMap: {
+          model: ucMap({
+            first: ucOptional(Number),
+            '': String,
+          }),
+        },
       },
     });
 
@@ -180,9 +198,11 @@ describe('UcMap serializer', () => {
   it('does not serialize unrecognized schema', async () => {
     const compiler = new UcsCompiler({
       models: {
-        writeMap: ucMap({
-          test: { type: 'test-type' },
-        }),
+        writeMap: {
+          model: ucMap({
+            test: { type: 'test-type' },
+          }),
+        },
       },
     });
 
@@ -197,7 +217,7 @@ describe('UcMap serializer', () => {
     expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
     expect(error?.schema.type).toBe('test-type');
     expect(error?.message).toBe(
-      'map$serialize(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
+      'map$charge(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
   });
 });

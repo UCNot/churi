@@ -1,15 +1,15 @@
 import { UcsWriter } from './ucs-writer.js';
 
-export async function ucsWriteAsIs(ucsWriter: UcsWriter, value: string): Promise<void> {
-  const { memory, encoder } = ucsWriter;
+export async function ucsWriteAsIs(writer: UcsWriter, value: string): Promise<void> {
+  const { memory, encoder } = writer;
 
   while (
     await memory.use(value.length, async buffer => {
       const { read } = encoder.encodeInto(value, buffer);
 
-      await ucsWriter.ready;
-      ucsWriter.write(buffer);
-      await ucsWriter.written();
+      await writer.ready;
+      writer.write(buffer);
+      await writer.written();
 
       if (read! >= value.length) {
         return false;

@@ -4,35 +4,30 @@ import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxProcessor } from '../rx/ucrx-processor.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdCompiler } from './ucd-compiler.js';
 
 export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcNumber.Schema> {
 
-  static uccProcess(compiler: UcdCompiler.Any): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig<UcNumber.Variant | void> {
     return {
       configure: () => {
-        compiler.useUcrxClass<UcNumber, UcNumber.Schema>(
-          Number,
-          (lib, schema) => new this(lib, schema),
+        setup.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
+      },
+      configureSchema: (schema, variant) => {
+        setup.useUcrxClass(
+          schema,
+          (lib, schema: UcNumber.Schema) => new this(lib, schema, variant),
         );
       },
     };
   }
 
-  static uccProcessSchema(
-    processor: UcrxProcessor.Any,
+  constructor(
+    lib: UcrxLib,
     schema: UcNumber.Schema,
-  ): UccConfig<UcNumber.Variant> {
-    return {
-      configure: variant => {
-        processor.useUcrxClass(schema, (lib, schema) => new this(lib, schema, variant));
-      },
-    };
-  }
-
-  constructor(lib: UcrxLib, schema: UcNumber.Schema, { string = 'parse' }: UcNumber.Variant = {}) {
+    { string = 'parse' }: UcNumber.Variant | void = {},
+  ) {
     super({
       lib,
       schema,

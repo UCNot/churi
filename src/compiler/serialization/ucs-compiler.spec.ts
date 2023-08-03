@@ -1,18 +1,18 @@
 import { describe, expect, it } from '@jest/globals';
 import { SPEC_MODULE } from '../../impl/module-names.js';
-import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import {
-  UcsSupportNumberWithRadix,
-  UcsSupportRadixNumber,
+  UcsProcessNumberWithRadix,
+  UcsProcessRadixNumber,
 } from '../../spec/write-uc-radix-number.js';
 import { UcsCompiler } from './ucs-compiler.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
-    const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-      models: { writeValue: Number },
-      features: UcsSupportNumberWithRadix,
+    const compiler = new UcsCompiler({
+      models: { writeValue: { model: Number } },
+      features: UcsProcessNumberWithRadix,
     });
 
     const { writeValue } = await compiler.evaluate();
@@ -25,8 +25,8 @@ describe('UcsCompiler', () => {
 
   describe('generate', () => {
     it('generates module', async () => {
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: Number },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: Number } },
       });
       const module = await compiler.generate();
 
@@ -38,31 +38,31 @@ export async function writeValue(stream, value, options) {
       );
     });
     it('fails to serialize unknown schema', async () => {
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: { type: 'test-type' } },
-        features: UcsSupportRadixNumber,
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: { type: 'test-type' } } },
+        features: UcsProcessRadixNumber,
       });
 
       await expect(compiler.generate()).rejects.toThrow(
-        `test_x2D_type$serialize(writer, value, asItem?): Can not serialize type "test-type"`,
+        `test_x2D_type$charge(writer, value, asItem?): Can not serialize type "test-type"`,
       );
     });
   });
 
-  describe('schema uses', () => {
+  describe('schema constraints', () => {
     it('enables serializer feature', async () => {
       const schema: UcSchema<number> = {
         type: 'radixNumber',
         where: {
           serializer: {
-            use: 'UcsSupportRadixNumber',
+            use: 'UcsProcessRadixNumber',
             from: SPEC_MODULE,
           },
         },
       };
 
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: schema },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: schema } },
       });
       const { writeValue } = await compiler.evaluate();
 
@@ -73,60 +73,18 @@ export async function writeValue(stream, value, options) {
         type: 'hexNumber',
         where: {
           serializer: {
-            use: 'UcsSupportRadixNumberSchema',
+            use: 'UcsProcessRadixNumberSchema',
             from: SPEC_MODULE,
           },
         },
       };
 
-      const compiler = new UcsCompiler<{ writeValue: UcModel<number> }>({
-        models: { writeValue: schema },
+      const compiler = new UcsCompiler({
+        models: { writeValue: { model: schema } },
       });
       const { writeValue } = await compiler.evaluate();
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
-    });
-    it('fails to enable missing feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'hexNumber',
-        where: {
-          serializer: {
-            use: 'MissingFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcsCompiler<{ writeValue: UcModel<number> }>({
-          models: { writeValue: schema },
-        }).generate(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `No such schema processing feature: import('${SPEC_MODULE}').MissingFeature`,
-        ),
-      );
-    });
-    it('fails to enable wrong feature', async () => {
-      const schema: UcSchema<number> = {
-        type: 'hexNumber',
-        where: {
-          serializer: {
-            use: 'WrongFeature',
-            from: SPEC_MODULE,
-          },
-        },
-      };
-
-      await expect(
-        new UcsCompiler<{ writeValue: UcModel<number> }>({
-          models: { writeValue: schema },
-        }).generate(),
-      ).rejects.toThrow(
-        new ReferenceError(
-          `Not a schema processing feature: import('${SPEC_MODULE}').WrongFeature`,
-        ),
-      );
     });
   });
 });

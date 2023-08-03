@@ -1,4 +1,4 @@
-import { UcPresentationName } from '../../schema/uc-presentations.js';
+import { UcSchema } from '../../schema/uc-schema.js';
 
 /**
  * Schema processing configuration.
@@ -14,17 +14,17 @@ export interface UccConfig<in TOptions = void> {
    * May be called multiple times.
    *
    * @param options - Configuration options.
-   * @param context - Configuration context.
    */
-  configure(options: TOptions, context: UccConfigContext): void;
-}
+  configure?(options: TOptions): void;
 
-/**
- * Schema processing configuration context.
- */
-export interface UccConfigContext {
   /**
-   * Presentation name the feature is applied in.
+   * Configures processing of concrete `schema`.
+   *
+   * May be called multiple times.
+   *
+   * @param schema - Schema which processing
+   * @param options - Configuration options.
+   * @param data - Custom data passed by parent schema processor. `undefined` for top-level schemas.
    */
-  readonly within?: UcPresentationName | undefined;
+  configureSchema?(schema: UcSchema, options: TOptions): void;
 }

@@ -7,26 +7,37 @@ import {
   esEvaluate,
   esGenerate,
 } from 'esgen';
-import { UcDataType, UcInfer, UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UcSerializer } from '../../schema/uc-serializer.js';
-import { ucsCheckConstraints } from '../impl/ucs-check-constraints.js';
+import { UcFormatName, UcInsetName, UcPresentationName } from '../../schema/uc-presentations.js';
+import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
+import { UccCapability } from '../processor/ucc-capability.js';
 import { UccFeature } from '../processor/ucc-feature.js';
 import { UccProcessor } from '../processor/ucc-processor.js';
-import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UcsPresentationConfig } from './impl/ucs-presentation-config.js';
+import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsGenerator } from './ucs-generator.js';
+import { UcsInsetFormatter, UcsInsetRequest, UcsInsetWrapper } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
-import { ucsSupportDefaults } from './ucs-support-defaults.js';
+import { UcsExports, UcsModels } from './ucs-models.js';
+import { ucsProcessDefaults } from './ucs-process-defaults.js';
+import { UcsSetup } from './ucs-setup.js';
+import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
  * Compiler of schema {@link churi!UcSerializer serializers}.
  *
  * @typeParam TModels - Compiled models record type.
  */
-export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProcessor<UcsCompiler> {
+export class UcsCompiler<TModels extends UcsModels = UcsModels>
+  extends UccProcessor<UcsSetup>
+  implements UcsSetup {
 
   readonly #options: UcsCompiler.Options<TModels>;
-  readonly #perType = new Map<string | UcDataType, UcsTypeEntry>();
+  readonly #presentations = new Map<
+    UcsPresentationId,
+    Map<string | UcDataType, UcsPresentationConfig>
+  >();
+
+  readonly #formatConfigs = new Map<UcFormatName, UcsFormatConfig>();
 
   #bootstrapped = false;
 
@@ -36,57 +47,112 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
    * @param options - Setup options.
    */
   constructor(options: UcsCompiler.Options<TModels>) {
-    const { models, features } = options;
-
     super({
+      ...options,
       processors: 'serializer',
-      models: Object.values(models),
-      features,
     });
 
     this.#options = options;
   }
 
-  /**
-   * Assigns serialization code generator to use for `target` value type or schema.
-   *
-   * Generator provided for particular schema takes precedence over the one provided for the type.
-   *
-   * @typeParam T - Implied data type.
-   * @typeParam TSchema - Schema type.
-   * @param target - Name or class of target value type, or target schema instance.
-   * @param generator - Assigned generator.
-   *
-   * @returns `this` instance.
-   */
-  useUcsGenerator<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    target: TSchema['type'] | TSchema,
-    generator: UcsGenerator<T, TSchema>,
-  ): this {
-    const fullGenerator: UcsGenerator<T, TSchema> = (fn, schema, args) => {
-      const onValue = generator(fn, schema, args);
+  protected override createSetup(): UcsSetup {
+    return this;
+  }
 
-      return onValue && ucsCheckConstraints(fn, schema, args.value, onValue);
-    };
+  formatWith<T>(
+    format: UcFormatName,
+    target: UcSchema<T>['type'] | UcSchema<T>,
+    formatter?: UcsFormatter<T>,
+  ): this {
+    const inset = this.currentPresentation as UcInsetName | undefined;
+    const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
 
     if (typeof target === 'object') {
-      this.#typeEntryFor(target.type).useGeneratorFor(target, fullGenerator);
+      this.#presentationFor(id, format, target.type).formatSchemaWith(target, formatter);
     } else {
-      this.#typeEntryFor(target).useGenerator(fullGenerator);
+      this.#presentationFor(id, format, target).formatTypeWith(formatter);
     }
 
     return this;
   }
 
-  #typeEntryFor<T, TSchema extends UcSchema<T>>(type: TSchema['type']): UcsTypeEntry<T, TSchema> {
-    let typeEntry = this.#perType.get(type) as UcsTypeEntry<T, TSchema> | undefined;
+  modifyInsets(hostFormat: UcFormatName, wrapper: UcsInsetWrapper): this;
+  modifyInsets<T>(
+    hostFormat: UcFormatName,
+    host: UcSchema<T>['type'] | UcSchema<T>,
+    wrapper: UcsInsetWrapper,
+  ): this;
 
-    if (!typeEntry) {
-      typeEntry = new UcsTypeEntry(this.schemaIndex);
-      this.#perType.set(type, typeEntry);
+  modifyInsets<T>(
+    hostFormat: UcFormatName,
+    hostOrWrapper: UcSchema<T>['type'] | UcSchema<T> | UcsInsetWrapper,
+    wrapper?: UcsInsetWrapper,
+  ): this {
+    // istanbul ignore else
+    if (wrapper) {
+      const target = hostOrWrapper as UcSchema<T>['type'] | UcSchema<T>;
+      const inset = this.currentPresentation as UcInsetName | undefined;
+      const id: UcsPresentationId = inset
+        ? /* istanbul ignore next */ `inset:${inset}`
+        : `format:${hostFormat}`;
+
+      // istanbul ignore if
+      if (typeof target === 'object') {
+        this.#presentationFor(id, hostFormat, target.type).modifySchemaInsets(target, wrapper);
+      } else {
+        this.#presentationFor(id, hostFormat, target).modifyTypeInsets(wrapper);
+      }
+    } else {
+      this.#formatConfigFor(hostFormat).insetWrapper = hostOrWrapper as UcsInsetWrapper;
     }
 
-    return typeEntry;
+    return this;
+  }
+
+  #formatConfigFor(format: UcFormatName): UcsFormatConfig {
+    let config = this.#formatConfigs.get(format);
+
+    if (!config) {
+      config = {};
+      this.#formatConfigs.set(format, config);
+    }
+
+    return config;
+  }
+
+  #presentationFor<T, TSchema extends UcSchema<T>>(
+    id: UcsPresentationId,
+    format: UcFormatName,
+    type: TSchema['type'],
+  ): UcsPresentationConfig<T, TSchema> {
+    let perType = this.#presentations.get(id);
+
+    if (!perType) {
+      perType = new Map();
+      this.#presentations.set(id, perType);
+    }
+
+    let typeConfig = perType.get(type);
+
+    if (!typeConfig) {
+      typeConfig = new UcsPresentationConfig(this.schemaIndex, format);
+      perType.set(type, typeConfig);
+    }
+
+    return typeConfig as UcsPresentationConfig<T, TSchema>;
+  }
+
+  #findPresentationFor<T, TSchema extends UcSchema<T>>(
+    id: UcsPresentationId,
+    type: TSchema['type'],
+  ): UcsPresentationConfig<T, TSchema> | undefined {
+    return this.#presentations.get(id)?.get(type) as UcsPresentationConfig<T, TSchema> | undefined;
+  }
+
+  writeWith(format: UcFormatName, createWriter: CreateUcsWriterExpr): this {
+    this.#formatConfigFor(format).createWriter = createWriter;
+
+    return this;
   }
 
   /**
@@ -145,13 +211,15 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
   async bootstrapOptions(): Promise<UcsLib.Options<TModels>> {
     await this.#bootstrap();
 
-    const { createSerializer = options => new UcsFunction(options) } = this.#options;
-
     return {
       ...this.#options,
       schemaIndex: this.schemaIndex,
-      generatorFor: this.#generatorFor.bind(this),
-      createSerializer,
+      findFormatter: this.#formatterFor.bind(this),
+      findInsetFormatter: this.#findInsetFormatter.bind(this),
+      createWriter: format => this.#formatConfigs.get(format)?.createWriter,
+      createSerializer(options) {
+        return new UcsFunction(options);
+      },
     };
   }
 
@@ -169,62 +237,75 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels> extends UccProce
     const { features } = this.#options;
 
     if (!features) {
-      this.enable(ucsSupportDefaults);
+      this.enable(ucsProcessDefaults);
     }
   }
 
-  #generatorFor<T, TSchema extends UcSchema<T>>(
+  #formatterFor<T, TSchema extends UcSchema<T>>(
+    format: UcFormatName,
     schema: TSchema,
-  ): UcsGenerator<T, TSchema> | undefined {
-    return this.#typeEntryFor<T, TSchema>(schema.type).generatorFor(schema);
+  ): UcsFormatter<T, TSchema> | undefined {
+    return this.#findPresentationFor<T, TSchema>(`format:${format}`, schema.type)?.formatterFor(
+      schema,
+    );
+  }
+
+  #findInsetFormatter<T, TSchema extends UcSchema<T>>(
+    lib: UcsLib,
+    request: UcsInsetRequest<T, TSchema>,
+  ): UcsInsetFormatter<T, TSchema> | undefined {
+    const { hostFormat, hostSchema, insetName, insetSchema: schema } = request;
+    const insetPresentationConfig = this.#findPresentationFor<T, TSchema>(
+      `inset:${insetName}`,
+      schema.type,
+    );
+    let insetFormatter: UcsFormatter<T, TSchema> | undefined;
+
+    if (insetPresentationConfig) {
+      insetFormatter =
+        insetPresentationConfig.formatterFor(schema)
+        ?? this.#formatterFor(insetPresentationConfig.format, schema);
+    }
+
+    const insetWrapper =
+      this.#findPresentationFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
+        hostSchema,
+      ) ?? /* istanbul ignore next */ this.#formatConfigs.get(hostFormat)?.insetWrapper;
+
+    if (insetWrapper) {
+      return insetWrapper<T, TSchema>({
+        lib,
+        ...request,
+        formatter: insetFormatter && {
+          insetFormat: insetPresentationConfig!.format,
+          format: insetFormatter,
+        },
+      });
+    }
+
+    // istanbul ignore next
+    return (
+      insetFormatter && { insetFormat: insetPresentationConfig!.format, format: insetFormatter }
+    );
   }
 
 }
 
 export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
+    readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
+    readonly capabilities?:
+      | UccCapability<UcsSetup>
+      | readonly UccCapability<UcsSetup>[]
+      | undefined;
     readonly models: TModels;
-    readonly features?: UccFeature<UcsCompiler> | readonly UccFeature<UcsCompiler>[] | undefined;
-
-    createSerializer?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      options: UcsFunction.Options<T, TSchema>,
-    ): UcsFunction<T, TSchema>;
+    readonly features?: UccFeature<UcsSetup> | readonly UccFeature<UcsSetup>[] | undefined;
   }
 }
 
-export interface UcsModels {
-  readonly [writer: string]: UcModel;
-}
+type UcsPresentationId = `format:${UcFormatName}` | `inset:${UcInsetName}`;
 
-export type UcsExports<out TModels extends UcsModels> = {
-  readonly [writer in keyof TModels]: UcSerializer<UcInfer<TModels[writer]>>;
-};
-
-class UcsTypeEntry<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-
-  readonly #schemaIndex: UccSchemaIndex;
-  readonly #perSchema = new Map<string, UcsGenerator<T, TSchema>>();
-  #generator: UcsGenerator<T, TSchema> | undefined;
-
-  constructor(schemaIndex: UccSchemaIndex) {
-    this.#schemaIndex = schemaIndex;
-  }
-
-  useGenerator(generator: UcsGenerator<T, TSchema>): void {
-    this.#generator = generator;
-  }
-
-  useGeneratorFor(schema: TSchema, generator: UcsGenerator<T, TSchema>): void {
-    const schemaId = this.#schemaIndex.schemaId(schema);
-
-    this.#perSchema.set(schemaId, generator);
-  }
-
-  generatorFor(schema: TSchema): UcsGenerator<T, TSchema> | undefined {
-    const schemaId = this.#schemaIndex.schemaId(schema);
-
-    return this.#perSchema.get(schemaId) ?? this.#generator;
-  }
-
+interface UcsFormatConfig {
+  insetWrapper?: UcsInsetWrapper | undefined;
+  createWriter?: CreateUcsWriterExpr | undefined;
 }

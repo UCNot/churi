@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { URIChargeCompiler } from '../../compiler/impl/uri-charge.compiler.js';
+import { URIChargeCompiler } from '../../compiler/deserialization/impl/uri-charge.compiler.js';
 import '../../spec/uri-charge-matchers.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { URICharge } from './uri-charge.js';

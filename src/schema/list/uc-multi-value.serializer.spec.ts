@@ -11,7 +11,7 @@ describe('UcMultiValue serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucMultiValue(Number),
+          writeList: { model: ucMultiValue(Number) },
         },
       });
 
@@ -40,7 +40,7 @@ describe('UcMultiValue serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeList: ucMultiValue(Number, { single: 'prefer' }),
+          writeList: { model: ucMultiValue(Number, { single: 'prefer' }) },
         },
       });
 

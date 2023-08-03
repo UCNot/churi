@@ -10,7 +10,7 @@ export default new ProjectConfig({
           default: './dist/churi.core.js',
         },
         './churi.uc-value.compiler.js': {
-          source: './src/compiler/impl/uc-value.compiler.ts',
+          source: './src/compiler/deserialization/impl/uc-value.compiler.ts',
           default: './dist/churi.uc-value.compiler.js',
         },
         './churi.uri-charge.js': {
@@ -18,7 +18,7 @@ export default new ProjectConfig({
           default: './dist/churi.uri-charge.js',
         },
         './churi.uri-charge.compiler.js': {
-          source: './src/compiler/impl/uri-charge.compiler.ts',
+          source: './src/compiler/deserialization/impl/uri-charge.compiler.ts',
           default: './dist/churi.uri-charge.compiler.js',
         },
       },

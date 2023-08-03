@@ -11,7 +11,7 @@ describe('UcInteger serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucInteger(),
+          writeValue: { model: ucInteger() },
         },
       });
 
@@ -30,7 +30,7 @@ describe('UcInteger serializer', () => {
     beforeAll(async () => {
       const compiler = new UcsCompiler({
         models: {
-          writeValue: ucInteger({ string: 'serialize' }),
+          writeValue: { model: ucInteger({ string: 'serialize' }) },
         },
       });
 

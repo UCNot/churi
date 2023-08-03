@@ -33,7 +33,7 @@ export function createUcListSchema<TItem, TItemSchema extends UcSchema<TItem> = 
           id: UcList$id,
         },
         serializer: {
-          use: 'ucsSupportList',
+          use: 'ucsProcessList',
           from: COMPILER_MODULE,
           with: options,
           id: UcList$id,

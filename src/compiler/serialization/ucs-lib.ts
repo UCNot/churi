@@ -8,12 +8,14 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UcFormatName } from '../../schema/uc-presentations.js';
+import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
-import { UcsModels } from './ucs-compiler.js';
-import { UcsExportSignature } from './ucs-export.signature.js';
+import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsGenerator } from './ucs-generator.js';
+import { UcsInsetFormatter, UcsInsetRequest } from './ucs-inset-formatter.js';
+import { UcsModels } from './ucs-models.js';
+import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
  * Serializer library allocated by {@link UcsCompiler#bootstrap compiler}.
@@ -34,9 +36,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
   readonly #options: UcsLib.Options<TModels>;
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #models: {
-    readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
-  };
+  readonly #models: UcsSchemaConfigs<TModels>;
 
   readonly #createSerializer: Exclude<UcsLib.Options<TModels>['createSerializer'], undefined>;
   readonly #serializers = new Map<string, UcsFunction>();
@@ -52,16 +52,20 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
 
     this.#schemaIndex = schemaIndex;
     this.#models = Object.fromEntries(
-      Object.entries(models).map(([externalName, model]) => [externalName, ucSchema(model)]),
-    ) as {
-      readonly [externalName in keyof TModels]: UcSchema.Of<TModels[externalName]>;
-    };
+      Object.entries(models).map(([externalName, entry]) => [
+        externalName,
+        {
+          ...entry,
+          model: ucSchema(entry.model),
+        },
+      ]),
+    ) as UcsSchemaConfigs<TModels>;
     this.#createSerializer = createSerializer;
 
-    for (const [externalName, schema] of Object.entries(this.#models)) {
-      const fn = this.serializerFor(schema);
+    for (const [externalName, entry] of Object.entries<UcsSchemaConfig>(this.#models)) {
+      const fn = this.serializerFor(entry.model);
 
-      ns.refer(fn.exportFn(externalName, UcsExportSignature));
+      ns.refer(fn.exportFn(externalName, entry));
     }
 
     return this;
@@ -74,6 +78,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     if (!serializer) {
       serializer = this.#createSerializer({
         schema,
+        createWriterFor: this.#options.createWriter,
       });
       this.#serializers.set(schemaId, serializer);
     }
@@ -81,10 +86,17 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     return serializer;
   }
 
-  generatorFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  findFormatter<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    format: UcFormatName,
     schema: TSchema,
-  ): UcsGenerator<T> | undefined {
-    return this.#options.generatorFor?.(schema);
+  ): UcsFormatter<T, TSchema> | undefined {
+    return this.#options.findFormatter?.(format, schema);
+  }
+
+  findInsetFormatter<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    request: UcsInsetRequest<T, TSchema>,
+  ): UcsInsetFormatter<T, TSchema> | undefined {
+    return this.#options.findInsetFormatter?.(this, request);
   }
 
   binConst(value: string): EsSymbol {
@@ -117,10 +129,25 @@ export namespace UcsLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
 
-    generatorFor?<T, TSchema extends UcSchema<T>>(
-      this: void,
-      schema: TSchema,
-    ): UcsGenerator<T, TSchema> | undefined;
+    readonly findFormatter?:
+      | (<T, TSchema extends UcSchema<T>>(
+          this: void,
+          format: UcFormatName,
+          schema: TSchema,
+        ) => UcsFormatter<T, TSchema> | undefined)
+      | undefined;
+
+    readonly findInsetFormatter?:
+      | (<T, TSchema extends UcSchema<T>>(
+          this: void,
+          lib: UcsLib,
+          request: UcsInsetRequest<T, TSchema>,
+        ) => UcsInsetFormatter<T, TSchema> | undefined)
+      | undefined;
+
+    readonly createWriter?:
+      | ((this: void, format: UcFormatName) => CreateUcsWriterExpr | undefined)
+      | undefined;
 
     createSerializer<T, TSchema extends UcSchema<T>>(
       this: void,
@@ -128,3 +155,11 @@ export namespace UcsLib {
     ): UcsFunction<T, TSchema>;
   }
 }
+
+type UcsSchemaConfigs<TModels extends UcsModels> = {
+  readonly [externalName in keyof TModels]: UcsSchemaConfig<
+    UcsModels.ModelOf<TModels[externalName]>
+  >;
+};
+
+type UcsSchemaConfig<TModel extends UcModel = UcModel> = UcsModels.Entry<UcSchema.Of<TModel>>;

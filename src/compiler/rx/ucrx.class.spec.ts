@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { EsField } from 'esgen';
 import { ucMap } from '../../schema/map/uc-map.js';
-import { VoidUcrxClass } from '../impl/void.ucrx.class.js';
+import { VoidUcrxClass } from './impl/void.ucrx.class.js';
 import { UcrxClass, UcrxSignature } from './ucrx.class.js';
 
 describe('UcrxClass', () => {

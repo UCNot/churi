@@ -19,15 +19,15 @@ import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
+import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
-import { UcdCompiler } from './ucd-compiler.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static uccProcessSchema(compiler: UcdCompiler.Any, schema: UcSchema): UccConfig {
+  static uccProcess(setup: UcrxSetup): UccConfig {
     return {
-      configure: () => {
-        compiler
+      configureSchema: schema => {
+        setup
           .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
           .processModel(this.listSchemaFor(schema))
           .processModel(this.mapSchemaFor(schema));

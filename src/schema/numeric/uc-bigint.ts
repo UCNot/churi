@@ -3,7 +3,7 @@ import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcDataType, UcSchema, ucSchema } from '../uc-schema.js';
 
 /**
- * BigInt type alias used in {@link UcNumber.Schema schema} processing.
+ * BigInt type alias used in {@link UcBigInt.Schema schema} processing.
  */
 export type UcBigInt = bigint;
 
@@ -115,7 +115,7 @@ export function ucBigInt(options?: UcBigInt.Options): UcBigInt.Schema {
                 with: variant,
               },
               serializer: {
-                use: 'ucsSupportBigInt',
+                use: 'ucsProcessBigInt',
                 from: COMPILER_MODULE,
                 with: variant,
               },

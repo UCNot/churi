@@ -1,7 +1,7 @@
 import { AllUcrx } from '../../rx/all.ucrx.js';
 import { chargeURI } from '../../rx/charge-uri.js';
 import { UctxMode } from '../../rx/uctx-mode.js';
-import { UcChargeLexer } from '../../syntax/lexers/uc-charge.lexer.js';
+import { UcChargeLexer } from '../../syntax/formats/charge/uc-charge.lexer.js';
 import { UcToken } from '../../syntax/uc-token.js';
 
 /**
