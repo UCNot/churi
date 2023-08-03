@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
 import { UcSerializer } from 'churi';
+import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support-plain-text.js';
 import { ucsSupportURIEncoded } from '../../../compiler/serialization/ucs-support-uri-encoded.js';
@@ -12,7 +13,6 @@ import { ucNumber } from '../../../schema/numeric/uc-number.js';
 import { ucString } from '../../../schema/string/uc-string.js';
 import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
-import { ucInsetCharge } from '../charge/uc-inset-charge.js';
 import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
 import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
 
@@ -171,11 +171,7 @@ describe('URI params serializer', () => {
       models: {
         writeParams: {
           model: ucMap({
-            'test 2': ucString({
-              within: {
-                uriParam: ucInsetCharge(),
-              },
-            }),
+            'test 2': String,
           }),
           format: 'uriParams',
         },
@@ -187,6 +183,26 @@ describe('URI params serializer', () => {
     await expect(
       TextOutStream.read(async to => await writeParams(to, { 'test 2': '3a, (b) c!' })),
     ).resolves.toBe("test+2='3a%2C+%28b%29+c%21");
+  });
+  it('fails to deserialize value in unknown inset format', async () => {
+    const compiler = new UcsCompiler({
+      capabilities: ucsSupportURIParams({ defaultInsetFormat: 'plainText' }),
+      models: {
+        writeParams: {
+          model: ucMap({
+            'test 2': String,
+          }),
+          format: 'uriParams',
+        },
+      },
+    });
+
+    await expect(compiler.evaluate()).rejects.toThrow(
+      new UnsupportedUcSchemaError(
+        ucString(),
+        'Can not serialize inset "uriParam" of type "String"',
+      ),
+    );
   });
 
   describe('optional properties', () => {

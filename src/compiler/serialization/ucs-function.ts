@@ -60,7 +60,12 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       let formatter: UcsFormatter | undefined;
 
       if (inset) {
-        const insetFormatter = lib.insetFormatterFor(hostFormat, this.schema, inset, schema);
+        const insetFormatter = lib.findInsetFormatter({
+          hostFormat,
+          hostSchema: this.schema,
+          insetName: inset,
+          insetSchema: schema,
+        });
 
         if (!insetFormatter) {
           onUnknownInset(schema, inset);
@@ -70,7 +75,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         formatter = insetFormatter.format;
       } else {
         context = this.#contextFor(format);
-        formatter = lib.formatterFor(format, schema);
+        formatter = lib.findFormatter(format, schema);
       }
 
       const write = formatter?.(args, schema, context);

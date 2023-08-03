@@ -11,14 +11,18 @@ import { encodeURISearchPart } from 'httongue';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
+import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCapability } from '../processor/ucc-capability.js';
+import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
-export function ucsSupportURIParams(): UccCapability<UcsSetup> {
+export function ucsSupportURIParams({
+  defaultInsetFormat = 'charge',
+}: UcsURIParamsOptions = {}): UccCapability<UcsSetup> {
   return activation => {
     activation.onConstraint(
       {
@@ -107,25 +111,41 @@ export function ucsSupportURIParams(): UccCapability<UcsSetup> {
       },
     );
   };
+
+  function ucsModifyURIParam<T, TSchema extends UcSchema<T>>({
+    lib,
+    insetSchema,
+    formatter,
+  }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined {
+    let insetFormat: UcFormatName;
+    let format: UcsFormatter<T, TSchema>;
+
+    if (formatter) {
+      ({ insetFormat, format } = formatter);
+    } else {
+      const defaultFormatter = lib.findFormatter<T, TSchema>(defaultInsetFormat, insetSchema);
+
+      if (!defaultFormatter) {
+        return;
+      }
+
+      insetFormat = defaultInsetFormat;
+      format = defaultFormatter;
+    }
+
+    return {
+      insetFormat,
+      format(args, schema, cx) {
+        const { writer } = args;
+
+        return code => {
+          code.write(esline`await ${writer}.data.writeKey();`, format(args, schema, cx));
+        };
+      },
+    };
+  }
 }
 
-function ucsModifyURIParam<T, TSchema extends UcSchema<T>>({
-  formatter,
-}: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined {
-  if (!formatter) {
-    return;
-  }
-
-  const { insetFormat, format } = formatter;
-
-  return {
-    insetFormat,
-    format(args, schema, cx) {
-      const { writer } = args;
-
-      return code => {
-        code.write(esline`await ${writer}.data.writeKey();`, format(args, schema, cx));
-      };
-    },
-  };
+export interface UcsURIParamsOptions {
+  readonly defaultInsetFormat?: UcFormatName | undefined;
 }

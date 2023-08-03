@@ -15,7 +15,7 @@ import { UccProcessor } from '../processor/ucc-processor.js';
 import { UcsPresentationConfig } from './impl/ucs-presentation-config.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsInsetFormatter, UcsInsetWrapper } from './ucs-inset-formatter.js';
+import { UcsInsetFormatter, UcsInsetRequest, UcsInsetWrapper } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsExports, UcsModels } from './ucs-models.js';
 import { ucsProcessDefaults } from './ucs-process-defaults.js';
@@ -210,9 +210,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return {
       ...this.#options,
       schemaIndex: this.schemaIndex,
-      formatterFor: this.#formatterFor.bind(this),
-      insetFormatterFor: this.#insetFormatterFor.bind(this),
-      createWriterFor: format => this.#formatConfigs.get(format)?.createWriter,
+      findFormatter: this.#formatterFor.bind(this),
+      findInsetFormatter: this.#findInsetFormatter.bind(this),
+      createWriter: format => this.#formatConfigs.get(format)?.createWriter,
       createSerializer(options) {
         return new UcsFunction(options);
       },
@@ -246,12 +246,11 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     );
   }
 
-  #insetFormatterFor<T, TSchema extends UcSchema<T>>(
-    hostFormat: UcFormatName,
-    hostSchema: UcSchema,
-    insetName: UcInsetName,
-    schema: TSchema,
+  #findInsetFormatter<T, TSchema extends UcSchema<T>>(
+    lib: UcsLib,
+    request: UcsInsetRequest<T, TSchema>,
   ): UcsInsetFormatter<T, TSchema> | undefined {
+    const { hostFormat, hostSchema, insetName, insetSchema: schema } = request;
     const insetPresentationConfig = this.#findPresentationFor<T, TSchema>(
       `inset:${insetName}`,
       schema.type,
@@ -271,10 +270,8 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
 
     if (insetWrapper) {
       return insetWrapper<T, TSchema>({
-        hostFormat,
-        hostSchema,
-        insetName,
-        schema,
+        lib,
+        ...request,
         formatter: insetFormatter && {
           insetFormat: insetPresentationConfig!.format,
           format: insetFormatter,

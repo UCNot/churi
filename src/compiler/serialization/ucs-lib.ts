@@ -8,12 +8,12 @@ import {
   esStringLiteral,
   esline,
 } from 'esgen';
-import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
+import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
-import { UcsInsetFormatter } from './ucs-inset-formatter.js';
+import { UcsInsetFormatter, UcsInsetRequest } from './ucs-inset-formatter.js';
 import { UcsModels } from './ucs-models.js';
 import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
@@ -78,7 +78,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     if (!serializer) {
       serializer = this.#createSerializer({
         schema,
-        createWriterFor: this.#options.createWriterFor,
+        createWriterFor: this.#options.createWriter,
       });
       this.#serializers.set(schemaId, serializer);
     }
@@ -86,20 +86,17 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     return serializer;
   }
 
-  formatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+  findFormatter<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     format: UcFormatName,
     schema: TSchema,
-  ): UcsFormatter<T> | undefined {
-    return this.#options.formatterFor?.(format, schema);
+  ): UcsFormatter<T, TSchema> | undefined {
+    return this.#options.findFormatter?.(format, schema);
   }
 
-  insetFormatterFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
-    hostFormat: UcFormatName,
-    hostSchema: UcSchema,
-    inset: UcInsetName,
-    schema: TSchema,
+  findInsetFormatter<T, TSchema extends UcSchema<T> = UcSchema<T>>(
+    request: UcsInsetRequest<T, TSchema>,
   ): UcsInsetFormatter<T, TSchema> | undefined {
-    return this.#options.insetFormatterFor?.(hostFormat, hostSchema, inset, schema);
+    return this.#options.findInsetFormatter?.(this, request);
   }
 
   binConst(value: string): EsSymbol {
@@ -132,7 +129,7 @@ export namespace UcsLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
 
-    readonly formatterFor?:
+    readonly findFormatter?:
       | (<T, TSchema extends UcSchema<T>>(
           this: void,
           format: UcFormatName,
@@ -140,17 +137,15 @@ export namespace UcsLib {
         ) => UcsFormatter<T, TSchema> | undefined)
       | undefined;
 
-    readonly insetFormatterFor?:
+    readonly findInsetFormatter?:
       | (<T, TSchema extends UcSchema<T>>(
           this: void,
-          hostFormat: UcFormatName,
-          hostSchema: UcSchema,
-          inset: UcInsetName,
-          schema: TSchema,
+          lib: UcsLib,
+          request: UcsInsetRequest<T, TSchema>,
         ) => UcsInsetFormatter<T, TSchema> | undefined)
       | undefined;
 
-    readonly createWriterFor?:
+    readonly createWriter?:
       | ((this: void, format: UcFormatName) => CreateUcsWriterExpr | undefined)
       | undefined;
 

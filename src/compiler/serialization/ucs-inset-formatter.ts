@@ -1,6 +1,7 @@
 import { UcFormatName, UcInsetName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcsFormatter } from './ucs-formatter.js';
+import { UcsLib } from './ucs-lib.js';
 
 /**
  * Inset formatter generates code for type instance formatting.
@@ -40,12 +41,12 @@ export type UcsInsetWrapper = {
 }['wrapInsetFormatter'];
 
 /**
- * Inset formatting context.
+ * Request for inset formatter.
  *
  * @typeParam T - Implied data type.
  * @typeParam TSchema - Schema type.
  */
-export interface UcsInsetContext<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
+export interface UcsInsetRequest<out T, out TSchema extends UcSchema<T>> {
   /**
    * The name of the host format containing the inset.
    */
@@ -64,7 +65,21 @@ export interface UcsInsetContext<out T = unknown, out TSchema extends UcSchema<T
   /**
    * Inset value schema;
    */
-  readonly schema: TSchema;
+  readonly insetSchema: TSchema;
+}
+
+/**
+ * Inset formatting context.
+ *
+ * @typeParam T - Implied data type.
+ * @typeParam TSchema - Schema type.
+ */
+export interface UcsInsetContext<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>>
+  extends UcsInsetRequest<T, TSchema> {
+  /**
+   * Serializer library.
+   */
+  readonly lib: UcsLib;
 
   /**
    * The inset formatter to wrap, if any.
