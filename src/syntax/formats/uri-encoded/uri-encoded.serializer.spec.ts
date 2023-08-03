@@ -16,7 +16,7 @@ import { TextOutStream } from '../../../spec/text-out-stream.js';
 describe('URI-encoded serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writePrimitive: { model: BigInt, format: 'uriEncoded' },
         writeValue: { model: ucBigInt({ string: 'serialize' }), format: 'uriEncoded' },
@@ -42,7 +42,7 @@ describe('URI-encoded serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writePrimitive: { model: Boolean, format: 'uriEncoded' },
         writeValue: { model: ucBoolean(), format: 'uriEncoded' },
@@ -60,7 +60,7 @@ describe('URI-encoded serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writePrimitive: { model: Number, format: 'uriEncoded' },
         writeValue: { model: ucNumber({ string: 'serialize' }), format: 'uriEncoded' },
@@ -79,7 +79,7 @@ describe('URI-encoded serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writeValue: { model: ucInteger({ string: 'serialize' }), format: 'uriEncoded' },
       },
@@ -94,7 +94,7 @@ describe('URI-encoded serializer', () => {
   });
   it('serializes string', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writePrimitive: { model: String, format: 'uriEncoded' },
         writeValue: { model: ucString({ raw: 'escape' }), format: 'uriEncoded' },
@@ -113,7 +113,7 @@ describe('URI-encoded serializer', () => {
   it('can not serialize list', async () => {
     const schema = ucList(Number);
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writeList: { model: schema, format: 'uriEncoded' },
       },
@@ -129,7 +129,7 @@ describe('URI-encoded serializer', () => {
   it('can not serialize map', async () => {
     const schema = ucMap({ foo: Number });
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         writeMap: { model: schema, format: 'uriEncoded' },
       },
@@ -145,7 +145,7 @@ describe('URI-encoded serializer', () => {
   it('can not serialize nullable values', async () => {
     const schema = ucNullable(ucNumber());
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         write: { model: schema, format: 'uriEncoded' },
       },
@@ -162,7 +162,7 @@ describe('URI-encoded serializer', () => {
   it('can not serialize optional values', async () => {
     const schema = ucOptional(ucNumber());
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportURIEncoded,
+      capabilities: ucsSupportURIEncoded(),
       models: {
         write: { model: schema, format: 'uriEncoded' },
       },

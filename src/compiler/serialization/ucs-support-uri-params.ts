@@ -18,90 +18,95 @@ import { UcsLib } from './ucs-lib.js';
 import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
-export function ucsSupportURIParams(activation: UccCapability.Activation<UcsSetup>): void {
-  activation.onConstraint(
-    {
-      processor: 'serializer',
-      use: 'ucsProcessMap',
-      from: COMPILER_MODULE,
-    },
-    ({ setup }) => {
-      setup
-        .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
-          const encodeURI = esImport('httongue', encodeURISearchPart.name);
-          const naming = await ns.refer(UcsWriterClass).whenNamed();
+export function ucsSupportURIParams(): UccCapability<UcsSetup> {
+  return activation => {
+    activation.onConstraint(
+      {
+        processor: 'serializer',
+        use: 'ucsProcessMap',
+        from: COMPILER_MODULE,
+      },
+      ({ setup }) => {
+        setup
+          .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
+            const encodeURI = esImport('httongue', encodeURISearchPart.name);
+            const naming = await ns.refer(UcsWriterClass).whenNamed();
 
-          code.line(
-            naming.instantiate({
-              stream,
-              options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
-            }),
-          );
-        })
-        .formatWith(
-          'uriParams',
-          'map',
-          ({ writer, value }, schema: UcMap.Schema, cx) => (code, scope) => {
-              const lib = scope.get(UcsLib);
-              const { entries } = schema;
-              const entriesWritten = new EsVarSymbol('entriesWritten');
-              const currentKey = new EsVarSymbol('currentKey');
-              const writeKey = new EsCallable({}).lambda(
-                () => code => {
-                  code
-                    .write(esline`await ${writer}.ready;`)
-                    .write(
-                      esline`${writer}.write(${entriesWritten}++ ? ${currentKey} : ${currentKey}.slice(1));`,
-                    );
-                },
-                {
-                  async: true,
-                },
-              );
+            code.line(
+              naming.instantiate({
+                stream,
+                options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
+              }),
+            );
+          })
+          .formatWith(
+            'uriParams',
+            'map',
+            ({ writer, value }, schema: UcMap.Schema, cx) => (code, scope) => {
+                const lib = scope.get(UcsLib);
+                const { entries } = schema;
+                const entriesWritten = new EsVarSymbol('entriesWritten');
+                const currentKey = new EsVarSymbol('currentKey');
+                const writeKey = new EsCallable({}).lambda(
+                  () => code => {
+                    code
+                      .write(esline`await ${writer}.ready;`)
+                      .write(
+                        esline`${writer}.write(${entriesWritten}++ ? ${currentKey} : ${currentKey}.slice(1));`,
+                      );
+                  },
+                  {
+                    async: true,
+                  },
+                );
 
-              code.write(
-                entriesWritten.declare({ as: EsVarKind.Let, value: () => '0' }),
-                currentKey.declare(),
-                esline`${writer}.data.writeKey = ${writeKey};`,
-              );
+                code.write(
+                  entriesWritten.declare({ as: EsVarKind.Let, value: () => '0' }),
+                  currentKey.declare(),
+                  esline`${writer}.data.writeKey = ${writeKey};`,
+                );
 
-              for (const [entryKey, entrySchema] of Object.entries(entries)) {
-                const keyConst = lib.binConst(`&${encodeURISearchPart(entryKey)}=`);
-                const writeEntry =
-                  (schema: UcSchema, value: EsSnippet): EsSnippet => code => {
+                for (const [entryKey, entrySchema] of Object.entries(entries)) {
+                  const keyConst = lib.binConst(`&${encodeURISearchPart(entryKey)}=`);
+                  const writeEntry =
+                    (schema: UcSchema, value: EsSnippet): EsSnippet => code => {
+                      code.write(
+                        esline`${currentKey} = ${keyConst};`,
+                        cx.formatInset('uriParam', schema, {
+                          writer,
+                          value,
+                          asItem: '0',
+                        }),
+                      );
+                    };
+
+                  if (entrySchema.optional) {
+                    const currentValue = new EsVarSymbol(entryKey);
+
+                    code
+                      .write(
+                        currentValue.declare({
+                          value: () => esline`${value}${esMemberAccessor(entryKey).accessor}`,
+                        }),
+                      )
+                      .write(esline`if (${currentValue} !== undefined) {`)
+                      .indent(writeEntry(ucOptional(entrySchema, false), currentValue))
+                      .write('}');
+                  } else {
                     code.write(
-                      esline`${currentKey} = ${keyConst};`,
-                      cx.formatInset('uriParam', schema, {
-                        writer,
-                        value,
-                        asItem: '0',
-                      }),
+                      writeEntry(
+                        entrySchema,
+                        esline`${value}${esMemberAccessor(entryKey).accessor}`,
+                      ),
                     );
-                  };
-
-                if (entrySchema.optional) {
-                  const currentValue = new EsVarSymbol(entryKey);
-
-                  code
-                    .write(
-                      currentValue.declare({
-                        value: () => esline`${value}${esMemberAccessor(entryKey).accessor}`,
-                      }),
-                    )
-                    .write(esline`if (${currentValue} !== undefined) {`)
-                    .indent(writeEntry(ucOptional(entrySchema, false), currentValue))
-                    .write('}');
-                } else {
-                  code.write(
-                    writeEntry(entrySchema, esline`${value}${esMemberAccessor(entryKey).accessor}`),
-                  );
+                  }
                 }
-              }
-            },
-        )
-        .modifyInsets('uriParams', 'map', ucsModifyURIParam);
-    },
-  );
+              },
+          )
+          .modifyInsets('uriParams', 'map', ucsModifyURIParam);
+      },
+    );
+  };
 }
 
 function ucsModifyURIParam<T, TSchema extends UcSchema<T>>({

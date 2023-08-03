@@ -16,7 +16,7 @@ import { TextOutStream } from '../../../spec/text-out-stream.js';
 describe('plain text serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writePrimitive: { model: BigInt, format: 'plainText' },
         writeValue: { model: ucBigInt({ string: 'serialize' }), format: 'plainText' },
@@ -42,7 +42,7 @@ describe('plain text serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writePrimitive: { model: Boolean, format: 'plainText' },
         writeValue: { model: ucBoolean(), format: 'plainText' },
@@ -60,7 +60,7 @@ describe('plain text serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writePrimitive: { model: Number, format: 'plainText' },
         writeValue: { model: ucNumber({ string: 'serialize' }), format: 'plainText' },
@@ -79,7 +79,7 @@ describe('plain text serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writeValue: { model: ucInteger({ string: 'serialize' }), format: 'plainText' },
       },
@@ -94,7 +94,7 @@ describe('plain text serializer', () => {
   });
   it('serializes string', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writePrimitive: { model: String, format: 'plainText' },
         writeValue: { model: ucString({ raw: 'escape' }), format: 'plainText' },
@@ -113,7 +113,7 @@ describe('plain text serializer', () => {
   it('can not serialize list', async () => {
     const schema = ucList(Number);
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writeList: { model: schema, format: 'plainText' },
       },
@@ -129,7 +129,7 @@ describe('plain text serializer', () => {
   it('can not serialize map', async () => {
     const schema = ucMap({ foo: Number });
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         writeMap: { model: schema, format: 'plainText' },
       },
@@ -145,7 +145,7 @@ describe('plain text serializer', () => {
   it('can not serialize nullable values', async () => {
     const schema = ucNullable(ucNumber());
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         write: { model: schema, format: 'plainText' },
       },
@@ -162,7 +162,7 @@ describe('plain text serializer', () => {
   it('can not serialize optional values', async () => {
     const schema = ucOptional(ucNumber());
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText,
+      capabilities: ucsSupportPlainText(),
       models: {
         write: { model: schema, format: 'plainText' },
       },

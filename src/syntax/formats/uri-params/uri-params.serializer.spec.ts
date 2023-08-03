@@ -1,4 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
+import { UcSerializer } from 'churi';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support-plain-text.js';
 import { ucsSupportURIEncoded } from '../../../compiler/serialization/ucs-support-uri-encoded.js';
@@ -9,6 +10,7 @@ import { ucBigInt } from '../../../schema/numeric/uc-bigint.js';
 import { ucInteger } from '../../../schema/numeric/uc-integer.js';
 import { ucNumber } from '../../../schema/numeric/uc-number.js';
 import { ucString } from '../../../schema/string/uc-string.js';
+import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
 import { ucInsetCharge } from '../charge/uc-inset-charge.js';
 import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
@@ -17,7 +19,7 @@ import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
 describe('URI params serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -41,7 +43,7 @@ describe('URI params serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -67,7 +69,7 @@ describe('URI params serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -93,7 +95,7 @@ describe('URI params serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -119,7 +121,7 @@ describe('URI params serializer', () => {
   });
   it('serializes URI-encoded string', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -142,7 +144,7 @@ describe('URI params serializer', () => {
   });
   it('serializes plain text string', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportPlainText, ucsSupportURIParams],
+      capabilities: [ucsSupportPlainText(), ucsSupportURIParams()],
       models: {
         writeParams: {
           model: ucMap({
@@ -165,7 +167,7 @@ describe('URI params serializer', () => {
   });
   it('serializes charged string', async () => {
     const compiler = new UcsCompiler({
-      capabilities: [ucsSupportURIEncoded, ucsSupportURIParams],
+      capabilities: ucsSupportURIParams(),
       models: {
         writeParams: {
           model: ucMap({
@@ -185,5 +187,57 @@ describe('URI params serializer', () => {
     await expect(
       TextOutStream.read(async to => await writeParams(to, { 'test 2': '3a, (b) c!' })),
     ).resolves.toBe("test+2='3a%2C+%28b%29+c%21");
+  });
+
+  describe('optional properties', () => {
+    let writeParams: UcSerializer<{
+      test?: string | undefined;
+      test2?: string | undefined;
+    }>;
+
+    beforeAll(async () => {
+      const compiler = new UcsCompiler({
+        capabilities: [ucsSupportURIEncoded(), ucsSupportURIParams()],
+        models: {
+          writeParams: {
+            model: ucMap({
+              test: ucOptional(
+                ucString({
+                  within: {
+                    uriParam: ucInsetURIEncoded(),
+                  },
+                }),
+              ),
+              test2: ucOptional(
+                ucString({
+                  within: {
+                    uriParam: ucInsetURIEncoded(),
+                  },
+                }),
+              ),
+            }),
+            format: 'uriParams',
+          },
+        },
+      });
+
+      ({ writeParams } = await compiler.evaluate());
+    });
+
+    it('writes value', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: 'abc', test2: 'def' })),
+      ).resolves.toBe('test=abc&test2=def');
+    });
+    it('skips missing value', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test2: 'abc' })),
+      ).resolves.toBe('test2=abc');
+    });
+    it('skips undefined value', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: 'abc', test2: undefined })),
+      ).resolves.toBe('test=abc');
+    });
   });
 });

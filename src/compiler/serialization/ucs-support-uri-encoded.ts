@@ -19,51 +19,53 @@ import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
 import { UcsSetup } from './ucs-setup.js';
 
-export function ucsSupportURIEncoded(activation: UccCapability.Activation<UcsSetup>): void {
-  activation
-    .enable(ucsProcessURIEncodedDefaults)
-    .onConstraint(
-      {
-        processor: 'serializer',
-        use: ucsProcessBigInt.name,
-        from: COMPILER_MODULE,
-      },
-      ({ setup, schema, constraint: { with: options } }) => {
-        const { number = 'parse' } = options as UcBigInt.Variant;
+export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
+  return activation => {
+    activation
+      .enable(ucsProcessURIEncodedDefaults)
+      .onConstraint(
+        {
+          processor: 'serializer',
+          use: ucsProcessBigInt.name,
+          from: COMPILER_MODULE,
+        },
+        ({ setup, schema, constraint: { with: options } }) => {
+          const { number = 'parse' } = options as UcBigInt.Variant;
 
-        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
-      },
-    )
-    .onConstraint(
-      {
-        processor: 'serializer',
-        use: ucsProcessInteger.name,
-        from: COMPILER_MODULE,
-      },
-      ({ setup, schema }) => {
-        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
-      },
-    )
-    .onConstraint(
-      {
-        processor: 'serializer',
-        use: ucsProcessNumber.name,
-        from: COMPILER_MODULE,
-      },
-      ({ setup, schema }) => {
-        setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
-      },
-    )
-    .onConstraint(
-      {
-        processor: 'serializer',
-        use: ucsProcessString.name,
-        from: COMPILER_MODULE,
-      },
-      ({ setup, schema }) => {
-        setup.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
-      },
-    );
+          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
+        },
+      )
+      .onConstraint(
+        {
+          processor: 'serializer',
+          use: ucsProcessInteger.name,
+          from: COMPILER_MODULE,
+        },
+        ({ setup, schema }) => {
+          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
+        },
+      )
+      .onConstraint(
+        {
+          processor: 'serializer',
+          use: ucsProcessNumber.name,
+          from: COMPILER_MODULE,
+        },
+        ({ setup, schema }) => {
+          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
+        },
+      )
+      .onConstraint(
+        {
+          processor: 'serializer',
+          use: ucsProcessString.name,
+          from: COMPILER_MODULE,
+        },
+        ({ setup, schema }) => {
+          setup.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
+        },
+      );
+  };
 }
 
 function ucsProcessURIEncodedDefaults(setup: UcsSetup): UccConfig {
