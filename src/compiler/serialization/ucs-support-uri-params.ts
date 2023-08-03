@@ -1,5 +1,13 @@
-import { EsCallable, EsSnippet, EsVarKind, EsVarSymbol, esMemberAccessor, esline } from 'esgen';
-import { encodeURIPart } from 'httongue';
+import {
+  EsCallable,
+  EsSnippet,
+  EsVarKind,
+  EsVarSymbol,
+  esImport,
+  esMemberAccessor,
+  esline,
+} from 'esgen';
+import { encodeURISearchPart } from 'httongue';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
@@ -20,12 +28,13 @@ export function ucsSupportURIParams(activation: UccCapability.Activation<UcsSetu
     ({ setup }) => {
       setup
         .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
+          const encodeURI = esImport('httongue', encodeURISearchPart.name);
           const naming = await ns.refer(UcsWriterClass).whenNamed();
 
           code.line(
             naming.instantiate({
               stream,
-              options: esline`{ ...${options}, encodeURI: encodeURIComponent }`,
+              options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
             }),
           );
         })
@@ -57,7 +66,7 @@ export function ucsSupportURIParams(activation: UccCapability.Activation<UcsSetu
               );
 
               for (const [entryKey, entrySchema] of Object.entries(entries)) {
-                const keyConst = lib.binConst(`&${encodeURIPart(entryKey)}=`);
+                const keyConst = lib.binConst(`&${encodeURISearchPart(entryKey)}=`);
                 const writeEntry =
                   (schema: UcSchema, value: EsSnippet): EsSnippet => code => {
                     code.write(

@@ -146,7 +146,7 @@ describe('URI params serializer', () => {
       models: {
         writeParams: {
           model: ucMap({
-            test: ucString({
+            'test 1': ucString({
               within: {
                 uriParam: ucInsetPlainText(),
               },
@@ -160,8 +160,8 @@ describe('URI params serializer', () => {
     const { writeParams } = await compiler.evaluate();
 
     await expect(
-      TextOutStream.read(async to => await writeParams(to, { test: '3a, b c!' })),
-    ).resolves.toBe('test=3a, b c!');
+      TextOutStream.read(async to => await writeParams(to, { 'test 1': '3a, b c!' })),
+    ).resolves.toBe('test+1=3a, b c!');
   });
   it('serializes charged string', async () => {
     const compiler = new UcsCompiler({
@@ -169,7 +169,7 @@ describe('URI params serializer', () => {
       models: {
         writeParams: {
           model: ucMap({
-            test: ucString({
+            'test 2': ucString({
               within: {
                 uriParam: ucInsetCharge(),
               },
@@ -183,7 +183,7 @@ describe('URI params serializer', () => {
     const { writeParams } = await compiler.evaluate();
 
     await expect(
-      TextOutStream.read(async to => await writeParams(to, { test: '3a, b c!' })),
-    ).resolves.toBe("test='3a%2C%20b%20c!");
+      TextOutStream.read(async to => await writeParams(to, { 'test 2': '3a, (b) c!' })),
+    ).resolves.toBe("test+2='3a%2C+%28b%29+c%21");
   });
 });
