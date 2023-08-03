@@ -9,6 +9,7 @@ import {
 } from 'esgen';
 import { encodeURISearchPart } from 'httongue';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
+import { UcList } from '../../schema/list/uc-list.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcFormatName } from '../../schema/uc-presentations.js';
@@ -107,16 +108,15 @@ export function ucsSupportURIParams({
                 }
               },
           )
-          .modifyInsets('uriParams', 'map', ucsModifyURIParam);
+          .modifyInsets('uriParams', 'map', modifyURIParam);
       },
     );
   };
 
-  function ucsModifyURIParam<T, TSchema extends UcSchema<T>>({
-    lib,
-    insetSchema,
-    formatter,
-  }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined {
+  function modifyURIParam<T, TSchema extends UcSchema<T>>(
+    context: UcsInsetContext<T, TSchema>,
+  ): UcsInsetFormatter<T, TSchema> | undefined {
+    const { lib, insetSchema, formatter } = context;
     let insetFormat: UcFormatName;
     let format: UcsFormatter<T, TSchema>;
 
@@ -125,12 +125,14 @@ export function ucsSupportURIParams({
     } else {
       const defaultFormatter = lib.findFormatter<T, TSchema>(defaultInsetFormat, insetSchema);
 
-      if (!defaultFormatter) {
+      if (defaultFormatter) {
+        insetFormat = defaultInsetFormat;
+        format = defaultFormatter;
+      } else if (insetSchema.type === 'list') {
+        return modifyURIParamList(context);
+      } else {
         return;
       }
-
-      insetFormat = defaultInsetFormat;
-      format = defaultFormatter;
     }
 
     return {
@@ -140,6 +142,49 @@ export function ucsSupportURIParams({
 
         return code => {
           code.write(esline`await ${writer}.data.writeKey();`, format(args, schema, cx));
+        };
+      },
+    };
+  }
+
+  function modifyURIParamList<T, TSchema extends UcSchema<T>>({
+    lib,
+  }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined;
+
+  function modifyURIParamList({
+    lib,
+    hostFormat,
+    hostSchema,
+    insetName,
+    insetSchema,
+  }: UcsInsetContext<unknown[], UcList.Schema>):
+    | UcsInsetFormatter<unknown[], UcList.Schema>
+    | undefined {
+    const itemFormatter = lib.findInsetFormatter({
+      hostFormat,
+      hostSchema,
+      insetName,
+      insetSchema: insetSchema.item,
+    });
+
+    if (!itemFormatter) {
+      return;
+    }
+
+    const { insetFormat, format } = itemFormatter;
+
+    return {
+      insetFormat,
+      format({ writer, value }, schema, context) {
+        return (code, { ns: { names } }) => {
+          const item = names.reserveName('item');
+
+          code
+            .write(esline`for (const ${item} of ${value}) {`)
+            .indent(code => {
+              code.write(format({ writer, value: item, asItem: '0' }, schema.item, context));
+            })
+            .write('}');
         };
       },
     };

@@ -6,6 +6,7 @@ import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support
 import { ucsSupportURIEncoded } from '../../../compiler/serialization/ucs-support-uri-encoded.js';
 import { ucsSupportURIParams } from '../../../compiler/serialization/ucs-support-uri-params.js';
 import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
+import { ucList } from '../../../schema/list/uc-list.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
 import { ucBigInt } from '../../../schema/numeric/uc-bigint.js';
 import { ucInteger } from '../../../schema/numeric/uc-integer.js';
@@ -140,7 +141,7 @@ describe('URI params serializer', () => {
 
     await expect(
       TextOutStream.read(async to => await writeParams(to, { test: '3a, b c!' })),
-    ).resolves.toBe('test=3a%2C%20b%20c%21');
+    ).resolves.toBe('test=3a%2C+b+c%21');
   });
   it('serializes plain text string', async () => {
     const compiler = new UcsCompiler({
@@ -184,13 +185,13 @@ describe('URI params serializer', () => {
       TextOutStream.read(async to => await writeParams(to, { 'test 2': '3a, (b) c!' })),
     ).resolves.toBe("test+2='3a%2C+%28b%29+c%21");
   });
-  it('fails to deserialize value in unknown inset format', async () => {
+  it('fails to serialize value in unknown inset format', async () => {
     const compiler = new UcsCompiler({
       capabilities: ucsSupportURIParams({ defaultInsetFormat: 'plainText' }),
       models: {
         writeParams: {
           model: ucMap({
-            'test 2': String,
+            test: String,
           }),
           format: 'uriParams',
         },
@@ -204,8 +205,28 @@ describe('URI params serializer', () => {
       ),
     );
   });
+  it('fails to serialize list item in unknown inset format', async () => {
+    const compiler = new UcsCompiler({
+      capabilities: ucsSupportURIParams({ defaultInsetFormat: 'plainText' }),
+      models: {
+        writeParams: {
+          model: ucMap({
+            test: ucList(String),
+          }),
+          format: 'uriParams',
+        },
+      },
+    });
 
-  describe('optional properties', () => {
+    await expect(compiler.evaluate()).rejects.toThrow(
+      new UnsupportedUcSchemaError(
+        ucString(),
+        'Can not serialize inset "uriParam" of type "String[]"',
+      ),
+    );
+  });
+
+  describe('with optional properties', () => {
     let writeParams: UcSerializer<{
       test?: string | undefined;
       test2?: string | undefined;
@@ -254,6 +275,78 @@ describe('URI params serializer', () => {
       await expect(
         TextOutStream.read(async to => await writeParams(to, { test: 'abc', test2: undefined })),
       ).resolves.toBe('test=abc');
+    });
+  });
+
+  describe('for list', () => {
+    let writeParams: UcSerializer<{
+      test: string[];
+    }>;
+
+    beforeAll(async () => {
+      const compiler = new UcsCompiler({
+        capabilities: [
+          ucsSupportURIEncoded(),
+          ucsSupportURIParams({ defaultInsetFormat: 'uriEncoded' }),
+        ],
+        models: {
+          writeParams: {
+            model: ucMap({
+              test: ucList(String),
+            }),
+            format: 'uriParams',
+          },
+        },
+      });
+
+      ({ writeParams } = await compiler.evaluate());
+    });
+
+    it('serializes list', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: ['a b', '2 3', '4 5'] })),
+      ).resolves.toBe('test=a+b&test=2+3&test=4+5');
+    });
+    it('serializes empty list', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: [] })),
+      ).resolves.toBe('');
+    });
+  });
+
+  describe('for list of list', () => {
+    let writeParams: UcSerializer<{
+      test: string[];
+    }>;
+
+    beforeAll(async () => {
+      const compiler = new UcsCompiler({
+        capabilities: [
+          ucsSupportURIEncoded(),
+          ucsSupportURIParams({ defaultInsetFormat: 'uriEncoded' }),
+        ],
+        models: {
+          writeParams: {
+            model: ucMap({
+              test: ucList(String),
+            }),
+            format: 'uriParams',
+          },
+        },
+      });
+
+      ({ writeParams } = await compiler.evaluate());
+    });
+
+    it('serializes list', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: ['a b', '2 3', '4 5'] })),
+      ).resolves.toBe('test=a+b&test=2+3&test=4+5');
+    });
+    it('serializes empty list', async () => {
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: [] })),
+      ).resolves.toBe('');
     });
   });
 });

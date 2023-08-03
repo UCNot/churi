@@ -48,6 +48,7 @@ export class UccProcessor$ConstraintApplication<in out TSetup extends UccSetup<T
     return this.#issue.constraint;
   }
 
+  /* istanbul ignore next */
   get data(): UccConfig.Data | undefined {
     return this.#issue.data;
   }

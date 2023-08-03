@@ -1,4 +1,5 @@
-import { esline } from 'esgen';
+import { esImport, esline } from 'esgen';
+import { encodeURIPart } from 'httongue';
 import { COMPILER_MODULE } from '../../impl/module-names.js';
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcString } from '../../schema/string/uc-string.js';
@@ -18,6 +19,7 @@ import { ucsProcessInteger } from './ucs-process-integer.js';
 import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
 import { UcsSetup } from './ucs-setup.js';
+import { UcsWriterClass } from './ucs-writer.class.js';
 
 export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
   return activation => {
@@ -75,12 +77,23 @@ function ucsProcessURIEncodedDefaults(setup: UcsSetup): UccConfig {
         .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
         .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
         .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
-        .formatWith('uriEncoded', String, ucsFormatURIEncodedString());
+        .formatWith('uriEncoded', String, ucsFormatURIEncodedString())
+        .writeWith('uriEncoded', ({ stream, options }) => async (code, { ns }) => {
+          const encodeURI = esImport('httongue', encodeURIPart.name);
+          const naming = await ns.refer(UcsWriterClass).whenNamed();
+
+          code.line(
+            naming.instantiate({
+              stream,
+              options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
+            }),
+          );
+        });
     },
   };
 }
 
-export function ucsFormatURIEncodedString(): UcsFormatter<UcString> {
+function ucsFormatURIEncodedString(): UcsFormatter<UcString> {
   return ucsFormatURIEncoded(({ writer, value }) => {
     const write = UC_MODULE_SERIALIZER.import(ucsWriteURIEncoded.name);
 
