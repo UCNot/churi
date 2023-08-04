@@ -37,7 +37,6 @@ export class UcsPresentationConfig<out T = unknown, out TSchema extends UcSchema
     }
   }
 
-  // istanbul ignore next
   modifySchemaInsets(schema: TSchema, wrapper: UcsInsetWrapper): void {
     const schemaId = this.#schemaIndex.schemaId(schema);
 

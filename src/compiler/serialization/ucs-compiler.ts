@@ -64,8 +64,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     target: UcSchema<T>['type'] | UcSchema<T>,
     formatter?: UcsFormatter<T>,
   ): this {
-    const inset = this.currentPresentation as UcInsetName | undefined;
-    const id: UcsPresentationId = inset ? `inset:${inset}` : `format:${format}`;
+    const id = this.#presentationId(format);
 
     if (typeof target === 'object') {
       this.#presentationFor(id, format, target.type).formatSchemaWith(target, formatter);
@@ -74,6 +73,12 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     }
 
     return this;
+  }
+
+  #presentationId(format: UcFormatName): UcsPresentationId {
+    const inset = this.currentPresentation as UcInsetName | undefined;
+
+    return inset ? `inset:${inset}` : `format:${format}`;
   }
 
   modifyInsets(hostFormat: UcFormatName, wrapper: UcsInsetWrapper): this;
@@ -88,15 +93,10 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     hostOrWrapper: UcSchema<T>['type'] | UcSchema<T> | UcsInsetWrapper,
     wrapper?: UcsInsetWrapper,
   ): this {
-    // istanbul ignore else
     if (wrapper) {
       const target = hostOrWrapper as UcSchema<T>['type'] | UcSchema<T>;
-      const inset = this.currentPresentation as UcInsetName | undefined;
-      const id: UcsPresentationId = inset
-        ? /* istanbul ignore next */ `inset:${inset}`
-        : `format:${hostFormat}`;
+      const id = this.#presentationId(hostFormat);
 
-      // istanbul ignore if
       if (typeof target === 'object') {
         this.#presentationFor(id, hostFormat, target.type).modifySchemaInsets(target, wrapper);
       } else {
@@ -254,23 +254,24 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     lib: UcsLib,
     request: UcsInsetRequest<T, TSchema>,
   ): UcsInsetFormatter<T, TSchema> | undefined {
-    const { hostFormat, hostSchema, insetName, insetSchema: schema } = request;
+    const { hostFormat, hostSchema, insetName, insetSchema } = request;
+
     const insetPresentationConfig = this.#findPresentationFor<T, TSchema>(
       `inset:${insetName}`,
-      schema.type,
+      insetSchema.type,
     );
     let insetFormatter: UcsFormatter<T, TSchema> | undefined;
 
     if (insetPresentationConfig) {
       insetFormatter =
-        insetPresentationConfig.formatterFor(schema)
-        ?? this.#formatterFor(insetPresentationConfig.format, schema);
+        insetPresentationConfig.formatterFor(insetSchema)
+        ?? this.#formatterFor(insetPresentationConfig.format, insetSchema);
     }
 
     const insetWrapper =
       this.#findPresentationFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
         hostSchema,
-      ) ?? /* istanbul ignore next */ this.#formatConfigs.get(hostFormat)?.insetWrapper;
+      ) ?? this.#formatConfigs.get(hostFormat)?.insetWrapper;
 
     if (insetWrapper) {
       return insetWrapper<T, TSchema>({
@@ -283,7 +284,6 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       });
     }
 
-    // istanbul ignore next
     return (
       insetFormatter && { insetFormat: insetPresentationConfig!.format, format: insetFormatter }
     );

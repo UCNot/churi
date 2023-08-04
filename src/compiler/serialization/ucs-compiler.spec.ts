@@ -1,12 +1,22 @@
 import { describe, expect, it } from '@jest/globals';
+import { ucInsetPlainText } from 'churi';
+import { esline } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
+import { ucMap } from '../../schema/map/uc-map.js';
+import { ucString } from '../../schema/string/uc-string.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
 import { TextOutStream } from '../../spec/text-out-stream.js';
 import {
   UcsProcessNumberWithRadix,
   UcsProcessRadixNumber,
 } from '../../spec/write-uc-radix-number.js';
+import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UcsCompiler } from './ucs-compiler.js';
+import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
+import { ucsProcessDefaults } from './ucs-process-defaults.js';
+import { ucsSupportPlainText } from './ucs-support-plain-text.js';
+import { ucsSupportURIParams } from './ucs-support-uri-params.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
@@ -86,5 +96,166 @@ export async function writeValue(stream, value, options) {
 
       await expect(TextOutStream.read(async to => await writeValue(to, 128))).resolves.toBe('0x80');
     });
+  });
+
+  describe('insets', () => {
+    it('allows to modify per-schema insets', async () => {
+      const schema = ucMap({
+        test: String,
+      });
+      const compiler = new UcsCompiler({
+        capabilities: ucsSupportURIParams(),
+        features: [
+          ucsProcessDefaults,
+          setup => ({
+            configure() {
+              setup.modifyInsets(
+                'uriParams',
+                schema,
+                <T, TSchema extends UcSchema<T>>({
+                  lib,
+                  insetSchema,
+                  formatter,
+                }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined => {
+                  const format = formatter?.format ?? lib.findFormatter('charge', insetSchema);
+
+                  if (!format) {
+                    return;
+                  }
+
+                  return {
+                    insetFormat: 'charge',
+                    format(args, schema, context) {
+                      const writeKey = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
+                      const { writer } = args;
+
+                      return code => {
+                        code
+                          .write(esline`await ${writeKey}(${writer}, '(test)=');`)
+                          .write(format(args, schema, context));
+                      };
+                    },
+                  };
+                },
+              );
+            },
+          }),
+        ],
+        models: {
+          writeParams: {
+            model: schema,
+            format: 'uriParams',
+          },
+        },
+      });
+
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: '3a, (b) c!' })),
+      ).resolves.toBe("(test)='3a%2C+%28b%29+c%21");
+    });
+    it('allows to modify per-format insets', async () => {
+      const compiler = new UcsCompiler({
+        features: [
+          ucsProcessDefaults,
+          setup => ({
+            configure() {
+              setup
+                .formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
+                  code.write(
+                    cx.formatInset('uriParam', ucString(), {
+                      writer,
+                      value: esline`${value}.test`,
+                      asItem: '0',
+                    }),
+                  );
+                })
+                .modifyInsets(
+                  'uriParams',
+                  <T, TSchema extends UcSchema<T>>({
+                    lib,
+                    insetSchema,
+                    formatter,
+                  }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined => {
+                    const format = formatter?.format ?? lib.findFormatter('charge', insetSchema);
+
+                    if (!format) {
+                      return;
+                    }
+
+                    return {
+                      insetFormat: 'charge',
+                      format(args, schema, context) {
+                        const writeKey = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
+                        const { writer } = args;
+
+                        return code => {
+                          code
+                            .write(esline`await ${writeKey}(${writer}, '(test)=');`)
+                            .write(format(args, schema, context));
+                        };
+                      },
+                    };
+                  },
+                );
+            },
+          }),
+        ],
+        models: {
+          writeParams: {
+            model: ucMap({
+              test: String,
+            }),
+            format: 'uriParams',
+          },
+        },
+      });
+
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: '3a, (b) c!' })),
+      ).resolves.toBe("(test)='3a%2C %28b%29 c!");
+    });
+  });
+  it('allows to define inset format', async () => {
+    const compiler = new UcsCompiler({
+      capabilities: ucsSupportPlainText(),
+      features: [
+        ucsProcessDefaults,
+        setup => ({
+          configure() {
+            setup.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
+              code.write(
+                cx.formatInset('uriParam', ucString(), {
+                  writer,
+                  value: esline`${value}.test`,
+                  asItem: '0',
+                }),
+              );
+            });
+          },
+        }),
+      ],
+      models: {
+        writeParams: {
+          model: ucMap({
+            test: ucString({
+              within: {
+                uriParam: ucInsetPlainText(),
+              },
+            }),
+          }),
+          format: 'uriParams',
+        },
+      },
+    });
+
+    const { writeParams } = await compiler.evaluate();
+
+    await expect(
+      TextOutStream.read(async to => await writeParams(to, { test: '3a, (b) c!' })),
+    ).resolves.toBe('3a, (b) c!');
   });
 });
