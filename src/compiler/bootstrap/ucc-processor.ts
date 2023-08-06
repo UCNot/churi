@@ -2,13 +2,11 @@ import { asArray, isPresent, lazyValue } from '@proc7ts/primitives';
 import { UcConstraints, UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccProcessor$CapabilityActivation } from './impl/ucc-processor.capability-activation.js';
-import { UccProcessor$Config } from './impl/ucc-processor.config.js';
 import { UccProcessor$ConstraintIssue } from './impl/ucc-processor.constraint-issue.js';
+import { UccProcessor$ConstraintMapper } from './impl/ucc-processor.constraint-mapper.js';
 import { UccProcessor$ConstraintUsage } from './impl/ucc-processor.constraint-usage.js';
-import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
+import { UccProcessor$FeatureSet } from './impl/ucc-processor.feature-set.js';
 import { UccBootstrap } from './ucc-bootstrap.js';
-import { UccCapability } from './ucc-capability.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 
@@ -23,15 +21,13 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   implements UccBootstrap<TBoot> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #capabilities: readonly UccCapability<TBoot>[] | undefined;
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TBoot, void>[] | undefined;
   readonly #getBoot = lazyValue(() => this.startBootstrap());
-  readonly #profiler: UccProcessor$Profiler<TBoot>;
-  readonly #config: UccProcessor$Config<TBoot>;
+  readonly #constraintMapper: UccProcessor$ConstraintMapper<TBoot>;
+  readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #usages = new Map<UcSchema['type'], UccProcessor$ConstraintUsage<TBoot>>();
-
-  #hasPendingInstructions = false;
+  #pendingInstructions: (() => void | Promise<void>)[] = [];
 
   /**
    * Constructs schema processor.
@@ -39,18 +35,11 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
    * @param options - Schema processing options.
    */
   constructor(options: UccProcessor.Options<TBoot>);
-  constructor({
-    processors,
-    presentations = [],
-    capabilities,
-    models,
-    features,
-  }: UccProcessor.Options<TBoot>) {
+  constructor({ processors, presentations = [], models, features }: UccProcessor.Options<TBoot>) {
     this.#schemaIndex = new UccSchemaIndex(
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
     );
-    this.#capabilities = capabilities && asArray(capabilities);
     this.#models =
       models
       && Object.values<UccProcessor.Entry | undefined>(models)
@@ -58,8 +47,9 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
         .map(({ model }: UccProcessor.Entry) => model);
 
     this.#features = features && asArray(features);
-    this.#profiler = new UccProcessor$Profiler<TBoot>(this);
-    this.#config = new UccProcessor$Config<TBoot>(this.#profiler, feature => this.handleFeature(feature));
+    this.#constraintMapper = new UccProcessor$ConstraintMapper<TBoot>();
+    this.#featureSet = new UccProcessor$FeatureSet(this.#constraintMapper, feature => this.handleFeature(feature));
+    this.#updateConstraints();
   }
 
   get boot(): TBoot {
@@ -71,23 +61,23 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   }
 
   get currentProcessor(): UcProcessorName | undefined {
-    return this.#config.current.processor;
+    return this.#featureSet.current.processor;
   }
 
   get currentSchema(): UcSchema | undefined {
-    return this.#config.current.schema;
+    return this.#featureSet.current.schema;
   }
 
   get currentPresentation(): UcPresentationName | undefined {
-    return this.#config.current.within;
+    return this.#featureSet.current.within;
   }
 
   get currentConstraint(): UcSchemaConstraint | undefined {
-    return this.#config.current.constraint;
+    return this.#featureSet.current.constraint;
   }
 
   enable<TOptions>(feature: UccFeature<TBoot, TOptions>): this {
-    this.#config.enableFeature(feature);
+    this.#featureSet.enableFeature(feature);
 
     return this;
   }
@@ -95,15 +85,15 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   processModel<T>(model: UcModel<T>): this {
     const schema = ucSchema(model);
 
-    this.#applyConstraints<T>(schema, undefined, schema.where);
+    this.#issueConstraints<T>(schema, undefined, schema.where);
     for (const within of this.schemaIndex.listPresentations(schema.within)) {
-      this.#applyConstraints(schema, within, schema.within![within]);
+      this.#issueConstraints(schema, within, schema.within![within]);
     }
 
     return this;
   }
 
-  #applyConstraints<T>(
+  #issueConstraints<T>(
     schema: UcSchema<T>,
     within: UcPresentationName | undefined,
     constraints: UcConstraints<T> | undefined,
@@ -118,7 +108,10 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     }
   }
 
-  #issueConstraint(schema: UcSchema, issue: UccProcessor$ConstraintIssue): void {
+  #issueConstraint<TOptions>(
+    schema: UcSchema,
+    issue: UccProcessor$ConstraintIssue<TOptions>,
+  ): void {
     const {
       constraint: { use: feature, from },
     } = issue;
@@ -126,32 +119,52 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     let usage = this.#usages.get(usageId);
 
     if (!usage) {
-      this.#hasPendingInstructions = true;
-      usage = new UccProcessor$ConstraintUsage(this.#config, schema);
+      this.#updateConstraints();
+      usage = new UccProcessor$ConstraintUsage(this.#featureSet, schema);
       this.#usages.set(usageId, usage);
     }
 
     usage.issue(issue);
   }
 
+  #updateConstraints(): void {
+    this.#pendingInstructions.push(() => this.#applyConstraints());
+  }
+
+  async #applyConstraints(): Promise<void> {
+    for (const usage of this.#usages.values()) {
+      await usage.apply();
+    }
+  }
+
+  onConstraint<TOptions>(
+    criterion: UccFeature.ConstraintCriterion,
+    handler: UccFeature.ConstraintHandler<TBoot, TOptions>,
+  ): this {
+    this.#constraintMapper.onConstraint(criterion, handler);
+
+    return this;
+  }
+
   protected async processInstructions(): Promise<void> {
-    this.#activateCapabilities();
-    this.#profiler.init();
-    this.#collectInstructions();
-    await this.#processInstructions();
+    this.#processAllModels();
     this.#enableExplicitFeatures();
-    await this.#processInstructions(); // More instructions may be added by explicit features.
+    await this.#processInstructions();
   }
 
-  #activateCapabilities(): void {
-    this.#capabilities?.forEach(capability => {
-      capability(new UccProcessor$CapabilityActivation(this.#profiler));
-    });
-  }
+  #processAllModels(): void {
+    const instructions = this.#pendingInstructions;
 
-  #collectInstructions(): void {
+    this.#pendingInstructions = [];
     this.#models?.forEach(model => {
       this.processModel(model);
+    });
+    this.#pendingInstructions.push(...instructions);
+  }
+
+  #enableExplicitFeatures(): void {
+    this.#features?.forEach(feature => {
+      this.enable(feature);
     });
   }
 
@@ -159,22 +172,15 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
    * Processes constraints issued by {@link enable features} and {@link processModel modules}.
    */
   async #processInstructions(): Promise<void> {
-    while (this.#hasPendingInstructions) {
-      this.#hasPendingInstructions = false;
-      await this.#applyIssuedConstraints();
-    }
-  }
+    while (this.#pendingInstructions.length) {
+      const instructions = this.#pendingInstructions;
 
-  async #applyIssuedConstraints(): Promise<void> {
-    for (const usage of this.#usages.values()) {
-      await usage.apply();
-    }
-  }
+      this.#pendingInstructions = [];
 
-  #enableExplicitFeatures(): void {
-    this.#features?.forEach(feature => {
-      this.enable(feature);
-    });
+      for (const instruction of instructions) {
+        await instruction();
+      }
+    }
   }
 
   /**
@@ -217,11 +223,6 @@ export namespace UccProcessor {
      * All presentations enabled when missing or empty.
      */
     readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
-
-    /**
-     * Processor capabilities to activate.
-     */
-    readonly capabilities?: UccCapability<TBoot> | readonly UccCapability<TBoot>[] | undefined;
 
     /**
      * Models with constraints to extract processing instructions from.

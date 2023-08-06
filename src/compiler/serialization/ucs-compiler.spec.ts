@@ -104,9 +104,9 @@ export async function writeValue(stream, value, options) {
         test: String,
       });
       const compiler = new UcsCompiler({
-        capabilities: ucsSupportURIParams(),
         features: [
           ucsProcessDefaults,
+          ucsSupportURIParams(),
           boot => {
             boot.modifyInsets(
               'uriParams',
@@ -217,9 +217,9 @@ export async function writeValue(stream, value, options) {
   });
   it('allows to define inset format', async () => {
     const compiler = new UcsCompiler({
-      capabilities: ucsSupportPlainText(),
       features: [
         ucsProcessDefaults,
+        ucsSupportPlainText(),
         boot => {
           boot.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
             code.write(

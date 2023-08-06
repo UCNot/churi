@@ -24,7 +24,7 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): UccFeature.Handle {
     return {
       constrain: ({ schema }) => {
         boot

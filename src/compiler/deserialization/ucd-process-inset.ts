@@ -6,7 +6,9 @@ import { UcrxCore$stubBody } from '../rx/impl/ucrx-core.stub.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 
-export function ucdProcessInset(boot: UcrxBootstrap): UccFeature.Handle<UcdInsetOptions> {
+export function ucdProcessInset<TBoot extends UcrxBootstrap<TBoot>>(
+  boot: TBoot,
+): UccFeature.Handle<UcdInsetOptions> {
   return {
     constrain({ schema, within, options: { lexer, from, method, args } }) {
       boot

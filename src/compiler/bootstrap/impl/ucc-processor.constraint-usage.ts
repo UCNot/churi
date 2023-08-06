@@ -1,21 +1,24 @@
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
-import { UccProcessor$Config } from './ucc-processor.config.js';
 import { UccProcessor$ConstraintApplication } from './ucc-processor.constraint-application.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
+import { UccProcessor$FeatureSet } from './ucc-processor.feature-set.js';
 
-export class UccProcessor$ConstraintUsage<in out TBoot extends UccBootstrap<TBoot>> {
+export class UccProcessor$ConstraintUsage<
+  in out TBoot extends UccBootstrap<TBoot>,
+  out TOptions = unknown,
+> {
 
-  readonly #config: UccProcessor$Config<TBoot>;
+  readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #schema: UcSchema;
-  readonly #issues: UccProcessor$ConstraintIssue[] = [];
+  readonly #issues: UccProcessor$ConstraintIssue<TOptions>[] = [];
 
-  constructor(config: UccProcessor$Config<TBoot>, schema: UcSchema) {
-    this.#config = config;
+  constructor(featureSet: UccProcessor$FeatureSet<TBoot>, schema: UcSchema) {
+    this.#featureSet = featureSet;
     this.#schema = schema;
   }
 
-  issue(issue: UccProcessor$ConstraintIssue): void {
+  issue(issue: UccProcessor$ConstraintIssue<TOptions>): void {
     this.#issues.push(issue);
   }
 
@@ -26,19 +29,19 @@ export class UccProcessor$ConstraintUsage<in out TBoot extends UccBootstrap<TBoo
     this.#issues.length = 0;
   }
 
-  async #applyConstraint(issue: UccProcessor$ConstraintIssue): Promise<void> {
-    const config = this.#config;
+  async #applyConstraint(issue: UccProcessor$ConstraintIssue<TOptions>): Promise<void> {
+    const featureSet = this.#featureSet;
     const schema = this.#schema;
     const { processor, within, constraint } = issue;
-    const { profiler } = config;
+    const { constraintMapper: profiler } = featureSet;
     const application = new UccProcessor$ConstraintApplication(
-      config,
+      featureSet,
       schema,
       issue,
-      await config.resolveFeature(issue),
+      await featureSet.resolveFeature(issue),
     );
 
-    config.runWithCurrent({ processor, schema, within, constraint }, () => {
+    featureSet.runWithCurrent({ processor, schema, within, constraint }, () => {
       profiler.findHandler(processor, within, constraint)?.(application);
       if (within) {
         // Apply any presentation handler.

@@ -9,7 +9,8 @@ import { UcrxClassMod, UcrxProto } from './ucrx.class.js';
  *
  * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export interface UcrxBootstrap<in TBoot = unknown> extends UccBootstrap<TBoot> {
+export interface UcrxBootstrap<in out TBoot extends UcrxBootstrap<TBoot>>
+  extends UccBootstrap<TBoot> {
   /**
    * Assigns {@link churi!Ucrx Ucrx} class to use for `target` value type or schema processing.
    *

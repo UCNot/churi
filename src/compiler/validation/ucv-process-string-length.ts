@@ -11,7 +11,9 @@ export type UcvStringLength = [
   or?: string | undefined,
 ];
 
-export function ucvProcessStringLength(boot: UcrxBootstrap): UccFeature.Handle<UcvStringLength> {
+export function ucvProcessStringLength<TBoot extends UcrxBootstrap<TBoot>>(
+  boot: TBoot,
+): UccFeature.Handle<UcvStringLength> {
   return {
     constrain({ schema, options: [constraint, than, or] }) {
       boot.modifyUcrxMethod(schema, UcrxCore.str, {

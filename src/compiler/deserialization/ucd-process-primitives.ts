@@ -4,7 +4,7 @@ import { BooleanUcrxClass } from './boolean.ucrx.class.js';
 import { NumberUcrxClass } from './number.ucrx.class.js';
 import { StringUcrxClass } from './string.ucrx.class.js';
 
-export function ucdProcessPrimitives(boot: UcrxBootstrap): void {
+export function ucdProcessPrimitives<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): void {
   boot
     .enable(BooleanUcrxClass)
     .enable(BigIntUcrxClass)

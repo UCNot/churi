@@ -17,7 +17,6 @@ import {
 import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../bootstrap/ucc-capability.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
@@ -277,10 +276,6 @@ export namespace UcdCompiler {
   export interface Options<out TModels extends UcdModels = UcdModels>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
-    readonly capabilities?:
-      | UccCapability<UcdBootstrap>
-      | readonly UccCapability<UcdBootstrap>[]
-      | undefined;
     readonly models: TModels;
     readonly validate?: boolean | undefined;
     readonly features?: UccFeature<UcdBootstrap> | readonly UccFeature<UcdBootstrap>[] | undefined;

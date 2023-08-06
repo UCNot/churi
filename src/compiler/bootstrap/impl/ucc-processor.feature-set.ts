@@ -2,12 +2,12 @@ import { lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
+import { UccProcessor$ConstraintMapper } from './ucc-processor.constraint-mapper.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
-import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 
-export class UccProcessor$Config<in out TBoot extends UccBootstrap<TBoot>> {
+export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
 
-  readonly #profiler: UccProcessor$Profiler<TBoot>;
+  readonly #constraintMapper: UccProcessor$ConstraintMapper<TBoot>;
   readonly #resolutions = new Map<string, Promise<{ [key in string]: UccFeature<TBoot> }>>();
   readonly #enable: <TOptions>(
     feature: UccFeature<TBoot, TOptions>,
@@ -18,26 +18,24 @@ export class UccProcessor$Config<in out TBoot extends UccBootstrap<TBoot>> {
   #current: UccProcessor$Current = {};
 
   constructor(
-    profiler: UccProcessor$Profiler<TBoot>,
+    constraintMapper: UccProcessor$ConstraintMapper<TBoot>,
     enable: <TOptions>(feature: UccFeature<TBoot, TOptions>) => UccFeature.Handle<TOptions> | void,
   ) {
-    this.#profiler = profiler;
+    this.#constraintMapper = constraintMapper;
     this.#enable = enable;
   }
 
-  get boot(): TBoot {
-    return this.#profiler.boot;
-  }
-
-  get profiler(): UccProcessor$Profiler<TBoot> {
-    return this.#profiler;
+  get constraintMapper(): UccProcessor$ConstraintMapper<TBoot> {
+    return this.#constraintMapper;
   }
 
   get current(): UccProcessor$Current {
     return this.#current;
   }
 
-  async resolveFeature(issue: UccProcessor$ConstraintIssue): Promise<UccFeature<TBoot>> {
+  async resolveFeature<TOptions>(
+    issue: UccProcessor$ConstraintIssue<TOptions>,
+  ): Promise<UccFeature<TBoot, TOptions>> {
     const {
       constraint: { use, from },
     } = issue;
@@ -51,7 +49,7 @@ export class UccProcessor$Config<in out TBoot extends UccBootstrap<TBoot>> {
     const { [use]: feature } = await resolveFeatures;
 
     if ((mayHaveProperties(feature) && 'uccEnable' in feature) || typeof feature === 'function') {
-      return feature;
+      return feature as UccFeature<TBoot, TOptions>;
     }
     if (feature === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${issue}`);

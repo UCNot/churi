@@ -9,7 +9,9 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcBigInt.Variant> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcBigInt.Variant> {
     boot.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
 
     return {

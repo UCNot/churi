@@ -3,34 +3,31 @@ import { ucModelName } from '../../../schema/uc-model-name.js';
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
-import { UccCapability } from '../ucc-capability.js';
 import { UccFeature } from '../ucc-feature.js';
-import { UccProcessor$Config } from './ucc-processor.config.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
+import { UccProcessor$FeatureSet } from './ucc-processor.feature-set.js';
 
-export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstrap<TBoot>>
-  implements UccCapability.ConstraintApplication<TBoot> {
+export class UccProcessor$ConstraintApplication<
+  in out TBoot extends UccBootstrap<TBoot>,
+  in out TOptions,
+> implements UccFeature.ConstraintApplication<TBoot, TOptions> {
 
-  readonly #config: UccProcessor$Config<TBoot>;
+  readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #schema: UcSchema;
-  readonly #issue: UccProcessor$ConstraintIssue;
-  readonly #feature: UccFeature<TBoot>;
+  readonly #issue: UccProcessor$ConstraintIssue<TOptions>;
+  readonly #feature: UccFeature<TBoot, TOptions>;
   #applied = 0;
 
   constructor(
-    config: UccProcessor$Config<TBoot>,
+    featureSet: UccProcessor$FeatureSet<TBoot>,
     schema: UcSchema,
-    issue: UccProcessor$ConstraintIssue,
-    feature: UccFeature<TBoot>,
+    issue: UccProcessor$ConstraintIssue<TOptions>,
+    feature: UccFeature<TBoot, TOptions>,
   ) {
-    this.#config = config;
+    this.#featureSet = featureSet;
     this.#schema = schema;
     this.#issue = issue;
     this.#feature = feature;
-  }
-
-  get boot(): TBoot {
-    return this.#config.boot;
   }
 
   get schema(): UcSchema {
@@ -47,6 +44,10 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
 
   get constraint(): UcSchemaConstraint {
     return this.#issue.constraint;
+  }
+
+  get options(): TOptions {
+    return this.#issue.options;
   }
 
   isApplied(): boolean {
@@ -66,27 +67,12 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
     this.#constrain();
   }
 
-  #constrain<TOptions>(): void {
-    const handle = this.#config.enableFeature(this.#feature as UccFeature<TBoot, TOptions>);
-    const { processor, within, constraint } = this.#issue;
-    const options = constraint.with as TOptions;
+  #constrain(): void {
+    const handle = this.#featureSet.enableFeature(this.#feature);
+    const { options } = this;
 
     if (handle) {
-      this.#config.runWithCurrent(
-        {
-          processor,
-          schema: this.schema,
-          within,
-          constraint,
-        },
-        () => handle.constrain({
-            processor,
-            schema: this.schema,
-            within,
-            constraint,
-            options,
-          }),
-      );
+      this.#featureSet.runWithCurrent(this, () => handle.constrain(this));
     } else if (options !== undefined) {
       throw new TypeError(
         `Feature ${this.#issue} can not constrain schema "${ucModelName(this.schema)}"`,

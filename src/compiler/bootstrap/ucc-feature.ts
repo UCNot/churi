@@ -1,12 +1,13 @@
 import { UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccBootstrap } from './ucc-bootstrap.js';
 import { UccProcessor } from './ucc-processor.js';
 
 /**
  * Schema processing feature. Configures {@link UccProcessor schema processor} at bootstrap.
  *
- * Can be enabled by {@link churi!UcFeatureConstraint schema constraints} or {@link UccProcessor#enable explicitly}.
+ * Can be enabled by {@link churi!UcSchemaConstraint schema constraints} or {@link UccProcessor#enable explicitly}.
  *
  * @typeParam TBoot - Type of schema processing bootstrap.
  * @typeParam TOptions - Type of schema processing options.
@@ -47,7 +48,7 @@ export namespace UccFeature {
   >['uccEnable'];
 
   /**
-   * {@link Feature} handle returned when the latter enabled.
+   * {@link UccFeature Feature} handle returned when the latter enabled.
    *
    * @typeParam TOptions - Type of supported schema constraint options.
    */
@@ -93,5 +94,88 @@ export namespace UccFeature {
      * Constraint options.
      */
     readonly options: TOptions;
+  }
+
+  /**
+   * Schema constraint {@link UccBootstrap#onConstraint application} handler.
+   *
+   * The handler is called each time the matching constraint applied.
+   *
+   * If the handler neither {@link ConstraintApplication#apply applies}, nor {@link ConstraintApplication#ignore
+   * ignores} the constraint, the latter will be applied automatically after the the handler ends its work.
+   *
+   * @typeParam TBoot - Type of schema processing bootstrap.
+   * @typeParam TOptions - Constraint options type.
+   * @param application - Constraint application context.
+   */
+  export type ConstraintHandler<in TBoot extends UccBootstrap<TBoot>, in TOptions = never> = (
+    this: void,
+    application: ConstraintApplication<TBoot, TOptions>,
+  ) => void;
+
+  /**
+   * Schema constraint criterion.
+   */
+  export interface ConstraintCriterion {
+    /**
+     * Target schema processor.
+     */
+    readonly processor: UcProcessorName;
+
+    /**
+     * Target schema instance presentation, or `undefined` to match any presentation.
+     */
+    readonly within?: UcPresentationName | undefined;
+
+    /**
+     * Target {@link churi!UcSchemaConstraint#use feature name} to use.
+     */
+    readonly use: string;
+
+    /**
+     * Target {@link churi!UcSchemaConstraint#from ECMAScript module name} to import the feature from.
+     */
+    readonly from: string;
+  }
+
+  /**
+   * Schema constraint application context.
+   *
+   * @typeParam TBoot - Type of schema processing bootstrap.
+   * @typeParam TOptions - Constraint options type.
+   */
+  export interface ConstraintApplication<out TBoot extends UccBootstrap<TBoot>, out TOptions>
+    extends Constraint<TOptions> {
+    /**
+     * Informs whether the {@link constraint} is {@link apply applied} already.
+     *
+     * @returns `true` after {@link apply} method call, or `false` otherwise.
+     */
+    isApplied(): boolean;
+
+    /**
+     * Informs whether the {@link constraint} is {@link ignore ignored}.
+     *
+     * @returns `true` after {@link ignore} method call, or `false` otherwise or after {@link apply} method call.
+     */
+    isIgnored(): boolean;
+
+    /**
+     * Applies the schema {@link constraint} immediately.
+     *
+     * Does nothing if the constraint {@link isApplied applied} already.
+     *
+     * Ignores the {@link ignore} instruction.
+     */
+    apply(): void;
+
+    /**
+     * Ignores the {@link constraint}.
+     *
+     * Calling this method disables automatic {@link constraint} application.
+     *
+     * Does nothing if the constraint {@link isApplied applied} already.
+     */
+    ignore(): void;
   }
 }

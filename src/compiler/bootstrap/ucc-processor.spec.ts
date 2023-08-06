@@ -147,15 +147,12 @@ describe('UccProcessor', () => {
 
       expect(processor.records).toEqual([{}]);
     });
-  });
-
-  describe('capabilities', () => {
     it('applies constraint at most once', async () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
@@ -190,8 +187,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
@@ -214,8 +211,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
@@ -238,8 +235,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               within: 'charge',
@@ -263,8 +260,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation
+        features: boot => {
+          boot
             .onConstraint(
               {
                 processor: 'deserializer',
@@ -273,7 +270,7 @@ describe('UccProcessor', () => {
               },
               application => {
                 application.ignore();
-                application.boot.record({
+                boot.record({
                   processor: application.processor,
                   schema: application.schema,
                   within: application.within,
@@ -287,7 +284,7 @@ describe('UccProcessor', () => {
                 use: ucTestProcessSchemaRecord.name,
                 from: SPEC_MODULE,
               },
-              ({ boot }) => {
+              () => {
                 recordUcTestData(boot, 2);
               },
             );

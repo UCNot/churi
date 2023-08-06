@@ -7,7 +7,7 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, UcBoolean.Schema> {
 
-  static uccEnable(boot: UcrxBootstrap): void {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): void {
     boot.useUcrxClass(Boolean, (lib, schema: UcBoolean.Schema) => new this(lib, schema));
   }
 

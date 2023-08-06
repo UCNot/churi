@@ -8,7 +8,9 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcString.Schema> {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcString.Variant> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcString.Variant> {
     boot.useUcrxClass(String, (lib, schema: UcString.Schema) => new this(lib, schema));
 
     return {

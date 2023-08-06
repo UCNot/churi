@@ -12,7 +12,9 @@ export type UcvNumericRange = [
   or?: string | undefined,
 ];
 
-export function ucvProcessNumericRange(boot: UcrxBootstrap): UccFeature.Handle<UcvNumericRange> {
+export function ucvProcessNumericRange<TBoot extends UcrxBootstrap<TBoot>>(
+  boot: TBoot,
+): UccFeature.Handle<UcvNumericRange> {
   return {
     constrain({ schema, options: [constraint, than, or] }) {
       let setter: UcrxSetter;

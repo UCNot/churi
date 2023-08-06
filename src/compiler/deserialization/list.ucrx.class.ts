@@ -31,7 +31,9 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UccListOptions> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UccListOptions> {
     return {
       constrain: ({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) => {
         boot

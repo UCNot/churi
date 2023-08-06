@@ -34,15 +34,35 @@ export class URIChargeCompiler extends UcdCompiler<{
       features(boot) {
         boot
           .enable(ucdProcessDefaults)
-          .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema))
-          .useUcrxClass(
-            ucList(URICharge$Schema),
-            (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
+          .onConstraint(
+            {
+              processor: 'deserializer',
+              use: MapUcrxClass.name,
+              from: COMPILER_MODULE,
+            },
+            application => {
+              application.ignore();
+              boot.useUcrxClass(
+                ucMap({}, { extra: URICharge$Schema }),
+                (lib, schema) => new URIChargeMapUcrxClass(lib, schema as unknown as UcMap.Schema),
+              );
+            },
           )
-          .useUcrxClass(
-            ucMap({}, { extra: URICharge$Schema }),
-            (lib, schema) => new URIChargeMapUcrxClass(lib, schema as unknown as UcMap.Schema),
-          );
+          .onConstraint(
+            {
+              processor: 'deserializer',
+              use: ListUcrxClass.name,
+              from: COMPILER_MODULE,
+            },
+            application => {
+              application.ignore();
+              boot.useUcrxClass(
+                ucList(URICharge$Schema),
+                (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
+              );
+            },
+          )
+          .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema));
       },
     });
   }

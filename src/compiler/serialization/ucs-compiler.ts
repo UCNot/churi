@@ -9,7 +9,6 @@ import {
 } from 'esgen';
 import { UcFormatName, UcInsetName, UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../bootstrap/ucc-capability.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccProcessor } from '../bootstrap/ucc-processor.js';
 import { UcsPresentationConfig } from './impl/ucs-presentation-config.js';
@@ -294,10 +293,6 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
 export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
     readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
-    readonly capabilities?:
-      | UccCapability<UcsBootstrap>
-      | readonly UccCapability<UcsBootstrap>[]
-      | undefined;
     readonly models: TModels;
     readonly features?: UccFeature<UcsBootstrap> | readonly UccFeature<UcsBootstrap>[] | undefined;
   }

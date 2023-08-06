@@ -4,7 +4,7 @@ import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcString } from '../../schema/string/uc-string.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
-import { UccCapability } from '../bootstrap/ucc-capability.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
@@ -18,9 +18,9 @@ import { ucsProcessInteger } from './ucs-process-integer.js';
 import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
 
-export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
-  return activation => {
-    activation
+export function ucsSupportPlainText(): UccFeature<UcsBootstrap> {
+  return boot => {
+    boot
       .enable(ucsProcessPlainTextDefaults)
       .onConstraint(
         {
@@ -28,7 +28,7 @@ export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
           use: ucsProcessBigInt.name,
           from: COMPILER_MODULE,
         },
-        ({ boot, schema, constraint: { with: options } }) => {
+        ({ schema, constraint: { with: options } }) => {
           const { number = 'parse' } = options as UcBigInt.Variant;
 
           boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatBigInt({ number })));
@@ -40,7 +40,7 @@ export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
           use: ucsProcessInteger.name,
           from: COMPILER_MODULE,
         },
-        ({ boot, schema }) => {
+        ({ schema }) => {
           boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatInteger()));
         },
       )
@@ -50,7 +50,7 @@ export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
           use: ucsProcessNumber.name,
           from: COMPILER_MODULE,
         },
-        ({ boot, schema }) => {
+        ({ schema }) => {
           boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatNumber()));
         },
       )
@@ -60,7 +60,7 @@ export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
           use: ucsProcessString.name,
           from: COMPILER_MODULE,
         },
-        ({ boot, schema }) => {
+        ({ schema }) => {
           boot.formatWith('plainText', schema, ucsFormatPlainTextString());
         },
       );

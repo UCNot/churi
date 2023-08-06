@@ -8,7 +8,9 @@ import { ucvValidate } from './ucv-validate.js';
 
 export type UcvStringPattern = [match: RegExp, or?: string | undefined];
 
-export function ucvProcessStringPattern(boot: UcrxBootstrap): UccFeature.Handle<UcvStringPattern> {
+export function ucvProcessStringPattern<TBoot extends UcrxBootstrap<TBoot>>(
+  boot: TBoot,
+): UccFeature.Handle<UcvStringPattern> {
   return {
     constrain({ schema, options: [match, or] }) {
       boot.modifyUcrxMethod(schema, UcrxCore.str, {

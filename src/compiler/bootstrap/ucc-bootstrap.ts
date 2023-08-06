@@ -10,7 +10,7 @@ import { UccFeature } from './ucc-feature.js';
  *
  * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export interface UccBootstrap<in TBoot = unknown> {
+export interface UccBootstrap<in out TBoot extends UccBootstrap<TBoot>> {
   /**
    * Currently working schema processor name.
    */
@@ -50,4 +50,20 @@ export interface UccBootstrap<in TBoot = unknown> {
    * @returns `this` instance.
    */
   processModel<T>(model: UcModel<T>): this;
+
+  /**
+   * Registers {@link churi!UcSchemaConstraint schema constraint} application handler.
+   *
+   * If multiple handlers match the same `criteria`, they all will be applied in order of their registration.
+   * Handlers matching any presentation always applied after the ones matching concrete one.
+   *
+   * @typeParam TOptions - Constraint options type.
+   * @param criterion - Constraint criterion to apply the `handler` to.
+   * @param handler - Constraint application handler to call each time the matching constraint is about to be
+   * applied.
+   */
+  onConstraint<TOptions>(
+    criterion: UccFeature.ConstraintCriterion,
+    handler: UccFeature.ConstraintHandler<TBoot, TOptions>,
+  ): this;
 }

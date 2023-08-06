@@ -9,7 +9,9 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcInteger.Variant> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcInteger.Variant> {
     return {
       constrain: ({ schema, options }) => {
         boot.useUcrxClass(

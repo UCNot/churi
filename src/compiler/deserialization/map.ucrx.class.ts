@@ -32,7 +32,9 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcMap.Variant> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcMap.Variant> {
     return {
       constrain: ({ schema, options }: UccFeature.Constraint<UcMap.Variant, UcMap.Schema>) => {
         const { entries, extra } = schema;
