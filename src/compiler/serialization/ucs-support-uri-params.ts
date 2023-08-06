@@ -14,7 +14,7 @@ import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../processor/ucc-capability.js';
+import { UccCapability } from '../bootstrap/ucc-capability.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';

@@ -1,6 +1,6 @@
 import { EsSignature } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSetup } from '../processor/ucc-setup.js';
+import { UccSetup } from '../bootstrap/ucc-setup.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 import { UcrxClassMod, UcrxProto } from './ucrx.class.js';
 

@@ -1,6 +1,6 @@
 import { ucdInfinity, ucdNaN, ucdNegativeInfinity } from '../../deserializer/ucd-non-finite.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcdHandlerFeature, UcdHandlerSetup } from './ucd-handler-feature.js';
 import { UcdSetup } from './ucd-setup.js';
 

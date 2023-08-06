@@ -1,5 +1,5 @@
 import { UcInteger } from '../../schema/numeric/uc-integer.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
 import { UcsSetup } from './ucs-setup.js';

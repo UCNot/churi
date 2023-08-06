@@ -1,6 +1,6 @@
 import { esline } from 'esgen';
+import { UccFeature } from '../compiler/bootstrap/ucc-feature.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
-import { UccFeature } from '../compiler/processor/ucc-feature.js';
 import { UcsSetup } from '../compiler/serialization/ucs-setup.js';
 import { UcSchema } from '../schema/uc-schema.js';
 import { ucsWriteAsIs } from '../serializer/ucs-write-asis.js';

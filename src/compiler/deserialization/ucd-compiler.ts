@@ -17,9 +17,9 @@ import {
 import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../processor/ucc-capability.js';
-import { UccConfig } from '../processor/ucc-config.js';
-import { UccFeature } from '../processor/ucc-feature.js';
+import { UccCapability } from '../bootstrap/ucc-capability.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';

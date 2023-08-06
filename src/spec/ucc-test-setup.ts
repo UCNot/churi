@@ -1,5 +1,5 @@
-import { UccConfig } from '../compiler/processor/ucc-config.js';
-import { UccSetup } from '../compiler/processor/ucc-setup.js';
+import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
+import { UccSetup } from '../compiler/bootstrap/ucc-setup.js';
 import { SPEC_MODULE } from '../impl/module-names.js';
 import { UcOmniConstraints } from '../schema/uc-constraints.js';
 

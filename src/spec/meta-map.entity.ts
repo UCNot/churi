@@ -1,6 +1,6 @@
+import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
 import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
-import { UccConfig } from '../compiler/processor/ucc-config.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
 import { Ucrx } from '../rx/ucrx.js';
 

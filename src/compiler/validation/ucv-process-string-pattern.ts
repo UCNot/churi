@@ -1,7 +1,7 @@
 import { esStringLiteral, esline } from 'esgen';
 import { ucvViolateItMatches } from '../../validator/ucv-string-pattern.violation.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { ucvValidate } from './ucv-validate.js';

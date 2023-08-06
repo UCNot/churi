@@ -1,7 +1,7 @@
 import { EsSignature } from 'esgen';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
-import { UccProcessor } from '../processor/ucc-processor.js';
-import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UccProcessor } from '../bootstrap/ucc-processor.js';
+import { UccSchemaIndex } from '../bootstrap/ucc-schema-index.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 import { UcrxSetup } from './ucrx-setup.js';

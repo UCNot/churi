@@ -1,6 +1,6 @@
 import { esStringLiteral, esline } from 'esgen';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';

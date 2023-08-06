@@ -14,12 +14,12 @@ import {
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel } from '../../schema/uc-schema.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UccListOptions } from '../common/ucc-list-options.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';

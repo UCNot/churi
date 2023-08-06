@@ -1,7 +1,7 @@
 import { esline } from 'esgen';
 import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI, UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcsSetup } from './ucs-setup.js';
 
 export function ucsProcessUnknown(setup: UcsSetup): UccConfig {

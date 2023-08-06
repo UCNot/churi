@@ -1,8 +1,8 @@
 import { EsFunction, EsVarSymbol, esline } from 'esgen';
+import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
+import { UccFeature } from '../compiler/bootstrap/ucc-feature.js';
 import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
 import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
-import { UccConfig } from '../compiler/processor/ucc-config.js';
-import { UccFeature } from '../compiler/processor/ucc-feature.js';
 import { UcrxCore } from '../compiler/rx/ucrx-core.js';
 import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';

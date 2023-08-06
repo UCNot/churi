@@ -1,4 +1,4 @@
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { ucsFormatBoolean } from './impl/ucs-format-boolean.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsSetup } from './ucs-setup.js';

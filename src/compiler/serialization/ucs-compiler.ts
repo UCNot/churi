@@ -9,9 +9,9 @@ import {
 } from 'esgen';
 import { UcFormatName, UcInsetName, UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../processor/ucc-capability.js';
-import { UccFeature } from '../processor/ucc-feature.js';
-import { UccProcessor } from '../processor/ucc-processor.js';
+import { UccCapability } from '../bootstrap/ucc-capability.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
+import { UccProcessor } from '../bootstrap/ucc-processor.js';
 import { UcsPresentationConfig } from './impl/ucs-presentation-config.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';

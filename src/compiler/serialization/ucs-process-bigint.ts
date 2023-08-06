@@ -1,6 +1,6 @@
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsSetup } from './ucs-setup.js';

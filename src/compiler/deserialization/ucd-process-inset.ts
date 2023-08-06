@@ -1,7 +1,7 @@
 import { esImport, esMemberAccessor, esline } from 'esgen';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UcrxCore$stubBody } from '../rx/impl/ucrx-core.stub.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';

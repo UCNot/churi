@@ -1,7 +1,7 @@
 import { EsBundle, EsCallable, EsNamespace, EsSnippet, esline } from 'esgen';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
+import { UccSchemaIndex } from '../bootstrap/ucc-schema-index.js';
 import { UC_MODULE_DESERIALIZER_META } from '../impl/uc-modules.js';
-import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdFunction } from './ucd-function.js';

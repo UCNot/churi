@@ -14,9 +14,9 @@ import {
 } from 'esgen';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';

@@ -14,8 +14,8 @@ import {
 import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';

@@ -1,4 +1,4 @@
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { ucsProcessBigInt } from './ucs-process-bigint.js';
 import { ucsProcessBoolean } from './ucs-process-boolean.js';
 import { ucsProcessNumber } from './ucs-process-number.js';

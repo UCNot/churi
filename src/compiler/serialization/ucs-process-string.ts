@@ -1,6 +1,6 @@
 import { UcString } from '../../schema/string/uc-string.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatString } from './impl/ucs-format-string.js';
 import { UcsSetup } from './ucs-setup.js';

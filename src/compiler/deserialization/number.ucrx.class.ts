@@ -1,7 +1,7 @@
 import { EsVarSymbol, esline } from 'esgen';
 import { UcNumber } from '../../schema/numeric/uc-number.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';

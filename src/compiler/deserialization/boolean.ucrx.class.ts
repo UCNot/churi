@@ -1,6 +1,6 @@
 import { esline } from 'esgen';
 import { UcBoolean } from '../../schema/boolean/uc-boolean.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxSetup } from '../rx/ucrx-setup.js';
