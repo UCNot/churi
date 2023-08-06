@@ -1,9 +1,9 @@
 import { esStringLiteral, esline } from 'esgen';
 import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxSetter } from '../rx/ucrx-setter.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { ucvValidate } from './ucv-validate.js';
 
 export type UcvNumericRange = [
@@ -12,7 +12,7 @@ export type UcvNumericRange = [
   or?: string | undefined,
 ];
 
-export function ucvProcessNumericRange(setup: UcrxSetup): UccConfig<UcvNumericRange> {
+export function ucvProcessNumericRange(boot: UcrxBootstrap): UccConfig<UcvNumericRange> {
   return {
     configureSchema(schema, [constraint, than, or]) {
       let setter: UcrxSetter;
@@ -28,7 +28,7 @@ export function ucvProcessNumericRange(setup: UcrxSetup): UccConfig<UcvNumericRa
 
       const message = or != null ? `, ${esStringLiteral(or)}` : '';
 
-      setup.modifyUcrxMethod(schema, setter, {
+      boot.modifyUcrxMethod(schema, setter, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {
             const ucvReject = UC_MODULE_VALIDATOR.import(`ucvViolate${constraint}`);

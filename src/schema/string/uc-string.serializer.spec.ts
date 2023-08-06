@@ -63,9 +63,9 @@ describe('UcString serializer', () => {
       const compiler = new UcsCompiler({
         features: [
           ucsProcessDefaults,
-          setup => ({
+          boot => ({
             configure() {
-              setup.writeWith('charge', ({ stream }) => {
+              boot.writeWith('charge', ({ stream }) => {
                 const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
 
                 return esline`new ${UcsWriter}(${stream}, 4);`;

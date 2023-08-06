@@ -1,13 +1,13 @@
 import { EsDeclarationContext, EsSnippet } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 
 /**
- * Schema {@link UcdCompiler deserializer} setup.
+ * Schema {@link UcdCompiler deserializer} bootstrap.
  */
-export interface UcdSetup extends UcrxSetup<UcdSetup> {
+export interface UcdBootstrap extends UcrxBootstrap<UcdBootstrap> {
   /**
    * Requests the given `schema` to be compiled.
    *

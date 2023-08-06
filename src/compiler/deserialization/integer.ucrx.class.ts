@@ -2,17 +2,17 @@ import { esline } from 'esgen';
 import { UcInteger } from '../../schema/numeric/uc-integer.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcInteger.Variant | undefined> {
+  static uccProcess(boot: UcrxBootstrap): UccConfig<UcInteger.Variant | undefined> {
     return {
       configureSchema: (schema, variant) => {
-        setup.useUcrxClass(
+        boot.useUcrxClass(
           schema,
           (lib, schema: UcInteger.Schema) => new this(lib, schema, variant),
         );

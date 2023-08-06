@@ -1,23 +1,20 @@
 import { esline } from 'esgen';
 import { UcString } from '../../schema/string/uc-string.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class StringUcrxClass extends UcrxClass<UcrxSignature.Args, UcString, UcString.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcString.Variant | void> {
+  static uccProcess(boot: UcrxBootstrap): UccConfig<UcString.Variant | void> {
     return {
       configure: () => {
-        setup.useUcrxClass(String, (lib, schema: UcString.Schema) => new this(lib, schema));
+        boot.useUcrxClass(String, (lib, schema: UcString.Schema) => new this(lib, schema));
       },
       configureSchema: (schema, variant) => {
-        setup.useUcrxClass(
-          schema,
-          (lib, schema: UcString.Schema) => new this(lib, schema, variant),
-        );
+        boot.useUcrxClass(schema, (lib, schema: UcString.Schema) => new this(lib, schema, variant));
       },
     };
   }

@@ -13,15 +13,15 @@ import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatBoolean } from './impl/ucs-format-boolean.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
 import { ucsFormatNumber } from './impl/ucs-format-number.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { ucsProcessBigInt } from './ucs-process-bigint.js';
 import { ucsProcessInteger } from './ucs-process-integer.js';
 import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
-export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
+export function ucsSupportURIEncoded(): UccCapability<UcsBootstrap> {
   return activation => {
     activation
       .enable(ucsProcessURIEncodedDefaults)
@@ -31,10 +31,10 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessBigInt.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema, constraint: { with: options } }) => {
+        ({ boot, schema, constraint: { with: options } }) => {
           const { number = 'parse' } = options as UcBigInt.Variant;
 
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
         },
       )
       .onConstraint(
@@ -43,8 +43,8 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessInteger.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
+        ({ boot, schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
         },
       )
       .onConstraint(
@@ -53,8 +53,8 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessNumber.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
+        ({ boot, schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
         },
       )
       .onConstraint(
@@ -63,17 +63,17 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessString.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
+        ({ boot, schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
         },
       );
   };
 }
 
-function ucsProcessURIEncodedDefaults(setup: UcsSetup): UccConfig {
+function ucsProcessURIEncodedDefaults(boot: UcsBootstrap): UccConfig {
   return {
     configure() {
-      setup
+      boot
         .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
         .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
         .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))

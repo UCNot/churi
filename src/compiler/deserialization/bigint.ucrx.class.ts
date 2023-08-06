@@ -2,20 +2,20 @@ import { esline } from 'esgen';
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcBigInt.Variant | void> {
+  static uccProcess(boot: UcrxBootstrap): UccConfig<UcBigInt.Variant | void> {
     return {
       configure: () => {
-        setup.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
+        boot.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
       },
       configureSchema: (schema, variant) => {
-        setup.useUcrxClass(
+        boot.useUcrxClass(
           schema,
           (lib, schema) => new this(lib, schema as UcBigInt.Schema, variant),
         );

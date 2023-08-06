@@ -1,3 +1,4 @@
+export * from './ucs-bootstrap.js';
 export * from './ucs-compiler.js';
 export * from './ucs-export.signature.js';
 export * from './ucs-formatter.js';
@@ -16,7 +17,6 @@ export * from './ucs-process-number.js';
 export * from './ucs-process-primitives.js';
 export * from './ucs-process-string.js';
 export * from './ucs-process-unknown.js';
-export * from './ucs-setup.js';
 export * from './ucs-support-plain-text.js';
 export * from './ucs-support-uri-encoded.js';
 export * from './ucs-support-uri-params.js';

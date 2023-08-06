@@ -8,5 +8,5 @@ export * from './ucrx-method.js';
 export * from './ucrx-processor.js';
 export * from './ucrx-property.js';
 export * from './ucrx-setter.js';
-export * from './ucrx-setup.js';
+export * from './ucrx-bootstrap.js';
 export * from './ucrx.class.js';

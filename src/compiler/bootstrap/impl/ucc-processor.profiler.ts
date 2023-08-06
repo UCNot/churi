@@ -1,43 +1,43 @@
 import { UcFeatureConstraint, UcProcessorName } from '../../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
+import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccCapability } from '../ucc-capability.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccProcessor } from '../ucc-processor.js';
-import { UccSetup } from '../ucc-setup.js';
 
-export class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
+export class UccProcessor$Profiler<in out TBoot extends UccBootstrap<TBoot>> {
 
-  readonly #processor: UccProcessor<TSetup>;
-  readonly #init: ((setup: TSetup) => void)[] = [];
-  readonly #handlers = new Map<string, UccCapability.ConstraintHandler<TSetup>>();
+  readonly #processor: UccProcessor<TBoot>;
+  readonly #init: ((boot: TBoot) => void)[] = [];
+  readonly #handlers = new Map<string, UccCapability.ConstraintHandler<TBoot>>();
 
-  constructor(processor: UccProcessor<TSetup>) {
+  constructor(processor: UccProcessor<TBoot>) {
     this.#processor = processor;
   }
 
-  get setup(): TSetup {
-    return this.#processor.setup;
+  get boot(): TBoot {
+    return this.#processor.boot;
   }
 
-  get processor(): UccProcessor<TSetup> {
+  get processor(): UccProcessor<TBoot> {
     return this.#processor;
   }
 
-  addFeature<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): void {
-    this.#init.push(setup => setup.enable(feature, options));
+  addFeature<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): void {
+    this.#init.push(boot => boot.enable(feature, options));
   }
 
   init(): void {
-    const { setup } = this;
+    const { boot: boot } = this;
 
     for (const init of this.#init) {
-      init(setup);
+      init(boot);
     }
   }
 
   onConstraint(
     { processor, within, use, from }: UccCapability.ConstraintCriterion,
-    handler: UccCapability.ConstraintHandler<TSetup>,
+    handler: UccCapability.ConstraintHandler<TBoot>,
   ): void {
     const handlerId = this.#handlerId(processor, within, use, from);
     const prevHandler = this.#handlers.get(handlerId);
@@ -56,7 +56,7 @@ export class UccProcessor$Profiler<in out TSetup extends UccSetup<TSetup>> {
     processor: UcProcessorName,
     within: UcPresentationName | undefined,
     { use, from }: UcFeatureConstraint,
-  ): UccCapability.ConstraintHandler<TSetup> | undefined {
+  ): UccCapability.ConstraintHandler<TBoot> | undefined {
     return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
   }
 

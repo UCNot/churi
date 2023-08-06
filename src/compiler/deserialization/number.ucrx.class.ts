@@ -2,23 +2,20 @@ import { EsVarSymbol, esline } from 'esgen';
 import { UcNumber } from '../../schema/numeric/uc-number.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcNumber.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcNumber.Variant | void> {
+  static uccProcess(boot: UcrxBootstrap): UccConfig<UcNumber.Variant | void> {
     return {
       configure: () => {
-        setup.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
+        boot.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
       },
       configureSchema: (schema, variant) => {
-        setup.useUcrxClass(
-          schema,
-          (lib, schema: UcNumber.Schema) => new this(lib, schema, variant),
-        );
+        boot.useUcrxClass(schema, (lib, schema: UcNumber.Schema) => new this(lib, schema, variant));
       },
     };
   }

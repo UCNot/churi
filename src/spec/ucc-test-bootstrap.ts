@@ -1,9 +1,9 @@
+import { UccBootstrap } from '../compiler/bootstrap/ucc-bootstrap.js';
 import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
-import { UccSetup } from '../compiler/bootstrap/ucc-setup.js';
 import { SPEC_MODULE } from '../impl/module-names.js';
 import { UcOmniConstraints } from '../schema/uc-constraints.js';
 
-export interface UccTestSetup extends UccSetup<UccTestSetup> {
+export interface UccTestBootstrap extends UccBootstrap<UccTestBootstrap> {
   record(value: unknown): void;
 }
 
@@ -19,18 +19,18 @@ export function ucTestRecord(options?: unknown): UcOmniConstraints {
   };
 }
 
-export function ucTestProcessSchemaRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessSchemaRecord(boot: UccTestBootstrap): UccConfig<unknown> {
   return {
     configureSchema(_, options) {
-      recordUcTestData(setup, options);
+      recordUcTestData(boot, options);
     },
   };
 }
 
-export function ucTestProcessFeatureRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessFeatureRecord(boot: UccTestBootstrap): UccConfig<unknown> {
   return {
     configure(options) {
-      recordUcTestData(setup, options);
+      recordUcTestData(boot, options);
     },
   };
 }
@@ -45,20 +45,20 @@ export function ucTestSubRecord(options?: unknown): UcOmniConstraints {
   };
 }
 
-export function ucTestProcessSubRecord(setup: UccTestSetup): UccConfig<unknown> {
+export function ucTestProcessSubRecord(boot: UccTestBootstrap): UccConfig<unknown> {
   return {
     configureSchema(_, options) {
-      setup.enable(ucTestProcessFeatureRecord, options);
+      boot.enable(ucTestProcessFeatureRecord, options);
     },
   };
 }
 
-export function recordUcTestData(setup: UccTestSetup, options: unknown): void {
-  setup.record({
-    processor: setup.currentProcessor,
-    schema: setup.currentSchema,
-    presentation: setup.currentPresentation,
-    constraint: setup.currentConstraint,
+export function recordUcTestData(boot: UccTestBootstrap, options: unknown): void {
+  boot.record({
+    processor: boot.currentProcessor,
+    schema: boot.currentSchema,
+    presentation: boot.currentPresentation,
+    constraint: boot.currentConstraint,
     options,
   });
 }

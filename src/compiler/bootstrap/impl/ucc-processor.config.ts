@@ -1,27 +1,27 @@
 import { UcSchema } from '../../../schema/uc-schema.js';
+import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
-import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 import { UccProcessor$FeatureConfig } from './ucc-processor.feature-config.js';
 import { UccProcessor$Profiler } from './ucc-processor.profiler.js';
 
-export class UccProcessor$Config<in out TSetup extends UccSetup<TSetup>> {
+export class UccProcessor$Config<in out TBoot extends UccBootstrap<TBoot>> {
 
-  readonly #profiler: UccProcessor$Profiler<TSetup>;
-  readonly #configs = new Map<UccFeature<TSetup, never>, UccProcessor$FeatureConfig<TSetup>>();
+  readonly #profiler: UccProcessor$Profiler<TBoot>;
+  readonly #configs = new Map<UccFeature<TBoot, never>, UccProcessor$FeatureConfig<TBoot>>();
 
   #current: UccProcessor$Current = {};
 
-  constructor(profiler: UccProcessor$Profiler<TSetup>) {
+  constructor(profiler: UccProcessor$Profiler<TBoot>) {
     this.#profiler = profiler;
   }
 
-  get setup(): TSetup {
-    return this.#profiler.setup;
+  get boot(): TBoot {
+    return this.#profiler.boot;
   }
 
-  get profiler(): UccProcessor$Profiler<TSetup> {
+  get profiler(): UccProcessor$Profiler<TBoot> {
     return this.#profiler;
   }
 
@@ -29,23 +29,23 @@ export class UccProcessor$Config<in out TSetup extends UccSetup<TSetup>> {
     return this.#current;
   }
 
-  enableFeature<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): void {
+  enableFeature<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): void {
     this.#featureConfig(feature).configureFeature(this, options);
   }
 
   enableSchema<TOptions>(
     schema: UcSchema,
-    feature: UccFeature<TSetup, TOptions>,
+    feature: UccFeature<TBoot, TOptions>,
     issue: UccProcessor$ConstraintIssue,
   ): void {
     this.#featureConfig(feature).configureSchema(this, schema, issue);
   }
 
   #featureConfig<TOptions>(
-    feature: UccFeature<TSetup, TOptions>,
-  ): UccProcessor$FeatureConfig<TSetup, TOptions> {
+    feature: UccFeature<TBoot, TOptions>,
+  ): UccProcessor$FeatureConfig<TBoot, TOptions> {
     let config = this.#configs.get(feature) as
-      | UccProcessor$FeatureConfig<TSetup, TOptions>
+      | UccProcessor$FeatureConfig<TBoot, TOptions>
       | undefined;
 
     if (!config) {

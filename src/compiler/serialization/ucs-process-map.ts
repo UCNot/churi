@@ -17,21 +17,21 @@ import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckCharge, ucsFormatCharge } from './impl/ucs-format-charge.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
-import { UcsSetup } from './ucs-setup.js';
 
-export function ucsProcessMap(setup: UcsSetup): UccConfig {
+export function ucsProcessMap(boot: UcsBootstrap): UccConfig {
   return {
     configure() {
-      setup.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
+      boot.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
     },
     configureSchema({ entries, extra }: UcMap.Schema) {
-      Object.values(entries).forEach(entrySchema => setup.processModel(entrySchema));
+      Object.values(entries).forEach(entrySchema => boot.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
         // TODO Implement extra entries serialization.
-        setup.processModel(extra);
+        boot.processModel(extra);
       }
     },
   };

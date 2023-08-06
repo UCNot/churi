@@ -4,13 +4,13 @@ import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from './ucc-feature.js';
 
 /**
- * Schema {@link UccProcessor processing} setup.
+ * Schema {@link UccProcessor processing} bootstrap.
  *
  * Supports processing {@link UccFeature features}.
  *
- * @typeParam TSetup - Schema processing setup type.
+ * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export interface UccSetup<in TSetup = unknown> {
+export interface UccBootstrap<in TBoot = unknown> {
   /**
    * Currently working schema processor name.
    */
@@ -40,7 +40,7 @@ export interface UccSetup<in TSetup = unknown> {
    *
    * @returns `this` instance.
    */
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): this;
+  enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): this;
 
   /**
    * Enables the given processing `feature` that does not require options.
@@ -50,7 +50,7 @@ export interface UccSetup<in TSetup = unknown> {
    *
    * @returns `this` instance.
    */
-  enable(feature: UccFeature<TSetup, void>, options?: void): this;
+  enable(feature: UccFeature<TBoot, void>, options?: void): this;
 
   /**
    * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.

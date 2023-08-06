@@ -2,19 +2,19 @@ import { EsSignature } from 'esgen';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { UccProcessor } from '../bootstrap/ucc-processor.js';
 import { UccSchemaIndex } from '../bootstrap/ucc-schema-index.js';
+import { UcrxBootstrap } from './ucrx-bootstrap.js';
 import { UcrxLib } from './ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
-import { UcrxSetup } from './ucrx-setup.js';
 import { UcrxClass, UcrxClassMod, UcrxProto, UcrxSignature } from './ucrx.class.js';
 
 /**
- * Setup of schema {@link UcrxProcessor processing} utilizing {@link churi!Ucrx charge receiver} code generation.
+ * Schema processing utilizing {@link churi!Ucrx charge receiver} code generation.
  *
- * @typeParam TSetup - Schema processing setup type.
+ * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export abstract class UcrxProcessor<in out TSetup extends UcrxSetup<TSetup>>
-  extends UccProcessor<TSetup>
-  implements UcrxSetup<TSetup> {
+export abstract class UcrxProcessor<in out TBoot extends UcrxBootstrap<TBoot>>
+  extends UccProcessor<TBoot>
+  implements UcrxBootstrap<TBoot> {
 
   readonly #perType = new Map<string | UcDataType, UcrxTypeEntry>();
   readonly #methods = new Set<UcrxMethod<any>>();

@@ -11,30 +11,30 @@ import { UccProcessor$Config } from './impl/ucc-processor.config.js';
 import { UccProcessor$ConstraintIssue } from './impl/ucc-processor.constraint-issue.js';
 import { UccProcessor$ConstraintUsage } from './impl/ucc-processor.constraint-usage.js';
 import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
+import { UccBootstrap } from './ucc-bootstrap.js';
 import { UccCapability } from './ucc-capability.js';
 import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
-import { UccSetup } from './ucc-setup.js';
 
 /**
  * Abstract schema processor.
  *
  * Supports processing {@link UccFeature features}.
  *
- * @typeParam TSetup - Schema processing setup type.
+ * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
-  implements UccSetup<TSetup> {
+export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
+  implements UccBootstrap<TBoot> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #capabilities: readonly UccCapability<TSetup>[] | undefined;
+  readonly #capabilities: readonly UccCapability<TBoot>[] | undefined;
   readonly #models: readonly UcModel[] | undefined;
-  readonly #features: readonly UccFeature<TSetup, void>[] | undefined;
-  readonly #getSetup = lazyValue(() => this.createSetup());
-  readonly #profiler = new UccProcessor$Profiler<TSetup>(this);
-  readonly #config = new UccProcessor$Config<TSetup>(this.#profiler);
-  readonly #usages = new Map<UcSchema['type'], UccProcessor$ConstraintUsage<TSetup>>();
+  readonly #features: readonly UccFeature<TBoot, void>[] | undefined;
+  readonly #getBoot = lazyValue(() => this.startBootstrap());
+  readonly #profiler = new UccProcessor$Profiler<TBoot>(this);
+  readonly #config = new UccProcessor$Config<TBoot>(this.#profiler);
+  readonly #usages = new Map<UcSchema['type'], UccProcessor$ConstraintUsage<TBoot>>();
 
   #hasPendingInstructions = false;
 
@@ -43,14 +43,14 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
    *
    * @param options - Schema processing options.
    */
-  constructor(options: UccProcessor.Options<TSetup>);
+  constructor(options: UccProcessor.Options<TBoot>);
   constructor({
     processors,
     presentations = [],
     capabilities,
     models,
     features,
-  }: UccProcessor.Options<TSetup>) {
+  }: UccProcessor.Options<TBoot>) {
     this.#schemaIndex = new UccSchemaIndex(
       asArray<UcProcessorName>(processors),
       asArray<UcPresentationName>(presentations),
@@ -64,8 +64,8 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     this.#features = features && asArray(features);
   }
 
-  get setup(): TSetup {
-    return this.#getSetup();
+  get boot(): TBoot {
+    return this.#getBoot();
   }
 
   get schemaIndex(): UccSchemaIndex {
@@ -88,7 +88,7 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
     return this.#config.current.constraint;
   }
 
-  enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options?: TOptions): this {
+  enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options?: TOptions): this {
     this.#config.enableFeature(feature, options!);
 
     return this;
@@ -177,9 +177,11 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
   }
 
   /**
-   * Creates processing setup for the {@link UccFeature features}.
+   * Starts schema processing bootstrap.
+   *
+   * @returns New schema processing bootstrap instance.
    */
-  protected abstract createSetup(): TSetup;
+  protected abstract startBootstrap(): TBoot;
 
   /**
    * Creates schema processing feature configuration for just {@link enable enabled} `feature`.
@@ -188,8 +190,8 @@ export abstract class UccProcessor<in out TSetup extends UccSetup<TSetup>>
    *
    * @returns Schema processing configuration.
    */
-  createConfig<TOptions>(feature: UccFeature<TSetup, TOptions>): UccConfig<TOptions> {
-    return 'uccProcess' in feature ? feature.uccProcess(this.setup) : feature(this.setup);
+  createConfig<TOptions>(feature: UccFeature<TBoot, TOptions>): UccConfig<TOptions> {
+    return 'uccProcess' in feature ? feature.uccProcess(this.boot) : feature(this.boot);
   }
 
 }
@@ -198,9 +200,9 @@ export namespace UccProcessor {
   /**
    * Schema {@link UccProcessor processing} options.
    *
-   * @typeParam TSetup - Schema processing setup type.
+   * @typeParam TBoot - Type of schema processing bootstrap.
    */
-  export interface Options<in TSetup extends UccSetup<TSetup>> {
+  export interface Options<in TBoot extends UccBootstrap<TBoot>> {
     /**
      * Processor names within {@link churi!UcConstraints schema constraints}.
      */
@@ -216,7 +218,7 @@ export namespace UccProcessor {
     /**
      * Processor capabilities to activate.
      */
-    readonly capabilities?: UccCapability<TSetup> | readonly UccCapability<TSetup>[] | undefined;
+    readonly capabilities?: UccCapability<TBoot> | readonly UccCapability<TBoot>[] | undefined;
 
     /**
      * Models with constraints to extract processing instructions from.
@@ -226,7 +228,7 @@ export namespace UccProcessor {
     /**
      * Additional schema processing features to enable and use.
      */
-    readonly features?: UccFeature<TSetup, void> | readonly UccFeature<TSetup, void>[] | undefined;
+    readonly features?: UccFeature<TBoot, void> | readonly UccFeature<TBoot, void>[] | undefined;
   }
 
   /**

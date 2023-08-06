@@ -2,12 +2,12 @@ import { describe, expect, it } from '@jest/globals';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import {
-  UccTestSetup,
+  UccTestBootstrap,
   recordUcTestData,
   ucTestProcessSchemaRecord,
   ucTestRecord,
   ucTestSubRecord,
-} from '../../spec/ucc-test-setup.js';
+} from '../../spec/ucc-test-bootstrap.js';
 import { UccProcessor } from './ucc-processor.js';
 
 describe('UccProcessor', () => {
@@ -118,9 +118,9 @@ describe('UccProcessor', () => {
     it('enables feature', async () => {
       const processor = new UccTestProcessor({
         processors: [],
-        features: setup => ({
+        features: boot => ({
           configure(options) {
-            recordUcTestData(setup, options);
+            recordUcTestData(boot, options);
           },
         }),
       });
@@ -255,7 +255,7 @@ describe('UccProcessor', () => {
               },
               application => {
                 application.ignore();
-                application.setup.record({
+                application.boot.record({
                   processor: application.processor,
                   schema: application.schema,
                   within: application.within,
@@ -269,8 +269,8 @@ describe('UccProcessor', () => {
                 use: ucTestProcessSchemaRecord.name,
                 from: SPEC_MODULE,
               },
-              ({ setup }) => {
-                recordUcTestData(setup, 2);
+              ({ boot }) => {
+                recordUcTestData(boot, 2);
               },
             );
         },
@@ -299,7 +299,7 @@ describe('UccProcessor', () => {
   });
 });
 
-class UccTestProcessor extends UccProcessor<UccTestSetup> implements UccTestSetup {
+class UccTestProcessor extends UccProcessor<UccTestBootstrap> implements UccTestBootstrap {
 
   readonly records: unknown[] = [];
 
@@ -311,7 +311,7 @@ class UccTestProcessor extends UccProcessor<UccTestSetup> implements UccTestSetu
     await this.processInstructions();
   }
 
-  protected override createSetup(): UccTestSetup {
+  protected override startBootstrap(): UccTestBootstrap {
     return this;
   }
 

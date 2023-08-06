@@ -1,11 +1,11 @@
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 
-export function ucsProcessInset(setup: UcsSetup): UccConfig<UcsInsetOptions> {
+export function ucsProcessInset(boot: UcsBootstrap): UccConfig<UcsInsetOptions> {
   return {
     configureSchema(schema, { format }) {
-      setup.formatWith(format, schema);
+      boot.formatWith(format, schema);
     },
   };
 }

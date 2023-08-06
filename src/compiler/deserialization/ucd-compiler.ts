@@ -24,11 +24,11 @@ import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerRegistry } from './impl/ucd-handler-registry.js';
+import { UcdBootstrap } from './ucd-bootstrap.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
 import { ucdProcessDefaults } from './ucd-process-defaults.js';
-import { UcdSetup } from './ucd-setup.js';
 
 /**
  * Compiler of schema {@link churi!UcDeserializer deserializers}.
@@ -36,8 +36,8 @@ import { UcdSetup } from './ucd-setup.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcdCompiler<out TModels extends UcdModels = UcdModels>
-  extends UcrxProcessor<UcdSetup>
-  implements UcdSetup {
+  extends UcrxProcessor<UcdBootstrap>
+  implements UcdBootstrap {
 
   readonly #options: UcdCompiler.Options<TModels>;
 
@@ -68,11 +68,13 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     this.#meta = new UcdHandlerRegistry('defaultMeta');
   }
 
-  protected override createSetup(): UcdSetup {
+  protected override startBootstrap(): UcdBootstrap {
     return this;
   }
 
-  override createConfig<TOptions>(feature: UccFeature<UcdSetup, TOptions>): UccConfig<TOptions> {
+  override createConfig<TOptions>(
+    feature: UccFeature<UcdBootstrap, TOptions>,
+  ): UccConfig<TOptions> {
     if (feature === ucdProcessDefaults) {
       return this.#enableDefault() as UccConfig<TOptions>;
     }
@@ -285,12 +287,12 @@ export namespace UcdCompiler {
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
     readonly capabilities?:
-      | UccCapability<UcdSetup>
-      | readonly UccCapability<UcdSetup>[]
+      | UccCapability<UcdBootstrap>
+      | readonly UccCapability<UcdBootstrap>[]
       | undefined;
     readonly models: TModels;
     readonly validate?: boolean | undefined;
-    readonly features?: UccFeature<UcdSetup> | readonly UccFeature<UcdSetup>[] | undefined;
+    readonly features?: UccFeature<UcdBootstrap> | readonly UccFeature<UcdBootstrap>[] | undefined;
     readonly exportDefaults?: boolean | undefined;
   }
 }

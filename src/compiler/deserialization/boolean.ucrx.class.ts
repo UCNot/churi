@@ -1,17 +1,17 @@
 import { esline } from 'esgen';
 import { UcBoolean } from '../../schema/boolean/uc-boolean.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, UcBoolean.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig {
+  static uccProcess(boot: UcrxBootstrap): UccConfig {
     return {
       configure: () => {
-        setup.useUcrxClass(Boolean, (lib, schema: UcBoolean.Schema) => new this(lib, schema));
+        boot.useUcrxClass(Boolean, (lib, schema: UcBoolean.Schema) => new this(lib, schema));
       },
     };
   }

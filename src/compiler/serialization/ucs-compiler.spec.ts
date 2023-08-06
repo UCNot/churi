@@ -107,9 +107,9 @@ export async function writeValue(stream, value, options) {
         capabilities: ucsSupportURIParams(),
         features: [
           ucsProcessDefaults,
-          setup => ({
+          boot => ({
             configure() {
-              setup.modifyInsets(
+              boot.modifyInsets(
                 'uriParams',
                 schema,
                 <T, TSchema extends UcSchema<T>>({
@@ -159,9 +159,9 @@ export async function writeValue(stream, value, options) {
       const compiler = new UcsCompiler({
         features: [
           ucsProcessDefaults,
-          setup => ({
+          boot => ({
             configure() {
-              setup
+              boot
                 .formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
                   code.write(
                     cx.formatInset('uriParam', ucString(), {
@@ -224,9 +224,9 @@ export async function writeValue(stream, value, options) {
       capabilities: ucsSupportPlainText(),
       features: [
         ucsProcessDefaults,
-        setup => ({
+        boot => ({
           configure() {
-            setup.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
+            boot.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
               code.write(
                 cx.formatInset('uriParam', ucString(), {
                   writer,

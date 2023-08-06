@@ -1,16 +1,16 @@
 import { UcSchema } from '../../../schema/uc-schema.js';
-import { UccSetup } from '../ucc-setup.js';
+import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccProcessor$Config } from './ucc-processor.config.js';
 import { UccProcessor$ConstraintApplication } from './ucc-processor.constraint-application.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
 
-export class UccProcessor$ConstraintUsage<in out TSetup extends UccSetup<TSetup>> {
+export class UccProcessor$ConstraintUsage<in out TBoot extends UccBootstrap<TBoot>> {
 
-  readonly #config: UccProcessor$Config<TSetup>;
+  readonly #config: UccProcessor$Config<TBoot>;
   readonly #schema: UcSchema;
   readonly #issues: UccProcessor$ConstraintIssue[] = [];
 
-  constructor(config: UccProcessor$Config<TSetup>, schema: UcSchema) {
+  constructor(config: UccProcessor$Config<TBoot>, schema: UcSchema) {
     this.#config = config;
     this.#schema = schema;
   }

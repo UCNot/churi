@@ -15,15 +15,15 @@ import { ucOptional } from '../../schema/uc-optional.js';
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCapability } from '../bootstrap/ucc-capability.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
 export function ucsSupportURIParams({
   defaultInsetFormat = 'charge',
-}: UcsURIParamsOptions = {}): UccCapability<UcsSetup> {
+}: UcsURIParamsOptions = {}): UccCapability<UcsBootstrap> {
   return activation => {
     activation.onConstraint(
       {
@@ -31,8 +31,8 @@ export function ucsSupportURIParams({
         use: 'ucsProcessMap',
         from: COMPILER_MODULE,
       },
-      ({ setup }) => {
-        setup
+      ({ boot }) => {
+        boot
           .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
             const encodeURI = esImport('httongue', encodeURISearchPart.name);
             const naming = await ns.refer(UcsWriterClass).whenNamed();

@@ -3,15 +3,15 @@ import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
 import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UcrxCore$stubBody } from '../rx/impl/ucrx-core.stub.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 
-export function ucdProcessInset(setup: UcrxSetup): UccConfig<UcdInsetOptions> {
+export function ucdProcessInset(boot: UcrxBootstrap): UccConfig<UcdInsetOptions> {
   return {
     configureSchema(schema, { lexer, from, method, args }) {
-      const within = setup.currentPresentation;
+      const within = boot.currentPresentation;
 
-      setup
+      boot
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
             if (!ucrxClass.findMember(UcrxCore.ins)?.declared) {

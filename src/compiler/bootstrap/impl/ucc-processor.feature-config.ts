@@ -1,12 +1,12 @@
 import { lazyValue } from '@proc7ts/primitives';
 import { UcSchema } from '../../../schema/uc-schema.js';
+import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccConfig } from '../ucc-config.js';
-import { UccSetup } from '../ucc-setup.js';
 import { UccProcessor$Config } from './ucc-processor.config.js';
 import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
-export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOptions = never> {
+export class UccProcessor$FeatureConfig<TBoot extends UccBootstrap<TBoot>, in TOptions = never> {
 
   readonly #getConfig: () => UccConfig<TOptions>;
   #autoConfigured = false;
@@ -15,12 +15,12 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
     this.#getConfig = lazyValue(createConfig);
   }
 
-  configureFeature(config: UccProcessor$Config<TSetup>, options: TOptions): void {
+  configureFeature(config: UccProcessor$Config<TBoot>, options: TOptions): void {
     this.#configureFeature(config, {}, options);
   }
 
   configureSchema(
-    config: UccProcessor$Config<TSetup>,
+    config: UccProcessor$Config<TBoot>,
     schema: UcSchema,
     issue: UccProcessor$ConstraintIssue,
   ): void {
@@ -37,7 +37,7 @@ export class UccProcessor$FeatureConfig<TSetup extends UccSetup<TSetup>, in TOpt
   }
 
   #configureFeature(
-    config: UccProcessor$Config<TSetup>,
+    config: UccProcessor$Config<TBoot>,
     current: UccProcessor$Current,
     options?: TOptions,
   ): void {

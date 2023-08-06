@@ -20,10 +20,10 @@ import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class ListUcrxClass<
@@ -31,10 +31,10 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UccListOptions> {
+  static uccProcess(boot: UcrxBootstrap): UccConfig<UccListOptions> {
     return {
       configureSchema: (schema: UcList.Schema, options) => {
-        setup
+        boot
           .processModel(schema.item)
           .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
       },

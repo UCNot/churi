@@ -13,13 +13,13 @@ import { UccCapability } from '../bootstrap/ucc-capability.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccProcessor } from '../bootstrap/ucc-processor.js';
 import { UcsPresentationConfig } from './impl/ucs-presentation-config.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsInsetFormatter, UcsInsetRequest, UcsInsetWrapper } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 import { UcsExports, UcsModels } from './ucs-models.js';
 import { ucsProcessDefaults } from './ucs-process-defaults.js';
-import { UcsSetup } from './ucs-setup.js';
 import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
@@ -28,8 +28,8 @@ import { CreateUcsWriterExpr } from './ucs-writer.class.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcsCompiler<TModels extends UcsModels = UcsModels>
-  extends UccProcessor<UcsSetup>
-  implements UcsSetup {
+  extends UccProcessor<UcsBootstrap>
+  implements UcsBootstrap {
 
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #presentations = new Map<
@@ -42,9 +42,9 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   #bootstrapped = false;
 
   /**
-   * Starts serializer setup.
+   * Construct serializer compiler.
    *
-   * @param options - Setup options.
+   * @param options - Complier options.
    */
   constructor(options: UcsCompiler.Options<TModels>) {
     super({
@@ -55,7 +55,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     this.#options = options;
   }
 
-  protected override createSetup(): UcsSetup {
+  protected override startBootstrap(): UcsBootstrap {
     return this;
   }
 
@@ -295,11 +295,11 @@ export namespace UcsCompiler {
   export interface Options<TModels extends UcsModels> {
     readonly presentations?: UcPresentationName | readonly UcPresentationName[] | undefined;
     readonly capabilities?:
-      | UccCapability<UcsSetup>
-      | readonly UccCapability<UcsSetup>[]
+      | UccCapability<UcsBootstrap>
+      | readonly UccCapability<UcsBootstrap>[]
       | undefined;
     readonly models: TModels;
-    readonly features?: UccFeature<UcsSetup> | readonly UccFeature<UcsSetup>[] | undefined;
+    readonly features?: UccFeature<UcsBootstrap> | readonly UccFeature<UcsBootstrap>[] | undefined;
   }
 }
 

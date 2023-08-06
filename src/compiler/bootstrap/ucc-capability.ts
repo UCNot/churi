@@ -1,8 +1,8 @@
 import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UccBootstrap } from './ucc-bootstrap.js';
 import { UccFeature } from './ucc-feature.js';
-import { UccSetup } from './ucc-setup.js';
 
 /**
  * Schema {@link UccProcessor processing} capability.
@@ -12,21 +12,21 @@ import { UccSetup } from './ucc-setup.js';
  * Capabilities used e.g. to refine {@link churi!UcConstraints schema constraints}, or to enable
  * {@link UccFeature processing features}.
  *
- * @typeParam TSetup - Type of schema processing setup.
+ * @typeParam TBoot - Type of schema processing bootstrap.
  * @param activation - Activation context.
  */
-export type UccCapability<in TSetup extends UccSetup<TSetup>> = (
+export type UccCapability<in TBoot extends UccBootstrap<TBoot>> = (
   this: void,
-  activation: UccCapability.Activation<TSetup>,
+  activation: UccCapability.Activation<TBoot>,
 ) => void;
 
 export namespace UccCapability {
   /**
    * Activation context of {@link UccCapability schema processing capability}.
    *
-   * @typeParam TSetup - Type of schema processing setup.
+   * @typeParam TBoot - Type of schema processing bootstrap.
    */
-  export interface Activation<out TSetup extends UccSetup<TSetup>> {
+  export interface Activation<out TBoot extends UccBootstrap<TBoot>> {
     /**
      * Enables the given processing `feature`.
      *
@@ -36,7 +36,7 @@ export namespace UccCapability {
      *
      * @returns `this` instance.
      */
-    enable<TOptions>(feature: UccFeature<TSetup, TOptions>, options: TOptions): this;
+    enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): this;
 
     /**
      * Enables the given processing `feature` that does not require options.
@@ -46,7 +46,7 @@ export namespace UccCapability {
      *
      * @returns `this` instance.
      */
-    enable(feature: UccFeature<TSetup, void>): this;
+    enable(feature: UccFeature<TBoot, void>): this;
 
     /**
      * Registers {@link churi!UcFeatureConstraint schema constraint} application handler.
@@ -58,7 +58,7 @@ export namespace UccCapability {
      * @param handler - Constraint application handler to call each time the matching constraint is about to be
      * applied.
      */
-    onConstraint(criterion: ConstraintCriterion, handler: ConstraintHandler<TSetup>): this;
+    onConstraint(criterion: ConstraintCriterion, handler: ConstraintHandler<TBoot>): this;
   }
 
   /**
@@ -69,15 +69,15 @@ export namespace UccCapability {
    * If the handler neither {@link ConstraintApplication#apply applies}, nor {@link ConstraintApplication#ignore
    * ignores} the constraint, the latter will be applied automatically after the the handler ends its work.
    *
-   * @typeParam TSetup - Type of schema processing setup.
+   * @typeParam TBoot - Type of schema processing bootstrap.
    * @param application - Constraint application context.
    *
    * @returns Either none if constraint application handled immediately, or promise-like instance resolved when
    * constraint application handle asynchronously.
    */
-  export type ConstraintHandler<in TSetup extends UccSetup<TSetup>> = (
+  export type ConstraintHandler<in TBoot extends UccBootstrap<TBoot>> = (
     this: void,
-    application: ConstraintApplication<TSetup>,
+    application: ConstraintApplication<TBoot>,
   ) => void | PromiseLike<void>;
 
   /**
@@ -108,13 +108,13 @@ export namespace UccCapability {
   /**
    * Schema constraint application context.
    *
-   * @typeParam TSetup - Type of schema processing setup.
+   * @typeParam TBoot - Type of schema processing bootstrap.
    */
-  export interface ConstraintApplication<out TSetup extends UccSetup<TSetup>> {
+  export interface ConstraintApplication<out TBoot extends UccBootstrap<TBoot>> {
     /**
-     * Schema processing setup.
+     * Schema processing bootstrap.
      */
-    get setup(): TSetup;
+    get boot(): TBoot;
 
     /**
      * Schema processor name.
