@@ -1,9 +1,5 @@
 import { asArray } from '@proc7ts/primitives';
-import {
-  UcConstraints,
-  UcFeatureConstraint,
-  UcProcessorName,
-} from '../../schema/uc-constraints.js';
+import { UcConstraints, UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName, UcPresentations } from '../../schema/uc-presentations.js';
 import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
@@ -85,7 +81,7 @@ export class UccSchemaIndex {
       .join('');
   }
 
-  #featureConstraintId(schema: UcSchema, feature: UcFeatureConstraint): string {
+  #featureConstraintId(schema: UcSchema, feature: UcSchemaConstraint): string {
     const { use, from } = feature;
     const id = feature.id
       ? feature.id(schema, schema => this.schemaId(schema))
@@ -131,6 +127,6 @@ interface UccSchemaIndex$TypeEntry {
   readonly prefix: string;
 }
 
-function UcsSchemaIndex$defaultConstraintId({ with: options }: UcFeatureConstraint): string {
+function UcsSchemaIndex$defaultConstraintId({ with: options }: UcSchemaConstraint): string {
   return options !== undefined ? JSON.stringify(options) : '';
 }

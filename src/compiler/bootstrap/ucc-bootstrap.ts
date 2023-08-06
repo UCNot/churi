@@ -1,4 +1,4 @@
-import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import { UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from './ucc-feature.js';
@@ -29,28 +29,17 @@ export interface UccBootstrap<in TBoot = unknown> {
   /**
    * Currently processed schema constraint, if any
    */
-  get currentConstraint(): UcFeatureConstraint | undefined;
+  get currentConstraint(): UcSchemaConstraint | undefined;
 
   /**
    * Enables the given processing `feature`.
    *
    * @typeParam TOptions - Type of schema processing options.
    * @param feature - Feature to enable.
-   * @param options - Processing options.
    *
    * @returns `this` instance.
    */
-  enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): this;
-
-  /**
-   * Enables the given processing `feature` that does not require options.
-   *
-   * @typeParam TOptions - Type of schema processing options.
-   * @param feature - Feature to enable.
-   *
-   * @returns `this` instance.
-   */
-  enable(feature: UccFeature<TBoot, void>, options?: void): this;
+  enable<TOptions>(feature: UccFeature<TBoot, TOptions>): this;
 
   /**
    * Applies model processing instructions specified as its {@link churi!UcSchema#where constraints}.

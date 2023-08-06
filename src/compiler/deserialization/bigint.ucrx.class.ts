@@ -1,6 +1,6 @@
 import { esline } from 'esgen';
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -9,15 +9,14 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BigIntUcrxClass extends UcrxClass<UcrxSignature.Args, UcBigInt, UcBigInt.Schema> {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig<UcBigInt.Variant | void> {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcBigInt.Variant> {
+    boot.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
+
     return {
-      configure: () => {
-        boot.useUcrxClass(BigInt, (lib, schema: UcBigInt.Schema) => new this(lib, schema));
-      },
-      configureSchema: (schema, variant) => {
+      constrain: ({ schema, options }) => {
         boot.useUcrxClass(
           schema,
-          (lib, schema) => new this(lib, schema as UcBigInt.Schema, variant),
+          (lib, schema) => new this(lib, schema as UcBigInt.Schema, options),
         );
       },
     };

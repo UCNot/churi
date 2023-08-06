@@ -13,7 +13,7 @@ import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsCheckCharge, ucsFormatCharge } from './impl/ucs-format-charge.js';
@@ -21,12 +21,11 @@ import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 import { UcsLib } from './ucs-lib.js';
 
-export function ucsProcessMap(boot: UcsBootstrap): UccConfig {
+export function ucsProcessMap(boot: UcsBootstrap): UccFeature.Handle {
+  boot.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
+
   return {
-    configure() {
-      boot.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
-    },
-    configureSchema({ entries, extra }: UcMap.Schema) {
+    constrain({ schema: { entries, extra } }: UccFeature.Constraint<void, UcMap.Schema>) {
       Object.values(entries).forEach(entrySchema => boot.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {

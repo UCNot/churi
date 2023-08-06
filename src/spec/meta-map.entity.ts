@@ -1,4 +1,3 @@
-import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
 import { UcdBootstrap } from '../compiler/deserialization/ucd-bootstrap.js';
 import { UC_MODULE_SPEC } from '../compiler/impl/uc-modules.js';
 import { UcrxContext } from '../rx/ucrx-context.js';
@@ -25,12 +24,8 @@ export function readMetaMap(context: UcrxContext, rx: Ucrx): 0 | 1 {
   return rx.map(context);
 }
 
-export function ucdProcessMetaMapEntity(boot: UcdBootstrap): UccConfig {
-  return {
-    configure() {
-      boot.handleEntity('meta-map', ({ register }) => code => {
-        code.write(register(UC_MODULE_SPEC.import(readMetaMap.name)));
-      });
-    },
-  };
+export function ucdProcessMetaMapEntity(boot: UcdBootstrap): void {
+  boot.handleEntity('meta-map', ({ register }) => code => {
+    code.write(register(UC_MODULE_SPEC.import(readMetaMap.name)));
+  });
 }

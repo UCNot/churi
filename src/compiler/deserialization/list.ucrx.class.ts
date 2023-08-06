@@ -14,7 +14,7 @@ import {
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel } from '../../schema/uc-schema.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccListOptions } from '../common/ucc-list-options.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
@@ -31,9 +31,9 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig<UccListOptions> {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UccListOptions> {
     return {
-      configureSchema: (schema: UcList.Schema, options) => {
+      constrain: ({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) => {
         boot
           .processModel(schema.item)
           .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));

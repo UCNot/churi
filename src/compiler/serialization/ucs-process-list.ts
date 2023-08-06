@@ -4,7 +4,7 @@ import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccListOptions } from '../common/ucc-list-options.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
@@ -12,9 +12,9 @@ import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 
-export function ucsProcessList(boot: UcsBootstrap): UccConfig<UccListOptions> {
+export function ucsProcessList(boot: UcsBootstrap): UccFeature.Handle<UccListOptions> {
   return {
-    configureSchema(schema: UcList.Schema, options) {
+    constrain({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) {
       boot.processModel(schema.item).formatWith(
         'charge',
         schema,

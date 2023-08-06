@@ -13,11 +13,9 @@ describe('UcrxSetter', () => {
       },
       features: [
         ucdProcessDefaults,
-        compiler => ({
-          configure() {
-            compiler.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
-          },
-        }),
+        boot => {
+          boot.declareUcrxMethod(new UcrxSetter('test', { typeName: 'test-type' }));
+        },
       ],
     });
   });

@@ -14,19 +14,19 @@ import {
 import { UcList, ucList } from '../../schema/list/uc-list.js';
 import { UcMap, ucMap } from '../../schema/map/uc-map.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class UnknownUcrxClass extends UcrxClass {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle {
     return {
-      configureSchema: schema => {
+      constrain: ({ schema }) => {
         boot
           .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
           .processModel(this.listSchemaFor(schema))

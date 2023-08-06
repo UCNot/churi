@@ -14,7 +14,7 @@ export class UcdHandlerRegistry {
   readonly #requestedName: string;
   #defaults: UcdHandlerConfig[] | undefined;
   #custom: UcdHandlerConfig[] | undefined = [];
-  #defaultConfig = false;
+  #processingDefaults = false;
 
   constructor(requestedName: string) {
     this.#requestedName = requestedName;
@@ -30,13 +30,13 @@ export class UcdHandlerRegistry {
     return (this.#custom ??= this.#defaults)!;
   }
 
-  configureDefaults(): void {
-    this.#defaultConfig = !this.#custom?.length;
+  enableDefaults(): void {
+    this.#processingDefaults = !this.#custom?.length;
   }
 
   makeDefault(): void {
-    if (this.#defaultConfig) {
-      this.#defaultConfig = false;
+    if (this.#processingDefaults) {
+      this.#processingDefaults = false;
       this.#defaults = this.#custom;
       this.#custom = undefined;
     }

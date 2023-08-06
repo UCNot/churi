@@ -6,6 +6,7 @@ import {
   recordUcTestData,
   ucTestProcessSchemaRecord,
   ucTestRecord,
+  ucTestRecordBroken,
   ucTestSubRecord,
 } from '../../spec/ucc-test-bootstrap.js';
 import { UccProcessor } from './ucc-processor.js';
@@ -75,6 +76,26 @@ describe('UccProcessor', () => {
         },
       ]);
     });
+    it('fails to constrain schema by incompatible feature', async () => {
+      const constraints = ucTestRecordBroken('test');
+      const schema: UcSchema = { type: 'test', where: constraints };
+      const processor = new UccTestProcessor({
+        processors: ['deserializer'],
+        models: { test: { model: schema } },
+      });
+
+      await expect(processor.bootstrap()).rejects.toThrow(
+        new TypeError(
+          `Feature import('#churi/spec.js').ucTestProcessFeatureRecord can not constrain schema "test"`,
+        ),
+      );
+
+      expect(processor.records).toEqual([
+        {
+          processor: 'deserializer',
+        },
+      ]);
+    });
     it('applies schema constraint within presentation', async () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
@@ -108,7 +129,6 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
-          options: 'test',
         },
       ]);
     });
@@ -118,11 +138,9 @@ describe('UccProcessor', () => {
     it('enables feature', async () => {
       const processor = new UccTestProcessor({
         processors: [],
-        features: boot => ({
-          configure(options) {
-            recordUcTestData(boot, options);
-          },
-        }),
+        features: boot => {
+          recordUcTestData(boot);
+        },
       });
 
       await processor.bootstrap();
@@ -143,13 +161,13 @@ describe('UccProcessor', () => {
               use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
-            async application => {
+            application => {
               application.ignore();
-              await application.apply();
-              await application.apply();
+              application.apply();
+              application.apply();
               application.ignore();
-              await application.apply();
-              await application.apply();
+              application.apply();
+              application.apply();
             },
           );
         },

@@ -13,37 +13,29 @@ export async function writeUcRadixNumber(writer: UcsWriter, value: number): Prom
 }
 
 export const UcsProcessNumberWithRadix: UccFeature.Object<UcsBootstrap> = {
-  uccProcess(compiler) {
-    return {
-      configure() {
-        compiler.formatWith<number>('charge', Number, ({ writer, value }) => {
-          const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
+  uccEnable(boot) {
+    boot.formatWith<number>('charge', Number, ({ writer, value }) => {
+      const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 
-          return esline`await ${write}(${writer}, ${value});`;
-        });
-      },
-    };
+      return esline`await ${write}(${writer}, ${value});`;
+    });
   },
 };
 
 export const UcsProcessRadixNumber: UccFeature.Object<UcsBootstrap> = {
-  uccProcess(compiler) {
-    return {
-      configure() {
-        compiler.formatWith<number>('charge', 'radixNumber', ({ writer, value }) => {
-          const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
+  uccEnable(boot) {
+    boot.formatWith<number>('charge', 'radixNumber', ({ writer, value }) => {
+      const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 
-          return esline`await ${write}(${writer}, ${value});`;
-        });
-      },
-    };
+      return esline`await ${write}(${writer}, ${value});`;
+    });
   },
 };
 
 export const UcsProcessRadixNumberSchema: UccFeature.Object<UcsBootstrap> = {
-  uccProcess(boot) {
+  uccEnable(boot) {
     return {
-      configureSchema(schema: UcSchema<number>) {
+      constrain({ schema }: UccFeature.Constraint<void, UcSchema<number>>) {
         boot.formatWith('charge', schema.type, ({ writer, value }) => {
           const write = UC_MODULE_SPEC.import(writeUcRadixNumber.name);
 

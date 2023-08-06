@@ -12,8 +12,8 @@ export class UccProcessor$CapabilityActivation<in out TBoot extends UccBootstrap
     this.#profiler = profiler;
   }
 
-  enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options?: TOptions): this {
-    this.#profiler.addFeature(feature, options!);
+  enable<TOptions>(feature: UccFeature<TBoot, TOptions>): this {
+    this.#profiler.addFeature(feature);
 
     return this;
   }

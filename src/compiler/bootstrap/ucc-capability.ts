@@ -1,4 +1,4 @@
-import { UcFeatureConstraint, UcProcessorName } from '../../schema/uc-constraints.js';
+import { UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccBootstrap } from './ucc-bootstrap.js';
@@ -36,17 +36,7 @@ export namespace UccCapability {
      *
      * @returns `this` instance.
      */
-    enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): this;
-
-    /**
-     * Enables the given processing `feature` that does not require options.
-     *
-     * @typeParam TOptions - Type of schema processing options.
-     * @param feature - Feature to enable.
-     *
-     * @returns `this` instance.
-     */
-    enable(feature: UccFeature<TBoot, void>): this;
+    enable<TOptions>(feature: UccFeature<TBoot, TOptions>): this;
 
     /**
      * Registers {@link churi!UcFeatureConstraint schema constraint} application handler.
@@ -71,14 +61,11 @@ export namespace UccCapability {
    *
    * @typeParam TBoot - Type of schema processing bootstrap.
    * @param application - Constraint application context.
-   *
-   * @returns Either none if constraint application handled immediately, or promise-like instance resolved when
-   * constraint application handle asynchronously.
    */
   export type ConstraintHandler<in TBoot extends UccBootstrap<TBoot>> = (
     this: void,
     application: ConstraintApplication<TBoot>,
-  ) => void | PromiseLike<void>;
+  ) => void;
 
   /**
    * Schema constraint criterion.
@@ -134,7 +121,7 @@ export namespace UccCapability {
     /**
      * Schema constraint about to be applied.
      */
-    get constraint(): UcFeatureConstraint;
+    get constraint(): UcSchemaConstraint;
 
     /**
      * Informs whether the {@link constraint} is {@link apply applied} already.
@@ -157,7 +144,7 @@ export namespace UccCapability {
      *
      * Ignores the {@link ignore} instruction.
      */
-    apply(): Promise<void>;
+    apply(): void;
 
     /**
      * Ignores the {@link constraint}.

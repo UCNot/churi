@@ -31,22 +31,18 @@ export class URIChargeCompiler extends UcdCompiler<{
   constructor() {
     super({
       models: { parseURICharge: { model: URICharge$Schema, mode: 'sync' } },
-      features(compiler) {
-        return {
-          configure: () => {
-            compiler
-              .enable(ucdProcessDefaults)
-              .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema))
-              .useUcrxClass(
-                ucList(URICharge$Schema),
-                (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
-              )
-              .useUcrxClass(
-                ucMap({}, { extra: URICharge$Schema }),
-                (lib, schema) => new URIChargeMapUcrxClass(lib, schema as unknown as UcMap.Schema),
-              );
-          },
-        };
+      features(boot) {
+        boot
+          .enable(ucdProcessDefaults)
+          .useUcrxClass(URICharge$Schema, (lib, schema) => new URIChargeUcrxClass(lib, schema))
+          .useUcrxClass(
+            ucList(URICharge$Schema),
+            (lib, schema: UcList.Schema) => new URIChargeListUcrxClass(lib, schema),
+          )
+          .useUcrxClass(
+            ucMap({}, { extra: URICharge$Schema }),
+            (lib, schema) => new URIChargeMapUcrxClass(lib, schema as unknown as UcMap.Schema),
+          );
       },
     });
   }

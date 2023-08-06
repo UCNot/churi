@@ -1,6 +1,5 @@
-import { mayHaveProperties } from '@proc7ts/primitives';
-import { esQuoteKey, esStringLiteral } from 'esgen';
-import { UcFeatureConstraint, UcProcessorName } from '../../../schema/uc-constraints.js';
+import { UcProcessorName, UcSchemaConstraint } from '../../../schema/uc-constraints.js';
+import { ucModelName } from '../../../schema/uc-model-name.js';
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
@@ -15,16 +14,19 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
   readonly #config: UccProcessor$Config<TBoot>;
   readonly #schema: UcSchema;
   readonly #issue: UccProcessor$ConstraintIssue;
+  readonly #feature: UccFeature<TBoot>;
   #applied = 0;
 
   constructor(
     config: UccProcessor$Config<TBoot>,
     schema: UcSchema,
     issue: UccProcessor$ConstraintIssue,
+    feature: UccFeature<TBoot>,
   ) {
     this.#config = config;
     this.#schema = schema;
     this.#issue = issue;
+    this.#feature = feature;
   }
 
   get boot(): TBoot {
@@ -43,7 +45,7 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
     return this.#issue.within;
   }
 
-  get constraint(): UcFeatureConstraint {
+  get constraint(): UcSchemaConstraint {
     return this.#issue.constraint;
   }
 
@@ -55,25 +57,40 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
     return this.#applied < 0;
   }
 
-  async apply(): Promise<void> {
+  apply(): void {
     if (this.isApplied()) {
       return;
     }
 
     this.#applied = 1;
+    this.#constrain();
+  }
 
-    const {
-      schema,
-      constraint: { use, from },
-    } = this;
-    const { [use]: feature }: { [name: string]: UccFeature<TBoot, unknown> } = await import(from);
+  #constrain<TOptions>(): void {
+    const handle = this.#config.enableFeature(this.#feature as UccFeature<TBoot, TOptions>);
+    const { processor, within, constraint } = this.#issue;
+    const options = constraint.with as TOptions;
 
-    if ((mayHaveProperties(feature) && 'uccProcess' in feature) || typeof feature === 'function') {
-      this.#config.enableSchema(schema, feature, this.#issue);
-    } else if (feature === undefined) {
-      throw new ReferenceError(`No such schema processing feature: ${this}`);
-    } else {
-      throw new ReferenceError(`Not a schema processing feature: ${this}`);
+    if (handle) {
+      this.#config.runWithCurrent(
+        {
+          processor,
+          schema: this.schema,
+          within,
+          constraint,
+        },
+        () => handle.constrain({
+            processor,
+            schema: this.schema,
+            within,
+            constraint,
+            options,
+          }),
+      );
+    } else if (options !== undefined) {
+      throw new TypeError(
+        `Feature ${this.#issue} can not constrain schema "${ucModelName(this.schema)}"`,
+      );
     }
   }
 
@@ -81,12 +98,6 @@ export class UccProcessor$ConstraintApplication<in out TBoot extends UccBootstra
     if (!this.isApplied()) {
       this.#applied = -1;
     }
-  }
-
-  toString(): string {
-    const { use, from } = this.#issue.constraint;
-
-    return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
   }
 
 }

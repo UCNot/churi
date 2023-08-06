@@ -5,7 +5,6 @@ import { UcString } from '../../schema/string/uc-string.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteAsIs } from '../../serializer/ucs-write-asis.js';
 import { UccCapability } from '../bootstrap/ucc-capability.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
@@ -68,16 +67,12 @@ export function ucsSupportPlainText(): UccCapability<UcsBootstrap> {
   };
 }
 
-function ucsProcessPlainTextDefaults(boot: UcsBootstrap): UccConfig {
-  return {
-    configure() {
-      boot
-        .formatWith('plainText', BigInt, ucsFormatPlainText(ucsFormatBigInt()))
-        .formatWith('plainText', Boolean, ucsFormatPlainText(ucsFormatBoolean()))
-        .formatWith('plainText', Number, ucsFormatPlainText(ucsFormatNumber()))
-        .formatWith('plainText', String, ucsFormatPlainTextString());
-    },
-  };
+function ucsProcessPlainTextDefaults(boot: UcsBootstrap): void {
+  boot
+    .formatWith('plainText', BigInt, ucsFormatPlainText(ucsFormatBigInt()))
+    .formatWith('plainText', Boolean, ucsFormatPlainText(ucsFormatBoolean()))
+    .formatWith('plainText', Number, ucsFormatPlainText(ucsFormatNumber()))
+    .formatWith('plainText', String, ucsFormatPlainTextString());
 }
 
 function ucsFormatPlainTextString(): UcsFormatter<UcString> {

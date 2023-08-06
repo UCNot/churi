@@ -107,11 +107,69 @@ export async function writeValue(stream, value, options) {
         capabilities: ucsSupportURIParams(),
         features: [
           ucsProcessDefaults,
-          boot => ({
-            configure() {
-              boot.modifyInsets(
+          boot => {
+            boot.modifyInsets(
+              'uriParams',
+              schema,
+              <T, TSchema extends UcSchema<T>>({
+                lib,
+                insetSchema,
+                formatter,
+              }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined => {
+                const format = formatter?.format ?? lib.findFormatter('charge', insetSchema);
+
+                if (!format) {
+                  return;
+                }
+
+                return {
+                  insetFormat: 'charge',
+                  format(args, schema, context) {
+                    const writeKey = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
+                    const { writer } = args;
+
+                    return code => {
+                      code
+                        .write(esline`await ${writeKey}(${writer}, '(test)=');`)
+                        .write(format(args, schema, context));
+                    };
+                  },
+                };
+              },
+            );
+          },
+        ],
+        models: {
+          writeParams: {
+            model: schema,
+            format: 'uriParams',
+          },
+        },
+      });
+
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test: '3a, (b) c!' })),
+      ).resolves.toBe("(test)='3a%2C+%28b%29+c%21");
+    });
+    it('allows to modify per-format insets', async () => {
+      const compiler = new UcsCompiler({
+        features: [
+          ucsProcessDefaults,
+          boot => {
+            boot
+              .formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
+                code.write(
+                  cx.formatInset('uriParam', ucString(), {
+                    writer,
+                    value: esline`${value}.test`,
+                    asItem: '0',
+                  }),
+                );
+              })
+              .modifyInsets(
                 'uriParams',
-                schema,
                 <T, TSchema extends UcSchema<T>>({
                   lib,
                   insetSchema,
@@ -138,69 +196,7 @@ export async function writeValue(stream, value, options) {
                   };
                 },
               );
-            },
-          }),
-        ],
-        models: {
-          writeParams: {
-            model: schema,
-            format: 'uriParams',
           },
-        },
-      });
-
-      const { writeParams } = await compiler.evaluate();
-
-      await expect(
-        TextOutStream.read(async to => await writeParams(to, { test: '3a, (b) c!' })),
-      ).resolves.toBe("(test)='3a%2C+%28b%29+c%21");
-    });
-    it('allows to modify per-format insets', async () => {
-      const compiler = new UcsCompiler({
-        features: [
-          ucsProcessDefaults,
-          boot => ({
-            configure() {
-              boot
-                .formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
-                  code.write(
-                    cx.formatInset('uriParam', ucString(), {
-                      writer,
-                      value: esline`${value}.test`,
-                      asItem: '0',
-                    }),
-                  );
-                })
-                .modifyInsets(
-                  'uriParams',
-                  <T, TSchema extends UcSchema<T>>({
-                    lib,
-                    insetSchema,
-                    formatter,
-                  }: UcsInsetContext<T, TSchema>): UcsInsetFormatter<T, TSchema> | undefined => {
-                    const format = formatter?.format ?? lib.findFormatter('charge', insetSchema);
-
-                    if (!format) {
-                      return;
-                    }
-
-                    return {
-                      insetFormat: 'charge',
-                      format(args, schema, context) {
-                        const writeKey = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
-                        const { writer } = args;
-
-                        return code => {
-                          code
-                            .write(esline`await ${writeKey}(${writer}, '(test)=');`)
-                            .write(format(args, schema, context));
-                        };
-                      },
-                    };
-                  },
-                );
-            },
-          }),
         ],
         models: {
           writeParams: {
@@ -224,19 +220,17 @@ export async function writeValue(stream, value, options) {
       capabilities: ucsSupportPlainText(),
       features: [
         ucsProcessDefaults,
-        boot => ({
-          configure() {
-            boot.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
-              code.write(
-                cx.formatInset('uriParam', ucString(), {
-                  writer,
-                  value: esline`${value}.test`,
-                  asItem: '0',
-                }),
-              );
-            });
-          },
-        }),
+        boot => {
+          boot.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
+            code.write(
+              cx.formatInset('uriParam', ucString(), {
+                writer,
+                value: esline`${value}.test`,
+                asItem: '0',
+              }),
+            );
+          });
+        },
       ],
       models: {
         writeParams: {

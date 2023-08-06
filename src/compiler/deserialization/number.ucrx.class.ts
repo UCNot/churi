@@ -1,6 +1,6 @@
 import { EsVarSymbol, esline } from 'esgen';
 import { UcNumber } from '../../schema/numeric/uc-number.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -9,13 +9,12 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcNumber.Schema> {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig<UcNumber.Variant | void> {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcNumber.Variant> {
+    boot.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
+
     return {
-      configure: () => {
-        boot.useUcrxClass(Number, (lib, schema: UcNumber.Schema) => new this(lib, schema));
-      },
-      configureSchema: (schema, variant) => {
-        boot.useUcrxClass(schema, (lib, schema: UcNumber.Schema) => new this(lib, schema, variant));
+      constrain: ({ schema, options }) => {
+        boot.useUcrxClass(schema, (lib, schema: UcNumber.Schema) => new this(lib, schema, options));
       },
     };
   }

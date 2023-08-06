@@ -1,9 +1,5 @@
 import { asArray, isPresent, lazyValue } from '@proc7ts/primitives';
-import {
-  UcConstraints,
-  UcFeatureConstraint,
-  UcProcessorName,
-} from '../../schema/uc-constraints.js';
+import { UcConstraints, UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
 import { UccProcessor$CapabilityActivation } from './impl/ucc-processor.capability-activation.js';
@@ -13,7 +9,6 @@ import { UccProcessor$ConstraintUsage } from './impl/ucc-processor.constraint-us
 import { UccProcessor$Profiler } from './impl/ucc-processor.profiler.js';
 import { UccBootstrap } from './ucc-bootstrap.js';
 import { UccCapability } from './ucc-capability.js';
-import { UccConfig } from './ucc-config.js';
 import { UccFeature } from './ucc-feature.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 
@@ -32,8 +27,8 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   readonly #models: readonly UcModel[] | undefined;
   readonly #features: readonly UccFeature<TBoot, void>[] | undefined;
   readonly #getBoot = lazyValue(() => this.startBootstrap());
-  readonly #profiler = new UccProcessor$Profiler<TBoot>(this);
-  readonly #config = new UccProcessor$Config<TBoot>(this.#profiler);
+  readonly #profiler: UccProcessor$Profiler<TBoot>;
+  readonly #config: UccProcessor$Config<TBoot>;
   readonly #usages = new Map<UcSchema['type'], UccProcessor$ConstraintUsage<TBoot>>();
 
   #hasPendingInstructions = false;
@@ -61,7 +56,10 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
       && Object.values<UccProcessor.Entry | undefined>(models)
         .filter(isPresent)
         .map(({ model }: UccProcessor.Entry) => model);
+
     this.#features = features && asArray(features);
+    this.#profiler = new UccProcessor$Profiler<TBoot>(this);
+    this.#config = new UccProcessor$Config<TBoot>(this.#profiler, feature => this.handleFeature(feature));
   }
 
   get boot(): TBoot {
@@ -84,12 +82,12 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     return this.#config.current.within;
   }
 
-  get currentConstraint(): UcFeatureConstraint | undefined {
+  get currentConstraint(): UcSchemaConstraint | undefined {
     return this.#config.current.constraint;
   }
 
-  enable<TOptions>(feature: UccFeature<TBoot, TOptions>, options?: TOptions): this {
-    this.#config.enableFeature(feature, options!);
+  enable<TOptions>(feature: UccFeature<TBoot, TOptions>): this {
+    this.#config.enableFeature(feature);
 
     return this;
   }
@@ -112,7 +110,10 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   ): void {
     for (const processor of this.schemaIndex.processors) {
       for (const constraint of asArray(constraints?.[processor])) {
-        this.#issueConstraint(schema, { processor, within, constraint });
+        this.#issueConstraint(
+          schema,
+          new UccProcessor$ConstraintIssue(processor, within, constraint),
+        );
       }
     }
   }
@@ -172,7 +173,7 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
 
   #enableExplicitFeatures(): void {
     this.#features?.forEach(feature => {
-      this.enable(feature, undefined);
+      this.enable(feature);
     });
   }
 
@@ -184,14 +185,16 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   protected abstract startBootstrap(): TBoot;
 
   /**
-   * Creates schema processing feature configuration for just {@link enable enabled} `feature`.
+   * Handles just {@link enable enabled} schema processing feature `feature`.
    *
    * @param feature - Enabled feature.
    *
-   * @returns Schema processing configuration.
+   * @returns Either feature handle, or nothing.
    */
-  createConfig<TOptions>(feature: UccFeature<TBoot, TOptions>): UccConfig<TOptions> {
-    return 'uccProcess' in feature ? feature.uccProcess(this.boot) : feature(this.boot);
+  protected handleFeature<TOptions>(
+    feature: UccFeature<TBoot, TOptions>,
+  ): UccFeature.Handle<TOptions> | void {
+    return 'uccEnable' in feature ? feature.uccEnable(this.boot) : feature(this.boot);
   }
 
 }

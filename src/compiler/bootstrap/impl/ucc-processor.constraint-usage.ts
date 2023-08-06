@@ -31,16 +31,21 @@ export class UccProcessor$ConstraintUsage<in out TBoot extends UccBootstrap<TBoo
     const schema = this.#schema;
     const { processor, within, constraint } = issue;
     const { profiler } = config;
-    const application = new UccProcessor$ConstraintApplication(config, schema, issue);
+    const application = new UccProcessor$ConstraintApplication(
+      config,
+      schema,
+      issue,
+      await config.resolveFeature(issue),
+    );
 
-    await config.configureAsync({ processor, schema, within, constraint }, async () => {
-      await profiler.findHandler(processor, within, constraint)?.(application);
+    config.runWithCurrent({ processor, schema, within, constraint }, () => {
+      profiler.findHandler(processor, within, constraint)?.(application);
       if (within) {
         // Apply any presentation handler.
-        await profiler.findHandler(processor, undefined, constraint)?.(application);
+        profiler.findHandler(processor, undefined, constraint)?.(application);
       }
       if (!application.isIgnored()) {
-        await application.apply();
+        application.apply();
       }
     });
   }

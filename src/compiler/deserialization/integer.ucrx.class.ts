@@ -1,6 +1,6 @@
 import { esline } from 'esgen';
 import { UcInteger } from '../../schema/numeric/uc-integer.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -9,12 +9,12 @@ import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig<UcInteger.Variant | undefined> {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcInteger.Variant> {
     return {
-      configureSchema: (schema, variant) => {
+      constrain: ({ schema, options }) => {
         boot.useUcrxClass(
           schema,
-          (lib, schema: UcInteger.Schema) => new this(lib, schema, variant),
+          (lib, schema: UcInteger.Schema) => new this(lib, schema, options),
         );
       },
     };

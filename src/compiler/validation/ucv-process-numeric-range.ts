@@ -1,5 +1,5 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -12,9 +12,9 @@ export type UcvNumericRange = [
   or?: string | undefined,
 ];
 
-export function ucvProcessNumericRange(boot: UcrxBootstrap): UccConfig<UcvNumericRange> {
+export function ucvProcessNumericRange(boot: UcrxBootstrap): UccFeature.Handle<UcvNumericRange> {
   return {
-    configureSchema(schema, [constraint, than, or]) {
+    constrain({ schema, options: [constraint, than, or] }) {
       let setter: UcrxSetter;
       let bound: string;
 

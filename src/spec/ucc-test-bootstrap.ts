@@ -1,5 +1,5 @@
 import { UccBootstrap } from '../compiler/bootstrap/ucc-bootstrap.js';
-import { UccConfig } from '../compiler/bootstrap/ucc-config.js';
+import { UccFeature } from '../compiler/bootstrap/ucc-feature.js';
 import { SPEC_MODULE } from '../impl/module-names.js';
 import { UcOmniConstraints } from '../schema/uc-constraints.js';
 
@@ -19,20 +19,26 @@ export function ucTestRecord(options?: unknown): UcOmniConstraints {
   };
 }
 
-export function ucTestProcessSchemaRecord(boot: UccTestBootstrap): UccConfig<unknown> {
+export function ucTestRecordBroken(options?: unknown): UcOmniConstraints {
   return {
-    configureSchema(_, options) {
+    deserializer: {
+      use: ucTestProcessFeatureRecord.name,
+      from: SPEC_MODULE,
+      with: options,
+    },
+  };
+}
+
+export function ucTestProcessSchemaRecord(boot: UccTestBootstrap): UccFeature.Handle<unknown> {
+  return {
+    constrain({ options }) {
       recordUcTestData(boot, options);
     },
   };
 }
 
-export function ucTestProcessFeatureRecord(boot: UccTestBootstrap): UccConfig<unknown> {
-  return {
-    configure(options) {
-      recordUcTestData(boot, options);
-    },
-  };
+export function ucTestProcessFeatureRecord(boot: UccTestBootstrap): void {
+  recordUcTestData(boot);
 }
 
 export function ucTestSubRecord(options?: unknown): UcOmniConstraints {
@@ -45,15 +51,15 @@ export function ucTestSubRecord(options?: unknown): UcOmniConstraints {
   };
 }
 
-export function ucTestProcessSubRecord(boot: UccTestBootstrap): UccConfig<unknown> {
+export function ucTestProcessSubRecord(boot: UccTestBootstrap): UccFeature.Handle<unknown> {
   return {
-    configureSchema(_, options) {
-      boot.enable(ucTestProcessFeatureRecord, options);
+    constrain() {
+      boot.enable(ucTestProcessFeatureRecord);
     },
   };
 }
 
-export function recordUcTestData(boot: UccTestBootstrap, options: unknown): void {
+export function recordUcTestData(boot: UccTestBootstrap, options?: unknown): void {
   boot.record({
     processor: boot.currentProcessor,
     schema: boot.currentSchema,

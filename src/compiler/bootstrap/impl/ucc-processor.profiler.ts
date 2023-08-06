@@ -1,4 +1,4 @@
-import { UcFeatureConstraint, UcProcessorName } from '../../../schema/uc-constraints.js';
+import { UcProcessorName, UcSchemaConstraint } from '../../../schema/uc-constraints.js';
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccCapability } from '../ucc-capability.js';
@@ -19,12 +19,8 @@ export class UccProcessor$Profiler<in out TBoot extends UccBootstrap<TBoot>> {
     return this.#processor.boot;
   }
 
-  get processor(): UccProcessor<TBoot> {
-    return this.#processor;
-  }
-
-  addFeature<TOptions>(feature: UccFeature<TBoot, TOptions>, options: TOptions): void {
-    this.#init.push(boot => boot.enable(feature, options));
+  addFeature<TOptions>(feature: UccFeature<TBoot, TOptions>): void {
+    this.#init.push(boot => boot.enable(feature));
   }
 
   init(): void {
@@ -43,9 +39,9 @@ export class UccProcessor$Profiler<in out TBoot extends UccBootstrap<TBoot>> {
     const prevHandler = this.#handlers.get(handlerId);
 
     if (prevHandler) {
-      this.#handlers.set(handlerId, async application => {
-        await prevHandler(application);
-        await handler(application);
+      this.#handlers.set(handlerId, application => {
+        prevHandler(application);
+        handler(application);
       });
     } else {
       this.#handlers.set(handlerId, handler);
@@ -55,7 +51,7 @@ export class UccProcessor$Profiler<in out TBoot extends UccBootstrap<TBoot>> {
   findHandler(
     processor: UcProcessorName,
     within: UcPresentationName | undefined,
-    { use, from }: UcFeatureConstraint,
+    { use, from }: UcSchemaConstraint,
   ): UccCapability.ConstraintHandler<TBoot> | undefined {
     return this.#handlers.get(this.#handlerId(processor, within, use, from)); // Match concrete presentations.;
   }

@@ -18,7 +18,6 @@ import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccCapability } from '../bootstrap/ucc-capability.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
@@ -72,32 +71,24 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     return this;
   }
 
-  override createConfig<TOptions>(
+  protected override handleFeature<TOptions>(
     feature: UccFeature<UcdBootstrap, TOptions>,
-  ): UccConfig<TOptions> {
+  ): UccFeature.Handle<TOptions> | void {
     if (feature === ucdProcessDefaults) {
-      return this.#enableDefault() as UccConfig<TOptions>;
+      return this.#enableDefault();
     }
 
-    return super.createConfig(feature);
+    return super.handleFeature(feature);
   }
 
-  #enableDefault(): UccConfig {
-    return {
-      configure: () => this.#configureDefaults(),
-    };
-  }
-
-  #configureDefaults(): void {
-    const defaultConfig = ucdProcessDefaults(this);
-
-    this.#entities.configureDefaults();
-    this.#formats.configureDefaults();
-    this.#meta.configureDefaults();
+  #enableDefault(): void {
+    this.#entities.enableDefaults();
+    this.#formats.enableDefaults();
+    this.#meta.enableDefaults();
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure!(undefined);
+    ucdProcessDefaults(this.boot);
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();

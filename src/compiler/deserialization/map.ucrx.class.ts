@@ -14,7 +14,7 @@ import {
 } from 'esgen';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
@@ -32,12 +32,12 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccProcess(boot: UcrxBootstrap): UccConfig<UcMap.Variant> {
+  static uccEnable(boot: UcrxBootstrap): UccFeature.Handle<UcMap.Variant> {
     return {
-      configureSchema: (schema: UcMap.Schema, variant) => {
+      constrain: ({ schema, options }: UccFeature.Constraint<UcMap.Variant, UcMap.Schema>) => {
         const { entries, extra } = schema;
 
-        boot.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, variant));
+        boot.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, options));
         for (const entrySchema of Object.values(entries)) {
           boot.processModel(entrySchema);
         }

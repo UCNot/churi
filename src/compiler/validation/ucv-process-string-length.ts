@@ -1,5 +1,5 @@
 import { esStringLiteral, esline } from 'esgen';
-import { UccConfig } from '../bootstrap/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_VALIDATOR } from '../impl/uc-modules.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
@@ -11,9 +11,9 @@ export type UcvStringLength = [
   or?: string | undefined,
 ];
 
-export function ucvProcessStringLength(boot: UcrxBootstrap): UccConfig<UcvStringLength> {
+export function ucvProcessStringLength(boot: UcrxBootstrap): UccFeature.Handle<UcvStringLength> {
   return {
-    configureSchema(schema, [constraint, than, or]) {
+    constrain({ schema, options: [constraint, than, or] }) {
       boot.modifyUcrxMethod(schema, UcrxCore.str, {
         before({ member: { args } }) {
           return ucvValidate(args, ({ value, reject }) => code => {

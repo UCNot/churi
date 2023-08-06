@@ -6,7 +6,6 @@ import { UcString } from '../../schema/string/uc-string.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteURIEncoded } from '../../serializer/ucs-write-string.js';
 import { UccCapability } from '../bootstrap/ucc-capability.js';
-import { UccConfig } from '../bootstrap/ucc-config.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
@@ -70,27 +69,23 @@ export function ucsSupportURIEncoded(): UccCapability<UcsBootstrap> {
   };
 }
 
-function ucsProcessURIEncodedDefaults(boot: UcsBootstrap): UccConfig {
-  return {
-    configure() {
-      boot
-        .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
-        .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
-        .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
-        .formatWith('uriEncoded', String, ucsFormatURIEncodedString())
-        .writeWith('uriEncoded', ({ stream, options }) => async (code, { ns }) => {
-          const encodeURI = esImport('httongue', encodeURIPart.name);
-          const naming = await ns.refer(UcsWriterClass).whenNamed();
+function ucsProcessURIEncodedDefaults(boot: UcsBootstrap): void {
+  boot
+    .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
+    .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
+    .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
+    .formatWith('uriEncoded', String, ucsFormatURIEncodedString())
+    .writeWith('uriEncoded', ({ stream, options }) => async (code, { ns }) => {
+      const encodeURI = esImport('httongue', encodeURIPart.name);
+      const naming = await ns.refer(UcsWriterClass).whenNamed();
 
-          code.line(
-            naming.instantiate({
-              stream,
-              options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
-            }),
-          );
-        });
-    },
-  };
+      code.line(
+        naming.instantiate({
+          stream,
+          options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
+        }),
+      );
+    });
 }
 
 function ucsFormatURIEncodedString(): UcsFormatter<UcString> {
