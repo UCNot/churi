@@ -2,12 +2,13 @@ import { describe, expect, it } from '@jest/globals';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import {
-  UccTestSetup,
+  UccTestBootstrap,
   recordUcTestData,
   ucTestProcessSchemaRecord,
   ucTestRecord,
+  ucTestRecordBroken,
   ucTestSubRecord,
-} from '../../spec/ucc-test-setup.js';
+} from '../../spec/ucc-test-bootstrap.js';
 import { UccProcessor } from './ucc-processor.js';
 
 describe('UccProcessor', () => {
@@ -75,6 +76,26 @@ describe('UccProcessor', () => {
         },
       ]);
     });
+    it('fails to constrain schema by incompatible feature', async () => {
+      const constraints = ucTestRecordBroken('test');
+      const schema: UcSchema = { type: 'test', where: constraints };
+      const processor = new UccTestProcessor({
+        processors: ['deserializer'],
+        models: { test: { model: schema } },
+      });
+
+      await expect(processor.bootstrap()).rejects.toThrow(
+        new TypeError(
+          `Feature import('#churi/spec.js').ucTestProcessFeatureRecord can not constrain schema "test"`,
+        ),
+      );
+
+      expect(processor.records).toEqual([
+        {
+          processor: 'deserializer',
+        },
+      ]);
+    });
     it('applies schema constraint within presentation', async () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
@@ -108,7 +129,6 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
-          options: 'test',
         },
       ]);
     });
@@ -118,38 +138,33 @@ describe('UccProcessor', () => {
     it('enables feature', async () => {
       const processor = new UccTestProcessor({
         processors: [],
-        features: setup => ({
-          configure(options) {
-            recordUcTestData(setup, options);
-          },
-        }),
+        features: boot => {
+          recordUcTestData(boot);
+        },
       });
 
       await processor.bootstrap();
 
       expect(processor.records).toEqual([{}]);
     });
-  });
-
-  describe('capabilities', () => {
     it('applies constraint at most once', async () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
               from: SPEC_MODULE,
             },
-            async application => {
+            application => {
               application.ignore();
-              await application.apply();
-              await application.apply();
+              application.apply();
+              application.apply();
               application.ignore();
-              await application.apply();
-              await application.apply();
+              application.apply();
+              application.apply();
             },
           );
         },
@@ -172,8 +187,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', where: constraints };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
@@ -196,8 +211,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               use: ucTestProcessSchemaRecord.name,
@@ -220,8 +235,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation.onConstraint(
+        features: boot => {
+          boot.onConstraint(
             {
               processor: 'deserializer',
               within: 'charge',
@@ -245,8 +260,8 @@ describe('UccProcessor', () => {
       const constraints = ucTestRecord('test');
       const schema: UcSchema = { type: 'test', within: { charge: constraints } };
       const processor = new UccTestProcessor({
-        capabilities: activation => {
-          activation
+        features: boot => {
+          boot
             .onConstraint(
               {
                 processor: 'deserializer',
@@ -255,7 +270,7 @@ describe('UccProcessor', () => {
               },
               application => {
                 application.ignore();
-                application.setup.record({
+                boot.record({
                   processor: application.processor,
                   schema: application.schema,
                   within: application.within,
@@ -269,8 +284,8 @@ describe('UccProcessor', () => {
                 use: ucTestProcessSchemaRecord.name,
                 from: SPEC_MODULE,
               },
-              ({ setup }) => {
-                recordUcTestData(setup, 2);
+              () => {
+                recordUcTestData(boot, 2);
               },
             );
         },
@@ -299,7 +314,7 @@ describe('UccProcessor', () => {
   });
 });
 
-class UccTestProcessor extends UccProcessor<UccTestSetup> implements UccTestSetup {
+class UccTestProcessor extends UccProcessor<UccTestBootstrap> implements UccTestBootstrap {
 
   readonly records: unknown[] = [];
 
@@ -311,7 +326,7 @@ class UccTestProcessor extends UccProcessor<UccTestSetup> implements UccTestSetu
     await this.processInstructions();
   }
 
-  protected override createSetup(): UccTestSetup {
+  protected override startBootstrap(): UccTestBootstrap {
     return this;
   }
 

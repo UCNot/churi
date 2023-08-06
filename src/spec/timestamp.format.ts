@@ -1,8 +1,7 @@
 import { EsFunction, EsVarSymbol, esline } from 'esgen';
-import { UcdSetup } from '../compiler/deserialization/ucd-setup.js';
+import { UccFeature } from '../compiler/bootstrap/ucc-feature.js';
+import { UcdBootstrap } from '../compiler/deserialization/ucd-bootstrap.js';
 import { UC_MODULE_CHURI } from '../compiler/impl/uc-modules.js';
-import { UccConfig } from '../compiler/processor/ucc-config.js';
-import { UccFeature } from '../compiler/processor/ucc-feature.js';
 import { UcrxCore } from '../compiler/rx/ucrx-core.js';
 import { UcrxLib } from '../compiler/rx/ucrx-lib.js';
 import { UcrxSetter } from '../compiler/rx/ucrx-setter.js';
@@ -23,12 +22,8 @@ export const TimestampUcrxMethod = new UcrxSetter('date', {
   typeName: 'date',
 });
 
-export function ucdProcessTimestampFormat(setup: UcdSetup): UccConfig {
-  return {
-    configure() {
-      setup.declareUcrxMethod(TimestampUcrxMethod).enable(ucdProcessTimestampFormatOnly);
-    },
-  };
+export function ucdProcessTimestampFormat(boot: UcdBootstrap): void {
+  boot.declareUcrxMethod(TimestampUcrxMethod).enable(ucdProcessTimestampFormatOnly);
 }
 
 const readTimestampEntityFn = new EsFunction(
@@ -58,46 +53,34 @@ const readTimestampEntityFn = new EsFunction(
   },
 );
 
-export function ucdProcessTimestampFormatOnly(setup: UcdSetup): UccConfig {
-  return {
-    configure() {
-      setup.handleFormat('timestamp', ({ register, refer }) => code => {
-        refer(readTimestampEntityFn);
+export function ucdProcessTimestampFormatOnly(boot: UcdBootstrap): void {
+  boot.handleFormat('timestamp', ({ register, refer }) => code => {
+    refer(readTimestampEntityFn);
 
-        code.write(register(readTimestampEntityFn.symbol));
-      });
-    },
-  };
+    code.write(register(readTimestampEntityFn.symbol));
+  });
 }
 
-export const UcdProcessTimestamp: UccFeature.Object<UcdSetup> = {
-  uccProcess(setup) {
+export const UcdProcessTimestamp: UccFeature.Object<UcdBootstrap> = {
+  uccEnable(boot) {
+    boot
+      .enable(ucdProcessTimestampFormat)
+      .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
+  },
+};
+
+export const UcdProcessTimestampSchema: UccFeature.Object<UcdBootstrap> = {
+  uccEnable(boot) {
     return {
-      configure() {
-        setup
-          .enable(ucdProcessTimestampFormat)
-          .useUcrxClass<number>('timestamp', (lib, schema) => new TimestampUcrxClass(lib, schema));
+      constrain() {
+        boot.enable(UcdProcessTimestamp);
       },
     };
   },
 };
 
-export const UcdProcessTimestampSchema: UccFeature.Object<UcdSetup> = {
-  uccProcess(setup) {
-    return {
-      configureSchema() {
-        setup.enable(UcdProcessTimestamp);
-      },
-    };
-  },
-};
-
-export function ucdProcessTimestampSchema(setup: UcdSetup, _schema: UcSchema<number>): UccConfig {
-  return {
-    configure() {
-      setup.enable(UcdProcessTimestamp);
-    },
-  };
+export function ucdProcessTimestampSchema(boot: UcdBootstrap): void {
+  boot.enable(UcdProcessTimestamp);
 }
 
 class TimestampUcrxClass extends UcrxClass {

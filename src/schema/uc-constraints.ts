@@ -23,17 +23,17 @@ export interface UcConstraints<out T = unknown, out TSchema extends UcSchema<T> 
   /**
    * Schema deserializer constraints.
    */
-  readonly deserializer?: UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined;
+  readonly deserializer?: UcSchemaConstraint | readonly UcSchemaConstraint[] | undefined;
 
   /**
    * Schema serializer constraints.
    */
-  readonly serializer?: UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined;
+  readonly serializer?: UcSchemaConstraint | readonly UcSchemaConstraint[] | undefined;
 
   /**
    * Schema validation constraints.
    */
-  readonly validator?: UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined;
+  readonly validator?: UcSchemaConstraint | readonly UcSchemaConstraint[] | undefined;
 }
 
 /**
@@ -49,13 +49,13 @@ export type UcOmniConstraints = UcConstraints<never, never>;
 export type UcProcessorName = Exclude<keyof UcConstraints, '__UcConstraints__'>;
 
 /**
- * {@link UcConstraints Schema constraint} instructing a processor to enable and use particular processing feature.
+ * {@link UcConstraints Constraint} to apply to the schema by schema processor.
  *
  * The feature is declared in ECMAScript module and exported from it as a named symbol.
  *
- * The feature interface is specific to schema processor.
+ * The feature interface is specific to the schema processor.
  */
-export interface UcFeatureConstraint {
+export interface UcSchemaConstraint {
   /**
    * Feature name to use.
    *
@@ -114,7 +114,7 @@ export function ucConstraints<T, TSchema extends UcSchema<T> = UcSchema<T>>(
   for (const constr of constraints) {
     for (const [processorName, features] of Object.entries(constr) as [
       UcProcessorName,
-      UcFeatureConstraint | readonly UcFeatureConstraint[] | undefined,
+      UcSchemaConstraint | readonly UcSchemaConstraint[] | undefined,
     ][]) {
       if (features) {
         const prevFeatures = result[processorName];

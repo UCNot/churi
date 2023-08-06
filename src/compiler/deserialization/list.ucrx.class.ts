@@ -14,16 +14,16 @@ import {
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcModel } from '../../schema/uc-schema.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccListOptions } from '../common/ucc-list-options.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaTypeSymbol } from '../impl/uc-schema-symbol.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class ListUcrxClass<
@@ -31,10 +31,12 @@ export class ListUcrxClass<
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UccListOptions> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UccListOptions> {
     return {
-      configureSchema: (schema: UcList.Schema, options) => {
-        setup
+      constrain: ({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) => {
+        boot
           .processModel(schema.item)
           .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
       },

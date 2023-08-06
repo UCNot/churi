@@ -4,7 +4,7 @@ import { ucsWriteAsIs } from '../../../serializer/ucs-write-asis.js';
 import { UC_MODULE_SERIALIZER } from '../../impl/uc-modules.js';
 import { UcsFormatter } from '../ucs-formatter.js';
 
-export function ucsFormatInteger({ string = 'parse' }: UcInteger.Variant | void = {}): UcsFormatter<
+export function ucsFormatInteger({ string = 'parse' }: UcInteger.Variant = {}): UcsFormatter<
   UcInteger,
   UcInteger.Schema
 > {

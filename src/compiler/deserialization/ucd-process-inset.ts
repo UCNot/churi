@@ -1,17 +1,17 @@
 import { esImport, esMemberAccessor, esline } from 'esgen';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UC_TOKEN_INSET_URI_PARAM } from '../../syntax/uc-token.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UcrxCore$stubBody } from '../rx/impl/ucrx-core.stub.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 
-export function ucdProcessInset(setup: UcrxSetup): UccConfig<UcdInsetOptions> {
+export function ucdProcessInset<TBoot extends UcrxBootstrap<TBoot>>(
+  boot: TBoot,
+): UccFeature.Handle<UcdInsetOptions> {
   return {
-    configureSchema(schema, { lexer, from, method, args }) {
-      const within = setup.currentPresentation;
-
-      setup
+    constrain({ schema, within, options: { lexer, from, method, args } }) {
+      boot
         .modifyUcrxClass(schema, {
           applyTo(ucrxClass) {
             if (!ucrxClass.findMember(UcrxCore.ins)?.declared) {

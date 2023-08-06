@@ -4,7 +4,7 @@ import { ucsWriteNumber, ucsWriteNumberAsString } from '../../../serializer/ucs-
 import { UC_MODULE_SERIALIZER } from '../../impl/uc-modules.js';
 import { UcsFormatter } from '../ucs-formatter.js';
 
-export function ucsFormatNumber({ string = 'parse' }: UcNumber.Variant | void = {}): UcsFormatter<
+export function ucsFormatNumber({ string = 'parse' }: UcNumber.Variant = {}): UcsFormatter<
   UcNumber,
   UcNumber.Schema
 > {

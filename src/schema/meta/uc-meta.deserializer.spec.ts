@@ -140,13 +140,11 @@ describe('UcMeta deserializer', () => {
         models: { parse: { model: ucUnknown() } },
         features: [
           ucdProcessDefaults,
-          compiler => ({
-            configure() {
-              compiler.parseMetaValue('comment', ucString(), ({ cx, value }) => code => {
-                code.write(esline`${cx}.data.comment = ${value};`);
-              });
-            },
-          }),
+          boot => {
+            boot.parseMetaValue('comment', ucString(), ({ cx, value }) => code => {
+              code.write(esline`${cx}.data.comment = ${value};`);
+            });
+          },
         ],
       });
 

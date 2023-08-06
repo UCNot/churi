@@ -1,15 +1,16 @@
 import { EsSignature } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSetup } from '../processor/ucc-setup.js';
+import { UccBootstrap } from '../bootstrap/ucc-bootstrap.js';
 import { UcrxBeforeMod, UcrxMethod } from './ucrx-method.js';
 import { UcrxClassMod, UcrxProto } from './ucrx.class.js';
 
 /**
- * Schema processor utilizing {@link churi!Ucrx charge receiver} code generation.
+ * Bootstrap of {@link UcrxProcessor charge receiver} code generation.
  *
- * @typeParam TProcessor - Type of this schema processor.
+ * @typeParam TBoot - Type of schema processing bootstrap.
  */
-export interface UcrxSetup<in TSetup = unknown> extends UccSetup<TSetup> {
+export interface UcrxBootstrap<in out TBoot extends UcrxBootstrap<TBoot>>
+  extends UccBootstrap<TBoot> {
   /**
    * Assigns {@link churi!Ucrx Ucrx} class to use for `target` value type or schema processing.
    *

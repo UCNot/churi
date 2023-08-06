@@ -17,18 +17,16 @@ import {
 import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../processor/ucc-capability.js';
-import { UccConfig } from '../processor/ucc-config.js';
-import { UccFeature } from '../processor/ucc-feature.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerRegistry } from './impl/ucd-handler-registry.js';
+import { UcdBootstrap } from './ucd-bootstrap.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
 import { ucdProcessDefaults } from './ucd-process-defaults.js';
-import { UcdSetup } from './ucd-setup.js';
 
 /**
  * Compiler of schema {@link churi!UcDeserializer deserializers}.
@@ -36,8 +34,8 @@ import { UcdSetup } from './ucd-setup.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcdCompiler<out TModels extends UcdModels = UcdModels>
-  extends UcrxProcessor<UcdSetup>
-  implements UcdSetup {
+  extends UcrxProcessor<UcdBootstrap>
+  implements UcdBootstrap {
 
   readonly #options: UcdCompiler.Options<TModels>;
 
@@ -68,34 +66,28 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     this.#meta = new UcdHandlerRegistry('defaultMeta');
   }
 
-  protected override createSetup(): UcdSetup {
+  protected override startBootstrap(): UcdBootstrap {
     return this;
   }
 
-  override createConfig<TOptions>(feature: UccFeature<UcdSetup, TOptions>): UccConfig<TOptions> {
+  protected override handleFeature<TOptions>(
+    feature: UccFeature<UcdBootstrap, TOptions>,
+  ): UccFeature.Handle<TOptions> | void {
     if (feature === ucdProcessDefaults) {
-      return this.#enableDefault() as UccConfig<TOptions>;
+      return this.#enableDefault();
     }
 
-    return super.createConfig(feature);
+    return super.handleFeature(feature);
   }
 
-  #enableDefault(): UccConfig {
-    return {
-      configure: () => this.#configureDefaults(),
-    };
-  }
-
-  #configureDefaults(): void {
-    const defaultConfig = ucdProcessDefaults(this);
-
-    this.#entities.configureDefaults();
-    this.#formats.configureDefaults();
-    this.#meta.configureDefaults();
+  #enableDefault(): void {
+    this.#entities.enableDefaults();
+    this.#formats.enableDefaults();
+    this.#meta.enableDefaults();
 
     // Stop registering default handlers.
     // Start registering custom ones.
-    defaultConfig.configure!(undefined);
+    ucdProcessDefaults(this.boot);
 
     this.#entities.makeDefault();
     this.#formats.makeDefault();
@@ -284,13 +276,9 @@ export namespace UcdCompiler {
   export interface Options<out TModels extends UcdModels = UcdModels>
     extends Omit<UcrxLib.Options, 'methods'> {
     readonly presentations?: UcPresentationName | UcPresentationName[] | undefined;
-    readonly capabilities?:
-      | UccCapability<UcdSetup>
-      | readonly UccCapability<UcdSetup>[]
-      | undefined;
     readonly models: TModels;
     readonly validate?: boolean | undefined;
-    readonly features?: UccFeature<UcdSetup> | readonly UccFeature<UcdSetup>[] | undefined;
+    readonly features?: UccFeature<UcdBootstrap> | readonly UccFeature<UcdBootstrap>[] | undefined;
     readonly exportDefaults?: boolean | undefined;
   }
 }

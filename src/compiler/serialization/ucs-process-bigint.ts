@@ -1,22 +1,20 @@
 import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 
-export function ucsProcessBigInt(setup: UcsSetup): UccConfig<UcBigInt.Variant | void> {
-  const configureSchema = (
-    target: UcSchema | typeof BigInt,
-    variant?: UcBigInt.Variant | void,
-  ): void => {
-    setup.formatWith('charge', target, ucsFormatCharge(ucsFormatBigInt(variant)));
+export function ucsProcessBigInt(boot: UcsBootstrap): UccFeature.Handle<UcBigInt.Variant> {
+  const constrain = (target: UcSchema | typeof BigInt, variant?: UcBigInt.Variant): void => {
+    boot.formatWith('charge', target, ucsFormatCharge(ucsFormatBigInt(variant)));
   };
 
+  constrain(BigInt);
+
   return {
-    configure() {
-      configureSchema(BigInt, undefined);
+    constrain({ schema, options }) {
+      constrain(schema, options);
     },
-    configureSchema,
   };
 }

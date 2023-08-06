@@ -63,15 +63,13 @@ describe('UcString serializer', () => {
       const compiler = new UcsCompiler({
         features: [
           ucsProcessDefaults,
-          setup => ({
-            configure() {
-              setup.writeWith('charge', ({ stream }) => {
-                const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
+          boot => {
+            boot.writeWith('charge', ({ stream }) => {
+              const UcsWriter = UC_MODULE_SPEC.import('SmallChunkUcsWriter');
 
-                return esline`new ${UcsWriter}(${stream}, 4);`;
-              });
-            },
-          }),
+              return esline`new ${UcsWriter}(${stream}, 4);`;
+            });
+          },
         ],
         models: {
           writeValue: { model: String },

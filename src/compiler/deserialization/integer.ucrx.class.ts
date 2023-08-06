@@ -1,20 +1,22 @@
 import { esline } from 'esgen';
 import { UcInteger } from '../../schema/numeric/uc-integer.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI, UC_MODULE_DESERIALIZER } from '../impl/uc-modules.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcInteger.Variant | undefined> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcInteger.Variant> {
     return {
-      configureSchema: (schema, variant) => {
-        setup.useUcrxClass(
+      constrain: ({ schema, options }) => {
+        boot.useUcrxClass(
           schema,
-          (lib, schema: UcInteger.Schema) => new this(lib, schema, variant),
+          (lib, schema: UcInteger.Schema) => new this(lib, schema, options),
         );
       },
     };

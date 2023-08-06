@@ -15,12 +15,8 @@ describe('UcdCompiler', () => {
         },
         features: [
           {
-            uccProcess(compiler) {
-              return {
-                configure() {
-                  compiler.enable(ucdProcessTimestampFormat);
-                },
-              };
+            uccEnable(boot) {
+              boot.enable(ucdProcessTimestampFormat);
             },
           },
           ucdProcessDefaults,

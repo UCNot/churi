@@ -1,13 +1,13 @@
 import { UcInteger } from '../../schema/numeric/uc-integer.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { ucsFormatCharge } from './impl/ucs-format-charge.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
-import { UcsSetup } from './ucs-setup.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 
-export function ucsProcessInteger(setup: UcsSetup): UccConfig<UcInteger.Variant | undefined> {
+export function ucsProcessInteger(boot: UcsBootstrap): UccFeature.Handle<UcInteger.Variant> {
   return {
-    configureSchema(schema: UcInteger.Schema, variant) {
-      setup.formatWith('charge', schema, ucsFormatCharge(ucsFormatInteger(variant)));
+    constrain({ schema, options }) {
+      boot.formatWith('charge', schema, ucsFormatCharge(ucsFormatInteger(options)));
     },
   };
 }

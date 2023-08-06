@@ -1,6 +1,6 @@
 import { UcFormatName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
-import { UccSchemaIndex } from '../../processor/ucc-schema-index.js';
+import { UccSchemaIndex } from '../../bootstrap/ucc-schema-index.js';
 import { UcsFormatter } from '../ucs-formatter.js';
 import { UcsInsetWrapper } from '../ucs-inset-formatter.js';
 import { CreateUcsWriterExpr } from '../ucs-writer.class.js';

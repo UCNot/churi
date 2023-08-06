@@ -10,7 +10,7 @@ import {
 } from 'esgen';
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema, ucSchema } from '../../schema/uc-schema.js';
-import { UccSchemaIndex } from '../processor/ucc-schema-index.js';
+import { UccSchemaIndex } from '../bootstrap/ucc-schema-index.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsFunction } from './ucs-function.js';
 import { UcsInsetFormatter, UcsInsetRequest } from './ucs-inset-formatter.js';

@@ -1,11 +1,6 @@
-import { UccConfig } from '../processor/ucc-config.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { ucsProcessPrimitives } from './ucs-process-primitives.js';
-import { UcsSetup } from './ucs-setup.js';
 
-export function ucsProcessDefaults(setup: UcsSetup): UccConfig {
-  return {
-    configure() {
-      setup.enable(ucsProcessPrimitives);
-    },
-  };
+export function ucsProcessDefaults(boot: UcsBootstrap): void {
+  boot.enable(ucsProcessPrimitives);
 }

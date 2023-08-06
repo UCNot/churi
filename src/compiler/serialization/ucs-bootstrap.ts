@@ -1,14 +1,14 @@
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccSetup } from '../processor/ucc-setup.js';
+import { UccBootstrap } from '../bootstrap/ucc-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetWrapper } from './ucs-inset-formatter.js';
 import { CreateUcsWriterExpr } from './ucs-writer.class.js';
 
 /**
- * Schema {@link UcsCompiler serializer} setup.
+ * Schema {@link UcsCompiler serializer} bootstrap.
  */
-export interface UcsSetup extends UccSetup<UcsSetup> {
+export interface UcsBootstrap extends UccBootstrap<UcsBootstrap> {
   /**
    * Assigns formatter or format to use for `target` value type or schema.
    *

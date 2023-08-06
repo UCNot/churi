@@ -8,7 +8,7 @@ import { UcsFormatter } from '../ucs-formatter.js';
 export function ucsFormatBigInt({
   string = 'parse',
   number = 'parse',
-}: UcBigInt.Variant | void = {}): UcsFormatter<UcBigInt, UcBigInt.Schema> {
+}: UcBigInt.Variant = {}): UcsFormatter<UcBigInt, UcBigInt.Schema> {
   return ({ writer, value }) => code => {
       if (string === 'serialize') {
         const ucsApostrophe = UC_MODULE_SERIALIZER.import('UCS_APOSTROPHE');

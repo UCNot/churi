@@ -14,25 +14,25 @@ import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
-import { UccCapability } from '../processor/ucc-capability.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { UcsLib } from './ucs-lib.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
 export function ucsSupportURIParams({
   defaultInsetFormat = 'charge',
-}: UcsURIParamsOptions = {}): UccCapability<UcsSetup> {
-  return activation => {
-    activation.onConstraint(
+}: UcsURIParamsOptions = {}): UccFeature<UcsBootstrap> {
+  return boot => {
+    boot.onConstraint(
       {
         processor: 'serializer',
         use: 'ucsProcessMap',
         from: COMPILER_MODULE,
       },
-      ({ setup }) => {
-        setup
+      () => {
+        boot
           .writeWith('uriParams', ({ stream, options }) => async (code, { ns }) => {
             const encodeURI = esImport('httongue', encodeURISearchPart.name);
             const naming = await ns.refer(UcsWriterClass).whenNamed();

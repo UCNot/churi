@@ -5,25 +5,24 @@ import { UcBigInt } from '../../schema/numeric/uc-bigint.js';
 import { UcString } from '../../schema/string/uc-string.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucsWriteURIEncoded } from '../../serializer/ucs-write-string.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
-import { UccCapability } from '../processor/ucc-capability.js';
-import { UccConfig } from '../processor/ucc-config.js';
 import { ucsFormatBigInt } from './impl/ucs-format-bigint.js';
 import { ucsFormatBoolean } from './impl/ucs-format-boolean.js';
 import { ucsFormatInteger } from './impl/ucs-format-integer.js';
 import { ucsFormatNumber } from './impl/ucs-format-number.js';
+import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { ucsProcessBigInt } from './ucs-process-bigint.js';
 import { ucsProcessInteger } from './ucs-process-integer.js';
 import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
-import { UcsSetup } from './ucs-setup.js';
 import { UcsWriterClass } from './ucs-writer.class.js';
 
-export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
-  return activation => {
-    activation
+export function ucsSupportURIEncoded(): UccFeature<UcsBootstrap> {
+  return boot => {
+    boot
       .enable(ucsProcessURIEncodedDefaults)
       .onConstraint(
         {
@@ -31,10 +30,10 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessBigInt.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema, constraint: { with: options } }) => {
+        ({ schema, constraint: { with: options } }) => {
           const { number = 'parse' } = options as UcBigInt.Variant;
 
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatBigInt({ number })));
         },
       )
       .onConstraint(
@@ -43,8 +42,8 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessInteger.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
+        ({ schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatInteger()));
         },
       )
       .onConstraint(
@@ -53,8 +52,8 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessNumber.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
+        ({ schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncoded(ucsFormatNumber()));
         },
       )
       .onConstraint(
@@ -63,34 +62,30 @@ export function ucsSupportURIEncoded(): UccCapability<UcsSetup> {
           use: ucsProcessString.name,
           from: COMPILER_MODULE,
         },
-        ({ setup, schema }) => {
-          setup.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
+        ({ schema }) => {
+          boot.formatWith('uriEncoded', schema, ucsFormatURIEncodedString());
         },
       );
   };
 }
 
-function ucsProcessURIEncodedDefaults(setup: UcsSetup): UccConfig {
-  return {
-    configure() {
-      setup
-        .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
-        .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
-        .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
-        .formatWith('uriEncoded', String, ucsFormatURIEncodedString())
-        .writeWith('uriEncoded', ({ stream, options }) => async (code, { ns }) => {
-          const encodeURI = esImport('httongue', encodeURIPart.name);
-          const naming = await ns.refer(UcsWriterClass).whenNamed();
+function ucsProcessURIEncodedDefaults(boot: UcsBootstrap): void {
+  boot
+    .formatWith('uriEncoded', BigInt, ucsFormatURIEncoded(ucsFormatBigInt()))
+    .formatWith('uriEncoded', Boolean, ucsFormatURIEncoded(ucsFormatBoolean()))
+    .formatWith('uriEncoded', Number, ucsFormatURIEncoded(ucsFormatNumber()))
+    .formatWith('uriEncoded', String, ucsFormatURIEncodedString())
+    .writeWith('uriEncoded', ({ stream, options }) => async (code, { ns }) => {
+      const encodeURI = esImport('httongue', encodeURIPart.name);
+      const naming = await ns.refer(UcsWriterClass).whenNamed();
 
-          code.line(
-            naming.instantiate({
-              stream,
-              options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
-            }),
-          );
-        });
-    },
-  };
+      code.line(
+        naming.instantiate({
+          stream,
+          options: esline`{ ...${options}, encodeURI: ${encodeURI} }`,
+        }),
+      );
+    });
 }
 
 function ucsFormatURIEncodedString(): UcsFormatter<UcString> {

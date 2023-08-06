@@ -14,12 +14,12 @@ import {
 } from 'esgen';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
+import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
-import { UccConfig } from '../processor/ucc-config.js';
+import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
 import { UcrxCore } from '../rx/ucrx-core.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
-import { UcrxSetup } from '../rx/ucrx-setup.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { MapUcrxEntry } from './map.ucrx-entry.js';
 
@@ -32,17 +32,19 @@ export class MapUcrxClass<
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
 
-  static uccProcess(setup: UcrxSetup): UccConfig<UcMap.Variant> {
+  static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
+    boot: TBoot,
+  ): UccFeature.Handle<UcMap.Variant> {
     return {
-      configureSchema: (schema: UcMap.Schema, variant) => {
+      constrain: ({ schema, options }: UccFeature.Constraint<UcMap.Variant, UcMap.Schema>) => {
         const { entries, extra } = schema;
 
-        setup.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, variant));
+        boot.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, options));
         for (const entrySchema of Object.values(entries)) {
-          setup.processModel(entrySchema);
+          boot.processModel(entrySchema);
         }
         if (extra) {
-          setup.processModel(extra);
+          boot.processModel(extra);
         }
       },
     };
