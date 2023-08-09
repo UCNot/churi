@@ -213,7 +213,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     return {
       ...this.#options,
       schemaIndex: this.schemaIndex,
-      findFormatter: this.#formatterFor.bind(this),
+      findFormatter: this.#findFormatter.bind(this),
       findInsetFormatter: this.#findInsetFormatter.bind(this),
       createWriter: format => this.#formatConfigs.get(format)?.createWriter,
       createSerializer(options) {
@@ -240,7 +240,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     }
   }
 
-  #formatterFor<T, TSchema extends UcSchema<T>>(
+  #findFormatter<T, TSchema extends UcSchema<T>>(
     format: UcFormatName,
     schema: TSchema,
   ): UcsFormatter<T, TSchema> | undefined {
@@ -264,28 +264,26 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
     if (insetPresentationConfig) {
       insetFormatter =
         insetPresentationConfig.formatterFor(insetSchema)
-        ?? this.#formatterFor(insetPresentationConfig.format, insetSchema);
+        ?? this.#findFormatter(insetPresentationConfig.format, insetSchema);
     }
+
+    const formatter: UcsInsetFormatter<T, TSchema> | undefined = insetFormatter && {
+      insetFormat: insetPresentationConfig!.format,
+      format: insetFormatter,
+    };
 
     const insetWrapper =
       this.#findPresentationFor(`format:${hostFormat}`, hostSchema.type)?.insetWrapperFor(
         hostSchema,
       ) ?? this.#formatConfigs.get(hostFormat)?.insetWrapper;
 
-    if (insetWrapper) {
-      return insetWrapper<T, TSchema>({
-        lib,
-        ...request,
-        formatter: insetFormatter && {
-          insetFormat: insetPresentationConfig!.format,
-          format: insetFormatter,
-        },
-      });
-    }
-
-    return (
-      insetFormatter && { insetFormat: insetPresentationConfig!.format, format: insetFormatter }
-    );
+    return insetWrapper
+      ? insetWrapper<T, TSchema>({
+          lib,
+          ...request,
+          formatter,
+        })
+      : formatter;
   }
 
 }
