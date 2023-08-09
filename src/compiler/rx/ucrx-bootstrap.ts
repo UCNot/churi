@@ -24,6 +24,15 @@ export interface UcrxBootstrap<in out TBoot extends UcrxBootstrap<TBoot>>
    */
   useUcrxClass<T>(target: UcSchema<T>['type'] | UcSchema<T>, proto: UcrxProto<T>): this;
 
+  /**
+   * Applies modifier to {@link useUcrxClass Ucrx class} created for the given schema.
+   *
+   * @typeParam T - Implied data type.
+   * @param schema - Target schema instance.
+   * @param mod - Ucrx class modifier.
+   *
+   * @return `this` instance.
+   */
   modifyUcrxClass<T>(schema: UcSchema<T>, mod: UcrxClassMod<T>): this;
 
   /**
