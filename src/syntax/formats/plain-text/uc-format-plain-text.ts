@@ -1,26 +1,17 @@
 import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
-import { UcsInsetOptions } from '../../../compiler/serialization/ucs-process-inset.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
 /**
- * Enables inset processing as {@link UcPlainTextLexer plain text}.
+ * Enables {@link UcPlainTextLexer plain text} format for schema or inset.
  *
- * @param options - Lexer options.
+ * @param options - Formatting options.
  *
  * @returns Schema constraints.
  */
+export function ucFormatPlainText(options?: UcPlainTextOptions): UcOmniConstraints;
 
-export function ucInsetPlainText(options?: {
-  /**
-   * Whether to emit a raw string rather quoted string.
-   *
-   * @defaultValue `false`.
-   */
-  readonly raw?: boolean | undefined;
-}): UcOmniConstraints;
-
-export function ucInsetPlainText({
+export function ucFormatPlainText({
   raw,
 }: {
   readonly raw?: boolean | undefined;
@@ -36,11 +27,20 @@ export function ucInsetPlainText({
       } satisfies UcdInsetOptions,
     },
     serializer: {
-      use: 'ucsProcessInset',
+      use: 'ucsProcessPlainText',
       from: COMPILER_MODULE,
-      with: {
-        format: 'plainText',
-      } satisfies UcsInsetOptions,
     },
   };
+}
+
+/**
+ * Options for {@link ucFormatPlainText plain text} formatting.
+ */
+export interface UcPlainTextOptions {
+  /**
+   * Whether to emit a raw string rather quoted string.
+   *
+   * @defaultValue `false`.
+   */
+  readonly raw?: boolean | undefined;
 }

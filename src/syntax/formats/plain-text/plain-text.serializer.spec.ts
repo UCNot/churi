@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsProcessDefaults } from '../../../compiler/serialization/ucs-process-defaults.js';
-import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support-plain-text.js';
+import { ucsProcessPlainText } from '../../../compiler/serialization/ucs-process-plain-text.js';
 import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
 import { ucList } from '../../../schema/list/uc-list.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
@@ -17,7 +17,7 @@ import { TextOutStream } from '../../../spec/text-out-stream.js';
 describe('plain text serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writePrimitive: { model: BigInt, format: 'plainText' },
         writeValue: { model: ucBigInt({ string: 'serialize' }), format: 'plainText' },
@@ -43,7 +43,7 @@ describe('plain text serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writePrimitive: { model: Boolean, format: 'plainText' },
         writeValue: { model: ucBoolean(), format: 'plainText' },
@@ -61,7 +61,7 @@ describe('plain text serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writePrimitive: { model: Number, format: 'plainText' },
         writeValue: { model: ucNumber({ string: 'serialize' }), format: 'plainText' },
@@ -80,7 +80,7 @@ describe('plain text serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writeValue: { model: ucInteger({ string: 'serialize' }), format: 'plainText' },
       },
@@ -95,7 +95,7 @@ describe('plain text serializer', () => {
   });
   it('serializes string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writePrimitive: { model: String, format: 'plainText' },
         writeValue: { model: ucString({ raw: 'escape' }), format: 'plainText' },
@@ -114,7 +114,7 @@ describe('plain text serializer', () => {
   it('can not serialize list', async () => {
     const schema = ucList(Number);
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writeList: { model: schema, format: 'plainText' },
       },
@@ -130,7 +130,7 @@ describe('plain text serializer', () => {
   it('can not serialize map', async () => {
     const schema = ucMap({ foo: Number });
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         writeMap: { model: schema, format: 'plainText' },
       },
@@ -146,7 +146,7 @@ describe('plain text serializer', () => {
   it('can not serialize nullable values', async () => {
     const schema = ucNullable(ucNumber());
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         write: { model: schema, format: 'plainText' },
       },
@@ -163,7 +163,7 @@ describe('plain text serializer', () => {
   it('can not serialize optional values', async () => {
     const schema = ucOptional(ucNumber());
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText()],
+      features: [ucsProcessDefaults, ucsProcessPlainText],
       models: {
         write: { model: schema, format: 'plainText' },
       },

@@ -16,7 +16,7 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../../uc-token.js';
-import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
+import { ucFormatPlainText } from '../plain-text/uc-format-plain-text.js';
 import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
 import { ucFormatURIParams } from './uc-format-uri-params.js';
 import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
@@ -123,7 +123,7 @@ describe('UcURIParamsLexer', () => {
           model: ucMap({
             foo: ucString({
               within: {
-                uriParam: ucInsetPlainText(),
+                uriParam: ucFormatPlainText(),
               },
             }),
             bar: ucList(ucString()),
@@ -154,9 +154,9 @@ describe('UcURIParamsLexer', () => {
         readParams: {
           model: ucMap({
             foo: ucString({
-              where: ucInsetPlainText(),
+              where: ucFormatPlainText(),
               within: {
-                charge: ucInsetPlainText({ raw: true }),
+                charge: ucFormatPlainText({ raw: true }),
               },
             }),
             bar: ucList(ucString()),

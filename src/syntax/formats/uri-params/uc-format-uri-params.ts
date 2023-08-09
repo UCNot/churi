@@ -5,7 +5,7 @@ import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 import { UcFormatName } from '../../../schema/uc-presentations.js';
 
 /**
- * Enables {@link UcURIParamsLexer URI parameters} format for the schema or inset.
+ * Enables {@link UcURIParamsLexer URI parameters} format for schema or inset.
  *
  * E.g. for `application/x-www-form-urlencoded` processing.
  *
@@ -37,7 +37,7 @@ export function ucFormatURIParams(options?: UcURIParamsOptions): UcOmniConstrain
 }
 
 /**
- * Options of {@link ucFormatURIParams URI parameters} formatting.
+ * Options for {@link ucFormatURIParams URI parameters} formatting.
  */
 export interface UcURIParamsOptions {
   /**

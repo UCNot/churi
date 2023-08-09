@@ -3,8 +3,8 @@ import { UcSerializer } from 'churi';
 import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsProcessDefaults } from '../../../compiler/serialization/ucs-process-defaults.js';
+import { ucsProcessPlainText } from '../../../compiler/serialization/ucs-process-plain-text.js';
 import { ucsProcessURIParams } from '../../../compiler/serialization/ucs-process-uri-params.js';
-import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support-plain-text.js';
 import { ucsSupportURIEncoded } from '../../../compiler/serialization/ucs-support-uri-encoded.js';
 import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
 import { ucList } from '../../../schema/list/uc-list.js';
@@ -15,7 +15,7 @@ import { ucNumber } from '../../../schema/numeric/uc-number.js';
 import { ucString } from '../../../schema/string/uc-string.js';
 import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
-import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
+import { ucFormatPlainText } from '../plain-text/uc-format-plain-text.js';
 import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
 import { ucFormatURIParams } from './uc-format-uri-params.js';
 
@@ -147,13 +147,13 @@ describe('URI params serializer', () => {
   });
   it('serializes plain text string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText(), ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessPlainText, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
             'test 1': ucString({
               within: {
-                uriParam: ucInsetPlainText(),
+                uriParam: ucFormatPlainText(),
               },
             }),
           }),

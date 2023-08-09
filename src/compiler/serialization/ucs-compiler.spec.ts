@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { ucInsetPlainText } from 'churi';
 import { esline } from 'esgen';
 import { SPEC_MODULE } from '../../impl/module-names.js';
 import { ucMap } from '../../schema/map/uc-map.js';
@@ -11,12 +10,13 @@ import {
   UcsProcessNumberWithRadix,
   UcsProcessRadixNumber,
 } from '../../spec/write-uc-radix-number.js';
+import { ucFormatPlainText } from '../../syntax/formats/plain-text/uc-format-plain-text.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UcsCompiler } from './ucs-compiler.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { ucsProcessDefaults } from './ucs-process-defaults.js';
+import { ucsProcessPlainText } from './ucs-process-plain-text.js';
 import { ucsProcessURIParams } from './ucs-process-uri-params.js';
-import { ucsSupportPlainText } from './ucs-support-plain-text.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
@@ -219,7 +219,7 @@ export async function writeValue(stream, value, options) {
     const compiler = new UcsCompiler({
       features: [
         ucsProcessDefaults,
-        ucsSupportPlainText(),
+        ucsProcessPlainText,
         boot => {
           boot.formatWith('uriParams', 'map', ({ writer, value }, _schema, cx) => code => {
             code.write(
@@ -237,7 +237,7 @@ export async function writeValue(stream, value, options) {
           model: ucMap({
             test: ucString({
               within: {
-                uriParam: ucInsetPlainText(),
+                uriParam: ucFormatPlainText(),
               },
             }),
           }),

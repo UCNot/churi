@@ -18,52 +18,56 @@ import { ucsProcessInteger } from './ucs-process-integer.js';
 import { ucsProcessNumber } from './ucs-process-number.js';
 import { ucsProcessString } from './ucs-process-string.js';
 
-export function ucsSupportPlainText(): UccFeature<UcsBootstrap> {
-  return boot => {
-    boot
-      .enable(ucsProcessPlainTextDefaults)
-      .onConstraint(
-        {
-          processor: 'serializer',
-          use: ucsProcessBigInt.name,
-          from: COMPILER_MODULE,
-        },
-        ({ schema, constraint: { with: options } }) => {
-          const { number = 'parse' } = options as UcBigInt.Variant;
+export function ucsProcessPlainText(boot: UcsBootstrap): UccFeature.Handle<UcsBootstrap> {
+  boot
+    .enable(ucsProcessPlainTextDefaults)
+    .onConstraint(
+      {
+        processor: 'serializer',
+        use: ucsProcessBigInt.name,
+        from: COMPILER_MODULE,
+      },
+      ({ schema, constraint: { with: options } }) => {
+        const { number = 'parse' } = options as UcBigInt.Variant;
 
-          boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatBigInt({ number })));
-        },
-      )
-      .onConstraint(
-        {
-          processor: 'serializer',
-          use: ucsProcessInteger.name,
-          from: COMPILER_MODULE,
-        },
-        ({ schema }) => {
-          boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatInteger()));
-        },
-      )
-      .onConstraint(
-        {
-          processor: 'serializer',
-          use: ucsProcessNumber.name,
-          from: COMPILER_MODULE,
-        },
-        ({ schema }) => {
-          boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatNumber()));
-        },
-      )
-      .onConstraint(
-        {
-          processor: 'serializer',
-          use: ucsProcessString.name,
-          from: COMPILER_MODULE,
-        },
-        ({ schema }) => {
-          boot.formatWith('plainText', schema, ucsFormatPlainTextString());
-        },
-      );
+        boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatBigInt({ number })));
+      },
+    )
+    .onConstraint(
+      {
+        processor: 'serializer',
+        use: ucsProcessInteger.name,
+        from: COMPILER_MODULE,
+      },
+      ({ schema }) => {
+        boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatInteger()));
+      },
+    )
+    .onConstraint(
+      {
+        processor: 'serializer',
+        use: ucsProcessNumber.name,
+        from: COMPILER_MODULE,
+      },
+      ({ schema }) => {
+        boot.formatWith('plainText', schema, ucsFormatPlainText(ucsFormatNumber()));
+      },
+    )
+    .onConstraint(
+      {
+        processor: 'serializer',
+        use: ucsProcessString.name,
+        from: COMPILER_MODULE,
+      },
+      ({ schema }) => {
+        boot.formatWith('plainText', schema, ucsFormatPlainTextString());
+      },
+    );
+
+  return {
+    constrain({ schema }) {
+      boot.formatWith('plainText', schema);
+    },
   };
 }
 
