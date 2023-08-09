@@ -104,17 +104,17 @@ describe('UcMeta', () => {
     });
   });
 
-  describe('freezed', () => {
-    it('is freezed', () => {
+  describe('frozen', () => {
+    it('is frozen', () => {
       const meta = new UcMeta().add('foo', 1);
-      const freezed = meta.freeze();
+      const frozen = meta.freeze();
 
-      expect(freezed).not.toBe(meta);
-      expect(meta.isFreezed()).toBe(false);
+      expect(frozen).not.toBe(meta);
+      expect(meta.isFrozen()).toBe(false);
       expect(meta.isMutable()).toBe(true);
-      expect(freezed.isFreezed()).toBe(true);
-      expect(freezed.isMutable()).toBe(false);
-      expect(freezed.get('foo')).toBe(1);
+      expect(frozen.isFrozen()).toBe(true);
+      expect(frozen.isMutable()).toBe(false);
+      expect(frozen.get('foo')).toBe(1);
     });
 
     describe('freeze', () => {
@@ -131,7 +131,7 @@ describe('UcMeta', () => {
         const clone = meta.clone();
 
         expect(clone).not.toBe(meta);
-        expect(clone.isFreezed()).toBe(false);
+        expect(clone.isFrozen()).toBe(false);
         expect(clone.isMutable()).toBe(true);
         expect(clone.get('foo')).toBe(1);
       });
@@ -143,7 +143,7 @@ describe('UcMeta', () => {
         const mutable = meta.unfreeze();
 
         expect(mutable).not.toBe(meta);
-        expect(mutable.isFreezed()).toBe(false);
+        expect(mutable.isFrozen()).toBe(false);
         expect(mutable.isMutable()).toBe(true);
         expect(mutable.get('foo')).toBe(1);
       });

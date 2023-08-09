@@ -39,7 +39,7 @@ export abstract class URICharge implements Uctx {
   /**
    * Metadata associated with this value.
    */
-  abstract get meta(): UcMeta.Freezed;
+  abstract get meta(): UcMeta.Frozen;
 
   /**
    * The number of items this value has.
@@ -304,7 +304,7 @@ class URICharge$None extends URICharge implements URICharge.None {
     return;
   }
 
-  get meta(): UcMeta.Freezed {
+  get meta(): UcMeta.Frozen {
     return UcMeta.empty;
   }
 

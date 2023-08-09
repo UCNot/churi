@@ -7,20 +7,20 @@ import { UcMetaAttr } from './uc-meta-attr.js';
 /**
  * Charge metadata consisting of attributes and their values.
  *
- * Metadata instance is mutable, unless {@link freeze freezed}. When freezed, each modification method call returns
+ * Metadata instance is mutable, unless {@link freeze frozen}. When frozen, each modification method call returns
  * new, mutable {@link clone}. When mutable, each modification method call returns `this` instance.
  *
  * Applies copy-on-write technique to avoid excessive data copying.
  */
 export class UcMeta {
 
-  static #empty: UcMeta.Freezed | undefined;
+  static #empty: UcMeta.Frozen | undefined;
 
   /**
-   * Metadata instance that is freezed to be empty.
+   * Metadata instance that is frozen to be empty.
    */
-  static get empty(): UcMeta.Freezed {
-    return (UcMeta.#empty ??= new UcMeta(undefined, true) as UcMeta.Freezed);
+  static get empty(): UcMeta.Frozen {
+    return (UcMeta.#empty ??= new UcMeta(undefined, true) as UcMeta.Frozen);
   }
 
   /**
@@ -35,36 +35,36 @@ export class UcMeta {
   }
 
   #state: UcMeta$State;
-  readonly #freezed: boolean;
+  readonly #frozen: boolean;
 
   /**
    * Constructs new metadata instance.
    *
    * @param source - Source metadata to clone the contents of.
-   * @param freeze - Whether to freeze constructed metadata. `false` by default.
+   * @param frozen - Whether to freeze constructed metadata. `false` by default.
    */
-  constructor(source?: UcMeta, freeze = false) {
+  constructor(source?: UcMeta, frozen = false) {
     if (!source?.size) {
       this.#state = { attrs: new Map(), clones: 0 };
     } else {
       this.#state = source.#state;
       ++this.#state.clones;
     }
-    this.#freezed = freeze;
+    this.#frozen = frozen;
   }
 
   /**
-   * Informs whether this metadata instance is {@link UcMeta.Freezed freezed}.
+   * Informs whether this metadata instance is {@link UcMeta.Frozen frozen}.
    */
-  isFreezed(): this is UcMeta.Freezed {
-    return this.#freezed;
+  isFrozen(): this is UcMeta.Frozen {
+    return this.#frozen;
   }
 
   /**
    * Informs whether this metadata instance is {@link UcMeta.Mutable mutable}.
    */
   isMutable(): this is UcMeta.Mutable {
-    return !this.isFreezed();
+    return !this.isFrozen();
   }
 
   /**
@@ -210,7 +210,7 @@ export class UcMeta {
   }
 
   #modify(): UcMeta.Mutable {
-    if (this.isFreezed()) {
+    if (this.isFrozen()) {
       const clone = this.clone();
 
       clone.#state = clone.#forkState();
@@ -278,12 +278,12 @@ export class UcMeta {
   }
 
   /**
-   * Converts this metadata to {@link UcMeta.Freezed freezed} one.
+   * Converts this metadata to {@link UcMeta.Frozen frozen} one.
    *
-   * @returns Either `this` instance if already {@link isFreezed freezed}, or freezed clone otherwise.
+   * @returns Either `this` instance if already {@link isFrozen frozen}, or frozen clone otherwise.
    */
-  freeze(): UcMeta.Freezed {
-    if (this.isFreezed()) {
+  freeze(): UcMeta.Frozen {
+    if (this.isFrozen()) {
       return this;
     }
     if (!this.size) {
@@ -291,7 +291,7 @@ export class UcMeta {
       return UcMeta.empty;
     }
 
-    return new (this.constructor as typeof UcMeta)(this, true) as UcMeta.Freezed;
+    return new (this.constructor as typeof UcMeta)(this, true) as UcMeta.Frozen;
   }
 
   /**
@@ -300,7 +300,7 @@ export class UcMeta {
    * @returns Either `this` instance if already {@link isMutable mutable}, or mutable {@link clone} otherwise.
    */
   unfreeze(): UcMeta.Mutable {
-    return this.isFreezed() ? this.clone() : (this as UcMeta.Mutable);
+    return this.isFrozen() ? this.clone() : (this as UcMeta.Mutable);
   }
 
   /**
@@ -333,7 +333,7 @@ export namespace UcMeta {
    */
   export interface Mutable extends UcMeta {
     isMutable(): true;
-    isFreezed(): false;
+    isFrozen(): false;
     add(attribute: string, value: unknown): this;
     add<TInput>(attribute: UcMetaAttr<unknown, TInput>, value: TInput): this;
     addAll(other: UcMeta): this;
@@ -342,11 +342,11 @@ export namespace UcMeta {
   }
 
   /**
-   * Freezed (immutable) {@link UcMeta charge metadata} instance.
+   * Frozen (immutable) {@link UcMeta charge metadata} instance.
    */
-  export interface Freezed extends UcMeta {
+  export interface Frozen extends UcMeta {
     isMutable(): false;
-    isFreezed(): true;
+    isFrozen(): true;
     freeze(): this;
   }
 }

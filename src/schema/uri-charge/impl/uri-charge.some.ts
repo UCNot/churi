@@ -22,9 +22,9 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
 
   readonly #value: UcUnknown | null;
   readonly #type: string;
-  readonly #meta: UcMeta.Freezed;
+  readonly #meta: UcMeta.Frozen;
 
-  constructor(value: UcUnknown | null, type: string, meta: UcMeta.Freezed) {
+  constructor(value: UcUnknown | null, type: string, meta: UcMeta.Frozen) {
     super();
     this.#value = value;
     this.#type = type;
@@ -39,7 +39,7 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
     return this.#type;
   }
 
-  override get meta(): UcMeta.Freezed {
+  override get meta(): UcMeta.Frozen {
     return this.#meta;
   }
 
@@ -100,7 +100,7 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
 export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
   readonly #map: Map<string, URICharge.Some>;
-  readonly #meta: UcMeta.Freezed;
+  readonly #meta: UcMeta.Frozen;
 
   constructor(map: Map<string, URICharge.Some>, meta: UcMeta) {
     super();
@@ -116,7 +116,7 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
     return;
   }
 
-  override get meta(): UcMeta.Freezed {
+  override get meta(): UcMeta.Frozen {
     return this.#meta;
   }
 
@@ -187,7 +187,7 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
     return this.at(0).value;
   }
 
-  override get meta(): UcMeta.Freezed {
+  override get meta(): UcMeta.Frozen {
     return this.at(0).meta;
   }
 
