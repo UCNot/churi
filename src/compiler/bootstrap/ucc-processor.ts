@@ -101,18 +101,15 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     for (const processor of this.schemaIndex.processors) {
       for (const constraint of asArray(constraints?.[processor])) {
         this.#issueConstraint(
-          schema,
-          new UccProcessor$ConstraintIssue(processor, within, constraint),
+          new UccProcessor$ConstraintIssue(processor, schema, within, constraint),
         );
       }
     }
   }
 
-  #issueConstraint<TOptions>(
-    schema: UcSchema,
-    issue: UccProcessor$ConstraintIssue<TOptions>,
-  ): void {
+  #issueConstraint<TOptions>(issue: UccProcessor$ConstraintIssue<TOptions>): void {
     const {
+      schema,
       constraint: { use: feature, from },
     } = issue;
     const usageId = `${this.schemaIndex.schemaId(schema)}::${from}::${feature}`;

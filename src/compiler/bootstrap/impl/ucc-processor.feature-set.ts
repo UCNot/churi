@@ -1,6 +1,5 @@
 import { lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { ucModelName } from '../../../schema/uc-model-name.js';
-import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
 import {
@@ -41,10 +40,10 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
   }
 
   async resolveConstraint<TOptions>(
-    schema: UcSchema,
     issue: UccProcessor$ConstraintIssue<TOptions>,
   ): Promise<UccProcessor$ConstraintResolution<TBoot, TOptions> | undefined> {
     const {
+      schema,
       constraint: { use, from },
     } = issue;
     let resolveFeatures = this.#resolutions.get(from);
@@ -59,10 +58,7 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
     };
 
     if ((mayHaveProperties(feature) && 'uccEnable' in feature) || typeof feature === 'function') {
-      const handle: UccFeature.Handle<TOptions> | undefined = this.runWithCurrent(
-        issue.toCurrent(schema),
-        () => this.enableFeature(feature),
-      );
+      const handle = this.runWithCurrent(issue, () => this.enableFeature(feature));
 
       if (!handle && issue.constraint.with !== undefined) {
         throw new TypeError(`Feature ${issue} can not constrain schema "${ucModelName(schema)}"`);

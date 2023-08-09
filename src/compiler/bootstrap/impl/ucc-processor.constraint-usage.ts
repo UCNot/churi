@@ -30,9 +30,7 @@ export class UccProcessor$ConstraintUsage<
   async resolve(): Promise<() => void> {
     const featureSet = this.#featureSet;
     const resolutions = (
-      await Promise.all(
-        this.#issues.map(async issue => await featureSet.resolveConstraint(this.#schema, issue)),
-      )
+      await Promise.all(this.#issues.map(async issue => await featureSet.resolveConstraint(issue)))
     ).filter(isPresent);
 
     this.#issues.length = 0;
@@ -55,12 +53,11 @@ export class UccProcessor$ConstraintUsage<
 
   #applyConstraint({ issue, handle }: UccProcessor$ConstraintResolution<TBoot, TOptions>): void {
     const featureSet = this.#featureSet;
-    const schema = this.#schema;
     const { processor, within, constraint } = issue;
     const { constraintMapper } = featureSet;
-    const application = new UccProcessor$ConstraintApplication(featureSet, schema, issue, handle);
+    const application = new UccProcessor$ConstraintApplication(featureSet, issue, handle);
 
-    featureSet.runWithCurrent(issue.toCurrent(schema), () => {
+    featureSet.runWithCurrent(issue, () => {
       constraintMapper.findHandler(processor, within, constraint)?.(application);
       if (within) {
         // Apply any presentation handler.

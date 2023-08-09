@@ -12,25 +12,22 @@ export class UccProcessor$ConstraintApplication<
 > implements UccFeature.ConstraintApplication<TBoot, TOptions> {
 
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
-  readonly #schema: UcSchema;
   readonly #issue: UccProcessor$ConstraintIssue<TOptions>;
   readonly #handle: UccFeature.Handle<TOptions>;
   #applied = 0;
 
   constructor(
     featureSet: UccProcessor$FeatureSet<TBoot>,
-    schema: UcSchema,
     issue: UccProcessor$ConstraintIssue<TOptions>,
     handle: UccFeature.Handle<TOptions>,
   ) {
     this.#featureSet = featureSet;
-    this.#schema = schema;
     this.#issue = issue;
     this.#handle = handle;
   }
 
   get schema(): UcSchema {
-    return this.#schema;
+    return this.#issue.schema;
   }
 
   get processor(): UcProcessorName {
@@ -67,7 +64,7 @@ export class UccProcessor$ConstraintApplication<
   }
 
   #constrain(): void {
-    this.#featureSet.runWithCurrent(this, () => this.#handle.constrain(this));
+    this.#featureSet.runWithCurrent(this.#issue, () => this.#handle.constrain(this));
   }
 
   ignore(): void {

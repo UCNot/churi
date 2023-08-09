@@ -6,22 +6,17 @@ import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
-export class UccProcessor$ConstraintIssue<out TOptions> {
+export class UccProcessor$ConstraintIssue<out TOptions> implements UccProcessor$Current {
 
   constructor(
     readonly processor: UcProcessorName,
+    readonly schema: UcSchema,
     readonly within: UcPresentationName | undefined,
     readonly constraint: UcSchemaConstraint,
   ) {}
 
   get options(): TOptions {
     return this.constraint.with as TOptions;
-  }
-
-  toCurrent(schema: UcSchema): UccProcessor$Current {
-    const { processor, within, constraint } = this;
-
-    return { processor, schema, within, constraint };
   }
 
   toString(): string {
