@@ -18,8 +18,8 @@ import {
 } from '../../uc-token.js';
 import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
 import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
+import { ucFormatURIParams } from './uc-format-uri-params.js';
 import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
-import { ucInsetURIParams } from './uc-inset-uri-params.js';
 
 describe('UcURIParamsLexer', () => {
   it('recognizes query params', () => {
@@ -206,7 +206,7 @@ describe('ucInsetURIParams', () => {
                   c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
                 },
                 {
-                  within: { uriParam: ucInsetURIParams() },
+                  within: { uriParam: ucFormatURIParams() },
                 },
               ),
             }),
@@ -243,7 +243,7 @@ describe('ucInsetURIParams', () => {
                   c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
                 },
                 {
-                  within: { uriParam: ucInsetURIParams(';') },
+                  within: { uriParam: ucFormatURIParams({ splitter: ';' }) },
                 },
               ),
             }),

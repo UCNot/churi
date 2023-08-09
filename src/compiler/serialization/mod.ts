@@ -17,7 +17,7 @@ export * from './ucs-process-number.js';
 export * from './ucs-process-primitives.js';
 export * from './ucs-process-string.js';
 export * from './ucs-process-unknown.js';
+export * from './ucs-process-uri-params.js';
 export * from './ucs-support-plain-text.js';
 export * from './ucs-support-uri-encoded.js';
-export * from './ucs-support-uri-params.js';
 export * from './ucs-writer.class.js';

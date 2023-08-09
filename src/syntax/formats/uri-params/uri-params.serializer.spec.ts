@@ -3,9 +3,9 @@ import { UcSerializer } from 'churi';
 import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsProcessDefaults } from '../../../compiler/serialization/ucs-process-defaults.js';
+import { ucsProcessURIParams } from '../../../compiler/serialization/ucs-process-uri-params.js';
 import { ucsSupportPlainText } from '../../../compiler/serialization/ucs-support-plain-text.js';
 import { ucsSupportURIEncoded } from '../../../compiler/serialization/ucs-support-uri-encoded.js';
-import { ucsSupportURIParams } from '../../../compiler/serialization/ucs-support-uri-params.js';
 import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
 import { ucList } from '../../../schema/list/uc-list.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
@@ -17,11 +17,12 @@ import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
 import { ucInsetPlainText } from '../plain-text/uc-inset-plain-text.js';
 import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
+import { ucFormatURIParams } from './uc-format-uri-params.js';
 
 describe('URI params serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -45,7 +46,7 @@ describe('URI params serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -71,7 +72,7 @@ describe('URI params serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -97,7 +98,7 @@ describe('URI params serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -123,7 +124,7 @@ describe('URI params serializer', () => {
   });
   it('serializes URI-encoded string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -146,7 +147,7 @@ describe('URI params serializer', () => {
   });
   it('serializes plain text string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportPlainText(), ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsSupportPlainText(), ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -169,7 +170,7 @@ describe('URI params serializer', () => {
   });
   it('serializes charged string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIParams()],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -188,12 +189,17 @@ describe('URI params serializer', () => {
   });
   it('fails to serialize value in unknown inset format', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIParams({ defaultInsetFormat: 'plainText' })],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
-          model: ucMap({
-            test: String,
-          }),
+          model: ucMap(
+            {
+              test: String,
+            },
+            {
+              where: ucFormatURIParams({ paramFormat: 'plainText' }),
+            },
+          ),
           format: 'uriParams',
         },
       },
@@ -208,12 +214,17 @@ describe('URI params serializer', () => {
   });
   it('fails to serialize list item in unknown inset format', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsSupportURIParams({ defaultInsetFormat: 'plainText' })],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
-          model: ucMap({
-            test: ucList(String),
-          }),
+          model: ucMap(
+            {
+              test: ucList(String),
+            },
+            {
+              where: ucFormatURIParams({ paramFormat: 'plainText' }),
+            },
+          ),
           format: 'uriParams',
         },
       },
@@ -235,7 +246,7 @@ describe('URI params serializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsSupportURIParams()],
+        features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
         models: {
           writeParams: {
             model: ucMap({
@@ -286,16 +297,17 @@ describe('URI params serializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [
-          ucsProcessDefaults,
-          ucsSupportURIEncoded(),
-          ucsSupportURIParams({ defaultInsetFormat: 'uriEncoded' }),
-        ],
+        features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
         models: {
           writeParams: {
-            model: ucMap({
-              test: ucList(String),
-            }),
+            model: ucMap(
+              {
+                test: ucList(String),
+              },
+              {
+                where: ucFormatURIParams({ paramFormat: 'uriEncoded' }),
+              },
+            ),
             format: 'uriParams',
           },
         },
@@ -316,23 +328,26 @@ describe('URI params serializer', () => {
     });
   });
 
-  describe('for list of list', () => {
+  describe('for matrix', () => {
     let writeParams: UcSerializer<{
       test: string[];
     }>;
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [
-          ucsProcessDefaults,
-          ucsSupportURIEncoded(),
-          ucsSupportURIParams({ defaultInsetFormat: 'uriEncoded' }),
-        ],
+        features: [ucsProcessDefaults, ucsSupportURIEncoded(), ucsProcessURIParams],
         models: {
           writeParams: {
-            model: ucMap({
-              test: ucList(String),
-            }),
+            model: ucMap(
+              {
+                test: ucList(String),
+              },
+              {
+                within: {
+                  uriParams: ucFormatURIParams({ splitter: ';', paramFormat: 'uriEncoded' }),
+                },
+              },
+            ),
             format: 'uriParams',
           },
         },
@@ -344,7 +359,7 @@ describe('URI params serializer', () => {
     it('serializes list', async () => {
       await expect(
         TextOutStream.read(async to => await writeParams(to, { test: ['a b', '2 3', '4 5'] })),
-      ).resolves.toBe('test=a+b&test=2+3&test=4+5');
+      ).resolves.toBe('test=a+b;test=2+3;test=4+5');
     });
     it('serializes empty list', async () => {
       await expect(

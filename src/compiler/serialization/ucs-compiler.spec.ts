@@ -15,8 +15,8 @@ import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
 import { UcsCompiler } from './ucs-compiler.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
 import { ucsProcessDefaults } from './ucs-process-defaults.js';
+import { ucsProcessURIParams } from './ucs-process-uri-params.js';
 import { ucsSupportPlainText } from './ucs-support-plain-text.js';
-import { ucsSupportURIParams } from './ucs-support-uri-params.js';
 
 describe('UcsCompiler', () => {
   it('respects custom serializer', async () => {
@@ -106,7 +106,7 @@ export async function writeValue(stream, value, options) {
       const compiler = new UcsCompiler({
         features: [
           ucsProcessDefaults,
-          ucsSupportURIParams(),
+          ucsProcessURIParams,
           boot => {
             boot.modifyInsets(
               'uriParams',
