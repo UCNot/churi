@@ -1,12 +1,15 @@
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccProcessor$ConstraintApplication } from './ucc-processor.constraint-application.js';
-import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
+import {
+  UccProcessor$ConstraintIssue,
+  UccProcessor$ConstraintResolution,
+} from './ucc-processor.constraint-issue.js';
 import { UccProcessor$FeatureSet } from './ucc-processor.feature-set.js';
 
 export class UccProcessor$ConstraintUsage<
   in out TBoot extends UccBootstrap<TBoot>,
-  out TOptions = unknown,
+  in out TOptions = unknown,
 > {
 
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
@@ -22,24 +25,27 @@ export class UccProcessor$ConstraintUsage<
     this.#issues.push(issue);
   }
 
-  async apply(): Promise<void> {
-    for (const issue of this.#issues) {
-      await this.#applyConstraint(issue);
-    }
+  async resolve(): Promise<() => void> {
+    const featureSet = this.#featureSet;
+    const resolutions = await Promise.all(
+      this.#issues.map(async issue => await featureSet.resolveConstraint(issue)),
+    );
+
     this.#issues.length = 0;
+
+    return () => {
+      for (const resolution of resolutions) {
+        this.#applyConstraint(resolution);
+      }
+    };
   }
 
-  async #applyConstraint(issue: UccProcessor$ConstraintIssue<TOptions>): Promise<void> {
+  #applyConstraint({ issue, feature }: UccProcessor$ConstraintResolution<TBoot, TOptions>): void {
     const featureSet = this.#featureSet;
     const schema = this.#schema;
     const { processor, within, constraint } = issue;
     const { constraintMapper: profiler } = featureSet;
-    const application = new UccProcessor$ConstraintApplication(
-      featureSet,
-      schema,
-      issue,
-      await featureSet.resolveFeature(issue),
-    );
+    const application = new UccProcessor$ConstraintApplication(featureSet, schema, issue, feature);
 
     featureSet.runWithCurrent({ processor, schema, within, constraint }, () => {
       profiler.findHandler(processor, within, constraint)?.(application);

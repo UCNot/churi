@@ -132,8 +132,12 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   }
 
   async #applyConstraints(): Promise<void> {
-    for (const usage of this.#usages.values()) {
-      await usage.apply();
+    const actions = await Promise.all(
+      [...this.#usages.values()].map(async usage => await usage.resolve()),
+    );
+
+    for (const action of actions) {
+      action();
     }
   }
 

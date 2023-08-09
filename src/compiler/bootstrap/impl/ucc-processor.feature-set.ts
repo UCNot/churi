@@ -1,7 +1,10 @@
 import { lazyValue, mayHaveProperties } from '@proc7ts/primitives';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
-import { UccProcessor$ConstraintIssue } from './ucc-processor.constraint-issue.js';
+import {
+  UccProcessor$ConstraintIssue,
+  UccProcessor$ConstraintResolution,
+} from './ucc-processor.constraint-issue.js';
 import { UccProcessor$ConstraintMapper } from './ucc-processor.constraint-mapper.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
@@ -33,9 +36,9 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
     return this.#current;
   }
 
-  async resolveFeature<TOptions>(
+  async resolveConstraint<TOptions>(
     issue: UccProcessor$ConstraintIssue<TOptions>,
-  ): Promise<UccFeature<TBoot, TOptions>> {
+  ): Promise<UccProcessor$ConstraintResolution<TBoot, TOptions>> {
     const {
       constraint: { use, from },
     } = issue;
@@ -49,7 +52,7 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
     const { [use]: feature } = await resolveFeatures;
 
     if ((mayHaveProperties(feature) && 'uccEnable' in feature) || typeof feature === 'function') {
-      return feature as UccFeature<TBoot, TOptions>;
+      return { issue, feature } as UccProcessor$ConstraintResolution<TBoot, TOptions>;
     }
     if (feature === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${issue}`);

@@ -3,7 +3,6 @@ import { UcSerializer } from 'churi';
 import { UnsupportedUcSchemaError } from '../../../compiler/common/unsupported-uc-schema.error.js';
 import { UcsCompiler } from '../../../compiler/serialization/ucs-compiler.js';
 import { ucsProcessDefaults } from '../../../compiler/serialization/ucs-process-defaults.js';
-import { ucsProcessPlainText } from '../../../compiler/serialization/ucs-process-plain-text.js';
 import { ucsProcessURIEncoded } from '../../../compiler/serialization/ucs-process-uri-encoded.js';
 import { ucsProcessURIParams } from '../../../compiler/serialization/ucs-process-uri-params.js';
 import { ucBoolean } from '../../../schema/boolean/uc-boolean.js';
@@ -23,7 +22,7 @@ import { ucFormatURIParams } from './uc-format-uri-params.js';
 describe('URI params serializer', () => {
   it('serializes bigint', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -47,7 +46,7 @@ describe('URI params serializer', () => {
   });
   it('serializes boolean', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -73,7 +72,7 @@ describe('URI params serializer', () => {
   });
   it('serializes integer', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -99,7 +98,7 @@ describe('URI params serializer', () => {
   });
   it('serializes number', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -125,7 +124,7 @@ describe('URI params serializer', () => {
   });
   it('serializes URI-encoded string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -148,7 +147,7 @@ describe('URI params serializer', () => {
   });
   it('serializes plain text string', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessPlainText, ucsProcessURIParams],
+      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap({
@@ -270,7 +269,7 @@ describe('URI params serializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+        features: [ucsProcessDefaults, ucsProcessURIParams],
         models: {
           writeParams: {
             model: ucMap({
