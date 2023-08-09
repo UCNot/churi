@@ -1,30 +1,17 @@
 import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
-import { UcsInsetOptions } from '../../../compiler/serialization/ucs-process-inset.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
 /**
- * Enables processing of inset encoded with {@link UcChargeLexer URI Charge Notation}.
+ * Enables{@link UcChargeLexer URI Charge Notation} format for schema or inset.
  *
- * @param options - Lexer options.
+ * @param options - Formatting options.
  *
  * @returns Schema constraints.
  */
+export function ucFormatCharge(options?: UcChargeOptions): UcOmniConstraints;
 
-export function ucInsetCharge(options?: {
-  /**
-   * Whether to decode _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space padding}.
-   *
-   * @defaultValue `false`
-   */
-  readonly plusAsSpace?: boolean | undefined;
-}): UcOmniConstraints;
-
-export function ucInsetCharge({
-  plusAsSpace,
-}: {
-  readonly plusAsSpace?: boolean | undefined;
-} = {}): UcOmniConstraints {
+export function ucFormatCharge({ plusAsSpace }: UcChargeOptions = {}): UcOmniConstraints {
   return {
     deserializer: {
       use: 'ucdProcessInset',
@@ -36,11 +23,20 @@ export function ucInsetCharge({
       } satisfies UcdInsetOptions,
     },
     serializer: {
-      use: 'ucsProcessInset',
+      use: 'ucsProcessCharge',
       from: COMPILER_MODULE,
-      with: {
-        format: 'charge',
-      } satisfies UcsInsetOptions,
     },
   };
+}
+
+/**
+ * Options for {@link ucFormatCharge URI charge} formatting.
+ */
+export interface UcChargeOptions {
+  /**
+   * Whether to decode _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space padding}.
+   *
+   * @defaultValue `false`
+   */
+  readonly plusAsSpace?: boolean | undefined;
 }

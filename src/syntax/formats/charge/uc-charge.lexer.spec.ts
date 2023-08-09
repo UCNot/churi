@@ -33,7 +33,7 @@ import {
 } from '../../uc-token.js';
 import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
 import { UcChargeLexer } from './uc-charge.lexer.js';
-import { ucInsetCharge } from './uc-inset-charge.js';
+import { ucFormatCharge } from './uc-inset-charge.js';
 
 describe('UcChargeLexer', () => {
   let lexer: UcChargeLexer;
@@ -241,7 +241,7 @@ describe('ucInsetCharge', () => {
         models: {
           readValue: {
             model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucInsetCharge() } }),
+              a: ucUnknown({ within: { uriParam: ucFormatCharge() } }),
             }),
             lexer: ({ emit }) => {
               const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
@@ -272,7 +272,7 @@ describe('ucInsetCharge', () => {
             model: ucMap({
               a: ucUnknown({
                 within: {
-                  uriParam: ucInsetCharge({ plusAsSpace: true }),
+                  uriParam: ucFormatCharge({ plusAsSpace: true }),
                 },
               }),
             }),

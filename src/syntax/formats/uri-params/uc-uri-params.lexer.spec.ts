@@ -17,7 +17,7 @@ import {
   UcToken,
 } from '../../uc-token.js';
 import { ucFormatPlainText } from '../plain-text/uc-format-plain-text.js';
-import { ucInsetURIEncoded } from '../uri-encoded/uc-inset-uri-encoded.js';
+import { ucFormatURIEncoded } from '../uri-encoded/uc-format-uri-encoded.js';
 import { ucFormatURIParams } from './uc-format-uri-params.js';
 import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
@@ -202,8 +202,8 @@ describe('ucInsetURIParams', () => {
             model: ucMap({
               a: ucMap(
                 {
-                  b: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
-                  c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                  b: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
+                  c: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
                 },
                 {
                   within: { uriParam: ucFormatURIParams() },
@@ -239,8 +239,8 @@ describe('ucInsetURIParams', () => {
             model: ucMap({
               a: ucMap(
                 {
-                  b: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
-                  c: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+                  b: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
+                  c: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
                 },
                 {
                   within: { uriParam: ucFormatURIParams({ splitter: ';' }) },

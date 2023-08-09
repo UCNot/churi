@@ -9,7 +9,7 @@ import { readChunks } from '../../../spec/read-chunks.js';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
 import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
 import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
-import { ucInsetURIEncoded } from './uc-inset-uri-encoded.js';
+import { ucFormatURIEncoded } from './uc-format-uri-encoded.js';
 import { UcURIEncodedLexer } from './uc-uri-encoded.lexer.js';
 
 describe('UcURIEncodedLexer', () => {
@@ -66,7 +66,7 @@ describe('ucInsetURIEncoded', () => {
         models: {
           readValue: {
             model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucInsetURIEncoded() } }),
+              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
             }),
             lexer: ({ emit }) => {
               const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
@@ -95,7 +95,7 @@ describe('ucInsetURIEncoded', () => {
         models: {
           readValue: {
             model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucInsetURIEncoded({ raw: true }) } }),
+              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded({ raw: true }) } }),
             }),
             lexer: ({ emit }) => {
               const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
@@ -129,7 +129,7 @@ describe('ucInsetURIEncoded', () => {
         models: {
           readValue: {
             model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucInsetURIEncoded({ plusAsSpace: true }) } }),
+              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true }) } }),
             }),
             mode: 'async',
             lexer: ({ emit }) => {
@@ -160,7 +160,7 @@ describe('ucInsetURIEncoded', () => {
           readValue: {
             model: ucMap({
               a: ucUnknown({
-                within: { uriParam: ucInsetURIEncoded({ plusAsSpace: true, raw: true }) },
+                within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true, raw: true }) },
               }),
             }),
             mode: 'sync',

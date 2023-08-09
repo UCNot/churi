@@ -3,36 +3,46 @@ import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
 /**
- * Enables {@link UcPlainTextLexer plain text} format for schema or inset.
+ * Enables {@link UcPlainTextLexer URI-encoded text} format for schema or inset.
  *
  * @param options - Formatting options.
  *
  * @returns Schema constraints.
  */
-export function ucFormatPlainText(options?: UcPlainTextOptions): UcOmniConstraints;
+export function ucFormatURIEncoded(options?: UcURIEncodedOptions): UcOmniConstraints;
 
-export function ucFormatPlainText({ raw }: UcPlainTextOptions = {}): UcOmniConstraints {
+export function ucFormatURIEncoded({
+  plusAsSpace,
+  raw,
+}: UcURIEncodedOptions = {}): UcOmniConstraints {
   return {
     deserializer: {
       use: 'ucdProcessInset',
       from: COMPILER_MODULE,
       with: {
-        lexer: 'UcPlainTextLexer',
+        lexer: 'UcURIEncodedLexer',
         from: CHURI_MODULE,
+        method: plusAsSpace ? 'plusAsSpace' : undefined,
         args: raw ? [`true`] : undefined,
       } satisfies UcdInsetOptions,
     },
     serializer: {
-      use: 'ucsProcessPlainText',
+      use: 'ucsProcessURIEncoded',
       from: COMPILER_MODULE,
     },
   };
 }
 
 /**
- * Options for {@link ucFormatPlainText plain text} formatting.
+ * Options for {@link ucFormatURIEncoded URI-encoded text} formatting.
  */
-export interface UcPlainTextOptions {
+export interface UcURIEncodedOptions {
+  /**
+   * Whether to decode _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space padding}.
+   *
+   * @defaultValue `false`
+   */
+  readonly plusAsSpace?: boolean | undefined;
   /**
    * Whether to emit a raw string rather quoted string.
    *
