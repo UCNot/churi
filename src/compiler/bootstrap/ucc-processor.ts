@@ -203,6 +203,10 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
    */
   protected handleFeature<TOptions>(
     feature: UccFeature<TBoot, TOptions>,
+  ): UccFeature.Handle<TOptions> | undefined;
+
+  protected handleFeature<TOptions>(
+    feature: UccFeature<TBoot, TOptions>,
   ): UccFeature.Handle<TOptions> | void {
     return 'uccEnable' in feature ? feature.uccEnable(this.boot) : feature(this.boot);
   }

@@ -35,10 +35,11 @@ export class ListUcrxClass<
     boot: TBoot,
   ): UccFeature.Handle<UccListOptions> {
     return {
+      inspect({ item }: UcList.Schema) {
+        boot.processModel(item);
+      },
       constrain: ({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) => {
-        boot
-          .processModel(schema.item)
-          .useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
+        boot.useUcrxClass(schema, (lib, schema: UcList.Schema) => new this(lib, schema, options));
       },
     };
   }

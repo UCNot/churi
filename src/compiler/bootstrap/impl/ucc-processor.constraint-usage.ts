@@ -1,3 +1,4 @@
+import { isPresent } from '@proc7ts/primitives';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccProcessor$ConstraintApplication } from './ucc-processor.constraint-application.js';
@@ -15,6 +16,7 @@ export class UccProcessor$ConstraintUsage<
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #schema: UcSchema;
   readonly #issues: UccProcessor$ConstraintIssue<TOptions>[] = [];
+  #inspected = false;
 
   constructor(featureSet: UccProcessor$FeatureSet<TBoot>, schema: UcSchema) {
     this.#featureSet = featureSet;
@@ -27,31 +29,42 @@ export class UccProcessor$ConstraintUsage<
 
   async resolve(): Promise<() => void> {
     const featureSet = this.#featureSet;
-    const resolutions = await Promise.all(
-      this.#issues.map(async issue => await featureSet.resolveConstraint(issue)),
-    );
+    const resolutions = (
+      await Promise.all(
+        this.#issues.map(async issue => await featureSet.resolveConstraint(this.#schema, issue)),
+      )
+    ).filter(isPresent);
 
     this.#issues.length = 0;
 
     return () => {
+      this.#inspect(resolutions[0]);
+
       for (const resolution of resolutions) {
         this.#applyConstraint(resolution);
       }
     };
   }
 
-  #applyConstraint({ issue, feature }: UccProcessor$ConstraintResolution<TBoot, TOptions>): void {
+  #inspect(resolution: UccProcessor$ConstraintResolution<TBoot, TOptions> | undefined): void {
+    if (!this.#inspected && resolution) {
+      this.#inspected = true;
+      resolution.handle.inspect?.(this.#schema);
+    }
+  }
+
+  #applyConstraint({ issue, handle }: UccProcessor$ConstraintResolution<TBoot, TOptions>): void {
     const featureSet = this.#featureSet;
     const schema = this.#schema;
     const { processor, within, constraint } = issue;
-    const { constraintMapper: profiler } = featureSet;
-    const application = new UccProcessor$ConstraintApplication(featureSet, schema, issue, feature);
+    const { constraintMapper } = featureSet;
+    const application = new UccProcessor$ConstraintApplication(featureSet, schema, issue, handle);
 
-    featureSet.runWithCurrent({ processor, schema, within, constraint }, () => {
-      profiler.findHandler(processor, within, constraint)?.(application);
+    featureSet.runWithCurrent(issue.toCurrent(schema), () => {
+      constraintMapper.findHandler(processor, within, constraint)?.(application);
       if (within) {
         // Apply any presentation handler.
-        profiler.findHandler(processor, undefined, constraint)?.(application);
+        constraintMapper.findHandler(processor, undefined, constraint)?.(application);
       }
       if (!application.isIgnored()) {
         application.apply();

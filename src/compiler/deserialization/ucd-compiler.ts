@@ -72,7 +72,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
 
   protected override handleFeature<TOptions>(
     feature: UccFeature<UcdBootstrap, TOptions>,
-  ): UccFeature.Handle<TOptions> | void {
+  ): UccFeature.Handle<TOptions> | undefined {
     if (feature === ucdProcessDefaults) {
       return this.#enableDefault();
     }
@@ -80,7 +80,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     return super.handleFeature(feature);
   }
 
-  #enableDefault(): void {
+  #enableDefault(): undefined {
     this.#entities.enableDefaults();
     this.#formats.enableDefaults();
     this.#meta.enableDefaults();

@@ -212,7 +212,6 @@ describe('URI params serializer', () => {
   });
   it('fails to serialize value in unknown inset format', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap(
@@ -237,7 +236,6 @@ describe('URI params serializer', () => {
   });
   it('fails to serialize list item in unknown inset format', async () => {
     const compiler = new UcsCompiler({
-      features: [ucsProcessDefaults, ucsProcessURIParams],
       models: {
         writeParams: {
           model: ucMap(
@@ -320,7 +318,7 @@ describe('URI params serializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+        features: [ucsProcessDefaults, ucsProcessURIEncoded],
         models: {
           writeParams: {
             model: ucMap(
@@ -358,7 +356,7 @@ describe('URI params serializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcsCompiler({
-        features: [ucsProcessDefaults, ucsProcessURIEncoded, ucsProcessURIParams],
+        features: [ucsProcessDefaults, ucsProcessURIEncoded],
         models: {
           writeParams: {
             model: ucMap(

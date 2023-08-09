@@ -1,5 +1,4 @@
 import { UcProcessorName, UcSchemaConstraint } from '../../../schema/uc-constraints.js';
-import { ucModelName } from '../../../schema/uc-model-name.js';
 import { UcPresentationName } from '../../../schema/uc-presentations.js';
 import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
@@ -15,19 +14,19 @@ export class UccProcessor$ConstraintApplication<
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #schema: UcSchema;
   readonly #issue: UccProcessor$ConstraintIssue<TOptions>;
-  readonly #feature: UccFeature<TBoot, TOptions>;
+  readonly #handle: UccFeature.Handle<TOptions>;
   #applied = 0;
 
   constructor(
     featureSet: UccProcessor$FeatureSet<TBoot>,
     schema: UcSchema,
     issue: UccProcessor$ConstraintIssue<TOptions>,
-    feature: UccFeature<TBoot, TOptions>,
+    handle: UccFeature.Handle<TOptions>,
   ) {
     this.#featureSet = featureSet;
     this.#schema = schema;
     this.#issue = issue;
-    this.#feature = feature;
+    this.#handle = handle;
   }
 
   get schema(): UcSchema {
@@ -68,16 +67,7 @@ export class UccProcessor$ConstraintApplication<
   }
 
   #constrain(): void {
-    const handle = this.#featureSet.enableFeature(this.#feature);
-    const { options } = this;
-
-    if (handle) {
-      this.#featureSet.runWithCurrent(this, () => handle.constrain(this));
-    } else if (options !== undefined) {
-      throw new TypeError(
-        `Feature ${this.#issue} can not constrain schema "${ucModelName(this.schema)}"`,
-      );
-    }
+    this.#featureSet.runWithCurrent(this, () => this.#handle.constrain(this));
   }
 
   ignore(): void {

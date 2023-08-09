@@ -26,11 +26,11 @@ export class UnknownUcrxClass extends UcrxClass {
 
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): UccFeature.Handle {
     return {
-      constrain: ({ schema }) => {
-        boot
-          .useUcrxClass('unknown', (lib, schema) => new this(lib, schema))
-          .processModel(this.listSchemaFor(schema))
-          .processModel(this.mapSchemaFor(schema));
+      inspect: schema => {
+        boot.processModel(this.listSchemaFor(schema)).processModel(this.mapSchemaFor(schema));
+      },
+      constrain: _constraint => {
+        boot.useUcrxClass('unknown', (lib, schema) => new this(lib, schema));
       },
     };
   }

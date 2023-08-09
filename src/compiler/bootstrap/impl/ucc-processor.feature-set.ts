@@ -1,4 +1,6 @@
 import { lazyValue, mayHaveProperties } from '@proc7ts/primitives';
+import { ucModelName } from '../../../schema/uc-model-name.js';
+import { UcSchema } from '../../../schema/uc-schema.js';
 import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
 import {
@@ -14,7 +16,7 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
   readonly #resolutions = new Map<string, Promise<{ [key in string]: UccFeature<TBoot> }>>();
   readonly #enable: <TOptions>(
     feature: UccFeature<TBoot, TOptions>,
-  ) => UccFeature.Handle<TOptions> | void;
+  ) => UccFeature.Handle<TOptions> | undefined;
 
   readonly #features = new Map<UccFeature<TBoot, never>, UccFeature$Entry>();
 
@@ -22,7 +24,9 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
 
   constructor(
     constraintMapper: UccProcessor$ConstraintMapper<TBoot>,
-    enable: <TOptions>(feature: UccFeature<TBoot, TOptions>) => UccFeature.Handle<TOptions> | void,
+    enable: <TOptions>(
+      feature: UccFeature<TBoot, TOptions>,
+    ) => UccFeature.Handle<TOptions> | undefined,
   ) {
     this.#constraintMapper = constraintMapper;
     this.#enable = enable;
@@ -37,8 +41,9 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
   }
 
   async resolveConstraint<TOptions>(
+    schema: UcSchema,
     issue: UccProcessor$ConstraintIssue<TOptions>,
-  ): Promise<UccProcessor$ConstraintResolution<TBoot, TOptions>> {
+  ): Promise<UccProcessor$ConstraintResolution<TBoot, TOptions> | undefined> {
     const {
       constraint: { use, from },
     } = issue;
@@ -49,10 +54,27 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
       this.#resolutions.set(from, resolveFeatures);
     }
 
-    const { [use]: feature } = await resolveFeatures;
+    const { [use]: feature } = (await resolveFeatures) as {
+      [key in string]: UccFeature<TBoot, TOptions>;
+    };
 
     if ((mayHaveProperties(feature) && 'uccEnable' in feature) || typeof feature === 'function') {
-      return { issue, feature } as UccProcessor$ConstraintResolution<TBoot, TOptions>;
+      const handle: UccFeature.Handle<TOptions> | undefined = this.runWithCurrent(
+        issue.toCurrent(schema),
+        () => this.enableFeature(feature),
+      );
+
+      if (!handle && issue.constraint.with !== undefined) {
+        throw new TypeError(`Feature ${issue} can not constrain schema "${ucModelName(schema)}"`);
+      }
+
+      return (
+        handle && {
+          issue,
+          feature,
+          handle,
+        }
+      );
     }
     if (feature === undefined) {
       throw new ReferenceError(`No such schema processing feature: ${issue}`);
@@ -63,7 +85,7 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
 
   enableFeature<TOptions>(
     feature: UccFeature<TBoot, TOptions>,
-  ): UccFeature.Handle<TOptions> | void {
+  ): UccFeature.Handle<TOptions> | undefined {
     let entry = this.#features.get(feature) as UccFeature$Entry<TOptions> | undefined;
 
     if (!entry) {
@@ -91,5 +113,5 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
 }
 
 interface UccFeature$Entry<in TOptions = never> {
-  readonly getHandle: () => UccFeature.Handle<TOptions> | void;
+  readonly getHandle: () => UccFeature.Handle<TOptions> | undefined;
 }

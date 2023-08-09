@@ -36,16 +36,16 @@ export class MapUcrxClass<
     boot: TBoot,
   ): UccFeature.Handle<UcMap.Variant> {
     return {
-      constrain: ({ schema, options }: UccFeature.Constraint<UcMap.Variant, UcMap.Schema>) => {
-        const { entries, extra } = schema;
-
-        boot.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, options));
+      inspect({ entries, extra }: UcMap.Schema) {
         for (const entrySchema of Object.values(entries)) {
           boot.processModel(entrySchema);
         }
         if (extra) {
           boot.processModel(extra);
         }
+      },
+      constrain: ({ schema, options }: UccFeature.Constraint<UcMap.Variant, UcMap.Schema>) => {
+        boot.useUcrxClass(schema, (lib, schema: UcMap.Schema) => new this(lib, schema, options));
       },
     };
   }

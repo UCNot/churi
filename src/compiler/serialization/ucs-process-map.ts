@@ -25,7 +25,7 @@ export function ucsProcessMap(boot: UcsBootstrap): UccFeature.Handle {
   boot.formatWith('charge', 'map', ucsFormatCharge(ucsWriteMap));
 
   return {
-    constrain({ schema: { entries, extra } }: UccFeature.Constraint<void, UcMap.Schema>) {
+    inspect({ entries, extra }: UcMap.Schema) {
       Object.values(entries).forEach(entrySchema => boot.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
@@ -33,6 +33,7 @@ export function ucsProcessMap(boot: UcsBootstrap): UccFeature.Handle {
         boot.processModel(extra);
       }
     },
+    constrain(_constraint) {},
   };
 }
 

@@ -14,8 +14,11 @@ import { UcsFormatterContext, UcsFormatterSignature } from './ucs-formatter.js';
 
 export function ucsProcessList(boot: UcsBootstrap): UccFeature.Handle<UccListOptions> {
   return {
+    inspect({ item }: UcList.Schema) {
+      boot.processModel(item);
+    },
     constrain({ schema, options }: UccFeature.Constraint<UccListOptions, UcList.Schema>) {
-      boot.processModel(schema.item).formatWith(
+      boot.formatWith(
         'charge',
         schema,
         ucsFormatCharge(

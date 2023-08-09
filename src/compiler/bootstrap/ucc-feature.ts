@@ -54,6 +54,16 @@ export namespace UccFeature {
    */
   export interface Handle<in TOptions = void> {
     /**
+     * Inspects schema and {@link UccBootstrap#processSchema processes} its nested models, if any.
+     *
+     * When declared, this method is called at most once per schema and before any constraints applied. This may be
+     * necessary in order to {@link UccBootstrap#onConstraint override} constraints.
+     *
+     * @param schema - Target schema to decompose.
+     */
+    inspect?(schema: UcSchema): void;
+
+    /**
      * Constrains the given schema with the given options.
      *
      * Called each time the supported `constraint` applied to the schema.
