@@ -1,6 +1,6 @@
 import { isEscapedUcString } from '../../../impl/uc-string-escapes.js';
 import { UcLexer } from '../../uc-lexer.js';
-import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
+import { UC_TOKEN_APOSTROPHE, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
 
 export class UcJSONLexer implements UcLexer {
 
@@ -221,6 +221,41 @@ class UcJSON$StringStrategy extends UcJSON$Strategy {
 
 }
 
+class UcJSON$KeywordStrategy extends UcJSON$Strategy {
+
+  readonly #keyword: string;
+  readonly #length: number;
+  readonly #token: UcToken;
+
+  constructor(keyword: string, token: UcToken) {
+    super();
+    this.#keyword = keyword;
+    this.#length = keyword.length;
+    this.#token = token;
+  }
+
+  override scan(status: UcJSON$Status, chunk: string): void {
+    const charsLeft = this.#length - status.data.length;
+
+    if (chunk.length < charsLeft) {
+      // Not enough characters.
+      status.data += chunk;
+    } else {
+      // Keyword complete.
+      const value = status.data + chunk.slice(0, charsLeft);
+
+      if (value !== this.#keyword) {
+        throw new SyntaxError(`Unrecognized JSON value: ${value}`);
+      }
+
+      status.emit(this.#token);
+      status.data = '';
+      status.pop(chunk.slice(charsLeft));
+    }
+  }
+
+}
+
 const UcJSON$NonWhitespacePattern = /[^ \r\n\t]/;
 const UcJSON$NonDigitPattern = /[^\deE+-.]/;
 const UcJSON$QuotePattern = /\\*(?:"|\\$)/;
@@ -246,4 +281,7 @@ const UcJSON$StrategyByPrefix: {
   7: UcJSON$PositiveNumber,
   8: UcJSON$PositiveNumber,
   9: UcJSON$PositiveNumber,
+  f: /*#__PURE__*/ new UcJSON$KeywordStrategy('false', '-'),
+  n: /*#__PURE__*/ new UcJSON$KeywordStrategy('null', '--'),
+  t: /*#__PURE__*/ new UcJSON$KeywordStrategy('true', UC_TOKEN_EXCLAMATION_MARK),
 };

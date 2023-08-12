@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { UC_TOKEN_APOSTROPHE } from 'churi';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
-import { UcToken } from '../../uc-token.js';
+import { UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
 import { UcJSONLexer } from './uc-json.lexer.js';
 
 describe('UcJSONLexer', () => {
@@ -61,6 +61,33 @@ describe('UcJSONLexer', () => {
       expect(scan('"--"')).toEqual([UC_TOKEN_APOSTROPHE, '--']);
       expect(scan('"-a"')).toEqual(['-a']);
       expect(scan('"3d"')).toEqual([UC_TOKEN_APOSTROPHE, '3d']);
+    });
+  });
+
+  describe('boolean', () => {
+    it('recognizes true', () => {
+      expect(scan('  true  ')).toEqual([UC_TOKEN_EXCLAMATION_MARK]);
+      expect(scan('t', 'rue')).toEqual([UC_TOKEN_EXCLAMATION_MARK]);
+      expect(scan('t', 'ru', 'e')).toEqual([UC_TOKEN_EXCLAMATION_MARK]);
+    });
+    it('recognizes false', () => {
+      expect(scan('  false  ')).toEqual(['-']);
+      expect(scan('fa', 'lse')).toEqual(['-']);
+      expect(scan('f', 'al', 'se')).toEqual(['-']);
+    });
+    it('fails on invalid value', () => {
+      expect(() => scan('tRUE')).toThrow(new SyntaxError('Unrecognized JSON value: tRUE'));
+      expect(() => scan('fa', 'L', 'se  ')).toThrow(
+        new SyntaxError('Unrecognized JSON value: faLse'),
+      );
+    });
+  });
+
+  describe('null', () => {
+    it('recognizes null', () => {
+      expect(scan('  null  ')).toEqual(['--']);
+      expect(scan('nu', 'll')).toEqual(['--']);
+      expect(scan('n', 'ul', 'l  ', '\n')).toEqual(['--']);
     });
   });
 
