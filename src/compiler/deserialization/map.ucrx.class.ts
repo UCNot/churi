@@ -3,7 +3,6 @@ import {
   EsCode,
   EsField,
   EsFieldHandle,
-  EsMemberVisibility,
   EsMethod,
   EsSnippet,
   EsSymbol,
@@ -75,7 +74,7 @@ export class MapUcrxClass<
     this.#extra = this.#declareExtra();
     this.#collector = this.#declareCollector(variant);
     this.#store = this.allocateStore();
-    this.#slot = new EsField('slot', { visibility: EsMemberVisibility.Private }).declareIn(this);
+    this.#slot = new EsField('#slot').declareIn(this);
 
     this.#declareConstructor();
     this.#declareFor();
@@ -141,7 +140,7 @@ export class MapUcrxClass<
       case 'reject':
         return { assigned: this.#declareAssigned(), counter, noDuplicates: true };
       case 'collect':
-        return { rxs: this.#declareAssigned('rxs'), counter };
+        return { rxs: this.#declareAssigned('#rxs'), counter };
     }
   }
 
@@ -152,9 +151,7 @@ export class MapUcrxClass<
       return;
     }
 
-    const missingCount = new EsField('missingCount', {
-      visibility: EsMemberVisibility.Private,
-    }).declareIn(this, {
+    const missingCount = new EsField('#missingCount').declareIn(this, {
       initializer: () => `${requiredCount}`,
     });
 
@@ -176,10 +173,8 @@ export class MapUcrxClass<
     return requiredCount;
   }
 
-  #declareAssigned(name: 'assigned' | 'rxs' = 'assigned'): EsFieldHandle {
-    return new EsField(name, {
-      visibility: EsMemberVisibility.Private,
-    }).declareIn(this, {
+  #declareAssigned(name: '#assigned' | '#rxs' = '#assigned'): EsFieldHandle {
+    return new EsField(name).declareIn(this, {
       initializer: () => '{}',
     });
   }

@@ -3,7 +3,6 @@ import {
   EsArg,
   EsField,
   EsFieldHandle,
-  EsMemberVisibility,
   EsMethod,
   EsMethodHandle,
   EsSignature,
@@ -60,10 +59,8 @@ export class UnknownUcrxClass extends UcrxClass {
         args: UcrxSignature,
       },
     });
-    this.#listRx = new EsField('listRx', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-    );
-    this.#mapRx = new EsField('mapRx', { visibility: EsMemberVisibility.Private }).declareIn(this);
+    this.#listRx = new EsField('#listRx').declareIn(this);
+    this.#mapRx = new EsField('#mapRx').declareIn(this);
     this.#setMap = this.#declareSetMap();
 
     this.#listClass = lazyValue(() => {
@@ -108,8 +105,7 @@ export class UnknownUcrxClass extends UcrxClass {
   }
 
   #declareSetMap(): EsMethodHandle<{ map: EsArg; cx: EsArg }> {
-    return new EsMethod('setMap', {
-      visibility: EsMemberVisibility.Private,
+    return new EsMethod('#setMap', {
       args: { map: {}, cx: {} },
     }).declareIn(this, {
       body:

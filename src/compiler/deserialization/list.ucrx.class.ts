@@ -2,7 +2,6 @@ import {
   EsArg,
   EsField,
   EsFieldHandle,
-  EsMemberVisibility,
   EsMethod,
   EsMethodHandle,
   EsProperty,
@@ -97,15 +96,13 @@ export class ListUcrxClass<
     this.#isMatrix = isMatrix;
     this.#single = single;
 
-    this.#items = new EsField('items', { visibility: EsMemberVisibility.Private }).declareIn(this, {
+    this.#items = new EsField('#items').declareIn(this, {
       initializer: () => '[]',
     });
     this.#addItem = this.#declareAddItem();
-    this.#listCreated = new EsField('listCreated', {
-      visibility: EsMemberVisibility.Private,
-    }).declareIn(this, { initializer: () => '0' });
+    this.#listCreated = new EsField('#listCreated').declareIn(this, { initializer: () => '0' });
     this.#isNull = this.#isNullableList
-      ? new EsField('isNull', { visibility: EsMemberVisibility.Private }).declareIn(this, {
+      ? new EsField('#isNull').declareIn(this, {
           initializer: () => '0',
         })
       : undefined;
@@ -131,9 +128,8 @@ export class ListUcrxClass<
   }
 
   #declareAddItem(): EsMethodHandle<{ item: EsArg }> {
-    return new EsMethod('addItem', {
+    return new EsMethod('#addItem', {
       args: { item: {} },
-      visibility: EsMemberVisibility.Private,
     }).declareIn(this, {
       body: ({
         member: {
@@ -148,9 +144,7 @@ export class ListUcrxClass<
       return [`this.set`];
     }
 
-    const setList = new EsField('setList', { visibility: EsMemberVisibility.Private }).declareIn(
-      this,
-    );
+    const setList = new EsField('#setList').declareIn(this);
 
     return [setList.get('this'), setList];
   }
@@ -160,11 +154,9 @@ export class ListUcrxClass<
       return;
     }
 
-    const itemRxState = new EsField('_itemRx', {
-      visibility: EsMemberVisibility.Private,
-    }).declareIn(this);
+    const itemRxState = new EsField('#_itemRx').declareIn(this);
 
-    return new EsProperty('itemRx', { visibility: EsMemberVisibility.Private }).declareIn(this, {
+    return new EsProperty('#itemRx').declareIn(this, {
       get: () => esline`return ${itemRxState.get('this')} ??= ${this.itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
         })};`,
