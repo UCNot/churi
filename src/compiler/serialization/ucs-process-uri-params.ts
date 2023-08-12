@@ -1,5 +1,7 @@
 import {
-  EsCallable,
+  EsFunction,
+  EsFunctionKind,
+  EsSignature,
   EsSnippet,
   EsVarKind,
   EsVarSymbol,
@@ -66,25 +68,21 @@ export function ucsProcessURIParams(
               const { splitter } = getSchemaOptions(schema, within);
               const lib = scope.get(UcsLib);
               const { entries } = schema;
-              const entriesWritten = new EsVarSymbol('entriesWritten');
-              const currentKey = new EsVarSymbol('currentKey');
-              const writeKey = new EsCallable({}).lambda(
-                () => code => {
-                  code
-                    .write(esline`await ${writer}.ready;`)
-                    .write(
-                      esline`${writer}.write(${entriesWritten}++ ? ${currentKey} : ${currentKey}.slice(1));`,
-                    );
-                },
-                {
-                  async: true,
-                },
-              );
+              const keyIdx = new EsVarSymbol('keyIdx');
+              const key = new EsVarSymbol('key');
 
               code.write(
-                entriesWritten.declare({ as: EsVarKind.Let, value: () => '0' }),
-                currentKey.declare(),
-                esline`${writer}.data.writeKey = ${writeKey};`,
+                keyIdx.declare({ as: EsVarKind.Let, value: () => '0' }),
+                key.declare(),
+                uriParams$writeKey.declare({
+                  as: EsFunctionKind.Const,
+                  async: true,
+                  body: () => code => {
+                    code
+                      .write(esline`await ${writer}.ready;`)
+                      .write(esline`${writer}.write(${keyIdx}++ ? ${key} : ${key}.slice(1));`);
+                  },
+                }),
               );
 
               for (const [entryKey, entrySchema] of Object.entries(entries)) {
@@ -92,7 +90,7 @@ export function ucsProcessURIParams(
                 const writeEntry =
                   (schema: UcSchema, value: EsSnippet): EsSnippet => code => {
                     code.write(
-                      esline`${currentKey} = ${keyConst};`,
+                      esline`${key} = ${keyConst};`,
                       cx.formatInset('uriParam', schema, {
                         writer,
                         value,
@@ -158,15 +156,15 @@ export function ucsProcessURIParams(
     return {
       insetFormat,
       format(args, schema, cx) {
-        const { writer } = args;
-
         return code => {
-          code.write(esline`await ${writer}.data.writeKey();`, format(args, schema, cx));
+          code.write(esline`await ${uriParams$writeKey.call()};`, format(args, schema, cx));
         };
       },
     };
   }
 }
+
+const uriParams$writeKey = new EsFunction<EsSignature.NoArgs>('writeKey', {});
 
 function modifyURIParamList<T, TSchema extends UcSchema<T>>({
   lib,
