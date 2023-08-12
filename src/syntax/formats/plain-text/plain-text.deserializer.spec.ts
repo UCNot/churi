@@ -20,7 +20,7 @@ import {
   UC_TOKEN_PREFIX_SPACE,
 } from '../../uc-token.js';
 
-describe('UcPlainTextLexer', () => {
+describe('plain text deserializer', () => {
   let errors: UcErrorInfo[];
 
   beforeEach(() => {
