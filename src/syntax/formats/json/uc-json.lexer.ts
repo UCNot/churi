@@ -1,5 +1,6 @@
+import { isEscapedUcString } from '../../../impl/uc-string-escapes.js';
 import { UcLexer } from '../../uc-lexer.js';
-import { UcToken } from '../../uc-token.js';
+import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
 
 export class UcJSONLexer implements UcLexer {
 
@@ -22,7 +23,8 @@ export class UcJSONLexer implements UcLexer {
 class UcJSON$Status {
 
   data = '';
-  #strategy: UcJSON$Strategy = UcJSON$Value;
+  num = 0;
+  #strategy: UcJSON$Strategy = UcJSON$Initial;
   #stack: UcJSON$Strategy[] = [];
 
   constructor(readonly emit: (this: void, token: UcToken) => void) {}
@@ -34,7 +36,7 @@ class UcJSON$Status {
   flush(): void {
     this.#strategy.flush(this);
     while (this.#stack.length) {
-      this.pop();
+      this.#pop();
       this.#strategy.flush(this);
     }
   }
@@ -48,7 +50,14 @@ class UcJSON$Status {
     this.#strategy = strategy;
   }
 
-  pop(): void {
+  pop(tail: string): void {
+    this.#pop();
+    if (tail) {
+      this.scan(tail);
+    }
+  }
+
+  #pop(): void {
     this.#strategy = this.#stack.pop() ?? UcJSON$Value;
   }
 
@@ -60,12 +69,12 @@ abstract class UcJSON$Strategy {
 
   flush(status: UcJSON$Status): void;
   flush(_status: UcJSON$Status): void {
-    throw new TypeError('Unexpected end of JSON input');
+    throw new SyntaxError('Unexpected end of JSON input');
   }
 
 }
 
-class UcJSON$ValueStrategy extends UcJSON$Strategy {
+class UcJSON$InitialStrategy extends UcJSON$Strategy {
 
   override scan(status: UcJSON$Status, chunk: string): void {
     const start = chunk.search(UcJSON$NonWhitespacePattern);
@@ -74,13 +83,19 @@ class UcJSON$ValueStrategy extends UcJSON$Strategy {
       const nextStrategy = UcJSON$StrategyByPrefix[chunk[start]];
 
       if (!nextStrategy) {
-        throw new TypeError('JSON value expected');
+        throw new SyntaxError('JSON value expected');
       }
 
       status.next(nextStrategy);
       status.scan(chunk.slice(start));
     }
   }
+
+}
+
+class UcJSON$ValueStrategy extends UcJSON$InitialStrategy {
+
+  override flush(_status: UcJSON$Status): void {}
 
 }
 
@@ -101,8 +116,7 @@ class UcJSON$NumberStrategy extends UcJSON$Strategy {
     } else {
       status.data += chunk.slice(0, end);
       this.#emit(status);
-      status.pop();
-      status.scan(chunk.slice(end));
+      status.pop(chunk.slice(end));
     }
   }
 
@@ -114,7 +128,7 @@ class UcJSON$NumberStrategy extends UcJSON$Strategy {
     const { data, emit } = status;
 
     if (!this.#pattern.test(data)) {
-      throw new TypeError(`Invalid JSON number: ${data}`);
+      throw new SyntaxError(`Invalid JSON number: ${data}`);
     }
 
     emit(data);
@@ -123,15 +137,104 @@ class UcJSON$NumberStrategy extends UcJSON$Strategy {
 
 }
 
+class UcJSON$StringBodyStrategy extends UcJSON$Strategy {
+
+  override scan(status: UcJSON$Status, chunk: string): void {
+    let input = chunk;
+
+    do {
+      const match = UcJSON$QuotePattern.exec(input);
+
+      if (match) {
+        const [quote] = match;
+
+        if (quote[quote.length - 1] === '"') {
+          // Quote found, possibly escaped.
+
+          const quoteEnd = match.index + quote.length;
+
+          // May include preceding backslashes.
+          const quoteLength = status.num + quote.length;
+
+          if (quoteLength % 2) {
+            // End of string.
+            // Parse with built-in parser to handle escapes, etc.
+            const value = JSON.parse(status.data + input.slice(0, quoteEnd)) as string;
+
+            if (isEscapedUcString(value)) {
+              status.emit(UC_TOKEN_APOSTROPHE);
+            }
+            status.emit(value);
+
+            status.data = '';
+            status.num = 0;
+            status.pop(input.slice(quoteEnd));
+
+            break;
+          } else {
+            // Quote is escaped.
+            // Append the input up to the end of the quote.
+            status.data += input.slice(0, quoteEnd);
+            status.num = 0;
+
+            // Continue with the rest of the input.
+            input = input.slice(quoteEnd);
+          }
+        } else {
+          // Trailing backslashes found, but not a quote.
+          if (match.index) {
+            // Some chars precede backslashes.
+            // Set the number of trailing backslashes.
+            status.num = match.length;
+          } else {
+            // The input consists of backslashes only.
+            // Increase their number.
+            status.num += quote.length;
+          }
+
+          status.data += input;
+
+          break;
+        }
+      } else {
+        // Neither quote, nor trailing escapes found.
+        // Append the input as is.
+        status.data += input;
+
+        break;
+      }
+    } while (input);
+  }
+
+}
+
+class UcJSON$StringStrategy extends UcJSON$Strategy {
+
+  readonly #body = new UcJSON$StringBodyStrategy();
+
+  override scan(status: UcJSON$Status, chunk: string): void {
+    status.data = '"';
+    status.next(this.#body);
+    // Exclude leading quote.
+    status.scan(chunk.slice(1));
+  }
+
+}
+
 const UcJSON$NonWhitespacePattern = /[^ \r\n\t]/;
 const UcJSON$NonDigitPattern = /[^\deE+-.]/;
+const UcJSON$QuotePattern = /\\*(?:"|\\$)/;
 
+const UcJSON$Initial = /*#__PURE__*/ new UcJSON$InitialStrategy();
 const UcJSON$Value = /*#__PURE__*/ new UcJSON$ValueStrategy();
 const UcJSON$PositiveNumber = /*#__PURE__*/ new UcJSON$NumberStrategy(
-  /^[1-9]\d*(?:.\d+)?(?:[eE][+-]?\d+)?$/,
+  /^[1-9]\d*(?:\.\d+)?(?:[eE][+-]?\d+)?$/,
 );
 
-const UcJSON$StrategyByPrefix: { readonly [key in string]: UcJSON$Strategy | undefined } = {
+const UcJSON$StrategyByPrefix: {
+  readonly [key in string]?: UcJSON$Strategy;
+} = {
+  '"': /*#__PURE__*/ new UcJSON$StringStrategy(),
   '-': /*#__PURE__*/ new UcJSON$NumberStrategy(/^-(?:0|[1-9]\d*)(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   0: /*#__PURE__*/ new UcJSON$NumberStrategy(/^0(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   1: UcJSON$PositiveNumber,
