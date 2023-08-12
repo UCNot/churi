@@ -1,4 +1,3 @@
-import { isEscapedUcString } from '../../../impl/uc-string-escapes.js';
 import { UcLexer } from '../../uc-lexer.js';
 import { UC_TOKEN_APOSTROPHE, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
 
@@ -161,9 +160,7 @@ class UcJSON$StringBodyStrategy extends UcJSON$Strategy {
             // Parse with built-in parser to handle escapes, etc.
             const value = JSON.parse(status.data + input.slice(0, quoteEnd)) as string;
 
-            if (isEscapedUcString(value)) {
               status.emit(UC_TOKEN_APOSTROPHE);
-            }
             status.emit(value);
 
             status.data = '';

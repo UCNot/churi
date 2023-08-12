@@ -40,26 +40,26 @@ describe('UcJSONLexer', () => {
 
   describe('string', () => {
     it('recognizes simple string', () => {
-      expect(scan('"foo"')).toEqual(['foo']);
-      expect(scan('"foo', 'bar"')).toEqual(['foobar']);
-      expect(scan('"foo', '-bar', '-baz', '"')).toEqual(['foo-bar-baz']);
+      expect(scan('"foo"')).toEqual([UC_TOKEN_APOSTROPHE, 'foo']);
+      expect(scan('"foo', 'bar"')).toEqual([UC_TOKEN_APOSTROPHE, 'foobar']);
+      expect(scan('"foo', '-bar', '-baz', '"')).toEqual([UC_TOKEN_APOSTROPHE, 'foo-bar-baz']);
     });
     it('recognizes escaped quote', () => {
-      expect(scan('"\\"foo\\""')).toEqual(['"foo"']);
-      expect(scan('"\\', '"foo\\""')).toEqual(['"foo"']);
-      expect(scan('"\\', '"fo', 'o\\"', '"')).toEqual(['"foo"']);
+      expect(scan('"\\"foo\\""')).toEqual([UC_TOKEN_APOSTROPHE, '"foo"']);
+      expect(scan('"\\', '"foo\\""')).toEqual([UC_TOKEN_APOSTROPHE, '"foo"']);
+      expect(scan('"\\', '"fo', 'o\\"', '"')).toEqual([UC_TOKEN_APOSTROPHE, '"foo"']);
     });
     it('recognizes multiple backslashes', () => {
-      expect(scan('"\\\\', '\\""')).toEqual(['\\"']);
-      expect(scan('"\\\\', 'ab\\""')).toEqual(['\\ab"']);
-      expect(scan('"\\\\', 'ab\\', '""')).toEqual(['\\ab"']);
+      expect(scan('"\\\\', '\\""')).toEqual([UC_TOKEN_APOSTROPHE, '\\"']);
+      expect(scan('"\\\\', 'ab\\""')).toEqual([UC_TOKEN_APOSTROPHE, '\\ab"']);
+      expect(scan('"\\\\', 'ab\\', '""')).toEqual([UC_TOKEN_APOSTROPHE, '\\ab"']);
     });
     it('escapes special chars', () => {
       expect(scan('"123"')).toEqual([UC_TOKEN_APOSTROPHE, '123']);
       expect(scan('"-1"')).toEqual([UC_TOKEN_APOSTROPHE, '-1']);
       expect(scan('"-"')).toEqual([UC_TOKEN_APOSTROPHE, '-']);
       expect(scan('"--"')).toEqual([UC_TOKEN_APOSTROPHE, '--']);
-      expect(scan('"-a"')).toEqual(['-a']);
+      expect(scan('"-a"')).toEqual([UC_TOKEN_APOSTROPHE, '-a']);
       expect(scan('"3d"')).toEqual([UC_TOKEN_APOSTROPHE, '3d']);
     });
   });
