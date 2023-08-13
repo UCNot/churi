@@ -47,6 +47,12 @@ class UcJSON$State {
     this.#strategy.scan(this, from, chunk);
   }
 
+  #scan(from: number, chunk: string): void {
+    if (from < chunk.length) {
+      this.scan(from, chunk);
+    }
+  }
+
   flush(): void {
     this.#strategy.flush(this);
     while (this.#stack.length) {
@@ -55,13 +61,15 @@ class UcJSON$State {
     }
   }
 
-  next(strategy: UcJSON$Strategy): void {
+  next(strategy: UcJSON$Strategy, from: number, tail: string): void {
     this.#strategy = strategy;
+    this.#scan(from, tail);
   }
 
-  push(strategy: UcJSON$Strategy, endStrategy: UcJSON$Strategy): void {
+  push(strategy: UcJSON$Strategy, from: number, tail: string, endStrategy: UcJSON$Strategy): void {
     this.#stack.push(endStrategy);
     this.#strategy = strategy;
+    this.#scan(from, tail);
   }
 
   select(chunk: string, selector: UcJSON$StrategySelector, endStrategy: UcJSON$Strategy): void {
@@ -74,16 +82,13 @@ class UcJSON$State {
         throw new SyntaxError('JSON value expected');
       }
 
-      this.push(selected, endStrategy);
-      this.scan(start, chunk);
+      this.push(selected, start, chunk, endStrategy);
     }
   }
 
   pop(from: number, tail: string): void {
     this.#pop();
-    if (tail) {
-      this.scan(from, tail);
-    }
+    this.#scan(from, tail);
   }
 
   pop2(from: number, tail: string): void {
@@ -143,9 +148,8 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
 const UcJSON$String: UcJSON$Strategy = {
   scan(state, from, chunk) {
     state.data = '"';
-    state.next(UcJSON$String$Body);
     // Exclude leading quote.
-    state.scan(from + 1, chunk);
+    state.next(UcJSON$String$Body, from + 1, chunk);
   },
   flush: UcJSON$noFlush,
 };
@@ -302,9 +306,8 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
   const strategy: UcJSON$Strategy = {
     scan(state, from, chunk) {
       state.emit(start);
-      state.next(body);
       // Skip opening bracket.
-      state.scan(from + 1, chunk);
+      state.next(body, from + 1, chunk);
     },
     flush: UcJSON$noFlush,
   };
