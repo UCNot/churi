@@ -1,7 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import { UC_TOKEN_APOSTROPHE, printUcTokens } from 'churi';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
-import { UC_TOKEN_COMMA, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
+import {
+  UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_COMMA,
+  UC_TOKEN_DOLLAR_SIGN,
+  UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_OPENING_PARENTHESIS,
+  UcToken,
+} from '../../uc-token.js';
 import { UcJSONLexer } from './uc-json.lexer.js';
 
 describe('UcJSONLexer', () => {
@@ -122,15 +129,6 @@ describe('UcJSONLexer', () => {
       expect(scan(' [   ]  ')).toEqual([UC_TOKEN_COMMA]);
       expect(scan(' [ ', '  ]  ')).toEqual([UC_TOKEN_COMMA]);
     });
-    it('fails on unexpected array item', () => {
-      expect(() => scan('[  z ]')).toThrow(new SyntaxError('JSON value expected'));
-    });
-    it('fails on malformed array', () => {
-      expect(() => scan('[,')).toThrow(new SyntaxError('JSON value expected'));
-      expect(() => scan('[1,')).toThrow(new SyntaxError('Unexpected end of JSON input'));
-      expect(() => scan('[z')).toThrow(new SyntaxError('JSON value expected'));
-      expect(() => scan('[1 z')).toThrow(new SyntaxError('Malformed JSON array'));
-    });
     it('recognizes single element', () => {
       expect(scan('[13]')).toEqual([UC_TOKEN_COMMA, '13']);
       expect(scan('["abc"]')).toEqual([UC_TOKEN_COMMA, UC_TOKEN_APOSTROPHE, 'abc']);
@@ -141,6 +139,15 @@ describe('UcJSONLexer', () => {
     it('recognizes multiple elements', () => {
       expect(printUcTokens(scan('["start", 1, 2, 3, "end"]'))).toBe(`,'start,1,2,3,'end`);
     });
+    it('fails on unexpected array item', () => {
+      expect(() => scan('[  z ]')).toThrow(new SyntaxError('JSON value expected'));
+    });
+    it('fails on malformed array', () => {
+      expect(() => scan('[,')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[1,')).toThrow(new SyntaxError('Unexpected end of JSON input'));
+      expect(() => scan('[z')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[1 z')).toThrow(new SyntaxError('Malformed JSON array'));
+    });
     it('recognizes nested array', () => {
       expect(printUcTokens(scan('[1, [], 2, [[3, [4], 5]]]'))).toBe(',1,(),2,((3,(4),5))');
     });
@@ -149,6 +156,64 @@ describe('UcJSONLexer', () => {
       expect(() => scan('[[1,')).toThrow(new SyntaxError('Unexpected end of JSON input'));
       expect(() => scan('[[z')).toThrow(new SyntaxError('JSON value expected'));
       expect(() => scan('[[1 z')).toThrow(new SyntaxError('Malformed JSON array'));
+    });
+  });
+
+  describe('object', () => {
+    it('recognizes empty object', () => {
+      expect(scan('{}')).toEqual([UC_TOKEN_DOLLAR_SIGN]);
+      expect(scan(' {   }  ')).toEqual([UC_TOKEN_DOLLAR_SIGN]);
+    });
+    it('recognizes single property', () => {
+      expect(scan('{ "foo": 13 }')).toEqual([
+        UC_TOKEN_DOLLAR_SIGN,
+        'foo',
+        UC_TOKEN_OPENING_PARENTHESIS,
+        '13',
+        UC_TOKEN_CLOSING_PARENTHESIS,
+      ]);
+    });
+    it('recognizes multiple properties', () => {
+      expect(
+        printUcTokens(
+          scan(
+            JSON.stringify(
+              {
+                foo: 13,
+                bar: 'baz',
+                test: null,
+              },
+              null,
+              2,
+            ),
+          ),
+        ),
+      ).toBe(`$foo(13)bar('baz)test(--)`);
+    });
+    it('recognizes nested object', () => {
+      expect(
+        printUcTokens(
+          scan(
+            JSON.stringify({
+              foo: { bar: { baz: 13 } },
+            }),
+          ),
+        ),
+      ).toBe(`$foo($bar($baz(13)))`);
+    });
+    it('fails on malformed property name', () => {
+      expect(() => scan('{ test')).toThrow(new SyntaxError('Malformed JSON object'));
+      expect(() => scan('{ "foo": 1, test')).toThrow(
+        new SyntaxError('JSON property name expected'),
+      );
+      expect(() => scan('{ "foo": 1 test')).toThrow(new SyntaxError('Malformed JSON object'));
+    });
+    it('fails on missing colon', () => {
+      expect(() => scan('{ "foo" test')).toThrow(new SyntaxError('JSON property value expected'));
+    });
+    it('fails on malformed value', () => {
+      expect(() => scan('{ "foo": z')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('{ "foo": test')).toThrow(new SyntaxError('Unrecognized JSON value: test'));
     });
   });
 

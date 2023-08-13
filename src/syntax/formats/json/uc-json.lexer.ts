@@ -3,6 +3,7 @@ import {
   UC_TOKEN_APOSTROPHE,
   UC_TOKEN_CLOSING_PARENTHESIS,
   UC_TOKEN_COMMA,
+  UC_TOKEN_DOLLAR_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
@@ -145,84 +146,83 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
   };
 }
 
-const UcJSON$String: UcJSON$Strategy = {
-  scan(state, from, chunk) {
-    state.data = '"';
-    // Exclude leading quote.
-    state.next(UcJSON$String$Body, from + 1, chunk);
-  },
-  flush: UcJSON$noFlush,
-};
+function UcJSON$String(
+  end: (state: UcJSON$State, value: string, from: number, tail: string) => void,
+): UcJSON$Strategy {
+  const body: UcJSON$Strategy = {
+    scan(state, from, chunk) {
+      let input = chunk.slice(from);
 
-const UcJSON$String$Body: UcJSON$Strategy = {
-  scan(state, from, chunk) {
-    let input = chunk.slice(from);
+      do {
+        const match = UcJSON$QuotePattern.exec(input);
 
-    do {
-      const match = UcJSON$QuotePattern.exec(input);
+        if (match) {
+          const [quote] = match;
 
-      if (match) {
-        const [quote] = match;
+          if (quote[quote.length - 1] === '"') {
+            // Quote found, possibly escaped.
 
-        if (quote[quote.length - 1] === '"') {
-          // Quote found, possibly escaped.
+            const quoteEnd = match.index + quote.length;
 
-          const quoteEnd = match.index + quote.length;
+            // May include preceding backslashes.
+            const quoteLength = state.num + quote.length;
 
-          // May include preceding backslashes.
-          const quoteLength = state.num + quote.length;
+            if (quoteLength % 2) {
+              // End of string.
+              // Parse with built-in parser to handle escapes, etc.
+              const value = JSON.parse(state.data + input.slice(0, quoteEnd)) as string;
 
-          if (quoteLength % 2) {
-            // End of string.
-            // Parse with built-in parser to handle escapes, etc.
-            const value = JSON.parse(state.data + input.slice(0, quoteEnd)) as string;
-
-            state.emit(UC_TOKEN_APOSTROPHE);
-            if (value) {
-              state.emit(value);
               state.data = '';
               state.num = 0;
+              end(state, value, quoteEnd, input);
+
+              break;
+            } else {
+              // Quote is escaped.
+              // Append the input up to the end of the quote.
+              state.data += input.slice(0, quoteEnd);
+              state.num = 0;
+
+              // Continue with the rest of the input.
+              input = input.slice(quoteEnd);
+            }
+          } else {
+            // Trailing backslashes found, but not a quote.
+            if (match.index) {
+              // Some chars precede backslashes.
+              // Set the number of trailing backslashes.
+              state.num = match.length;
+            } else {
+              // The input consists of backslashes only.
+              // Increase their number.
+              state.num += quote.length;
             }
 
-            state.pop(quoteEnd, input);
+            state.data += input;
 
             break;
-          } else {
-            // Quote is escaped.
-            // Append the input up to the end of the quote.
-            state.data += input.slice(0, quoteEnd);
-            state.num = 0;
-
-            // Continue with the rest of the input.
-            input = input.slice(quoteEnd);
           }
         } else {
-          // Trailing backslashes found, but not a quote.
-          if (match.index) {
-            // Some chars precede backslashes.
-            // Set the number of trailing backslashes.
-            state.num = match.length;
-          } else {
-            // The input consists of backslashes only.
-            // Increase their number.
-            state.num += quote.length;
-          }
-
+          // Neither quote, nor trailing escapes found.
+          // Append the input as is.
           state.data += input;
 
           break;
         }
-      } else {
-        // Neither quote, nor trailing escapes found.
-        // Append the input as is.
-        state.data += input;
+      } while (input);
+    },
+    flush: UcJSON$noFlush,
+  };
 
-        break;
-      }
-    } while (input);
-  },
-  flush: UcJSON$noFlush,
-};
+  return {
+    scan(state, from, chunk) {
+      state.data = '"';
+      // Exclude leading quote.
+      state.next(body, from + 1, chunk);
+    },
+    flush: UcJSON$noFlush,
+  };
+}
 
 function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
   const length = keyword.length;
@@ -257,35 +257,37 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
         state.emit(UC_TOKEN_CLOSING_PARENTHESIS);
       }
     : _state => {};
-  const empty: UcJSON$Strategy = {
+  const emptyArray: UcJSON$Strategy = {
     scan(state, from, chunk) {
       end(state);
       // Skip closing bracket.
+      // Pop 2 levels, to exit array strategy.
       state.pop2(from + 1, chunk);
     },
     flush: UcJSON$noFlush,
   };
-  const selector: UcJSON$StrategySelector = {
+  const listSelector: UcJSON$StrategySelector = {
     ...UcJSON$BaseSelector,
-    ']': empty,
+    ']': emptyArray,
   };
-  const start = nested ? UC_TOKEN_OPENING_PARENTHESIS : UC_TOKEN_COMMA;
-
-  const elementEnd: UcJSON$Strategy = {
+  const elementSelector: UcJSON$StrategySelector = {
+    ...UcJSON$BaseSelector,
+  };
+  const prefix = nested ? UC_TOKEN_OPENING_PARENTHESIS : UC_TOKEN_COMMA;
+  const nextElement: UcJSON$Strategy = {
     scan(state, from, chunk) {
       const start = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
 
       if (start >= 0) {
-        const prefix = chunk[from + start];
-
-        switch (prefix) {
+        switch (chunk[from + start]) {
           case ',':
             state.emit(UC_TOKEN_COMMA);
-            state.select(chunk.slice(from + start + 1), selector, this);
+            state.select(chunk.slice(from + start + 1), elementSelector, this);
 
             break;
           case ']':
             end(state);
+            // Pop 1 level, as value strategy popped out already.
             state.pop(from + start + 1, chunk);
 
             break;
@@ -298,28 +300,119 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
   };
   const body: UcJSON$Strategy = {
     scan(state, from, chunk) {
-      state.select(chunk.slice(from), selector, elementEnd);
+      state.select(chunk.slice(from), listSelector, nextElement);
     },
     flush: UcJSON$noFlush,
   };
-
   const strategy: UcJSON$Strategy = {
     scan(state, from, chunk) {
-      state.emit(start);
+      state.emit(prefix);
       // Skip opening bracket.
       state.next(body, from + 1, chunk);
     },
     flush: UcJSON$noFlush,
   };
 
-  selector['['] = nested ? strategy : UcJSON$Array(true);
+  listSelector['['] = elementSelector['['] = nested ? strategy : UcJSON$Array(true);
 
   return strategy;
 }
 
+function UcJSON$Object(): UcJSON$Strategy {
+  const colon: UcJSON$Strategy = {
+    scan(state, from, chunk) {
+      const colonIdx = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
+
+      if (colonIdx >= 0) {
+        if (chunk[from + colonIdx] !== ':') {
+          throw new SyntaxError('JSON property value expected');
+        }
+
+        // Skip colon.
+        state.select(chunk.slice(from + colonIdx + 1), UcJSON$ValueSelector, nextProperty);
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
+  const propertyKey = UcJSON$String((state, key, from, tail): void => {
+    state.emit(key);
+    state.emit(UC_TOKEN_OPENING_PARENTHESIS);
+    state.next(colon, from, tail);
+  });
+  const nextPropertyKey: UcJSON$Strategy = {
+    scan(state, from, chunk) {
+      const quoteIdx = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
+
+      if (quoteIdx >= 0) {
+        if (chunk[from + quoteIdx] !== '"') {
+          throw new SyntaxError('JSON property name expected');
+        }
+
+        state.next(propertyKey, from + quoteIdx, chunk);
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
+  const nextProperty: UcJSON$Strategy = {
+    scan(state, from, chunk) {
+      const start = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
+
+      if (start >= 0) {
+        switch (chunk[from + start]) {
+          case ',':
+            state.emit(UC_TOKEN_CLOSING_PARENTHESIS);
+            state.next(nextPropertyKey, from + start + 1, chunk);
+
+            break;
+          case '}':
+            state.emit(UC_TOKEN_CLOSING_PARENTHESIS);
+            state.pop(from + start + 1, chunk);
+
+            break;
+          default:
+            throw new SyntaxError('Malformed JSON object');
+        }
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
+
+  const body: UcJSON$Strategy = {
+    scan(state, from, chunk) {
+      const start = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
+
+      if (start >= 0) {
+        switch (chunk[from + start]) {
+          case '"':
+            state.next(propertyKey, from + start, chunk);
+
+            break;
+          case '}':
+            // Skip closing brace.
+            state.pop(from + start + 1, chunk);
+
+            break;
+          default:
+            throw new SyntaxError('Malformed JSON object');
+        }
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
+
+  return {
+    scan(state, from, chunk) {
+      state.emit(UC_TOKEN_DOLLAR_SIGN);
+      // Skip opening brace.
+      state.next(body, from + 1, chunk);
+    },
+    flush: UcJSON$noFlush,
+  };
+}
+
 const UcJSON$TopLevel: UcJSON$Strategy = {
   scan(state, from, chunk) {
-    state.select(chunk.slice(from), UcJSON$Value$Next, UcJSON$End);
+    state.select(chunk.slice(from), UcJSON$ValueSelector, UcJSON$End);
   },
   flush: UcJSON$noFlush,
 };
@@ -336,7 +429,13 @@ const UcJSON$End: UcJSON$Strategy = {
 const UcJSON$PositiveNumber = /*#__PURE__*/ UcJSON$Number(/^[1-9]\d*(?:\.\d+)?(?:[eE][+-]?\d+)?$/);
 
 const UcJSON$BaseSelector: UcJSON$StrategySelector = {
-  '"': UcJSON$String,
+  '"': /*#__PURE__*/ UcJSON$String((state, value, from, tail) => {
+    state.emit(UC_TOKEN_APOSTROPHE);
+    if (value) {
+      state.emit(value);
+    }
+    state.pop(from, tail);
+  }),
   '-': /*#__PURE__*/ UcJSON$Number(/^-(?:0|[1-9]\d*)(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   0: /*#__PURE__*/ UcJSON$Number(/^0(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   1: UcJSON$PositiveNumber,
@@ -353,9 +452,10 @@ const UcJSON$BaseSelector: UcJSON$StrategySelector = {
   t: /*#__PURE__*/ UcJSON$Keyword('true', UC_TOKEN_EXCLAMATION_MARK),
 };
 
-const UcJSON$Value$Next: UcJSON$StrategySelector = {
+const UcJSON$ValueSelector: UcJSON$StrategySelector = {
   ...UcJSON$BaseSelector,
   '[': /*#__PURE__*/ UcJSON$Array(false),
+  '{': /*#__PURE__*/ UcJSON$Object(),
 };
 
 function UcJSON$noFlush(_state: UcJSON$State): void {
