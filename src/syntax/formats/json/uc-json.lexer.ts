@@ -1,29 +1,37 @@
 import { UcLexer } from '../../uc-lexer.js';
 import { UC_TOKEN_APOSTROPHE, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
 
+/**
+ * JSON lexer.
+ */
 export class UcJSONLexer implements UcLexer {
 
-  #status: UcJSON$Status;
+  #state: UcJSON$State;
 
+  /**
+   * Constructs JSON lexer.
+   *
+   * @param emit - Emitter function called each time a token is found.
+   */
   constructor(emit: (token: UcToken) => void) {
-    this.#status = new UcJSON$Status(emit);
+    this.#state = new UcJSON$State(emit);
   }
 
   scan(chunk: string): void {
-    this.#status.scan(chunk);
+    this.#state.scan(chunk);
   }
 
   flush(): void {
-    this.#status.flush();
+    this.#state.flush();
   }
 
 }
 
-class UcJSON$Status {
+class UcJSON$State {
 
   data = '';
   num = 0;
-  #strategy: UcJSON$Strategy = UcJSON$Initial;
+  #strategy: UcJSON$Strategy = UcJSON$Value;
   #stack: UcJSON$Strategy[] = [];
 
   constructor(readonly emit: (this: void, token: UcToken) => void) {}
@@ -57,88 +65,61 @@ class UcJSON$Status {
   }
 
   #pop(): void {
-    this.#strategy = this.#stack.pop() ?? UcJSON$Value;
+    this.#strategy = this.#stack.pop() ?? UcJSON$End;
   }
 
 }
 
-abstract class UcJSON$Strategy {
-
-  abstract scan(status: UcJSON$Status, chunk: string): void;
-
-  flush(status: UcJSON$Status): void;
-  flush(_status: UcJSON$Status): void {
-    throw new SyntaxError('Unexpected end of JSON input');
-  }
-
+interface UcJSON$Strategy {
+  scan(state: UcJSON$State, chunk: string): void;
+  flush(state: UcJSON$State): void;
 }
 
-class UcJSON$InitialStrategy extends UcJSON$Strategy {
+const UcJSON$NonWhitespacePattern = /[^ \r\n\t]/;
+const UcJSON$NonDigitPattern = /[^\deE+-.]/;
+const UcJSON$QuotePattern = /\\*(?:"|\\$)/;
 
-  override scan(status: UcJSON$Status, chunk: string): void {
-    const start = chunk.search(UcJSON$NonWhitespacePattern);
+function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
+  const flush = (state: UcJSON$State): void => {
+    const { data, emit } = state;
 
-    if (start >= 0) {
-      const nextStrategy = UcJSON$StrategyByPrefix[chunk[start]];
-
-      if (!nextStrategy) {
-        throw new SyntaxError('JSON value expected');
-      }
-
-      status.next(nextStrategy);
-      status.scan(chunk.slice(start));
-    }
-  }
-
-}
-
-class UcJSON$ValueStrategy extends UcJSON$InitialStrategy {
-
-  override flush(_status: UcJSON$Status): void {}
-
-}
-
-class UcJSON$NumberStrategy extends UcJSON$Strategy {
-
-  readonly #pattern: RegExp;
-
-  constructor(pattern: RegExp) {
-    super();
-    this.#pattern = pattern;
-  }
-
-  override scan(status: UcJSON$Status, chunk: string): void {
-    const end = chunk.search(UcJSON$NonDigitPattern);
-
-    if (end < 0) {
-      status.data += chunk;
-    } else {
-      status.data += chunk.slice(0, end);
-      this.#emit(status);
-      status.pop(chunk.slice(end));
-    }
-  }
-
-  override flush(status: UcJSON$Status): void {
-    this.#emit(status);
-  }
-
-  #emit(status: UcJSON$Status): void {
-    const { data, emit } = status;
-
-    if (!this.#pattern.test(data)) {
+    if (!pattern.test(data)) {
       throw new SyntaxError(`Invalid JSON number: ${data}`);
     }
 
     emit(data);
-    status.data = '';
-  }
+    state.data = '';
+  };
 
+  return {
+    scan(state: UcJSON$State, chunk: string): void {
+      const end = chunk.search(UcJSON$NonDigitPattern);
+
+      if (end < 0) {
+        state.data += chunk;
+      } else {
+        state.data += chunk.slice(0, end);
+        flush(state);
+        state.pop(chunk.slice(end));
+      }
+    },
+
+    flush,
+  };
 }
 
-class UcJSON$StringBodyStrategy extends UcJSON$Strategy {
+const UcJSON$String: UcJSON$Strategy = {
+  scan(status: UcJSON$State, chunk: string): void {
+    status.data = '"';
+    status.next(UcJSON$StringBody);
+    // Exclude leading quote.
+    status.scan(chunk.slice(1));
+  },
+  flush: UcJSON$noFlush,
+};
 
-  override scan(status: UcJSON$Status, chunk: string): void {
+const UcJSON$StringBody: UcJSON$Strategy = {
+  scan(state: UcJSON$State, chunk: string): void {
     let input = chunk;
 
     do {
@@ -153,26 +134,28 @@ class UcJSON$StringBodyStrategy extends UcJSON$Strategy {
           const quoteEnd = match.index + quote.length;
 
           // May include preceding backslashes.
-          const quoteLength = status.num + quote.length;
+          const quoteLength = state.num + quote.length;
 
           if (quoteLength % 2) {
             // End of string.
             // Parse with built-in parser to handle escapes, etc.
-            const value = JSON.parse(status.data + input.slice(0, quoteEnd)) as string;
+            const value = JSON.parse(state.data + input.slice(0, quoteEnd)) as string;
 
-              status.emit(UC_TOKEN_APOSTROPHE);
-            status.emit(value);
+            state.emit(UC_TOKEN_APOSTROPHE);
+            if (value) {
+              state.emit(value);
+              state.data = '';
+              state.num = 0;
+            }
 
-            status.data = '';
-            status.num = 0;
-            status.pop(input.slice(quoteEnd));
+            state.pop(input.slice(quoteEnd));
 
             break;
           } else {
             // Quote is escaped.
             // Append the input up to the end of the quote.
-            status.data += input.slice(0, quoteEnd);
-            status.num = 0;
+            state.data += input.slice(0, quoteEnd);
+            state.num = 0;
 
             // Continue with the rest of the input.
             input = input.slice(quoteEnd);
@@ -182,93 +165,90 @@ class UcJSON$StringBodyStrategy extends UcJSON$Strategy {
           if (match.index) {
             // Some chars precede backslashes.
             // Set the number of trailing backslashes.
-            status.num = match.length;
+            state.num = match.length;
           } else {
             // The input consists of backslashes only.
             // Increase their number.
-            status.num += quote.length;
+            state.num += quote.length;
           }
 
-          status.data += input;
+          state.data += input;
 
           break;
         }
       } else {
         // Neither quote, nor trailing escapes found.
         // Append the input as is.
-        status.data += input;
+        state.data += input;
 
         break;
       }
     } while (input);
-  }
+  },
 
+  flush: UcJSON$noFlush,
+};
+
+function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
+  const length = keyword.length;
+
+  return {
+    scan(state: UcJSON$State, chunk: string): void {
+      const charsLeft = length - state.data.length;
+
+      if (chunk.length < charsLeft) {
+        // Not enough characters.
+        state.data += chunk;
+      } else {
+        // Keyword complete.
+        const value = state.data + chunk.slice(0, charsLeft);
+
+        if (value !== keyword) {
+          throw new SyntaxError(`Unrecognized JSON value: ${value}`);
+        }
+
+        state.emit(token);
+        state.data = '';
+        state.pop(chunk.slice(charsLeft));
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
 }
 
-class UcJSON$StringStrategy extends UcJSON$Strategy {
+const UcJSON$Value: UcJSON$Strategy = {
+  scan(state: UcJSON$State, chunk: string): void {
+    const start = chunk.search(UcJSON$NonWhitespacePattern);
 
-  readonly #body = new UcJSON$StringBodyStrategy();
+    if (start >= 0) {
+      const nextStrategy = UcJSON$StrategyByPrefix[chunk[start]];
 
-  override scan(status: UcJSON$Status, chunk: string): void {
-    status.data = '"';
-    status.next(this.#body);
-    // Exclude leading quote.
-    status.scan(chunk.slice(1));
-  }
-
-}
-
-class UcJSON$KeywordStrategy extends UcJSON$Strategy {
-
-  readonly #keyword: string;
-  readonly #length: number;
-  readonly #token: UcToken;
-
-  constructor(keyword: string, token: UcToken) {
-    super();
-    this.#keyword = keyword;
-    this.#length = keyword.length;
-    this.#token = token;
-  }
-
-  override scan(status: UcJSON$Status, chunk: string): void {
-    const charsLeft = this.#length - status.data.length;
-
-    if (chunk.length < charsLeft) {
-      // Not enough characters.
-      status.data += chunk;
-    } else {
-      // Keyword complete.
-      const value = status.data + chunk.slice(0, charsLeft);
-
-      if (value !== this.#keyword) {
-        throw new SyntaxError(`Unrecognized JSON value: ${value}`);
+      if (!nextStrategy) {
+        throw new SyntaxError('JSON value expected');
       }
 
-      status.emit(this.#token);
-      status.data = '';
-      status.pop(chunk.slice(charsLeft));
+      state.next(nextStrategy);
+      state.scan(chunk.slice(start));
     }
-  }
-
-}
-
-const UcJSON$NonWhitespacePattern = /[^ \r\n\t]/;
-const UcJSON$NonDigitPattern = /[^\deE+-.]/;
-const UcJSON$QuotePattern = /\\*(?:"|\\$)/;
-
-const UcJSON$Initial = /*#__PURE__*/ new UcJSON$InitialStrategy();
-const UcJSON$Value = /*#__PURE__*/ new UcJSON$ValueStrategy();
-const UcJSON$PositiveNumber = /*#__PURE__*/ new UcJSON$NumberStrategy(
-  /^[1-9]\d*(?:\.\d+)?(?:[eE][+-]?\d+)?$/,
-);
+  },
+  flush: UcJSON$noFlush,
+};
+const UcJSON$End: UcJSON$Strategy = {
+  scan(_state, chunk) {
+    if (UcJSON$NonWhitespacePattern.test(chunk)) {
+      throw new SyntaxError('Excessive input after JSON');
+    }
+  },
+  flush(_state) {},
+};
+const UcJSON$PositiveNumber = /*#__PURE__*/ UcJSON$Number(/^[1-9]\d*(?:\.\d+)?(?:[eE][+-]?\d+)?$/);
 
 const UcJSON$StrategyByPrefix: {
   readonly [key in string]?: UcJSON$Strategy;
 } = {
-  '"': /*#__PURE__*/ new UcJSON$StringStrategy(),
-  '-': /*#__PURE__*/ new UcJSON$NumberStrategy(/^-(?:0|[1-9]\d*)(?:.\d+)?(?:[eE][+-]?\d+)?$/),
-  0: /*#__PURE__*/ new UcJSON$NumberStrategy(/^0(?:.\d+)?(?:[eE][+-]?\d+)?$/),
+  '"': UcJSON$String,
+  '-': /*#__PURE__*/ UcJSON$Number(/^-(?:0|[1-9]\d*)(?:.\d+)?(?:[eE][+-]?\d+)?$/),
+  0: /*#__PURE__*/ UcJSON$Number(/^0(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   1: UcJSON$PositiveNumber,
   2: UcJSON$PositiveNumber,
   3: UcJSON$PositiveNumber,
@@ -278,7 +258,11 @@ const UcJSON$StrategyByPrefix: {
   7: UcJSON$PositiveNumber,
   8: UcJSON$PositiveNumber,
   9: UcJSON$PositiveNumber,
-  f: /*#__PURE__*/ new UcJSON$KeywordStrategy('false', '-'),
-  n: /*#__PURE__*/ new UcJSON$KeywordStrategy('null', '--'),
-  t: /*#__PURE__*/ new UcJSON$KeywordStrategy('true', UC_TOKEN_EXCLAMATION_MARK),
+  f: /*#__PURE__*/ UcJSON$Keyword('false', '-'),
+  n: /*#__PURE__*/ UcJSON$Keyword('null', '--'),
+  t: /*#__PURE__*/ UcJSON$Keyword('true', UC_TOKEN_EXCLAMATION_MARK),
 };
+
+function UcJSON$noFlush(_state: UcJSON$State): void {
+  throw new SyntaxError('Unexpected end of JSON input');
+}

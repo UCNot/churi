@@ -44,6 +44,9 @@ describe('UcJSONLexer', () => {
       expect(scan('"foo', 'bar"')).toEqual([UC_TOKEN_APOSTROPHE, 'foobar']);
       expect(scan('"foo', '-bar', '-baz', '"')).toEqual([UC_TOKEN_APOSTROPHE, 'foo-bar-baz']);
     });
+    it('recognizes empty string', () => {
+      expect(scan('""')).toEqual([UC_TOKEN_APOSTROPHE]);
+    });
     it('recognizes escaped quote', () => {
       expect(scan('"\\"foo\\""')).toEqual([UC_TOKEN_APOSTROPHE, '"foo"']);
       expect(scan('"\\', '"foo\\""')).toEqual([UC_TOKEN_APOSTROPHE, '"foo"']);
@@ -61,6 +64,9 @@ describe('UcJSONLexer', () => {
       expect(scan('"--"')).toEqual([UC_TOKEN_APOSTROPHE, '--']);
       expect(scan('"-a"')).toEqual([UC_TOKEN_APOSTROPHE, '-a']);
       expect(scan('"3d"')).toEqual([UC_TOKEN_APOSTROPHE, '3d']);
+    });
+    it('fails on trailing input', () => {
+      expect(() => scan('"foo" bar')).toThrow(new SyntaxError('Excessive input after JSON'));
     });
   });
 
