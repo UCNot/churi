@@ -25,7 +25,7 @@ export class UcJSONLexer implements UcLexer {
   }
 
   scan(chunk: string): void {
-    this.#state.scan(chunk);
+    this.#state.scan(0, chunk);
   }
 
   flush(): void {
@@ -43,8 +43,8 @@ class UcJSON$State {
 
   constructor(readonly emit: (this: void, token: UcToken) => void) {}
 
-  scan(chunk: string): void {
-    this.#strategy.scan(this, chunk);
+  scan(from: number, chunk: string): void {
+    this.#strategy.scan(this, from, chunk);
   }
 
   flush(): void {
@@ -75,20 +75,20 @@ class UcJSON$State {
       }
 
       this.push(selected, endStrategy);
-      this.scan(chunk.slice(start));
+      this.scan(start, chunk);
     }
   }
 
-  pop(tail: string): void {
+  pop(from: number, tail: string): void {
     this.#pop();
     if (tail) {
-      this.scan(tail);
+      this.scan(from, tail);
     }
   }
 
-  pop2(tail: string): void {
+  pop2(from: number, tail: string): void {
     this.#pop();
-    this.pop(tail);
+    this.pop(from, tail);
   }
 
   #pop(): void {
@@ -98,7 +98,7 @@ class UcJSON$State {
 }
 
 interface UcJSON$Strategy {
-  scan(state: UcJSON$State, chunk: string): void;
+  scan(state: UcJSON$State, from: number, chunk: string): void;
   flush(state: UcJSON$State): void;
 }
 
@@ -123,15 +123,16 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
   };
 
   return {
-    scan(state, chunk) {
-      const end = chunk.search(UcJSON$NonDigitPattern);
+    scan(state, from, chunk) {
+      const input = chunk.slice(from);
+      const end = input.search(UcJSON$NonDigitPattern);
 
       if (end < 0) {
-        state.data += chunk;
+        state.data += input;
       } else {
-        state.data += chunk.slice(0, end);
+        state.data += chunk.slice(from, from + end);
         flush(state);
-        state.pop(chunk.slice(end));
+        state.pop(from + end, chunk);
       }
     },
 
@@ -140,18 +141,18 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
 }
 
 const UcJSON$String: UcJSON$Strategy = {
-  scan(state, chunk) {
+  scan(state, from, chunk) {
     state.data = '"';
     state.next(UcJSON$String$Body);
     // Exclude leading quote.
-    state.scan(chunk.slice(1));
+    state.scan(from + 1, chunk);
   },
   flush: UcJSON$noFlush,
 };
 
 const UcJSON$String$Body: UcJSON$Strategy = {
-  scan(state, chunk) {
-    let input = chunk;
+  scan(state, from, chunk) {
+    let input = chunk.slice(from);
 
     do {
       const match = UcJSON$QuotePattern.exec(input);
@@ -179,7 +180,7 @@ const UcJSON$String$Body: UcJSON$Strategy = {
               state.num = 0;
             }
 
-            state.pop(input.slice(quoteEnd));
+            state.pop(quoteEnd, input);
 
             break;
           } else {
@@ -216,7 +217,6 @@ const UcJSON$String$Body: UcJSON$Strategy = {
       }
     } while (input);
   },
-
   flush: UcJSON$noFlush,
 };
 
@@ -224,15 +224,15 @@ function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
   const length = keyword.length;
 
   return {
-    scan(state, chunk) {
+    scan(state, from, chunk) {
       const charsLeft = length - state.data.length;
 
-      if (chunk.length < charsLeft) {
+      if (chunk.length - from < charsLeft) {
         // Not enough characters.
-        state.data += chunk;
+        state.data += chunk.slice(from);
       } else {
         // Keyword complete.
-        const value = state.data + chunk.slice(0, charsLeft);
+        const value = state.data + chunk.slice(from, from + charsLeft);
 
         if (value !== keyword) {
           throw new SyntaxError(`Unrecognized JSON value: ${value}`);
@@ -240,7 +240,7 @@ function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
 
         state.emit(token);
         state.data = '';
-        state.pop(chunk.slice(charsLeft));
+        state.pop(from + charsLeft, chunk);
       }
     },
     flush: UcJSON$noFlush,
@@ -254,9 +254,10 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
       }
     : _state => {};
   const empty: UcJSON$Strategy = {
-    scan(state, chunk) {
+    scan(state, from, chunk) {
       end(state);
-      state.pop2(chunk.slice(1));
+      // Skip closing bracket.
+      state.pop2(from + 1, chunk);
     },
     flush: UcJSON$noFlush,
   };
@@ -267,21 +268,21 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
   const start = nested ? UC_TOKEN_OPENING_PARENTHESIS : UC_TOKEN_COMMA;
 
   const elementEnd: UcJSON$Strategy = {
-    scan(state, chunk) {
-      const start = chunk.search(UcJSON$NonWhitespacePattern);
+    scan(state, from, chunk) {
+      const start = chunk.slice(from).search(UcJSON$NonWhitespacePattern);
 
       if (start >= 0) {
-        const prefix = chunk[start];
+        const prefix = chunk[from + start];
 
         switch (prefix) {
           case ',':
             state.emit(UC_TOKEN_COMMA);
-            state.select(chunk.slice(start + 1), selector, this);
+            state.select(chunk.slice(from + start + 1), selector, this);
 
             break;
           case ']':
             end(state);
-            state.pop(chunk.slice(start + 1));
+            state.pop(from + start + 1, chunk);
 
             break;
           default:
@@ -292,17 +293,18 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
     flush: UcJSON$noFlush,
   };
   const body: UcJSON$Strategy = {
-    scan(state, chunk) {
-      state.select(chunk, selector, elementEnd);
+    scan(state, from, chunk) {
+      state.select(chunk.slice(from), selector, elementEnd);
     },
     flush: UcJSON$noFlush,
   };
 
   const strategy: UcJSON$Strategy = {
-    scan(state, chunk) {
+    scan(state, from, chunk) {
       state.emit(start);
       state.next(body);
-      state.scan(chunk.slice(1));
+      // Skip opening bracket.
+      state.scan(from + 1, chunk);
     },
     flush: UcJSON$noFlush,
   };
@@ -313,15 +315,15 @@ function UcJSON$Array(nested: boolean): UcJSON$Strategy {
 }
 
 const UcJSON$TopLevel: UcJSON$Strategy = {
-  scan(state, chunk) {
-    state.select(chunk, UcJSON$Value$Next, UcJSON$End);
+  scan(state, from, chunk) {
+    state.select(chunk.slice(from), UcJSON$Value$Next, UcJSON$End);
   },
   flush: UcJSON$noFlush,
 };
 
 const UcJSON$End: UcJSON$Strategy = {
-  scan(_state, chunk) {
-    if (UcJSON$NonWhitespacePattern.test(chunk)) {
+  scan(_state, from, chunk) {
+    if (UcJSON$NonWhitespacePattern.test(chunk.slice(from))) {
       throw new SyntaxError('Excessive input after JSON');
     }
   },
