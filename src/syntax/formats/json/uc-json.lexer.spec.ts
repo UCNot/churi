@@ -1,12 +1,13 @@
 import { describe, expect, it } from '@jest/globals';
-import { UC_TOKEN_APOSTROPHE } from 'churi';
+import { UC_TOKEN_APOSTROPHE, printUcTokens } from 'churi';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
-import { UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
+import { UC_TOKEN_COMMA, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
 import { UcJSONLexer } from './uc-json.lexer.js';
 
 describe('UcJSONLexer', () => {
   describe('number', () => {
     it('recognizes integer', () => {
+      expect(scan('1')).toEqual(['1']);
       expect(scan('13')).toEqual(['13']);
       expect(scan('-13')).toEqual(['-13']);
       expect(scan('-0')).toEqual(['-0']);
@@ -112,6 +113,42 @@ describe('UcJSONLexer', () => {
     });
     it('fails on whitespace-only string', () => {
       expect(() => scan('   \r\n')).toThrow(new SyntaxError('Unexpected end of JSON input'));
+    });
+  });
+
+  describe('array', () => {
+    it('recognizes empty array', () => {
+      expect(scan('[]')).toEqual([UC_TOKEN_COMMA]);
+      expect(scan(' [   ]  ')).toEqual([UC_TOKEN_COMMA]);
+      expect(scan(' [ ', '  ]  ')).toEqual([UC_TOKEN_COMMA]);
+    });
+    it('fails on unexpected array item', () => {
+      expect(() => scan('[  z ]')).toThrow(new SyntaxError('JSON value expected'));
+    });
+    it('fails on malformed array', () => {
+      expect(() => scan('[,')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[1,')).toThrow(new SyntaxError('Unexpected end of JSON input'));
+      expect(() => scan('[z')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[1 z')).toThrow(new SyntaxError('Malformed JSON array'));
+    });
+    it('recognizes single element', () => {
+      expect(scan('[13]')).toEqual([UC_TOKEN_COMMA, '13']);
+      expect(scan('["abc"]')).toEqual([UC_TOKEN_COMMA, UC_TOKEN_APOSTROPHE, 'abc']);
+      expect(scan('[  true]')).toEqual([UC_TOKEN_COMMA, UC_TOKEN_EXCLAMATION_MARK]);
+      expect(scan('[false  ]')).toEqual([UC_TOKEN_COMMA, '-']);
+      expect(scan('[null]')).toEqual([UC_TOKEN_COMMA, '--']);
+    });
+    it('recognizes multiple elements', () => {
+      expect(printUcTokens(scan('["start", 1, 2, 3, "end"]'))).toBe(`,'start,1,2,3,'end`);
+    });
+    it('recognizes nested array', () => {
+      expect(printUcTokens(scan('[1, [], 2, [[3, [4], 5]]]'))).toBe(',1,(),2,((3,(4),5))');
+    });
+    it('fails on malformed nested array', () => {
+      expect(() => scan('[[,')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[[1,')).toThrow(new SyntaxError('Unexpected end of JSON input'));
+      expect(() => scan('[[z')).toThrow(new SyntaxError('JSON value expected'));
+      expect(() => scan('[[1 z')).toThrow(new SyntaxError('Malformed JSON array'));
     });
   });
 

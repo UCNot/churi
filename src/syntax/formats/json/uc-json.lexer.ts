@@ -1,5 +1,12 @@
 import { UcLexer } from '../../uc-lexer.js';
-import { UC_TOKEN_APOSTROPHE, UC_TOKEN_EXCLAMATION_MARK, UcToken } from '../../uc-token.js';
+import {
+  UC_TOKEN_APOSTROPHE,
+  UC_TOKEN_CLOSING_PARENTHESIS,
+  UC_TOKEN_COMMA,
+  UC_TOKEN_EXCLAMATION_MARK,
+  UC_TOKEN_OPENING_PARENTHESIS,
+  UcToken,
+} from '../../uc-token.js';
 
 /**
  * JSON lexer.
@@ -31,7 +38,7 @@ class UcJSON$State {
 
   data = '';
   num = 0;
-  #strategy: UcJSON$Strategy = UcJSON$Value;
+  #strategy: UcJSON$Strategy = UcJSON$TopLevel;
   #stack: UcJSON$Strategy[] = [];
 
   constructor(readonly emit: (this: void, token: UcToken) => void) {}
@@ -52,9 +59,24 @@ class UcJSON$State {
     this.#strategy = strategy;
   }
 
-  push(strategy: UcJSON$Strategy): void {
-    this.#stack.push(this.#strategy);
+  push(strategy: UcJSON$Strategy, endStrategy: UcJSON$Strategy): void {
+    this.#stack.push(endStrategy);
     this.#strategy = strategy;
+  }
+
+  select(chunk: string, selector: UcJSON$StrategySelector, endStrategy: UcJSON$Strategy): void {
+    const start = chunk.search(UcJSON$NonWhitespacePattern);
+
+    if (start >= 0) {
+      const selected = selector[chunk[start]];
+
+      if (!selected) {
+        throw new SyntaxError('JSON value expected');
+      }
+
+      this.push(selected, endStrategy);
+      this.scan(chunk.slice(start));
+    }
   }
 
   pop(tail: string): void {
@@ -64,8 +86,13 @@ class UcJSON$State {
     }
   }
 
+  pop2(tail: string): void {
+    this.#pop();
+    this.pop(tail);
+  }
+
   #pop(): void {
-    this.#strategy = this.#stack.pop() ?? UcJSON$End;
+    this.#strategy = this.#stack.pop()!;
   }
 
 }
@@ -75,8 +102,12 @@ interface UcJSON$Strategy {
   flush(state: UcJSON$State): void;
 }
 
+interface UcJSON$StrategySelector {
+  [key: string]: UcJSON$Strategy | undefined;
+}
+
 const UcJSON$NonWhitespacePattern = /[^ \r\n\t]/;
-const UcJSON$NonDigitPattern = /[^\deE+-.]/;
+const UcJSON$NonDigitPattern = /[^\deE+\-.]/;
 const UcJSON$QuotePattern = /\\*(?:"|\\$)/;
 
 function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
@@ -92,7 +123,7 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
   };
 
   return {
-    scan(state: UcJSON$State, chunk: string): void {
+    scan(state, chunk) {
       const end = chunk.search(UcJSON$NonDigitPattern);
 
       if (end < 0) {
@@ -109,17 +140,17 @@ function UcJSON$Number(pattern: RegExp): UcJSON$Strategy {
 }
 
 const UcJSON$String: UcJSON$Strategy = {
-  scan(status: UcJSON$State, chunk: string): void {
-    status.data = '"';
-    status.next(UcJSON$StringBody);
+  scan(state, chunk) {
+    state.data = '"';
+    state.next(UcJSON$String$Body);
     // Exclude leading quote.
-    status.scan(chunk.slice(1));
+    state.scan(chunk.slice(1));
   },
   flush: UcJSON$noFlush,
 };
 
-const UcJSON$StringBody: UcJSON$Strategy = {
-  scan(state: UcJSON$State, chunk: string): void {
+const UcJSON$String$Body: UcJSON$Strategy = {
+  scan(state, chunk) {
     let input = chunk;
 
     do {
@@ -193,7 +224,7 @@ function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
   const length = keyword.length;
 
   return {
-    scan(state: UcJSON$State, chunk: string): void {
+    scan(state, chunk) {
       const charsLeft = length - state.data.length;
 
       if (chunk.length < charsLeft) {
@@ -216,23 +247,78 @@ function UcJSON$Keyword(keyword: string, token: UcToken): UcJSON$Strategy {
   };
 }
 
-const UcJSON$Value: UcJSON$Strategy = {
-  scan(state: UcJSON$State, chunk: string): void {
-    const start = chunk.search(UcJSON$NonWhitespacePattern);
-
-    if (start >= 0) {
-      const nextStrategy = UcJSON$StrategyByPrefix[chunk[start]];
-
-      if (!nextStrategy) {
-        throw new SyntaxError('JSON value expected');
+function UcJSON$Array(nested: boolean): UcJSON$Strategy {
+  const end: (state: UcJSON$State) => void = nested
+    ? state => {
+        state.emit(UC_TOKEN_CLOSING_PARENTHESIS);
       }
+    : _state => {};
+  const empty: UcJSON$Strategy = {
+    scan(state, chunk) {
+      end(state);
+      state.pop2(chunk.slice(1));
+    },
+    flush: UcJSON$noFlush,
+  };
+  const selector: UcJSON$StrategySelector = {
+    ...UcJSON$BaseSelector,
+    ']': empty,
+  };
+  const start = nested ? UC_TOKEN_OPENING_PARENTHESIS : UC_TOKEN_COMMA;
 
-      state.next(nextStrategy);
-      state.scan(chunk.slice(start));
-    }
+  const elementEnd: UcJSON$Strategy = {
+    scan(state, chunk) {
+      const start = chunk.search(UcJSON$NonWhitespacePattern);
+
+      if (start >= 0) {
+        const prefix = chunk[start];
+
+        switch (prefix) {
+          case ',':
+            state.emit(UC_TOKEN_COMMA);
+            state.select(chunk.slice(start + 1), selector, this);
+
+            break;
+          case ']':
+            end(state);
+            state.pop(chunk.slice(start + 1));
+
+            break;
+          default:
+            throw new SyntaxError('Malformed JSON array');
+        }
+      }
+    },
+    flush: UcJSON$noFlush,
+  };
+  const body: UcJSON$Strategy = {
+    scan(state, chunk) {
+      state.select(chunk, selector, elementEnd);
+    },
+    flush: UcJSON$noFlush,
+  };
+
+  const strategy: UcJSON$Strategy = {
+    scan(state, chunk) {
+      state.emit(start);
+      state.next(body);
+      state.scan(chunk.slice(1));
+    },
+    flush: UcJSON$noFlush,
+  };
+
+  selector['['] = nested ? strategy : UcJSON$Array(true);
+
+  return strategy;
+}
+
+const UcJSON$TopLevel: UcJSON$Strategy = {
+  scan(state, chunk) {
+    state.select(chunk, UcJSON$Value$Next, UcJSON$End);
   },
   flush: UcJSON$noFlush,
 };
+
 const UcJSON$End: UcJSON$Strategy = {
   scan(_state, chunk) {
     if (UcJSON$NonWhitespacePattern.test(chunk)) {
@@ -241,11 +327,10 @@ const UcJSON$End: UcJSON$Strategy = {
   },
   flush(_state) {},
 };
+
 const UcJSON$PositiveNumber = /*#__PURE__*/ UcJSON$Number(/^[1-9]\d*(?:\.\d+)?(?:[eE][+-]?\d+)?$/);
 
-const UcJSON$StrategyByPrefix: {
-  readonly [key in string]?: UcJSON$Strategy;
-} = {
+const UcJSON$BaseSelector: UcJSON$StrategySelector = {
   '"': UcJSON$String,
   '-': /*#__PURE__*/ UcJSON$Number(/^-(?:0|[1-9]\d*)(?:.\d+)?(?:[eE][+-]?\d+)?$/),
   0: /*#__PURE__*/ UcJSON$Number(/^0(?:.\d+)?(?:[eE][+-]?\d+)?$/),
@@ -261,6 +346,11 @@ const UcJSON$StrategyByPrefix: {
   f: /*#__PURE__*/ UcJSON$Keyword('false', '-'),
   n: /*#__PURE__*/ UcJSON$Keyword('null', '--'),
   t: /*#__PURE__*/ UcJSON$Keyword('true', UC_TOKEN_EXCLAMATION_MARK),
+};
+
+const UcJSON$Value$Next: UcJSON$StrategySelector = {
+  ...UcJSON$BaseSelector,
+  '[': /*#__PURE__*/ UcJSON$Array(false),
 };
 
 function UcJSON$noFlush(_state: UcJSON$State): void {
