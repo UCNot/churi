@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import {
-  UcToken,
-  UC_TOKEN_AMPERSAND,
-  UC_TOKEN_ASTERISK,
+  UC_TOKEN_APOSTROPHE,
+  UC_TOKEN_COMMA,
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
   UC_TOKEN_PREFIX_SPACE,
   UC_TOKEN_PREFIX_TAB,
+  UcToken,
 } from '../../syntax/uc-token.js';
 import { appendUcToken, appendUcTokens } from './append-uc-token.js';
 
@@ -45,14 +45,14 @@ describe('appendUcToken', () => {
     expect(tokens).toEqual(['abc  \t    def']);
   });
   it('always appends reserved token', () => {
-    appendUcTokens(tokens, [UC_TOKEN_ASTERISK, UC_TOKEN_AMPERSAND]);
+    appendUcTokens(tokens, [UC_TOKEN_APOSTROPHE, UC_TOKEN_COMMA]);
 
-    expect(tokens).toEqual([UC_TOKEN_ASTERISK, UC_TOKEN_AMPERSAND]);
+    expect(tokens).toEqual([UC_TOKEN_APOSTROPHE, UC_TOKEN_COMMA]);
   });
   it('always appends after reserved', () => {
-    appendUcTokens(tokens, ['abc', UC_TOKEN_AMPERSAND]);
+    appendUcTokens(tokens, ['abc', UC_TOKEN_APOSTROPHE]);
 
-    expect(tokens).toEqual(['abc', UC_TOKEN_AMPERSAND]);
+    expect(tokens).toEqual(['abc', UC_TOKEN_APOSTROPHE]);
   });
   it('always appends NL token', () => {
     appendUcTokens(tokens, [UC_TOKEN_CR, UC_TOKEN_CRLF]);
