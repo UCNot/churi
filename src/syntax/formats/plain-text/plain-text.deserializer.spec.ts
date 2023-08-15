@@ -19,8 +19,9 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
 } from '../../uc-token.js';
+import { UcPlainTextLexer } from './uc-plain-text.lexer.js';
 
-describe('UcPlainTextLexer', () => {
+describe('plain text deserializer', () => {
   let errors: UcErrorInfo[];
 
   beforeEach(() => {
@@ -40,9 +41,9 @@ describe('UcPlainTextLexer', () => {
           readValue: {
             model: ucUnknown(),
             inset({ emit }) {
-              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
 
-              return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${Lexer}(${emit});`;
             },
           },
         },
@@ -75,9 +76,9 @@ describe('UcPlainTextLexer', () => {
           readList: {
             model: ucList<UcString>(ucString()),
             inset({ emit }) {
-              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
 
-              return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${Lexer}(${emit});`;
             },
           },
         },
@@ -134,9 +135,9 @@ describe('UcPlainTextLexer', () => {
               baz: ucString(),
             }),
             inset({ emit }) {
-              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
 
-              return esline`return new ${UcPlainTextLexer}(${emit});`;
+              return esline`return new ${Lexer}(${emit});`;
             },
           },
         },
@@ -209,9 +210,9 @@ describe('UcPlainTextLexer', () => {
           readValue: {
             model: ucUnknown(),
             inset({ emit }) {
-              const UcPlainTextLexer = UC_MODULE_CHURI.import('UcPlainTextLexer');
+              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
 
-              return esline`return new ${UcPlainTextLexer}(${emit}, true);`;
+              return esline`return new ${Lexer}(${emit}, true);`;
             },
           },
         },
