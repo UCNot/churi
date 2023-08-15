@@ -1,27 +1,15 @@
 import { scanUcTokens } from '../../scan-uc-tokens.js';
 import { UcLexer } from '../../uc-lexer.js';
 import {
-  UC_TOKEN_AMPERSAND,
   UC_TOKEN_APOSTROPHE,
-  UC_TOKEN_ASTERISK,
-  UC_TOKEN_AT_SIGN,
-  UC_TOKEN_CLOSING_BRACKET,
   UC_TOKEN_CLOSING_PARENTHESIS,
-  UC_TOKEN_COLON,
   UC_TOKEN_COMMA,
   UC_TOKEN_CR,
   UC_TOKEN_CRLF,
   UC_TOKEN_DOLLAR_SIGN,
-  UC_TOKEN_EQUALS_SIGN,
   UC_TOKEN_EXCLAMATION_MARK,
-  UC_TOKEN_HASH,
   UC_TOKEN_LF,
-  UC_TOKEN_OPENING_BRACKET,
   UC_TOKEN_OPENING_PARENTHESIS,
-  UC_TOKEN_PLUS_SIGN,
-  UC_TOKEN_QUESTION_MARK,
-  UC_TOKEN_SEMICOLON,
-  UC_TOKEN_SLASH,
   UcToken,
 } from '../../uc-token.js';
 
@@ -43,7 +31,7 @@ export class UcChargeLexer implements UcLexer {
   static plusAsSpace(emit: (token: UcToken) => void): UcChargeLexer {
     const lexer = new UcChargeLexer(emit);
 
-    lexer.#tokens = this.#paramTokens;
+    lexer.#pattern = UC_TOKEN_PLUS_PATTERN;
 
     return lexer;
   }
@@ -72,36 +60,20 @@ export class UcChargeLexer implements UcLexer {
     return scanUcTokens(emit => this.plusAsSpace(emit), ...input);
   }
 
-  static readonly #ucTokens: { readonly [token: string]: (lexer: UcChargeLexer) => void } = {
+  static readonly #tokens: { readonly [token: string]: (lexer: UcChargeLexer) => void } = {
     '\r': lexer => lexer.#addCR(),
     '\n': lexer => lexer.#emitLF(),
     '(': lexer => lexer.#emitReserved(UC_TOKEN_OPENING_PARENTHESIS),
     ')': lexer => lexer.#emitReserved(UC_TOKEN_CLOSING_PARENTHESIS),
     ',': lexer => lexer.#emitReserved(UC_TOKEN_COMMA),
     '!': lexer => lexer.#emitReserved(UC_TOKEN_EXCLAMATION_MARK),
-    '#': lexer => lexer.#emitReserved(UC_TOKEN_HASH),
     $: lexer => lexer.#emitReserved(UC_TOKEN_DOLLAR_SIGN),
-    '&': lexer => lexer.#emitReserved(UC_TOKEN_AMPERSAND),
     "'": lexer => lexer.#emitReserved(UC_TOKEN_APOSTROPHE),
-    '*': lexer => lexer.#emitReserved(UC_TOKEN_ASTERISK),
-    '+': lexer => lexer.#emitReserved(UC_TOKEN_PLUS_SIGN),
-    '/': lexer => lexer.#emitReserved(UC_TOKEN_SLASH),
-    ':': lexer => lexer.#emitReserved(UC_TOKEN_COLON),
-    ';': lexer => lexer.#emitReserved(UC_TOKEN_SEMICOLON),
-    '=': lexer => lexer.#emitReserved(UC_TOKEN_EQUALS_SIGN),
-    '?': lexer => lexer.#emitReserved(UC_TOKEN_QUESTION_MARK),
-    '@': lexer => lexer.#emitReserved(UC_TOKEN_AT_SIGN),
-    '[': lexer => lexer.#emitReserved(UC_TOKEN_OPENING_BRACKET),
-    ']': lexer => lexer.#emitReserved(UC_TOKEN_CLOSING_BRACKET),
-  };
-
-  static readonly #paramTokens: { readonly [token: string]: (lexer: UcChargeLexer) => void } = {
-    ...this.#ucTokens,
     '+': lexer => lexer.#addString(' '),
   };
 
+  #pattern = UC_TOKEN_PATTERN;
   readonly #emit: (token: UcToken) => void;
-  #tokens: { readonly [token: string]: (lexer: UcChargeLexer) => void } = UcChargeLexer.#ucTokens;
   #prev: string | typeof UC_TOKEN_CR | 0 = 0;
 
   /**
@@ -114,14 +86,14 @@ export class UcChargeLexer implements UcLexer {
   }
 
   scan(chunk: string): void {
-    for (const token of chunk.split(UC_TOKEN_PATTERN)) {
+    for (const token of chunk.split(this.#pattern)) {
       this.#add(token);
     }
   }
 
   #add(token: string): void {
     if (token.length === 1) {
-      const emitter = this.#tokens[token];
+      const emitter = UcChargeLexer.#tokens[token];
 
       if (emitter) {
         return emitter(this);
@@ -239,6 +211,7 @@ export class UcChargeLexer implements UcLexer {
 
 }
 
-const UC_TOKEN_PATTERN = /([\r\n!#$&'()*+,/:;=?@[\]])/;
+const UC_TOKEN_PATTERN = /([\r\n!$'(),])/;
+const UC_TOKEN_PLUS_PATTERN = /([\r\n!$'()+,])/;
 const UC_FIRST_NON_PAD_PATTERN = /[^ \t]/;
 const UC_TRAILING_PADS_PATTERN = /[ \t]+$/;
