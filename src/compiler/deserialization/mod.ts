@@ -14,7 +14,7 @@ export * from './ucd-handler-feature.js';
 export * from './ucd-lib.js';
 export * from './ucd-models.js';
 export * from './ucd-process-defaults.js';
-export * from './ucd-process-inset.js';
+export * from './ucd-process-format.js';
 export * from './ucd-process-non-finite.js';
 export * from './ucd-process-primitives.js';
 export * from './unknown.ucrx.class.js';

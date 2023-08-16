@@ -1,4 +1,4 @@
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
+import { UcdFormatOptions } from '../../../compiler/deserialization/ucd-process-format.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
@@ -14,13 +14,13 @@ export function ucFormatCharge(options?: UcChargeOptions): UcOmniConstraints;
 export function ucFormatCharge({ plusAsSpace }: UcChargeOptions = {}): UcOmniConstraints {
   return {
     deserializer: {
-      use: 'ucdProcessInset',
+      use: 'ucdProcessFormat',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcChargeLexer',
         from: CHURI_MODULE,
         method: plusAsSpace ? 'plusAsSpace' : undefined,
-      } satisfies UcdInsetOptions,
+      } satisfies UcdFormatOptions,
     },
     serializer: {
       use: 'ucsProcessCharge',

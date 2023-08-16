@@ -1,4 +1,4 @@
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
+import { UcdFormatOptions } from '../../../compiler/deserialization/ucd-process-format.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
@@ -10,12 +10,12 @@ import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 export function ucFormatJSON(): UcOmniConstraints {
   return {
     deserializer: {
-      use: 'ucdProcessInset',
+      use: 'ucdProcessFormat',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcJSONLexer',
         from: CHURI_MODULE,
-      } satisfies UcdInsetOptions,
+      } satisfies UcdFormatOptions,
     },
   };
 }

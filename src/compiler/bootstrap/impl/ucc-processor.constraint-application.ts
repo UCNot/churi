@@ -26,12 +26,16 @@ export class UccProcessor$ConstraintApplication<
     this.#handle = handle;
   }
 
-  get schema(): UcSchema {
-    return this.#issue.schema;
-  }
-
   get processor(): UcProcessorName {
     return this.#issue.processor;
+  }
+
+  get entry(): string | undefined {
+    return this.#issue.entry;
+  }
+
+  get schema(): UcSchema {
+    return this.#issue.schema;
   }
 
   get within(): UcPresentationName | undefined {

@@ -14,7 +14,7 @@ import { ucNumber } from '../../../schema/numeric/uc-number.js';
 import { ucString } from '../../../schema/string/uc-string.js';
 import { ucOptional } from '../../../schema/uc-optional.js';
 import { TextOutStream } from '../../../spec/text-out-stream.js';
-import { ucFormatCharge } from '../charge/uc-inset-charge.js';
+import { ucFormatCharge } from '../charge/uc-format-charge.js';
 import { ucFormatPlainText } from '../plain-text/uc-format-plain-text.js';
 import { ucFormatURIEncoded } from '../uri-encoded/uc-format-uri-encoded.js';
 import { ucFormatURIParams } from './uc-format-uri-params.js';

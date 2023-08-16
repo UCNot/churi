@@ -30,7 +30,10 @@ describe('UcMap deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMap: { model: ucMap({}) },
+          readMap: {
+            model: ucMap({}),
+            byTokens: true,
+          },
         },
       });
 
@@ -81,6 +84,7 @@ describe('UcMap deserializer', () => {
             model: ucMap<{ foo: UcModel<string> }>({
               foo: String,
             }),
+            byTokens: true,
           },
         },
       });
@@ -203,6 +207,7 @@ describe('UcMap deserializer', () => {
               foo: String,
               bar: String,
             }),
+            byTokens: true,
           },
         },
       });
@@ -349,6 +354,7 @@ describe('UcMap deserializer', () => {
                 duplicates: 'reject',
               },
             ),
+            byTokens: true,
           },
         },
       });
@@ -393,6 +399,7 @@ describe('UcMap deserializer', () => {
                 duplicates: 'collect',
               },
             ),
+            byTokens: true,
           },
         },
       });
@@ -431,6 +438,7 @@ describe('UcMap deserializer', () => {
                 duplicates: 'collect',
               },
             ),
+            byTokens: true,
           },
         },
       });
@@ -466,6 +474,7 @@ describe('UcMap deserializer', () => {
                 extra: ucString(),
               },
             ),
+            byTokens: true,
           },
         },
       });
@@ -529,6 +538,7 @@ describe('UcMap deserializer', () => {
                 extra: String as UcDataType<string>,
               },
             ),
+            byTokens: true,
           },
         },
       });
@@ -642,6 +652,7 @@ describe('UcMap deserializer', () => {
                 foo: String,
               }),
             ),
+            byTokens: true,
           },
         },
       });

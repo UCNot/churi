@@ -21,7 +21,10 @@ describe('UcInteger deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucInteger() },
+          readValue: {
+            model: ucInteger(),
+            byTokens: true,
+          },
         },
       });
 
@@ -127,7 +130,10 @@ describe('UcInteger deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucInteger({}) },
+          readValue: {
+            model: ucInteger({}),
+            byTokens: true,
+          },
         },
       });
 
@@ -147,7 +153,10 @@ describe('UcInteger deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucNullable(ucInteger()) },
+          readValue: {
+            model: ucNullable(ucInteger()),
+            byTokens: true,
+          },
         },
       });
 
@@ -240,7 +249,10 @@ describe('UcInteger deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucInteger({ string: 'reject' }) },
+          readValue: {
+            model: ucInteger({ string: 'reject' }),
+            byTokens: true,
+          },
         },
       });
 

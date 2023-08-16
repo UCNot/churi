@@ -17,6 +17,14 @@ export interface UccBootstrap<in out TBoot extends UccBootstrap<TBoot>> {
   get currentProcessor(): UcProcessorName | undefined;
 
   /**
+   * Currently processed schema entry. This may be e.g. a serializer or deserializer name.
+   *
+   * `undefined` when processing nested schema. This happens e.g. when model processed
+   * {@link UccBootstrap#processModel explicitly} rather automatically.
+   */
+  get currentEntry(): string | undefined;
+
+  /**
    * Currently processed schema, if any
    */
   get currentSchema(): UcSchema | undefined;

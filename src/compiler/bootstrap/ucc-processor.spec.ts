@@ -70,6 +70,7 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
+          entry: 'test',
           schema,
           constraint: constraints.deserializer,
           options: 'test',
@@ -109,6 +110,7 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
+          entry: 'test',
           schema,
           presentation: 'charge',
           constraint: constraints.deserializer,
@@ -177,6 +179,7 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
+          entry: 'test',
           schema,
           constraint: constraints.deserializer,
           options: 'test',
@@ -272,6 +275,7 @@ describe('UccProcessor', () => {
                 application.ignore();
                 boot.record({
                   processor: application.processor,
+                  entry: application.entry,
                   schema: application.schema,
                   within: application.within,
                   constraint: application.constraint,
@@ -298,12 +302,14 @@ describe('UccProcessor', () => {
       expect(processor.records).toEqual([
         {
           processor: 'deserializer',
+          entry: 'test',
           schema,
           within: 'charge',
           constraint: constraints.deserializer,
         },
         {
           processor: 'deserializer',
+          entry: 'test',
           schema,
           presentation: 'charge',
           constraint: constraints.deserializer,

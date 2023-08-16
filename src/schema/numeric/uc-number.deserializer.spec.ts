@@ -25,7 +25,10 @@ describe('UcNumber deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: Number as UcDataType<UcNumber> },
+          readValue: {
+            model: Number as UcDataType<UcNumber>,
+            byTokens: true,
+          },
         },
         features: [ucdProcessPrimitives, ucdProcessNonFinite],
       });
@@ -151,7 +154,10 @@ describe('UcNumber deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucNumber({ string: 'reject' }) },
+          readValue: {
+            model: ucNumber({ string: 'reject' }),
+            byTokens: true,
+          },
         },
         features: [ucdProcessPrimitives, ucdProcessNonFinite],
       });

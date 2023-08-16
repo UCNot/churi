@@ -45,7 +45,7 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
               let defaultInset: UcrxInsetMod['inset'];
 
               for (const [insetId, inset] of insets) {
-                if (insetId != null) {
+                if (insetId !== 'inset') {
                   code.line(
                     `case ${
                       typeof insetId === 'string' ? esStringLiteral(insetId) : insetId
@@ -79,7 +79,7 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
 export interface UcrxInsetMod extends UcrxBeforeMod<UcrxInsetSignature.Args> {
   readonly inset?:
     | {
-        readonly insetId?: number | string | undefined;
+        readonly insetId: number | string;
         createLexer(
           member: EsMemberRef<UcrxInsetMethod, EsMethodHandle<UcrxInsetSignature.Args>>,
           ucrxClass: UcrxClass.Any,

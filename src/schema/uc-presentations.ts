@@ -84,6 +84,11 @@ export interface UcInsetPresentations<
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > {
   /**
+   * Constraints for default inset formatting.
+   */
+  readonly inset?: UcConstraints<T, TSchema> | undefined;
+
+  /**
    * Constraints for schema instance represented as {@link UcURIParamsLexer URI parameter} value.
    *
    * This works for e.g.:

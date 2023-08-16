@@ -115,7 +115,12 @@ describe('UcUnknown deserializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
-        models: { readValue: { model: ucNullable(ucUnknown(), false) } },
+        models: {
+          readValue: {
+            model: ucNullable(ucUnknown(), false),
+            byTokens: true,
+          },
+        },
       });
 
       ({ readValue } = await compiler.evaluate());
@@ -142,7 +147,12 @@ describe('UcUnknown deserializer', () => {
 
     beforeAll(async () => {
       const compiler = new UcdCompiler({
-        models: { readValue: { model: ucUnknown() } },
+        models: {
+          readValue: {
+            model: ucUnknown(),
+            byTokens: true,
+          },
+        },
         features: [ucdProcessPrimitives, ucdProcessPlainEntity, ucdProcessTimestampFormat],
       });
 

@@ -1,4 +1,4 @@
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
+import { UcdFormatOptions } from '../../../compiler/deserialization/ucd-process-format.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
@@ -17,14 +17,14 @@ export function ucFormatURIEncoded({
 }: UcURIEncodedOptions = {}): UcOmniConstraints {
   return {
     deserializer: {
-      use: 'ucdProcessInset',
+      use: 'ucdProcessFormat',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcURIEncodedLexer',
         from: CHURI_MODULE,
         method: plusAsSpace ? 'plusAsSpace' : undefined,
         args: raw ? [`true`] : undefined,
-      } satisfies UcdInsetOptions,
+      } satisfies UcdFormatOptions,
     },
     serializer: {
       use: 'ucsProcessURIEncoded',

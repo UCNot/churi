@@ -86,7 +86,15 @@ export namespace UccFeature {
     readonly processor: UcProcessorName;
 
     /**
-     * Target schema to constrain.
+     * Constrained schema entry. This may be e.g. a serializer or deserializer name.
+     *
+     * `undefined` for nested schema. This happens e.g. when model processed
+     *  {@link UccBootstrap#processModel explicitly} rather automatically.
+     */
+    readonly entry: string | undefined;
+
+    /**
+     * Constrained schema.
      */
     readonly schema: TSchema;
 

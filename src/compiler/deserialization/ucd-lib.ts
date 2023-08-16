@@ -60,7 +60,7 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
     for (const [externalName, config] of Object.entries<UcdSchemaConfig>(this.#models)) {
       const fn = this.deserializerFor(config.model);
 
-      ns.refer(fn.exportFn(externalName, config));
+      ns.refer(fn.exportFn(this.#options.requestExport(externalName), config));
     }
 
     for (const { schema, whenCompiled } of this.#options.internalModels) {
@@ -134,6 +134,7 @@ export namespace UcdLib {
     readonly schemaIndex: UccSchemaIndex;
     readonly models: TModels;
     readonly internalModels: InternalModel[];
+    requestExport(externalName: string): UcdFunction.ExportRequest;
     entities(this: void, exportNs?: EsNamespace): EsSnippet;
     formats(this: void, exportNs?: EsNamespace): EsSnippet;
     meta(this: void, exportNs?: EsNamespace): EsSnippet;

@@ -22,13 +22,14 @@ describe('UcString deserializer', () => {
     let readValue: UcDeserializer.ByTokens<string>;
 
     beforeAll(async () => {
-      const compiler = new UcdCompiler<{ readValue: UcdModels.UniversalEntry<UcDataType<string>> }>(
-        {
-          models: {
-            readValue: { model: String },
+      const compiler = new UcdCompiler<{ readValue: UcdModels.ByTokensEntry<UcDataType<string>> }>({
+        models: {
+          readValue: {
+            model: String,
+            byTokens: true,
           },
         },
-      );
+      });
 
       ({ readValue } = await compiler.evaluate());
     });
@@ -138,7 +139,10 @@ describe('UcString deserializer', () => {
       beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
-            readValue: { model: ucNullable<UcString>(String) },
+            readValue: {
+              model: ucNullable<UcString>(String),
+              byTokens: true,
+            },
           },
         });
 
@@ -161,6 +165,7 @@ describe('UcString deserializer', () => {
             model: ucString({
               raw: 'parse',
             }),
+            byTokens: true,
           },
         },
       });
@@ -266,6 +271,7 @@ describe('UcString deserializer', () => {
                   raw: 'parse',
                 }),
               ),
+              byTokens: true,
             },
           },
         });

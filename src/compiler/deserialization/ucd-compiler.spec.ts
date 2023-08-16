@@ -145,7 +145,7 @@ export async function readValue(
       });
       it('compiles sync module', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: { model: Number, mode: 'sync' } },
+          models: { readValue: { model: Number, mode: 'sync', byTokens: true } },
         });
         const text = await compiler.generate();
 
@@ -169,7 +169,7 @@ export function readValue(
       });
       it('compiles universal module', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: { model: Number } },
+          models: { readValue: { model: Number, byTokens: true } },
         });
         const text = await compiler.generate();
 
@@ -222,7 +222,7 @@ export function readValue(
       });
       it('creates sync factory', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: { model: Number, mode: 'sync' } },
+          models: { readValue: { model: Number, mode: 'sync', byTokens: true } },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 
@@ -247,7 +247,7 @@ export function readValue(
       });
       it('creates universal factory', async () => {
         const compiler = new UcdCompiler({
-          models: { readValue: { model: Number } },
+          models: { readValue: { model: Number, byTokens: true } },
         });
         const text = await compiler.generate({ format: EsBundleFormat.IIFE });
 

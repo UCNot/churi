@@ -17,12 +17,16 @@ import {
 import { capitalize } from 'httongue';
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
+import { UcChargeLexer } from '../../syntax/formats/charge/uc-charge.lexer.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
+import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxProcessor } from '../rx/ucrx-processor.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerRegistry } from './impl/ucd-handler-registry.js';
 import { UcdBootstrap } from './ucd-bootstrap.js';
+import { UcdFunction } from './ucd-function.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 import { UcdLib } from './ucd-lib.js';
 import { UcdExports, UcdModels } from './ucd-models.js';
@@ -38,6 +42,7 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
   implements UcdBootstrap {
 
   readonly #options: UcdCompiler.Options<TModels>;
+  readonly #exportRequests = new Map<string, UcdFunction$ExportRequest>();
 
   readonly #entities: UcdHandlerRegistry;
   readonly #formats: UcdHandlerRegistry;
@@ -92,6 +97,32 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
     this.#entities.makeDefault();
     this.#formats.makeDefault();
     this.#meta.makeDefault();
+  }
+
+  useLexer(entry: string, createLexer: (this: void, args: { emit: EsSnippet }) => EsSnippet): this {
+    this.#exportRequestFor(entry).createLexer = createLexer;
+
+    return this;
+  }
+
+  useInsetLexer(
+    entry: string,
+    createLexer: (this: void, args: UcrxInsetSignature.Values) => EsSnippet,
+  ): this {
+    this.#exportRequestFor(entry).createInsetLexer = createLexer;
+
+    return this;
+  }
+
+  #exportRequestFor(externalName: string): UcdFunction$ExportRequest {
+    let request = this.#exportRequests.get(externalName);
+
+    if (!request) {
+      request = { externalName };
+      this.#exportRequests.set(externalName, request);
+    }
+
+    return request;
   }
 
   compileSchema<T>(
@@ -246,9 +277,35 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
       ...this.createUcrxLibOptions(),
       schemaIndex: this.schemaIndex,
       internalModels: this.#internalModels,
+      requestExport: this.#requestExport.bind(this),
       entities: this.#entities.declare(),
       formats: this.#formats.declare(),
       meta: this.#meta.declare(),
+    };
+  }
+
+  #requestExport(externalName: string): UcdFunction.ExportRequest {
+    const entry = this.#options.models[externalName];
+    const request = this.#exportRequestFor(externalName);
+
+    if (entry.byTokens) {
+      return {
+        ...request,
+        createLexer: undefined,
+      };
+    }
+
+    const {
+      createLexer = ({ emit }) => {
+        const Lexer = UC_MODULE_CHURI.import(UcChargeLexer.name);
+
+        return esline`return new ${Lexer}(${emit});`;
+      },
+    } = request;
+
+    return {
+      ...request,
+      createLexer,
     };
   }
 
@@ -282,3 +339,7 @@ export namespace UcdCompiler {
     readonly exportDefaults?: boolean | undefined;
   }
 }
+
+type UcdFunction$ExportRequest = {
+  -readonly [key in keyof UcdFunction.ExportRequest]: UcdFunction.ExportRequest[key];
+};

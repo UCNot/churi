@@ -1,6 +1,7 @@
 import { EsDeclarationContext, EsSnippet } from 'esgen';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UcrxBootstrap } from '../rx/ucrx-bootstrap.js';
+import { UcrxInsetSignature } from '../rx/ucrx-inset-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 import { UcdHandlerFeature } from './ucd-handler-feature.js';
 
@@ -8,6 +9,29 @@ import { UcdHandlerFeature } from './ucd-handler-feature.js';
  * Schema {@link UcdCompiler deserializer} bootstrap.
  */
 export interface UcdBootstrap extends UcrxBootstrap<UcdBootstrap> {
+  /**
+   * Assigns lexer to use for the given deserializer entry.
+   *
+   * @param entry - Deserializer entry name.
+   * @param createLexer - Lexer factory code generator.
+   *
+   * @return `this` instance.
+   */
+  useLexer(entry: string, createLexer: (this: void, args: { emit: EsSnippet }) => EsSnippet): this;
+
+  /**
+   * Assigns default inset lexer to use for the given deserializer entry.
+   *
+   * @param entry - Deserializer entry name.
+   * @param createLexer - Inset lexer factory code generator.
+   *
+   * @return `this` instance.
+   */
+  useInsetLexer(
+    entry: string,
+    createLexer: (this: void, args: UcrxInsetSignature.Values) => EsSnippet,
+  ): this;
+
   /**
    * Requests the given `schema` to be compiled.
    *
