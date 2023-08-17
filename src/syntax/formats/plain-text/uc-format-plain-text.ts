@@ -1,4 +1,4 @@
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
+import { UcdFormatOptions } from '../../../compiler/deserialization/ucd-process-format.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
@@ -14,13 +14,13 @@ export function ucFormatPlainText(options?: UcPlainTextOptions): UcOmniConstrain
 export function ucFormatPlainText({ raw }: UcPlainTextOptions = {}): UcOmniConstraints {
   return {
     deserializer: {
-      use: 'ucdProcessInset',
+      use: 'ucdProcessFormat',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcPlainTextLexer',
         from: CHURI_MODULE,
         args: raw ? [`true`] : undefined,
-      } satisfies UcdInsetOptions,
+      } satisfies UcdFormatOptions,
     },
     serializer: {
       use: 'ucsProcessPlainText',

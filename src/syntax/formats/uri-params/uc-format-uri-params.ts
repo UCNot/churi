@@ -1,5 +1,5 @@
 import { esStringLiteral } from 'esgen';
-import { UcdInsetOptions } from '../../../compiler/deserialization/ucd-process-inset.js';
+import { UcdFormatOptions } from '../../../compiler/deserialization/ucd-process-format.js';
 import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 import { UcFormatName } from '../../../schema/uc-presentations.js';
@@ -18,13 +18,13 @@ export function ucFormatURIParams(options?: UcURIParamsOptions): UcOmniConstrain
 
   return {
     deserializer: {
-      use: 'ucdProcessInset',
+      use: 'ucdProcessFormat',
       from: COMPILER_MODULE,
       with: {
         lexer: 'UcURIParamsLexer',
         from: CHURI_MODULE,
         args: splitter ? [esStringLiteral(splitter)] : undefined,
-      } satisfies UcdInsetOptions,
+      } satisfies UcdFormatOptions,
     },
     serializer: [
       {

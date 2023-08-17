@@ -62,6 +62,7 @@ export function ucTestProcessSubRecord(boot: UccTestBootstrap): UccFeature.Handl
 export function recordUcTestData(boot: UccTestBootstrap, options?: unknown): void {
   boot.record({
     processor: boot.currentProcessor,
+    entry: boot.currentEntry,
     schema: boot.currentSchema,
     presentation: boot.currentPresentation,
     constraint: boot.currentConstraint,

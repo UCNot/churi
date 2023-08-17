@@ -1,10 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { esline } from 'esgen';
-import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
-import { ucList } from '../../../schema/list/uc-list.js';
-import { ucMap } from '../../../schema/map/uc-map.js';
-import { ucString } from '../../../schema/string/uc-string.js';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
 import {
   UC_TOKEN_CLOSING_PARENTHESIS,
@@ -14,7 +8,6 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UcToken,
 } from '../../uc-token.js';
-import { ucFormatPlainText } from '../plain-text/uc-format-plain-text.js';
 import { UcURIParamsLexer } from './uc-uri-params.lexer.js';
 
 describe('UcURIParamsLexer', () => {
@@ -111,71 +104,6 @@ describe('UcURIParamsLexer', () => {
       UC_TOKEN_INSET_END,
       UC_TOKEN_CLOSING_PARENTHESIS,
     ]);
-  });
-  it('permits custom inset', async () => {
-    const compiler = new UcdCompiler({
-      models: {
-        readParams: {
-          model: ucMap({
-            foo: ucString({
-              within: {
-                uriParam: ucFormatPlainText(),
-              },
-            }),
-            bar: ucList(ucString()),
-          }),
-          mode: 'sync',
-          inset({ emit }) {
-            const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
-
-            return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
-          },
-        },
-      },
-      presentations: ['uriParam', 'charge'],
-    });
-
-    const { readParams } = await compiler.evaluate();
-
-    expect(
-      readParams(scanUcTokens(emit => new UcURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
-    ).toEqual({
-      foo: '1,2,3',
-      bar: ['4', '5', '6'],
-    });
-  });
-  it('uses default custom inset', async () => {
-    const compiler = new UcdCompiler({
-      models: {
-        readParams: {
-          model: ucMap({
-            foo: ucString({
-              where: ucFormatPlainText(),
-              within: {
-                charge: ucFormatPlainText({ raw: true }),
-              },
-            }),
-            bar: ucList(ucString()),
-          }),
-          mode: 'sync',
-          inset({ emit }) {
-            const UcChargeLexer = UC_MODULE_CHURI.import('UcChargeLexer');
-
-            return esline`return ${UcChargeLexer}.plusAsSpace(${emit});`;
-          },
-        },
-      },
-      presentations: ['uriParam', 'charge'],
-    });
-
-    const { readParams } = await compiler.evaluate();
-
-    expect(
-      readParams(scanUcTokens(emit => new UcURIParamsLexer(emit), 'foo=1,2,3&bar=4,+5+,6+')),
-    ).toEqual({
-      foo: '1,2,3',
-      bar: ['4', '5', '6'],
-    });
   });
 
   function scan(...input: string[]): UcToken[] {

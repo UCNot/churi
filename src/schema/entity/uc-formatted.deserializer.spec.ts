@@ -23,7 +23,11 @@ describe('UcFormatted deserializer', () => {
   it('recognizes by custom prefix', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readString: { model: String, mode: 'sync' },
+        readString: {
+          model: String,
+          mode: 'sync',
+          byTokens: true,
+        },
       },
       features: [ucdProcessPrimitives, ucdProcessPlainEntity],
     });
@@ -34,7 +38,11 @@ describe('UcFormatted deserializer', () => {
   it('closes hanging parentheses', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readString: { model: String, mode: 'async' },
+        readString: {
+          model: String,
+          mode: 'async',
+          byTokens: true,
+        },
       },
       features: [ucdProcessPrimitives, ucdProcessPlainEntity],
     });
@@ -47,7 +55,11 @@ describe('UcFormatted deserializer', () => {
   it('extends base ucrx', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readTimestamp: { model: Number, mode: 'sync' },
+        readTimestamp: {
+          model: Number,
+          mode: 'sync',
+          byTokens: true,
+        },
       },
       features: [ucdProcessPrimitives, ucdProcessTimestampFormat],
     });
@@ -71,7 +83,11 @@ describe('UcFormatted deserializer', () => {
   it('does not recognize unknown format', async () => {
     const compiler = new UcdCompiler({
       models: {
-        readNumber: { model: Number, mode: 'sync' },
+        readNumber: {
+          model: Number,
+          mode: 'sync',
+          byTokens: true,
+        },
       },
       features: ucdProcessPrimitives,
     });

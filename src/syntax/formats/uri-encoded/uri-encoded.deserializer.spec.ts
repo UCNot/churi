@@ -1,13 +1,12 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { esline } from 'esgen';
 import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
 import { UcDeserializer } from '../../../schema/uc-deserializer.js';
 import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
 import { readChunks } from '../../../spec/read-chunks.js';
 import { scanUcTokens } from '../../scan-uc-tokens.js';
 import { UcToken } from '../../uc-token.js';
+import { ucFormatURIParams } from '../uri-params/uc-format-uri-params.js';
 import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
 import { ucFormatURIEncoded } from './uc-format-uri-encoded.js';
 
@@ -19,14 +18,16 @@ describe('URI-encoded deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded() } }),
-            }),
-            lexer: ({ emit }) => {
-              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
-
-              return esline`return new ${Lexer}(${emit})`;
-            },
+            model: ucMap(
+              {
+                a: ucUnknown({
+                  within: { uriParam: ucFormatURIEncoded() },
+                }),
+              },
+              {
+                where: ucFormatURIParams(),
+              },
+            ),
           },
         },
       });
@@ -48,14 +49,16 @@ describe('URI-encoded deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded({ raw: true }) } }),
-            }),
-            lexer: ({ emit }) => {
-              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
-
-              return esline`return new ${Lexer}(${emit})`;
-            },
+            model: ucMap(
+              {
+                a: ucUnknown({
+                  within: { uriParam: ucFormatURIEncoded({ raw: true }) },
+                }),
+              },
+              {
+                where: ucFormatURIParams(),
+              },
+            ),
           },
         },
       });
@@ -82,15 +85,17 @@ describe('URI-encoded deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucMap({
-              a: ucUnknown({ within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true }) } }),
-            }),
+            model: ucMap(
+              {
+                a: ucUnknown({
+                  within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true }) },
+                }),
+              },
+              {
+                where: ucFormatURIParams(),
+              },
+            ),
             mode: 'async',
-            lexer: ({ emit }) => {
-              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
-
-              return esline`return new ${Lexer}(${emit})`;
-            },
           },
         },
       });
@@ -112,17 +117,17 @@ describe('URI-encoded deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucMap({
-              a: ucUnknown({
-                within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true, raw: true }) },
-              }),
-            }),
+            model: ucMap(
+              {
+                a: ucUnknown({
+                  within: { uriParam: ucFormatURIEncoded({ plusAsSpace: true, raw: true }) },
+                }),
+              },
+              {
+                where: ucFormatURIParams(),
+              },
+            ),
             mode: 'sync',
-            lexer: ({ emit }) => {
-              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
-
-              return esline`return new ${Lexer}(${emit})`;
-            },
           },
         },
       });

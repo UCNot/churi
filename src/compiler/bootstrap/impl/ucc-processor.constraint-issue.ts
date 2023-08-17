@@ -10,6 +10,7 @@ export class UccProcessor$ConstraintIssue<out TOptions> implements UccProcessor$
 
   constructor(
     readonly processor: UcProcessorName,
+    readonly entry: string | undefined,
     readonly schema: UcSchema,
     readonly within: UcPresentationName | undefined,
     readonly constraint: UcSchemaConstraint,

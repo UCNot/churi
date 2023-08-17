@@ -54,7 +54,7 @@ export namespace UccFeature {
    */
   export interface Handle<in TOptions = void> {
     /**
-     * Inspects schema and {@link UccBootstrap#processSchema processes} its nested models, if any.
+     * Inspects schema and {@link UccBootstrap#processModel processes} its nested models, if any.
      *
      * When declared, this method is called at most once per schema and before any constraints applied. This may be
      * necessary in order to {@link UccBootstrap#onConstraint override} constraints.
@@ -86,7 +86,15 @@ export namespace UccFeature {
     readonly processor: UcProcessorName;
 
     /**
-     * Target schema to constrain.
+     * Constrained schema entry. This may be e.g. a serializer or deserializer name.
+     *
+     * `undefined` for nested schema. This happens e.g. when model processed
+     *  {@link UccBootstrap#processModel explicitly} rather automatically.
+     */
+    readonly entry: string | undefined;
+
+    /**
+     * Constrained schema.
      */
     readonly schema: TSchema;
 

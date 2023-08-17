@@ -1,7 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
-import { esline } from 'esgen';
 import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
 import { ucList } from '../../../schema/list/uc-list.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
 import { UcNumber, ucNumber } from '../../../schema/numeric/uc-number.js';
@@ -19,7 +17,7 @@ import {
   UC_TOKEN_OPENING_PARENTHESIS,
   UC_TOKEN_PREFIX_SPACE,
 } from '../../uc-token.js';
-import { UcPlainTextLexer } from './uc-plain-text.lexer.js';
+import { ucFormatPlainText } from './uc-format-plain-text.js';
 
 describe('plain text deserializer', () => {
   let errors: UcErrorInfo[];
@@ -39,12 +37,12 @@ describe('plain text deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucUnknown(),
-            inset({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
-
-              return esline`return new ${Lexer}(${emit});`;
-            },
+            model: ucUnknown({
+              within: {
+                inset: ucFormatPlainText(),
+              },
+            }),
+            byTokens: true,
           },
         },
       });
@@ -74,12 +72,12 @@ describe('plain text deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readList: {
-            model: ucList<UcString>(ucString()),
-            inset({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
-
-              return esline`return new ${Lexer}(${emit});`;
-            },
+            model: ucList<UcString>(ucString(), {
+              within: {
+                inset: ucFormatPlainText(),
+              },
+            }),
+            byTokens: true,
           },
         },
       });
@@ -129,16 +127,19 @@ describe('plain text deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readMap: {
-            model: ucMap({
-              foo: ucNumber(),
-              bar: ucString(),
-              baz: ucString(),
-            }),
-            inset({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
-
-              return esline`return new ${Lexer}(${emit});`;
-            },
+            model: ucMap(
+              {
+                foo: ucNumber(),
+                bar: ucString(),
+                baz: ucString(),
+              },
+              {
+                within: {
+                  inset: ucFormatPlainText(),
+                },
+              },
+            ),
+            byTokens: true,
           },
         },
       });
@@ -208,12 +209,12 @@ describe('plain text deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucUnknown(),
-            inset({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcPlainTextLexer.name);
-
-              return esline`return new ${Lexer}(${emit}, true);`;
-            },
+            model: ucUnknown({
+              within: {
+                inset: ucFormatPlainText({ raw: true }),
+              },
+            }),
+            byTokens: true,
           },
         },
       });
@@ -242,7 +243,10 @@ describe('plain text deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucString() },
+          readValue: {
+            model: ucString(),
+            byTokens: true,
+          },
         },
       });
 

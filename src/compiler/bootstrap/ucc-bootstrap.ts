@@ -2,6 +2,7 @@ import { UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from './ucc-feature.js';
+import { UccSchemaIndex } from './ucc-schema-index.js';
 
 /**
  * Schema {@link UccProcessor processing} bootstrap.
@@ -12,9 +13,22 @@ import { UccFeature } from './ucc-feature.js';
  */
 export interface UccBootstrap<in out TBoot extends UccBootstrap<TBoot>> {
   /**
+   * Schema index used to uniquely identify schemas.
+   */
+  get schemaIndex(): UccSchemaIndex;
+
+  /**
    * Currently working schema processor name.
    */
   get currentProcessor(): UcProcessorName | undefined;
+
+  /**
+   * Currently processed schema entry. This may be e.g. a serializer or deserializer name.
+   *
+   * `undefined` when processing nested schema. This happens e.g. when model processed
+   * {@link UccBootstrap#processModel explicitly} rather automatically.
+   */
+  get currentEntry(): string | undefined;
 
   /**
    * Currently processed schema, if any

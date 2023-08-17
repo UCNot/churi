@@ -1,7 +1,6 @@
 import { UcFormatName } from '../../schema/uc-presentations.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UccBootstrap } from '../bootstrap/ucc-bootstrap.js';
-import { UccSchemaIndex } from '../bootstrap/ucc-schema-index.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetWrapper } from './ucs-inset-formatter.js';
 import { CreateUcsWriterExpr } from './ucs-writer.class.js';
@@ -10,11 +9,6 @@ import { CreateUcsWriterExpr } from './ucs-writer.class.js';
  * Schema {@link UcsCompiler serializer} bootstrap.
  */
 export interface UcsBootstrap extends UccBootstrap<UcsBootstrap> {
-  /**
-   * Schema index used to uniquely identify schemas.
-   */
-  get schemaIndex(): UccSchemaIndex;
-
   /**
    * Assigns formatter or format to use for `target` value type or schema.
    *

@@ -1,13 +1,10 @@
 import { beforeAll, describe, expect, it } from '@jest/globals';
-import { esline } from 'esgen';
 import { UcdCompiler } from '../../../compiler/deserialization/ucd-compiler.js';
-import { UC_MODULE_CHURI } from '../../../compiler/impl/uc-modules.js';
 import { ucMap } from '../../../schema/map/uc-map.js';
 import { UcDeserializer } from '../../../schema/uc-deserializer.js';
 import { ucUnknown } from '../../../schema/unknown/uc-unknown.js';
-import { UcURIParamsLexer } from '../uri-params/uc-uri-params.lexer.js';
+import { ucFormatURIParams } from '../uri-params/uc-format-uri-params.js';
 import { ucFormatJSON } from './uc-format-json.js';
-import { UcJSONLexer } from './uc-json.lexer.js';
 
 describe('JSON deserializer', () => {
   describe('at top level', () => {
@@ -17,12 +14,7 @@ describe('JSON deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucUnknown(),
-            lexer({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcJSONLexer.name);
-
-              return esline`return new ${Lexer}(${emit});`;
-            },
+            model: ucUnknown({ where: ucFormatJSON() }),
           },
         },
       });
@@ -52,18 +44,18 @@ describe('JSON deserializer', () => {
       const compiler = new UcdCompiler({
         models: {
           readValue: {
-            model: ucMap({
-              test: ucUnknown({
-                within: {
-                  uriParam: ucFormatJSON(),
-                },
-              }),
-            }),
-            lexer({ emit }) {
-              const Lexer = UC_MODULE_CHURI.import(UcURIParamsLexer.name);
-
-              return esline`return new ${Lexer}(${emit});`;
-            },
+            model: ucMap(
+              {
+                test: ucUnknown({
+                  within: {
+                    uriParam: ucFormatJSON(),
+                  },
+                }),
+              },
+              {
+                where: ucFormatURIParams(),
+              },
+            ),
           },
         },
       });

@@ -22,7 +22,10 @@ describe('UcBigInt deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: BigInt },
+          readValue: {
+            model: BigInt,
+            byTokens: true,
+          },
         },
       });
 
@@ -132,7 +135,10 @@ describe('UcBigInt deserializer', () => {
       beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
-            readValue: { model: ucBigInt({ string: 'reject' }) },
+            readValue: {
+              model: ucBigInt({ string: 'reject' }),
+              byTokens: true,
+            },
           },
         });
 
@@ -172,7 +178,10 @@ describe('UcBigInt deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucNullable(BigInt) },
+          readValue: {
+            model: ucNullable(BigInt),
+            byTokens: true,
+          },
         },
       });
 
@@ -194,7 +203,10 @@ describe('UcBigInt deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readValue: { model: ucBigInt({ number: 'reject' }) },
+          readValue: {
+            model: ucBigInt({ number: 'reject' }),
+            byTokens: true,
+          },
         },
       });
 
@@ -292,7 +304,10 @@ describe('UcBigInt deserializer', () => {
       beforeAll(async () => {
         const compiler = new UcdCompiler({
           models: {
-            readValue: { model: ucBigInt({ string: 'reject', number: 'reject' }) },
+            readValue: {
+              model: ucBigInt({ string: 'reject', number: 'reject' }),
+              byTokens: true,
+            },
           },
         });
 

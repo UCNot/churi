@@ -31,6 +31,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
   implements UcsBootstrap {
 
   readonly #options: UcsCompiler.Options<TModels>;
+  readonly #exportRequests = new Map<string, UcsFunction$ExportRequest>();
   readonly #presentations = new Map<
     UcsPresentationId,
     Map<string | UcDataType, UcsPresentationConfig>
@@ -71,7 +72,24 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       this.#presentationFor(id, format, target).formatTypeWith(formatter);
     }
 
+    const { currentEntry } = this;
+
+    if (currentEntry) {
+      this.#exportRequestFor(currentEntry).format = format;
+    }
+
     return this;
+  }
+
+  #exportRequestFor(externalName: string): UcsFunction$ExportRequest {
+    let request = this.#exportRequests.get(externalName);
+
+    if (!request) {
+      request = { externalName };
+      this.#exportRequests.set(externalName, request);
+    }
+
+    return request;
   }
 
   #presentationId(format: UcFormatName): UcsPresentationId {
@@ -219,6 +237,7 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
       createSerializer(options) {
         return new UcsFunction(options);
       },
+      requestExport: this.#exportRequestFor.bind(this),
     };
   }
 
@@ -302,3 +321,7 @@ interface UcsFormatConfig {
   insetWrapper?: UcsInsetWrapper | undefined;
   createWriter?: CreateUcsWriterExpr | undefined;
 }
+
+type UcsFunction$ExportRequest = {
+  -readonly [key in keyof UcsFunction.ExportRequest]: UcsFunction.ExportRequest[key];
+};

@@ -89,12 +89,13 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
   }
 
   exportFn(
-    externalName: string,
+    request: UcsFunction.ExportRequest,
     entry: UcsModels.Entry<TSchema>,
   ): EsFunction<UcsExportSignature.Args>;
+
   exportFn(
-    externalName: string,
-    { format = 'charge' }: UcsModels.Entry<TSchema>,
+    { externalName, format = 'charge' }: UcsFunction.ExportRequest,
+    _entry: UcsModels.Entry<TSchema>,
   ): EsFunction<UcsExportSignature.Args> {
     return new EsFunction(externalName, UcsExportSignature, {
       declare: {
@@ -142,6 +143,11 @@ export namespace UcsFunction {
     readonly schema: TSchema;
 
     createWriterFor?: ((format: UcFormatName) => CreateUcsWriterExpr | undefined) | undefined;
+  }
+
+  export interface ExportRequest {
+    readonly externalName: string;
+    readonly format?: UcFormatName | undefined;
   }
 }
 

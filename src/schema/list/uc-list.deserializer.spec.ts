@@ -27,7 +27,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<number>(Number) },
+          readList: {
+            model: ucList<number>(Number),
+            byTokens: true,
+          },
         },
       });
 
@@ -101,7 +104,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<number>(Number, { single: 'accept' }) },
+          readList: {
+            model: ucList<number>(Number, { single: 'accept' }),
+            byTokens: true,
+          },
         },
       });
 
@@ -121,7 +127,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucNullable(ucList<number>(Number, { single: 'accept' })) },
+          readList: {
+            model: ucNullable(ucList<number>(Number, { single: 'accept' })),
+            byTokens: true,
+          },
         },
       });
 
@@ -146,7 +155,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<boolean>(Boolean) },
+          readList: {
+            model: ucList<boolean>(Boolean),
+            byTokens: true,
+          },
         },
       });
 
@@ -164,7 +176,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<string>(String) },
+          readList: {
+            model: ucList<string>(String),
+            byTokens: true,
+          },
         },
       });
 
@@ -189,6 +204,7 @@ describe('UcList deserializer', () => {
         models: {
           readList: {
             model: ucList<{ foo: string }>(ucMap<{ foo: UcModel<string> }>({ foo: String })),
+            byTokens: true,
           },
         },
       });
@@ -270,7 +286,10 @@ describe('UcList deserializer', () => {
       const nullableNumber = ucNullable<number>(Number);
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucList<number | null>(nullableNumber) },
+          readList: {
+            model: ucList<number | null>(nullableNumber),
+            byTokens: true,
+          },
         },
       });
 
@@ -306,7 +325,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucNullable(ucList<number>(Number)) },
+          readList: {
+            model: ucNullable(ucList<number>(Number)),
+            byTokens: true,
+          },
         },
       });
 
@@ -360,7 +382,10 @@ describe('UcList deserializer', () => {
       const nullableNumber = ucNullable<number>(Number);
       const compiler = new UcdCompiler({
         models: {
-          readList: { model: ucNullable(ucList<number | null>(nullableNumber)) },
+          readList: {
+            model: ucNullable(ucList<number | null>(nullableNumber)),
+            byTokens: true,
+          },
         },
       });
 
@@ -393,7 +418,10 @@ describe('UcList deserializer', () => {
     beforeAll(async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: { model: ucList<number[]>(ucList<number>(Number)) },
+          readMatrix: {
+            model: ucList<number[]>(ucList<number>(Number)),
+            byTokens: true,
+          },
         },
       });
 
@@ -437,7 +465,10 @@ describe('UcList deserializer', () => {
     it('deserializes deeply nested lists', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readCube: { model: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))) },
+          readCube: {
+            model: ucList<number[][]>(ucList<number[]>(ucList<number>(Number))),
+            byTokens: true,
+          },
         },
       });
 
@@ -448,7 +479,10 @@ describe('UcList deserializer', () => {
     it('recognized empty item of nested list', async () => {
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: { model: ucList<string[]>(ucList<string>(String)) },
+          readMatrix: {
+            model: ucList<string[]>(ucList<string>(String)),
+            byTokens: true,
+          },
         },
       });
 
@@ -467,7 +501,10 @@ describe('UcList deserializer', () => {
       const list = ucList<number>(Number);
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: { model: ucList<number[] | null>(ucNullable(list)) },
+          readMatrix: {
+            model: ucList<number[] | null>(ucNullable(list)),
+            byTokens: true,
+          },
         },
       });
 
@@ -506,7 +543,10 @@ describe('UcList deserializer', () => {
       const matrix = ucList<number[]>(ucList<number>(Number));
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: { model: ucNullable(matrix) },
+          readMatrix: {
+            model: ucNullable(matrix),
+            byTokens: true,
+          },
         },
       });
 
@@ -554,7 +594,10 @@ describe('UcList deserializer', () => {
       const matrix = ucList<number[] | null>(ucNullable(list));
       const compiler = new UcdCompiler({
         models: {
-          readMatrix: { model: ucNullable(matrix) },
+          readMatrix: {
+            model: ucNullable(matrix),
+            byTokens: true,
+          },
         },
       });
 

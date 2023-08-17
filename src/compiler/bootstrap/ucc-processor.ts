@@ -21,7 +21,7 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   implements UccBootstrap<TBoot> {
 
   readonly #schemaIndex: UccSchemaIndex;
-  readonly #models: readonly UcModel[] | undefined;
+  readonly #models: readonly [string, UcModel][] | undefined;
   readonly #features: readonly UccFeature<TBoot, void>[] | undefined;
   readonly #getBoot = lazyValue(() => this.startBootstrap());
   readonly #constraintMapper: UccProcessor$ConstraintMapper<TBoot>;
@@ -42,9 +42,11 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     );
     this.#models =
       models
-      && Object.values<UccProcessor.Entry | undefined>(models)
-        .filter(isPresent)
-        .map(({ model }: UccProcessor.Entry) => model);
+      && Object.entries<UccProcessor.Entry | undefined>(models)
+        .map(
+          ([entryName, entry]): [string, UcModel] | undefined => entry && [entryName, entry.model],
+        )
+        .filter(isPresent);
 
     this.#features = features && asArray(features);
     this.#constraintMapper = new UccProcessor$ConstraintMapper<TBoot>();
@@ -62,6 +64,10 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
 
   get currentProcessor(): UcProcessorName | undefined {
     return this.#featureSet.current.processor;
+  }
+
+  get currentEntry(): string | undefined {
+    return this.#featureSet.current.entry;
   }
 
   get currentSchema(): UcSchema | undefined {
@@ -83,17 +89,22 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   }
 
   processModel<T>(model: UcModel<T>): this {
-    const schema = ucSchema(model);
-
-    this.#issueConstraints<T>(schema, undefined, schema.where);
-    for (const within of this.schemaIndex.listPresentations(schema.within)) {
-      this.#issueConstraints(schema, within, schema.within![within]);
-    }
+    this.#processModel(model);
 
     return this;
   }
 
+  #processModel<T>(model: UcModel<T>, entry?: string): void {
+    const schema = ucSchema(model);
+
+    this.#issueConstraints<T>(entry, schema, undefined, schema.where);
+    for (const within of this.schemaIndex.listPresentations(schema.within)) {
+      this.#issueConstraints(entry, schema, within, schema.within![within]);
+    }
+  }
+
   #issueConstraints<T>(
+    entry: string | undefined,
     schema: UcSchema<T>,
     within: UcPresentationName | undefined,
     constraints: UcConstraints<T> | undefined,
@@ -101,7 +112,7 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     for (const processor of this.schemaIndex.processors) {
       for (const constraint of asArray(constraints?.[processor])) {
         this.#issueConstraint(
-          new UccProcessor$ConstraintIssue(processor, schema, within, constraint),
+          new UccProcessor$ConstraintIssue(processor, entry, schema, within, constraint),
         );
       }
     }
@@ -157,8 +168,8 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
     const instructions = this.#pendingInstructions;
 
     this.#pendingInstructions = [];
-    this.#models?.forEach(model => {
-      this.processModel(model);
+    this.#models?.forEach(([entry, model]) => {
+      this.#processModel(model, entry);
     });
     this.#pendingInstructions.push(...instructions);
   }

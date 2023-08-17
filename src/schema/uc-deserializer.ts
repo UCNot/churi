@@ -5,7 +5,6 @@ import { UcToken } from '../syntax/uc-token.js';
 import { UcBundle } from './uc-bundle.js';
 import { UcErrorInfo } from './uc-error.js';
 import { ucModelName } from './uc-model-name.js';
-import { UcFormatName } from './uc-presentations.js';
 import { UcModel } from './uc-schema.js';
 
 /**
@@ -214,11 +213,9 @@ export namespace UcDeserializer {
     readonly mode?: 'universal' | undefined;
 
     /**
-     * Expected format of the input.
-     *
-     * By default, expects data encoded with {@link UcChargeLexer URI Charge Notation}.
+     * Whether the deserializer expects tokens as input.
      */
-    readonly from?: UcFormatName | undefined;
+    readonly byTokens?: false | undefined;
   }
 
   /**
@@ -227,7 +224,7 @@ export namespace UcDeserializer {
   export interface ByTokensConfig extends BaseConfig {
     readonly mode?: 'universal' | undefined;
 
-    readonly from: 'tokens';
+    readonly byTokens: true;
   }
 
   /**
@@ -235,13 +232,6 @@ export namespace UcDeserializer {
    */
   export interface SyncConfig extends BaseConfig {
     readonly mode: 'sync';
-
-    /**
-     * Expected format of the input.
-     *
-     * By default, expects data encoded with {@link UcChargeLexer URI Charge Notation}.
-     */
-    readonly from?: UcFormatName | undefined;
   }
 
   /**
@@ -250,12 +240,7 @@ export namespace UcDeserializer {
   export interface AsyncConfig extends BaseConfig {
     readonly mode: 'async';
 
-    /**
-     * Expected format of the input.
-     *
-     * By default, expects data encoded with {@link UcChargeLexer URI Charge Notation}.
-     */
-    readonly from?: UcFormatName | undefined;
+    readonly byTokens?: false | undefined;
   }
 
   /**
@@ -264,7 +249,7 @@ export namespace UcDeserializer {
   export interface AsyncByTokensConfig extends BaseConfig {
     readonly mode: 'async';
 
-    readonly from: 'tokens';
+    readonly byTokens: true;
   }
 }
 

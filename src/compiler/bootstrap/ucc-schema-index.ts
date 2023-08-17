@@ -18,7 +18,7 @@ export class UccSchemaIndex {
     presentations: readonly UcPresentationName[],
   ) {
     this.#processors = processors;
-    this.#presentations = presentations;
+    this.#presentations = presentations.length ? [...new Set(presentations).add('inset')] : [];
   }
 
   get processors(): readonly UcProcessorName[] {
