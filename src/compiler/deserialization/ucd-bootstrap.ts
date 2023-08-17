@@ -10,9 +10,9 @@ import { UcdHandlerFeature } from './ucd-handler-feature.js';
  */
 export interface UcdBootstrap extends UcrxBootstrap<UcdBootstrap> {
   /**
-   * Assigns lexer to use for the given deserializer entry.
+   * Assigns lexer to use by the given deserializer entry.
    *
-   * @param entry - Deserializer entry name.
+   * @param entry - Target deserializer entry name.
    * @param createLexer - Lexer factory code generator.
    *
    * @return `this` instance.
