@@ -54,7 +54,7 @@ export namespace UccFeature {
    */
   export interface Handle<in TOptions = void> {
     /**
-     * Inspects schema and {@link UccBootstrap#processSchema processes} its nested models, if any.
+     * Inspects schema and {@link UccBootstrap#processModel processes} its nested models, if any.
      *
      * When declared, this method is called at most once per schema and before any constraints applied. This may be
      * necessary in order to {@link UccBootstrap#onConstraint override} constraints.

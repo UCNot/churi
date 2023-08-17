@@ -3,7 +3,7 @@ import { CHURI_MODULE, COMPILER_MODULE } from '../../../impl/module-names.js';
 import { UcOmniConstraints } from '../../../schema/uc-constraints.js';
 
 /**
- * Enables {@link UcJsonLexer JSON} format for schema or inset.
+ * Enables {@link UcJSONLexer JSON} format for schema or inset.
  *
  * @returns Schema constraints.
  */
