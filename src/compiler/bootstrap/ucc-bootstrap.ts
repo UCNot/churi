@@ -2,6 +2,7 @@ import { UcProcessorName, UcSchemaConstraint } from '../../schema/uc-constraints
 import { UcPresentationName } from '../../schema/uc-presentations.js';
 import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from './ucc-feature.js';
+import { UccSchemaIndex } from './ucc-schema-index.js';
 
 /**
  * Schema {@link UccProcessor processing} bootstrap.
@@ -11,6 +12,11 @@ import { UccFeature } from './ucc-feature.js';
  * @typeParam TBoot - Type of schema processing bootstrap.
  */
 export interface UccBootstrap<in out TBoot extends UccBootstrap<TBoot>> {
+  /**
+   * Schema index used to uniquely identify schemas.
+   */
+  get schemaIndex(): UccSchemaIndex;
+
   /**
    * Currently working schema processor name.
    */
