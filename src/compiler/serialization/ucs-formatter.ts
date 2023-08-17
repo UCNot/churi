@@ -15,6 +15,7 @@ import { UcSchema } from '../../schema/uc-schema.js';
  */
 export type UcsFormatter<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> = {
   format(
+    this: void,
     args: UcsFormatterSignature.AllValues,
     schema: TSchema,
     context: UcsFormatterContext,

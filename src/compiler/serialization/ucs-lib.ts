@@ -65,7 +65,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     for (const [externalName, entry] of Object.entries<UcsSchemaConfig>(this.#models)) {
       const fn = this.serializerFor(entry.model);
 
-      ns.refer(fn.exportFn(externalName, entry));
+      ns.refer(fn.exportFn(this.#options.requestExport(externalName), entry));
     }
 
     return this;
@@ -153,6 +153,8 @@ export namespace UcsLib {
       this: void,
       options: UcsFunction.Options<T, TSchema>,
     ): UcsFunction<T, TSchema>;
+
+    requestExport(entry: string): UcsFunction.ExportRequest;
   }
 }
 
