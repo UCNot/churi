@@ -4,11 +4,7 @@ import { UC_MODULE_SERIALIZER } from '../../impl/uc-modules.js';
 import { UcsFormatter } from '../ucs-formatter.js';
 
 export function ucsFormatCharge<T>(formatter: UcsFormatter<T>): UcsFormatter<T> {
-  return (args, schema, context) => {
-    const onValue = formatter(args, schema, context);
-
-    return onValue && ucsCheckCharge(args, schema, onValue);
-  };
+  return (args, schema, context) => ucsCheckCharge(args, schema, formatter(args, schema, context));
 }
 
 export function ucsCheckCharge(

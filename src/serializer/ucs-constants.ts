@@ -16,6 +16,10 @@ export const UCS_FALSE = /*#__PURE__*/ new Uint8Array([0x2d]); // `-`
 export const UCS_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x30, 0x6e]); // `0n`
 export const UCS_NEGATIVE_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x2d, 0x30, 0x6e]); // `-0n`
 
+export const UCS_JSON_NULL = /*#__PURE__*/ asciiToBin('null');
+export const UCS_JSON_TRUE = /*#__PURE__*/ asciiToBin('true');
+export const UCS_JSON_FALSE = /*#__PURE__*/ asciiToBin('false');
+
 function asciiToBin(value: string): Uint8Array {
   return new Uint8Array(value.split('').map(char => char.charCodeAt(0)));
 }

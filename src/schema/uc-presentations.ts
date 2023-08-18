@@ -41,6 +41,11 @@ export interface UcFormatPresentations<
   readonly charge?: UcConstraints<T, TSchema> | undefined;
 
   /**
+   * Constraints for schema instance represented as {@link UcJSONLexer JSON}.
+   */
+  readonly json?: UcConstraints<T, TSchema> | undefined;
+
+  /**
    * Constraints for schema instance represented as {@link UcPlainTextLexer plain text}.
    */
   readonly plainText?: UcConstraints<T, TSchema> | undefined;

@@ -86,6 +86,15 @@ export namespace UcBigInt {
    * - `'reject'` to reject the input numbers without `0n` prefix. This is the default behavior for schema-less
    *   processing, but not when BigInt expected by schema.
    *
+   * For JSON this setting is ignored when {@link Varian#string string} option is set to `'serialize`'. Otherwise,
+   * it can be one of:
+   *
+   * - `'serialize'` serializes BigInt values as numbers. Note that receiver may fail to handle big values in this case.
+   *   ChURI is ok.
+   * - `'auto'` or `undefined` (the default) is the same as `'serialize'` if the value can be represented as number,
+   *   i.e. it is between [MIN_SAFE_INTEGER] and [MAX_SAFE_INTEGER]. Otherwise, it is represented as string.
+   * - `'parse'` and `'reject'` mean the same as `'auto'`.
+   *
    * [MIN_SAFE_INTEGER]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
    * [MAX_SAFE_INTEGER]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
    */
