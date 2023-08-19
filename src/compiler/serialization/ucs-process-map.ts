@@ -12,7 +12,7 @@ import { UcMap } from '../../schema/map/uc-map.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
 import { ucOptional } from '../../schema/uc-optional.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
 import { UC_MODULE_SERIALIZER } from '../impl/uc-modules.js';
@@ -29,7 +29,6 @@ export function ucsProcessMap(boot: UcsBootstrap): UccFeature.Handle {
       Object.values(entries).forEach(entrySchema => boot.processModel(entrySchema));
       // istanbul ignore next
       if (extra) {
-        // TODO Implement extra entries serialization.
         boot.processModel(extra);
       }
     },
@@ -37,9 +36,9 @@ export function ucsProcessMap(boot: UcsBootstrap): UccFeature.Handle {
   };
 }
 
-function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
+function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel, TExtraModel extends UcModel | false>(
   { writer, value }: UcsFormatterSignature.AllValues,
-  schema: UcMap.Schema<TEntriesModel>,
+  schema: UcMap.Schema<TEntriesModel, TExtraModel>,
   context: UcsFormatterContext,
 ): EsSnippet {
   return (code, scope) => {
@@ -131,12 +130,15 @@ function ucsWriteMap<TEntriesModel extends UcMap.EntriesModel>(
       );
     }
 
+    // TODO serialize extra entries
+
     code.write(endMap);
   };
 }
 
-function ucsMapMayBeEmpty<TEntriesModel extends UcMap.EntriesModel>(
-  schema: UcMap.Schema<TEntriesModel>,
-): boolean {
+function ucsMapMayBeEmpty<
+  TEntriesModel extends UcMap.EntriesModel,
+  TExtraModel extends UcModel | false,
+>(schema: UcMap.Schema<TEntriesModel, TExtraModel>): boolean {
   return Object.values<UcSchema>(schema.entries).some(({ optional }) => optional);
 }

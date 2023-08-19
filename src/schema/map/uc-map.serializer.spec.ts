@@ -195,7 +195,7 @@ describe('UcMap serializer', () => {
       TextOutStream.read(async to => await writeMap(to, { first: undefined, '': 'test' })),
     ).resolves.toBe('$(test)');
   });
-  it('does not serialize unrecognized schema', async () => {
+  it('fails to serialize unrecognized entry schema', async () => {
     const compiler = new UcsCompiler({
       models: {
         writeMap: {
