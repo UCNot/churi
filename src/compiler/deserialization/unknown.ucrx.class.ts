@@ -211,7 +211,7 @@ export class UnknownUcrxClass extends UcrxClass {
           code
             .write(esline`if (${mapRx}) {`)
             .indent(
-              res.declare({ value: () => esline`${mapRx}.map(${cx})` }),
+              res.const({ value: () => esline`${mapRx}.map(${cx})` }),
               esline`${this.#mapRx.set('this', 'undefined')};`,
               esline`return ${res};`,
             )

@@ -1,4 +1,4 @@
-import { EsCode, EsSnippet, EsVarKind, EsVarSymbol, esline } from 'esgen';
+import { EsCode, EsSnippet, EsVarSymbol, esline } from 'esgen';
 import { UcrxSetterSignature } from '../rx/ucrx-setter.js';
 
 export function ucvValidate(
@@ -51,7 +51,7 @@ class UcvValidationSnippet {
       if (this.#validations.length > 1) {
         const invalid = new EsVarSymbol('invalid');
 
-        code.write(invalid.declare({ as: EsVarKind.Let, value: () => '0' }));
+        code.write(invalid.let({ value: () => '0' }));
         for (const validate of this.#validations) {
           code.write(
             validate({

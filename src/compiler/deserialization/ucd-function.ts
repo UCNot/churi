@@ -1,13 +1,4 @@
-import {
-  EsCallable,
-  EsCode,
-  EsFunction,
-  EsSnippet,
-  EsSymbol,
-  EsVarKind,
-  EsVarSymbol,
-  esline,
-} from 'esgen';
+import { EsCallable, EsCode, EsFunction, EsSnippet, EsSymbol, EsVarSymbol, esline } from 'esgen';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 import { UnsupportedUcSchemaError } from '../common/unsupported-uc-schema.error.js';
@@ -148,9 +139,9 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       const reader = new EsVarSymbol('reader');
 
       code
-        .write(result.declare({ as: EsVarKind.Let }))
+        .write(result.let())
         .write(
-          reader.declare({
+          reader.const({
             value: () => mode === 'async'
                 ? this.#createAsyncReader(createLexer, args)
                 : this.#createSyncReader(createLexer, args),
@@ -180,8 +171,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
       const set = esline`$ => { ${result} = $; }`;
 
       code
-        .write(result.declare({ as: EsVarKind.Let }))
-        .write(syncReader.declare({ value: () => this.#createSyncReader(createLexer, args) }))
+        .write(result.let())
+        .write(syncReader.const({ value: () => this.#createSyncReader(createLexer, args) }))
         .write(esline`if (${syncReader}) {`)
         .indent(code => {
           code
@@ -197,7 +188,7 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             .write('return result;');
         })
         .write(`}`)
-        .write(reader.declare({ value: () => this.#createAsyncReader(createLexer, args) }))
+        .write(reader.const({ value: () => this.#createAsyncReader(createLexer, args) }))
         .write(
           esline`return ${reader}.read(${this.ucrxClass.instantiate({
             set,

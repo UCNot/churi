@@ -53,7 +53,7 @@ export class NumberUcrxClass extends UcrxClass<UcrxSignature.Args, UcNumber, UcN
             const ucrxRejectType = UC_MODULE_CHURI.import('ucrxRejectType');
 
             code
-              .write(number.declare({ value: () => esline`Number(${value})` }))
+              .write(number.const({ value: () => esline`Number(${value})` }))
               .write(esline`if (Number.isNaN(${number}) && ${value} !== 'NaN') {`)
               .indent(esline`return ${cx}.reject(${ucrxRejectType}('string', this));`)
               .write('}');

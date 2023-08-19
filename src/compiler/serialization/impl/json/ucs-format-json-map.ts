@@ -1,4 +1,4 @@
-import { EsSnippet, EsVarKind, EsVarSymbol, esEscapeString, esMemberAccessor, esline } from 'esgen';
+import { EsSnippet, EsVarSymbol, esEscapeString, esMemberAccessor, esline } from 'esgen';
 import { UcMap } from '../../../../schema/map/uc-map.js';
 import { ucModelName } from '../../../../schema/uc-model-name.js';
 import { ucNullable } from '../../../../schema/uc-nullable.js';
@@ -108,7 +108,7 @@ export function ucsFormatJSONMap<
         }
       }
 
-      code.write(entryValue.declare(), entryIdx.declare({ as: EsVarKind.Let, value: () => '0' }));
+      code.write(entryValue.let(), entryIdx.let({ value: () => '0' }));
 
       for (const [entryKey, entrySchema] of Object.entries<UcSchema>(entries)) {
         code.write(esline`${entryValue} = ${value}${esMemberAccessor(entryKey).accessor};`);
