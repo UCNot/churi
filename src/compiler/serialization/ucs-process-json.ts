@@ -11,6 +11,7 @@ import { ucsFormatJSONList } from './impl/json/ucs-format-json-list.js';
 import { ucsFormatJSONMap } from './impl/json/ucs-format-json-map.js';
 import { ucsFormatJSONInteger, ucsFormatJSONNumber } from './impl/json/ucs-format-json-numeric.js';
 import { ucsFormatJSONString } from './impl/json/ucs-format-json-string.js';
+import { ucsFormatJSONUnknown } from './impl/json/ucs-format-json-unknown.js';
 import { ucsFormatJSON } from './impl/json/ucs-format-json.js';
 import { UcsBootstrap } from './ucs-bootstrap.js';
 import { ucsProcessBigInt } from './ucs-process-bigint.js';
@@ -95,5 +96,6 @@ function ucsProcessJSONDefaults(boot: UcsBootstrap): void {
     .formatWith('json', Boolean, ucsFormatJSON(ucsFormatJSONBoolean()))
     .formatWith('json', 'integer', ucsFormatJSONInteger())
     .formatWith('json', Number, ucsFormatJSONNumber())
-    .formatWith('json', String, ucsFormatJSONString());
+    .formatWith('json', String, ucsFormatJSONString())
+    .formatWith('json', 'unknown', ucsFormatJSONUnknown());
 }
