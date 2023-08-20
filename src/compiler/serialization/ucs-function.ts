@@ -14,20 +14,38 @@ import { CreateUcsWriterExpr, UcsWriterClass, UcsWriterSignature } from './ucs-w
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
 
   readonly #schema: TSchema;
-  readonly #createWriterFor: UcsFunction.Options<T, TSchema>['createWriterFor'];
+  readonly #createWriter: UcsFunction.Options<T, TSchema>['createWriter'];
   readonly #formats = new Map<
     UcFormatName | `${UcInsetName}(${UcFormatName})`,
     UcsFunction$Context
   >();
 
+  #associations?: Map<UcsFunction.Association<unknown, T, TSchema, this>, unknown>;
+
   constructor(options: UcsFunction.Options<T, TSchema>);
-  constructor({ schema, createWriterFor }: UcsFunction.Options<T, TSchema>) {
+  constructor({ schema, createWriter }: UcsFunction.Options<T, TSchema>) {
     this.#schema = schema;
-    this.#createWriterFor = createWriterFor;
+    this.#createWriter = createWriter;
   }
 
   get schema(): TSchema {
     return this.#schema;
+  }
+
+  associate<TAssoc>(associate: UcsFunction.Association<TAssoc, T, TSchema, this>): TAssoc {
+    let association: TAssoc | undefined;
+
+    if (!this.#associations) {
+      this.#associations = new Map();
+    } else {
+      association = this.#associations.get(associate) as TAssoc | undefined;
+    }
+    if (!association) {
+      association = associate(this);
+      this.#associations.set(associate, association);
+    }
+
+    return association;
   }
 
   format(
@@ -108,7 +126,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             code
               .line(
                 writer.const({
-                  value: () => (this.#createWriterFor?.(format) ?? UcsFunction$createWriter)(
+                  value: () => (this.#createWriter?.(format) ?? UcsFunction$createWriter)(
                       { stream, options },
                       this,
                     ),
@@ -142,13 +160,20 @@ export namespace UcsFunction {
   export interface Options<out T, out TSchema extends UcSchema<T>> {
     readonly schema: TSchema;
 
-    createWriterFor?: ((format: UcFormatName) => CreateUcsWriterExpr | undefined) | undefined;
+    createWriter?: ((format: UcFormatName) => CreateUcsWriterExpr | undefined) | undefined;
   }
 
   export interface ExportRequest {
     readonly externalName: string;
     readonly format?: UcFormatName | undefined;
   }
+
+  export type Association<
+    out TAssoc = unknown,
+    out T = unknown,
+    out TSchema extends UcSchema<T> = UcSchema<T>,
+    in TTarget extends UcsFunction<T, TSchema> = UcsFunction<T, TSchema>,
+  > = { associate(target: TTarget): TAssoc }['associate'];
 }
 
 function UcsFunction$createWriter(args: UcsWriterSignature.Values): EsSnippet {

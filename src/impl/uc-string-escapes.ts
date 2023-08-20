@@ -24,5 +24,5 @@ export function isEscapedUcString(value: string, escaped = UC_ESCAPED): boolean 
 export const UC_KEY_ESCAPED = /*#__PURE__*/ new ASCIICharSet("!$'");
 
 export function prefixUcKey(escaped: string): string {
-  return UC_KEY_ESCAPED.prefixes(escaped) ? `$${escaped}` : escaped;
+  return escaped ? (UC_KEY_ESCAPED.prefixes(escaped) ? `$${escaped}` : escaped) : '$';
 }

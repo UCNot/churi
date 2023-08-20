@@ -1,4 +1,4 @@
-import { encodeUcsString } from '../impl/encode-ucs-string.js';
+import { ucsEncodeString } from '../impl/encode-ucs-string.js';
 import { UcSerializer } from '../schema/uc-serializer.js';
 import { UcsMemory } from './ucs-memory.js';
 
@@ -15,7 +15,7 @@ export class UcsWriter {
   constructor(stream: WritableStream<Uint8Array>, options?: UcsWriter.Options);
   constructor(
     stream: WritableStream<Uint8Array>,
-    { encodeURI = encodeUcsString, data = {} }: UcsWriter.Options = {},
+    { encodeURI = ucsEncodeString, data = {} }: UcsWriter.Options = {},
   ) {
     this.#writer = stream.getWriter();
     this.#encodeURI = encodeURI;

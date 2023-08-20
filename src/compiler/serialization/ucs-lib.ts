@@ -78,7 +78,7 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
     if (!serializer) {
       serializer = this.#createSerializer({
         schema,
-        createWriterFor: this.#options.createWriter,
+        createWriter: this.#options.createWriter,
       });
       this.#serializers.set(schemaId, serializer);
     }
@@ -100,15 +100,20 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
   }
 
   binConst(value: string): EsSymbol {
-    const encoder = (this.#textEncoder ??= esConst('TEXT_ENCODER', 'new TextEncoder()'));
+    let binConst = this.#binConstants.get(value);
 
-    const existing = this.#binConstants.get(value);
-
-    if (existing) {
-      return existing;
+    if (!binConst) {
+      binConst = this.#createBinConst(value);
+      this.#binConstants.set(value, binConst);
     }
 
-    const newConst = new EsVarSymbol(`EP_${value}`, {
+    return binConst;
+  }
+
+  #createBinConst(value: string): EsSymbol {
+    const encoder = (this.#textEncoder ??= esConst('TEXT_ENCODER', 'new TextEncoder()'));
+
+    return new EsVarSymbol(`EP_${value}`, {
       declare: {
         at: 'bundle',
         as: EsVarKind.Const,
@@ -116,10 +121,6 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
         refers: encoder,
       },
     });
-
-    this.#binConstants.set(value, newConst);
-
-    return newConst;
   }
 
 }

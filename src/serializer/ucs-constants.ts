@@ -6,6 +6,7 @@ export const UCS_COMMA = /*#__PURE__*/ new Uint8Array([0x2c]); // `,`
 export const UCS_EMPTY_LIST = /*#__PURE__*/ new Uint8Array([0x28, 0x29]); // `()`
 export const UCS_EMPTY_MAP = /*#__PURE__*/ new Uint8Array([0x24]); // `$`
 export const UCS_EMPTY_ENTRY_PREFIX = /*#__PURE__*/ new Uint8Array([0x24, 0x28]); // `$(`
+export const UCS_EMPTY_NEXT_ENTRY_PREFIX = /*#__PURE__*/ new Uint8Array([0x29, 0x24, 0x28]); // `)$(`
 export const UCS_NULL = /*#__PURE__*/ new Uint8Array([0x2d, 0x2d]); // `--`
 export const UCS_NULL_ENTRY_VALUE = /*#__PURE__*/ new Uint8Array([0x2d, 0x2d, 0x29]); // `--)`
 export const UCS_NAN_ENTITY = /*#__PURE__*/ asciiToBin('!NaN');
