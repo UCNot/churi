@@ -6,7 +6,6 @@ import {
   EsMethod,
   EsSnippet,
   EsSymbol,
-  EsVarKind,
   EsVarSymbol,
   esQuoteKey,
   esline,
@@ -204,7 +203,7 @@ export class MapUcrxClass<
           const entry = new EsVarSymbol('entry');
 
           code.write(
-            entry.declare({
+            entry.const({
               value: () => code => {
                 code.write(esline`${entries}[${key}]`);
                 if (extra) {
@@ -229,7 +228,7 @@ export class MapUcrxClass<
             const rx = new EsVarSymbol('rx');
 
             code.write(
-              rx.declare({
+              rx.const({
                 value: () => this.#createEntryRx(args, entry),
               }),
             );
@@ -271,8 +270,7 @@ export class MapUcrxClass<
 
             code
               .write(
-                rx.declare({
-                  as: EsVarKind.Let,
+                rx.let({
                   value: () => esline`${rxs.get('this')}[${key}]`,
                 }),
               )

@@ -3,7 +3,6 @@ import {
   EsFunctionKind,
   EsSignature,
   EsSnippet,
-  EsVarKind,
   EsVarSymbol,
   esImport,
   esMemberAccessor,
@@ -72,8 +71,8 @@ export function ucsProcessURIParams(
               const key = new EsVarSymbol('key');
 
               code.write(
-                keyIdx.declare({ as: EsVarKind.Let, value: () => '0' }),
-                key.declare(),
+                keyIdx.let({ value: () => '0' }),
+                key.let(),
                 uriParams$writeKey.declare({
                   as: EsFunctionKind.Const,
                   async: true,
@@ -104,7 +103,7 @@ export function ucsProcessURIParams(
 
                   code
                     .write(
-                      currentValue.declare({
+                      currentValue.const({
                         value: () => esline`${value}${esMemberAccessor(entryKey).accessor}`,
                       }),
                     )

@@ -1,4 +1,4 @@
-import { EsSnippet, EsVarKind, EsVarSymbol, esline } from 'esgen';
+import { EsSnippet, EsVarSymbol, esline } from 'esgen';
 import { UcList } from '../../schema/list/uc-list.js';
 import { ucModelName } from '../../schema/uc-model-name.js';
 import { ucNullable } from '../../schema/uc-nullable.js';
@@ -90,7 +90,7 @@ function ucsWriteListItems<TItem, TItemModel extends UcModel<TItem>>(
     const itemWritten = new EsVarSymbol(`itemWritten`);
 
     code
-      .line(itemWritten.declare({ as: EsVarKind.Let, value: () => 'false' }), ';')
+      .line(itemWritten.let({ value: () => 'false' }), ';')
       .write(esline`for (const ${itemValue} of ${value}) {`)
       .indent(
         esline`await ${writer}.ready;`,

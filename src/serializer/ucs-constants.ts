@@ -16,6 +16,17 @@ export const UCS_FALSE = /*#__PURE__*/ new Uint8Array([0x2d]); // `-`
 export const UCS_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x30, 0x6e]); // `0n`
 export const UCS_NEGATIVE_BIGINT_PREFIX = /*#__PURE__*/ new Uint8Array([0x2d, 0x30, 0x6e]); // `-0n`
 
+export const UCS_OPENING_BRACKET = /*#__PURE__*/ new Uint8Array([0x5b]); // `[`
+export const UCS_CLOSING_BRACKET = /*#__PURE__*/ new Uint8Array([0x5d]); // `]`
+export const UCS_OPENING_BRACE = /*#__PURE__*/ new Uint8Array([0x7b]); // `{`
+export const UCS_CLOSING_BRACE = /*#__PURE__*/ new Uint8Array([0x7d]); // `}`
+
+export const UCS_JSON_NULL = /*#__PURE__*/ asciiToBin('null');
+export const UCS_JSON_TRUE = /*#__PURE__*/ asciiToBin('true');
+export const UCS_JSON_FALSE = /*#__PURE__*/ asciiToBin('false');
+export const UCS_JSON_EMPTY_ARRAY = /*#__PURE__*/ new Uint8Array([0x5b, 0x5d]); // `[]`
+export const UCS_JSON_EMPTY_OBJECT = /*#__PURE__*/ new Uint8Array([0x7b, 0x7d]); // `{}`
+
 function asciiToBin(value: string): Uint8Array {
   return new Uint8Array(value.split('').map(char => char.charCodeAt(0)));
 }

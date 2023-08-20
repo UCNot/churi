@@ -11,6 +11,7 @@ export * from './ucs-process-boolean.js';
 export * from './ucs-process-charge.js';
 export * from './ucs-process-defaults.js';
 export * from './ucs-process-integer.js';
+export * from './ucs-process-json.js';
 export * from './ucs-process-list.js';
 export * from './ucs-process-map.js';
 export * from './ucs-process-number.js';

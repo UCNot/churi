@@ -17,5 +17,9 @@ export function ucFormatJSON(): UcOmniConstraints {
         from: CHURI_MODULE,
       } satisfies UcdFormatOptions,
     },
+    serializer: {
+      use: 'ucsProcessJSON',
+      from: COMPILER_MODULE,
+    },
   };
 }
