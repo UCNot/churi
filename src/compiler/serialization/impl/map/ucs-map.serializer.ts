@@ -79,16 +79,20 @@ export abstract class UcsMapSerializer<
 
   #writeEntries(entryList: [string, UcSchema][]): EsSnippet {
     const entryValue = new EsVarSymbol('entryValue');
+    const writeAllEntries = entryList.map(([entryKey, entrySchema]): EsSnippet => {
+      const writeEntry = this.#writeEntry(entryKey, entryValue, entrySchema);
+
+      return code => {
+        code.write(
+          esline`${entryValue} = ${this.#value}${esMemberAccessor(entryKey).accessor};`,
+          writeEntry,
+        );
+      };
+    });
 
     return code => {
       code.write(entryValue.let());
-
-      for (const [entryKey, entrySchema] of entryList) {
-        code.write(
-          esline`${entryValue} = ${this.#value}${esMemberAccessor(entryKey).accessor};`,
-          this.#writeEntry(entryKey, entryValue, entrySchema),
-        );
-      }
+      code.write(...writeAllEntries);
     };
   }
 
@@ -182,7 +186,7 @@ export abstract class UcsMapSerializer<
     entryKey: string,
     entrySchema: UcSchema,
   ): EsSnippet {
-    return this.#context.format(
+    return this.context.format(
       ucOptional(ucNullable(entrySchema, false), false),
       args,
       (schema, context) => {
@@ -283,7 +287,7 @@ export abstract class UcsMapSerializer<
     args: UcsFormatterSignature.AllValues,
     extraSchema: UcSchema,
   ): EsSnippet {
-    return this.#context.format(extraSchema, args, (schema, context) => {
+    return this.context.format(extraSchema, args, (schema, context) => {
       throw new UnsupportedUcSchemaError(
         schema,
         `${context}: Can not serialize extra entry of type "${ucModelName(schema)}"`,

@@ -243,7 +243,7 @@ describe('UcMap serializer', () => {
     );
   });
 
-  describe('extra', () => {
+  describe('extra entries', () => {
     it('serializes map with only extra items', async () => {
       const compiler = new UcsCompiler({
         models: {
@@ -261,8 +261,8 @@ describe('UcMap serializer', () => {
       const { writeMap } = await compiler.evaluate();
 
       await expect(
-        TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: '123' })),
-      ).resolves.toBe("foo(test)bar('123)");
+        TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: '123', '': 'some' })),
+      ).resolves.toBe("foo(test)bar('123)$(some)");
     });
     it('serializes map with required and extra items', async () => {
       const schema = ucMap<{ first: UcDataType<number> }, UcDataType<string>>(
@@ -337,6 +337,47 @@ describe('UcMap serializer', () => {
       expect(error?.message).toBe(
         'map$charge(writer, value, asItem?): Can not serialize extra entry of type "test-type"',
       );
+    });
+    it('reuses map keys', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeFirst: {
+            model: ucMap(
+              {
+                first: Number,
+              },
+              {
+                extra: String,
+              },
+            ),
+          },
+          writeSecond: {
+            model: ucMap(
+              {
+                first: Boolean,
+              },
+              {
+                extra: String,
+              },
+            ),
+          },
+        },
+      });
+
+      const text = await compiler.generate();
+      const re = /const Map\$keys/g;
+
+      expect(re.exec(text)).toBeTruthy();
+      expect(re.exec(text)).toBeNull();
+
+      const { writeFirst, writeSecond } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeFirst(to, { first: 12, foo: 'test' })),
+      ).resolves.toBe('first(12)foo(test)');
+      await expect(
+        TextOutStream.read(async to => await writeSecond(to, { first: true, foo: 'test' })),
+      ).resolves.toBe('first(!)foo(test)');
     });
   });
 });

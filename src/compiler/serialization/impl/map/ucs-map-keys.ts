@@ -1,6 +1,6 @@
 import { EsVarKind, EsVarSymbol, esMemberAccessor, esline } from 'esgen';
 import { UcMap } from '../../../../schema/map/uc-map.js';
-import { UcModel } from '../../../../schema/uc-schema.js';
+import { UcModel, UcSchema } from '../../../../schema/uc-schema.js';
 import { ucSchemaTypeSymbol } from '../../../impl/uc-schema-symbol.js';
 import { UcsFunction } from '../../ucs-function.js';
 import { UcsLib } from '../../ucs-lib.js';
@@ -10,17 +10,16 @@ export function ucsMapKeys<
   TExtraModel extends UcModel | false,
 >(lib: UcsLib, schema: UcMap.Schema<TEntriesModel, TExtraModel>): EsVarSymbol | null {
   return lib
-    .serializerFor<
-      UcMap.Infer<TEntriesModel, TExtraModel>,
-      UcMap.Schema<TEntriesModel, TExtraModel>
-    >({
-      // Associate with vanilla schema without constraints as the latter have no effect.
-      ...schema,
-      where: undefined,
-      within: undefined,
-      nullable: false,
-      optional: false,
-    })
+    .serializerFor({
+      // Associate with schema with entries only.
+      type: 'map',
+      entries: Object.fromEntries(
+        Object.keys(schema.entries).map(
+          entryKey => [entryKey, { type: 'none' } satisfies UcSchema] as const,
+        ),
+      ),
+      extra: false,
+    } satisfies UcMap.Schema)
     .associate(ucsAssociateMapKeys);
 }
 
@@ -34,12 +33,7 @@ function ucsAssociateMapKeys<
   >,
 ): EsVarSymbol | null {
   const { schema } = target;
-  const { entries, extra } = schema;
-
-  if (!extra) {
-    return null;
-  }
-
+  const { entries } = schema;
   const keys = Object.keys(entries);
 
   if (!keys.length) {
