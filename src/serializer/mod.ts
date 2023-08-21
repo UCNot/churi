@@ -6,6 +6,7 @@
  * @module churi/serializer.js
  */
 export * from './ucs-constants.js';
+export * from './ucs-encode-key.js';
 export * from './ucs-memory.js';
 export * from './ucs-write-asis.js';
 export * from './ucs-write-bigint.js';

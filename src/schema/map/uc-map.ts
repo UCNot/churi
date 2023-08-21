@@ -37,13 +37,26 @@ export namespace UcMap {
   export type Infer<
     TEntriesModel extends EntriesModel,
     TExtraModel extends UcModel | false = false,
-  > = {
+  > = TExtraModel extends UcModel<any>
+    ? /* This should be AND rather OR, but TypeScript (as of v5.1) does not support this properly. */
+      | InferExplicit<TEntriesModel>
+        | {
+            [key in ExtraKeys<TEntriesModel>]?: UcInfer<TExtraModel>;
+          }
+    : InferExplicit<TEntriesModel>;
+
+  /**
+   * Type of object containing explicitly specified entries within {@link Schema map model}.
+   *
+   * Does not contain {@link ExtraOptions#extra extra entries}.
+   *
+   * @typeParam TEntriesModel - Per-entry model type.
+   */
+  export type InferExplicit<TEntriesModel extends EntriesModel> = {
     -readonly [key in RequiredKeys<TEntriesModel>]: UcInfer<TEntriesModel[key]>;
   } & {
     -readonly [key in OptionalKeys<TEntriesModel>]?: UcInfer<TEntriesModel[key]>;
-  } & (TExtraModel extends UcModel<any>
-      ? { [key in Exclude<string, keyof TEntriesModel>]: UcInfer<TExtraModel> }
-      : { [key in never]: never });
+  };
 
   export type Required<
     TEntriesModel extends EntriesModel,
@@ -60,6 +73,7 @@ export namespace UcMap {
     TKey extends keyof TEntriesModel = keyof TEntriesModel,
   > = undefined extends UcInfer<TEntriesModel[TKey]> ? TKey : never;
 
+  // Does not work as expected (as of TypeScript v5.1)!
   export type ExtraKeys<TEntriesModel extends EntriesModel> = Exclude<string, keyof TEntriesModel>;
 
   /**

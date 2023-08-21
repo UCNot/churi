@@ -5,6 +5,7 @@ import { TextOutStream } from '../../spec/text-out-stream.js';
 import { ucList } from '../list/uc-list.js';
 import { ucNullable } from '../uc-nullable.js';
 import { ucOptional } from '../uc-optional.js';
+import { UcDataType } from '../uc-schema.js';
 import { ucMap } from './uc-map.js';
 
 describe('UcMap serializer', () => {
@@ -174,6 +175,27 @@ describe('UcMap serializer', () => {
       TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
     ).resolves.toBe('first(1)$(test)');
   });
+  it('serializes entry with empty key following optional key', async () => {
+    const compiler = new UcsCompiler({
+      models: {
+        writeMap: {
+          model: ucMap({
+            first: ucOptional(Number),
+            '': String,
+          }),
+        },
+      },
+    });
+
+    const { writeMap } = await compiler.evaluate();
+
+    await expect(
+      TextOutStream.read(async to => await writeMap(to, { first: 1, '': 'test' })),
+    ).resolves.toBe('first(1)$(test)');
+    await expect(TextOutStream.read(async to => await writeMap(to, { '': 'test' }))).resolves.toBe(
+      '$(test)',
+    );
+  });
   it('serializes second entry with empty key when first one is optional', async () => {
     const compiler = new UcsCompiler({
       models: {
@@ -219,5 +241,143 @@ describe('UcMap serializer', () => {
     expect(error?.message).toBe(
       'map$charge(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
+  });
+
+  describe('extra entries', () => {
+    it('serializes map with only extra items', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: ucMap(
+              {},
+              {
+                extra: String,
+              },
+            ),
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { foo: 'test', bar: '123', '': 'some' })),
+      ).resolves.toBe("foo(test)bar('123)$(some)");
+    });
+    it('serializes map with required and extra items', async () => {
+      const schema = ucMap<{ first: UcDataType<number> }, UcDataType<string>>(
+        {
+          first: Number,
+        },
+        {
+          extra: String,
+        },
+      );
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: schema,
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { first: 12, foo: 'test', bar: '123' })),
+      ).resolves.toBe("first(12)foo(test)bar('123)");
+    });
+    it('serializes map with nullable and extra items', async () => {
+      const schema = ucMap(
+        {
+          first: Number,
+        },
+        {
+          extra: ucNullable<string>(String),
+        },
+      );
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: schema,
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeMap(to, { first: 12, foo: null, bar: '123' })),
+      ).resolves.toBe("first(12)foo(--)bar('123)");
+    });
+    it('fails to serialize unrecognized extra entry schema', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: ucMap(
+              {},
+              {
+                extra: { type: 'test-type' },
+              },
+            ),
+          },
+        },
+      });
+
+      let error: UnsupportedUcSchemaError | undefined;
+
+      try {
+        await compiler.evaluate();
+      } catch (e) {
+        error = e as UnsupportedUcSchemaError;
+      }
+
+      expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect(error?.schema.type).toBe('test-type');
+      expect(error?.message).toBe(
+        'map$charge(writer, value, asItem?): Can not serialize extra entry of type "test-type"',
+      );
+    });
+    it('reuses map keys', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeFirst: {
+            model: ucMap(
+              {
+                first: Number,
+              },
+              {
+                extra: String,
+              },
+            ),
+          },
+          writeSecond: {
+            model: ucMap(
+              {
+                first: Boolean,
+              },
+              {
+                extra: String,
+              },
+            ),
+          },
+        },
+      });
+
+      const text = await compiler.generate();
+      const re = /const Map\$keys/g;
+
+      expect(re.exec(text)).toBeTruthy();
+      expect(re.exec(text)).toBeNull();
+
+      const { writeFirst, writeSecond } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeFirst(to, { first: 12, foo: 'test' })),
+      ).resolves.toBe('first(12)foo(test)');
+      await expect(
+        TextOutStream.read(async to => await writeSecond(to, { first: true, foo: 'test' })),
+      ).resolves.toBe('first(!)foo(test)');
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { isEscapedUcsString } from '../impl/encode-ucs-string.js';
+import { isUcsEscapedString } from '../impl/encode-ucs-string.js';
 import { UCS_APOSTROPHE, UCS_ESCAPED_DOUBLE_HYPHEN } from './ucs-constants.js';
 import { ucsWriteAsIs } from './ucs-write-asis.js';
 import { UcsWriter } from './ucs-writer.js';
@@ -20,7 +20,7 @@ export async function ucsWriteString(
 
   const encoded = writer.encodeURI(value);
 
-  if (isEscapedUcsString(encoded)) {
+  if (isUcsEscapedString(encoded)) {
     // Always needs to be escaped.
     writer.write(UCS_APOSTROPHE);
   }

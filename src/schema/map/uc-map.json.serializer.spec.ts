@@ -224,4 +224,109 @@ describe('UcMap JSON serializer', () => {
       'map$json(writer, value, asItem?): Can not serialize entry "test" of type "test-type"',
     );
   });
+
+  describe('extra entries', () => {
+    it('serializes map with only extra items', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: ucMap(
+              {},
+              {
+                extra: String,
+                where: ucFormatJSON(),
+              },
+            ),
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+
+      const value = { foo: 'test', bar: '123' };
+
+      await expect(TextOutStream.read(async to => await writeMap(to, value))).resolves.toBe(
+        JSON.stringify(value),
+      );
+    });
+    it('serializes map with required and extra items', async () => {
+      const schema = ucMap(
+        {
+          first: Number,
+        },
+        {
+          extra: String,
+          where: ucFormatJSON(),
+        },
+      );
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: schema,
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+      const value = { first: 12, foo: 'test', bar: '123' };
+
+      await expect(TextOutStream.read(async to => await writeMap(to, value))).resolves.toBe(
+        JSON.stringify(value),
+      );
+    });
+    it('serializes map with nullable and extra items', async () => {
+      const schema = ucMap(
+        {
+          first: Number,
+        },
+        {
+          extra: ucNullable<string>(String),
+          where: ucFormatJSON(),
+        },
+      );
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: schema,
+          },
+        },
+      });
+
+      const { writeMap } = await compiler.evaluate();
+      const value = { first: 12, foo: null, bar: '123' };
+
+      await expect(TextOutStream.read(async to => await writeMap(to, value))).resolves.toBe(
+        JSON.stringify(value),
+      );
+    });
+    it('fails to serialize unrecognized extra entry schema', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeMap: {
+            model: ucMap(
+              {},
+              {
+                extra: { type: 'test-type' },
+                where: ucFormatJSON(),
+              },
+            ),
+          },
+        },
+      });
+
+      let error: UnsupportedUcSchemaError | undefined;
+
+      try {
+        await compiler.evaluate();
+      } catch (e) {
+        error = e as UnsupportedUcSchemaError;
+      }
+
+      expect(error).toBeInstanceOf(UnsupportedUcSchemaError);
+      expect(error?.schema.type).toBe('test-type');
+      expect(error?.message).toBe(
+        'map$json(writer, value, asItem?): Can not serialize extra entry of type "test-type"',
+      );
+    });
+  });
 });

@@ -7,16 +7,20 @@ export function ucsFormatCharge<T>(formatter: UcsFormatter<T>): UcsFormatter<T> 
   return (args, schema, context) => ucsCheckCharge(args, schema, formatter(args, schema, context));
 }
 
+export function ucsWriteNull(writer: EsSnippet): EsSnippet {
+  return code => {
+    const ucsNull = UC_MODULE_SERIALIZER.import('UCS_NULL');
+
+    code.write(esline`await ${writer}.ready;`, esline`${writer}.write(${ucsNull})`);
+  };
+}
+
 export function ucsCheckCharge(
   { writer, value }: { readonly writer: EsSnippet; readonly value: EsSnippet },
   schema: UcSchema,
   onValue: EsSnippet,
   {
-    onNull = code => {
-      const ucsNull = UC_MODULE_SERIALIZER.import('UCS_NULL');
-
-      code.write(esline`await ${writer}.ready;`, esline`${writer}.write(${ucsNull})`);
-    },
+    onNull = ucsWriteNull(writer),
   }: {
     readonly onNull?: EsSnippet;
   } = {},

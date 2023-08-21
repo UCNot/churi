@@ -10,7 +10,7 @@ import { ucString } from '../string/uc-string.js';
 import { UcDeserializer } from '../uc-deserializer.js';
 import { UcError, UcErrorInfo } from '../uc-error.js';
 import { ucNullable } from '../uc-nullable.js';
-import { ucOptional } from '../uc-optional.js';
+import { UcOptional, ucOptional } from '../uc-optional.js';
 import { UcDataType, UcModel } from '../uc-schema.js';
 import { UcMap, ucMap } from './uc-map.js';
 
@@ -459,7 +459,7 @@ describe('UcMap deserializer', () => {
 
   describe('extra entries', () => {
     let readMap: UcDeserializer.ByTokens<
-      { length: number } & { [key in Exclude<string, 'foo'>]: string }
+      UcMap.Infer<{ length: UcDataType<number> }, UcDataType<string>>
     >;
 
     beforeAll(async () => {
@@ -523,7 +523,7 @@ describe('UcMap deserializer', () => {
 
   describe('optional entries', () => {
     let readMap: UcDeserializer.ByTokens<
-      { length?: number | undefined } & { [key in Exclude<string, 'foo'>]: string }
+      UcMap.Infer<{ length: UcOptional<UcDataType<number>> }, UcDataType<string>>
     >;
 
     beforeAll(async () => {
@@ -532,10 +532,10 @@ describe('UcMap deserializer', () => {
           readMap: {
             model: ucMap(
               {
-                length: ucOptional<number>(Number),
+                length: ucOptional(Number),
               },
               {
-                extra: String as UcDataType<string>,
+                extra: String,
               },
             ),
             byTokens: true,
