@@ -14,10 +14,11 @@ import { UcList } from '../../schema/list/uc-list.js';
 import { UcMap } from '../../schema/map/uc-map.js';
 import { ucOptional } from '../../schema/uc-optional.js';
 import { UcFormatName, UcPresentationName } from '../../schema/uc-presentations.js';
-import { UcSchema } from '../../schema/uc-schema.js';
+import { UcModel, UcSchema } from '../../schema/uc-schema.js';
 import { UcURIParamsOptions } from '../../syntax/formats/uri-params/uc-format-uri-params.js';
 import { UccFeature } from '../bootstrap/ucc-feature.js';
 import { UccSchemaMap } from '../bootstrap/ucc-schema-map.js';
+import { ucsMapKeys } from './impl/map/ucs-map-keys.js';
 import { UcsBootstrap } from './ucs-bootstrap.js';
 import { UcsFormatter } from './ucs-formatter.js';
 import { UcsInsetContext, UcsInsetFormatter } from './ucs-inset-formatter.js';
@@ -63,10 +64,10 @@ export function ucsProcessURIParams(
         .formatWith(
           'uriParams',
           'map',
-          ({ writer, value }, schema: UcMap.Schema, cx) => (code, scope) => {
+          ({ writer, value }, schema: UcMap.Schema<UcMap.EntriesModel, UcModel | false>, cx) => (code, scope) => {
               const { splitter } = getSchemaOptions(schema, within);
               const lib = scope.get(UcsLib);
-              const { entries } = schema;
+              const { entries, extra } = schema;
               const keyIdx = new EsVarSymbol('keyIdx');
               const key = new EsVarSymbol('key');
 
@@ -116,6 +117,53 @@ export function ucsProcessURIParams(
                   );
                 }
               }
+
+              if (extra) {
+                const names = scope.ns.names.nest();
+                const keys = ucsMapKeys(lib, schema);
+                const extraKey = names.reserveName('extraKey');
+                const extraValue = names.reserveName('extraValue');
+                const encodeKey = esImport('httongue', encodeURISearchPart.name);
+                const writeEntryWithValue =
+                  (extraSchema: UcSchema): EsSnippet => code => {
+                    code.write(
+                      esline`${key} = ${writer}.encoder.encode(\`${splitter}\${${encodeKey}(${extraKey})}=\`);`,
+                      cx.formatInset('uriParam', extraSchema, {
+                        writer,
+                        value: extraValue,
+                        asItem: '0',
+                      }),
+                    );
+                  };
+                const writeEntry = (): EsSnippet => {
+                  if (!extra.optional) {
+                    return writeEntryWithValue(extra);
+                  }
+
+                  return code => {
+                    code
+                      .write(esline`if (${extraValue} !== undefined) {`)
+                      .indent(writeEntryWithValue(ucOptional(extra, false)))
+                      .write('}');
+                  };
+                };
+
+                code
+                  .write(
+                    esline`for (const [${extraKey}, ${extraValue}] of Object.entries(${value})) {`,
+                  )
+                  .indent(code => {
+                    if (keys) {
+                      code
+                        .write(esline`if (!(${extraKey} in ${keys})) {`)
+                        .indent(writeEntry())
+                        .write('}');
+                    } else {
+                      code.write(writeEntry());
+                    }
+                  })
+                  .write('}');
+              }
             },
         )
         .modifyInsets('uriParams', 'map', modifyURIParam);
@@ -163,7 +211,13 @@ export function ucsProcessURIParams(
   }
 }
 
-const uriParams$writeKey = new EsFunction<EsSignature.NoArgs>('writeKey', {});
+const uriParams$writeKey = new EsFunction<EsSignature.NoArgs>(
+  'writeKey',
+  {},
+  {
+    unique: false,
+  },
+);
 
 function modifyURIParamList<T, TSchema extends UcSchema<T>>({
   lib,

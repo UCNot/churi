@@ -408,4 +408,73 @@ describe('URI params serializer', () => {
       ).resolves.toBe('');
     });
   });
+
+  describe('extra entries', () => {
+    it('serializes map with extra entries only', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeParams: {
+            model: ucMap(
+              {},
+              {
+                extra: ucNumber(),
+                where: ucFormatURIParams(),
+              },
+            ),
+          },
+        },
+      });
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(async to => await writeParams(to, { test1: 1, test2: 2 })),
+      ).resolves.toBe('test1=1&test2=2');
+    });
+    it('serializes map with extra entries following explicit ones', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeParams: {
+            model: ucMap(
+              {
+                first: ucString(),
+              },
+              {
+                extra: ucNumber(),
+                where: ucFormatURIParams(),
+              },
+            ),
+          },
+        },
+      });
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(
+          async to => await writeParams(to, { first: 'test', test1: 1, test2: 2 }),
+        ),
+      ).resolves.toBe('first=test&test1=1&test2=2');
+    });
+    it('serializes optional extra entries', async () => {
+      const compiler = new UcsCompiler({
+        models: {
+          writeParams: {
+            model: ucMap(
+              {},
+              {
+                extra: ucOptional(ucNumber()),
+                where: ucFormatURIParams(),
+              },
+            ),
+          },
+        },
+      });
+      const { writeParams } = await compiler.evaluate();
+
+      await expect(
+        TextOutStream.read(
+          async to => await writeParams(to, { first: undefined, test1: 1, test2: 2 }),
+        ),
+      ).resolves.toBe('test1=1&test2=2');
+    });
+  });
 });
