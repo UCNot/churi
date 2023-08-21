@@ -1,6 +1,6 @@
 import { EsCode, EsSnippet, EsVarSymbol } from 'esgen';
 
-export class UcsEntryIdx {
+export class UcsMapEntryIdx {
 
   readonly #declaration = new EsCode();
   readonly #postIncrement = new EsCode();

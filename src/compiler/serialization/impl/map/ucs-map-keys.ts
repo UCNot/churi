@@ -1,9 +1,9 @@
 import { EsVarKind, EsVarSymbol, esMemberAccessor, esline } from 'esgen';
-import { UcMap } from '../../../schema/map/uc-map.js';
-import { UcModel } from '../../../schema/uc-schema.js';
-import { ucSchemaTypeSymbol } from '../../impl/uc-schema-symbol.js';
-import { UcsFunction } from '../ucs-function.js';
-import { UcsLib } from '../ucs-lib.js';
+import { UcMap } from '../../../../schema/map/uc-map.js';
+import { UcModel } from '../../../../schema/uc-schema.js';
+import { ucSchemaTypeSymbol } from '../../../impl/uc-schema-symbol.js';
+import { UcsFunction } from '../../ucs-function.js';
+import { UcsLib } from '../../ucs-lib.js';
 
 export function ucsMapKeys<
   TEntriesModel extends UcMap.EntriesModel,
