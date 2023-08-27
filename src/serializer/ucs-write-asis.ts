@@ -11,7 +11,7 @@ export async function ucsWriteAsIs(writer: UcsWriter, value: string): Promise<vo
       writer.write(buffer);
       await writer.written();
 
-      if (read! >= value.length) {
+      if (read >= value.length) {
         return false;
       }
 
