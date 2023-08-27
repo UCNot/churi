@@ -86,7 +86,7 @@ export namespace UcBigInt {
    * - `'reject'` to reject the input numbers without `0n` prefix. This is the default behavior for schema-less
    *   processing, but not when BigInt expected by schema.
    *
-   * For JSON this setting is ignored when {@link Varian#string string} option is set to `'serialize`'. Otherwise,
+   * For JSON this setting is ignored when {@link Variant#string string} option is set to `'serialize`'. Otherwise,
    * it can be one of:
    *
    * - `'serialize'` serializes BigInt values as numbers. Note that receiver may fail to handle big values in this case.
