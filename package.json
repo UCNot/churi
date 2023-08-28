@@ -13,15 +13,15 @@
     "url",
     "validator"
   ],
-  "homepage": "https://github.com/hatsyjs/churi",
+  "homepage": "https://github.com/UCNot/churi",
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com:hatsyjs/churi.git"
+    "url": "ssh://git@github.com:UCNot/churi.git"
   },
   "license": "MIT",
   "author": "Ruslan Lopatin <ruslan.lopatin@gmail.com>",
   "bugs": {
-    "url": "https://github.com/hatsyjs/churi/issues"
+    "url": "https://github.com/UCNot/churi/issues"
   },
   "type": "module",
   "types": "./dist/churi.d.ts",
