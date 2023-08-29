@@ -1,11 +1,12 @@
 {
   "name": "churi",
   "version": "0.15.0-pre.0",
-  "description": "Charged URI syntax, URI Charge Notation, schema processor",
+  "description": "Multi-format schema-based serializer, deserializer and validator. Charged URI syntax. URI Charge Notation",
   "keywords": [
     "charged-uri",
+    "json-parser",
+    "json-serializer",
     "matrix-uri",
-    "matrix-url",
     "rfc3986",
     "schema",
     "uri",

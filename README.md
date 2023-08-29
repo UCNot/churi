@@ -1,4 +1,23 @@
-# Charged URI and URI Charge
+# ChURI
+
+ChURI is a polyglot serializer, deserializer and validator supporting various data formats.
+
+The data processing is based on data schemas. Schemas are written in TypeScript. ChURI compiles such schemas into
+efficient code implementing serializers, deserializers, and validators for the data conforming to those schemas.
+
+The main data format supported is URI Charge Notation, which is used to encode data included into URI. Such URI
+is called Charged URI, or ChURI.
+
+Other data formats supported out of the box:
+
+- JSON
+- `application/x-www-form-urlencoded` (URI query parameters)
+- URL-encoded
+- plain text
+
+Some formats support _insets_ containing data in another formats. For example, the `application/x-www-form-urlencoded`
+format allows query parameter values to be encoded as URL-encoded ones, as plain text, or as URI Charge. The choice
+is made by data schema.
 
 [![NPM][npm-image]][npm-url]
 [![Build Status][build-status-img]][build-status-link]
@@ -6,6 +25,8 @@
 [![Coverage][coverage-img]][coverage-link]
 [![GitHub Project][github-image]][github-url]
 [![API Documentation][api-docs-image]][api documentation]
+
+## Charged URI and URI Charge
 
 Charged URI (ChURI) may include arbitrary structured data. The data is encoded with [URI Charge] Notation.
 
@@ -40,9 +61,11 @@ This package provides:
 
 - [ChURI] class, which is a read-only [URL class] that grants access to charges.
 - URI [charging] utilities.
-- URI Charge Notation support:
-  - [Schema]-based parser, serializer, and validator.
-  - Schema-less parser and serializer.
+- [Schema]-based parser, serializer, and validator.
+- URI Charge Notation support
+- JSON support.
+- `application/x-www-form-urlencoded` format support.
+- Other formats support, such as plain text and URI-encoded values.
 
 [ChURI]: https://github.com/UCNot/churi/blob/master/doc/churi.md
 [charging]: https://github.com/UCNot/churi/blob/master/doc/churi.md#charging
