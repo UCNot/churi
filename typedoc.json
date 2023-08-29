@@ -9,7 +9,6 @@
   "name": "Charged URI",
   "out": "./target/typedoc",
   "compilerOptions": {
-    "module": 7 /* ES2022 */,
     "skipLibCheck": true
   },
   "externalSymbolLinkMappings": {
