@@ -12,13 +12,28 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <h2>Charged URI</h2></div>
-<div class="tsd-panel tsd-typography"><a id="md:charged-uri-and-uri-charge" class="tsd-anchor"></a><h1><a href="#md:charged-uri-and-uri-charge">Charged URI and URI Charge</a></h1><p><a href="https://www.npmjs.com/package/churi"><img src="https://img.shields.io/npm/v/churi.svg?logo=npm" alt="NPM"></a>
+<div class="tsd-panel tsd-typography"><a id="md:churi" class="tsd-anchor"></a><h1><a href="#md:churi">ChURI</a></h1><p>ChURI is a polyglot serializer, deserializer and validator supporting various data formats.</p>
+<p>The data processing is based on data schemas. Schemas are written in TypeScript. ChURI compiles such schemas into
+efficient code implementing serializers, deserializers, and validators for the data conforming to those schemas.</p>
+<p>The main data format supported is URI Charge Notation, which is used to encode data included into URI. Such URI
+is called Charged URI, or ChURI.</p>
+<p>Other data formats supported out of the box:</p>
+<ul>
+<li>JSON</li>
+<li><code>application/x-www-form-urlencoded</code> (URI query parameters)</li>
+<li>URL-encoded</li>
+<li>plain text</li>
+</ul>
+<p>Some formats support <em>insets</em> containing data in another formats. For example, the <code>application/x-www-form-urlencoded</code>
+format allows query parameter values to be encoded as URL-encoded ones, as plain text, or as URI Charge. The choice
+is made by data schema.</p>
+<p><a href="https://www.npmjs.com/package/churi"><img src="https://img.shields.io/npm/v/churi.svg?logo=npm" alt="NPM"></a>
 <a href="https://github.com/UCNot/churi/actions?query=workflow:Build"><img src="https://github.com/UCNot/churi/workflows/Build/badge.svg" alt="Build Status"></a>
 <a href="https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/059cf0c8e981426591b8c9df3b327e4b" alt="Code Quality"></a>
 <a href="https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage"><img src="https://app.codacy.com/project/badge/Coverage/059cf0c8e981426591b8c9df3b327e4b" alt="Coverage"></a>
 <a href="https://github.com/UCNot/churi"><img src="https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational" alt="GitHub Project"></a>
 <a href="https://ucnot.github.io/churi/"><img src="https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational" alt="API Documentation"></a></p>
-<p>Charged URI (ChURI) may include arbitrary structured data. The data is encoded with <a href="https://github.com/UCNot/churi/blob/master/doc/uri-charge.md">URI Charge</a> Notation.</p>
+<a id="md:charged-uri-and-uri-charge" class="tsd-anchor"></a><h2><a href="#md:charged-uri-and-uri-charge">Charged URI and URI Charge</a></h2><p>Charged URI (ChURI) may include arbitrary structured data. The data is encoded with <a href="https://github.com/UCNot/churi/blob/master/doc/uri-charge.md">URI Charge</a> Notation.</p>
 <p>It is like JSON for GET requests, but may include even more:</p>
 <pre><code><span class="hl-0">https</span><span class="hl-1">:</span><span class="hl-2">//example.com/!v(3)api/user;id=0n302875106592253/article;slug=hello-world/comments?date=since(!date&#39;1970-01-01)till(!now)&amp;range=from(10)to(20)</span>
 </code><button>Copy</button></pre>
@@ -32,11 +47,11 @@
 <ul>
 <li><a href="https://github.com/UCNot/churi/blob/master/doc/churi.md">ChURI</a> class, which is a read-only <a href="https://developer.mozilla.org/docs/Web/API/URL">URL class</a> that grants access to charges.</li>
 <li>URI <a href="https://github.com/UCNot/churi/blob/master/doc/churi.md#charging">charging</a> utilities.</li>
-<li>URI Charge Notation support:<ul>
 <li><a href="https://github.com/UCNot/churi/blob/master/doc/schema.md">Schema</a>-based parser, serializer, and validator.</li>
-<li>Schema-less parser and serializer.</li>
-</ul>
-</li>
+<li>URI Charge Notation support</li>
+<li>JSON support.</li>
+<li><code>application/x-www-form-urlencoded</code> format support.</li>
+<li>Other formats support, such as plain text and URI-encoded values.</li>
 </ul>
 </div></div>
 <div class="col-sidebar">
@@ -59,9 +74,10 @@
 <ul>
 <li>
 <ul>
-<li><a href="#md:charged-uri-and-uri-charge"><span>Charged URI and URI <wbr/>Charge</span></a></li>
+<li><a href="#md:churi"><span>ChURI</span></a></li>
 <li>
 <ul>
+<li><a href="#md:charged-uri-and-uri-charge"><span>Charged URI and URI <wbr/>Charge</span></a></li>
 <li><a href="#md:this-package"><span>This <wbr/>Package</span></a></li></ul></li></ul></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="index.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Charged URI</span></a>
@@ -71,5 +87,5 @@
 <li><a href="modules/churi_deserializer_js.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>churi/deserializer.js</span></a></li>
 <li><a href="modules/churi_serializer_js.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>churi/serializer.js</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
-<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<p>Generated using <a href="https://typedoc.org/" rel="noopener" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>
