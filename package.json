@@ -1,6 +1,6 @@
 {
   "name": "churi",
-  "version": "0.15.0-pre.0",
+  "version": "0.15.0",
   "description": "Multi-format schema-based serializer, deserializer and validator. Charged URI syntax. URI Charge Notation",
   "keywords": [
     "charged-uri",
