@@ -1,12 +1,19 @@
 # ChURI
 
+[![NPM][npm-image]][npm-url]
+[![Build Status][build-status-img]][build-status-link]
+[![Code Quality][quality-img]][quality-link]
+[![Coverage][coverage-img]][coverage-link]
+[![GitHub Project][github-image]][github-url]
+[![API Documentation][api-docs-image]][api documentation]
+
 ChURI is a polyglot serializer, deserializer and validator supporting various data formats.
 
 The data processing is based on data schemas. Schemas are written in TypeScript. ChURI compiles such schemas into
 efficient code implementing serializers, deserializers, and validators for the data conforming to those schemas.
 
-The main data format supported is URI Charge Notation, which is used to encode data included into URI. Such URI
-is called Charged URI, or ChURI.
+The core data format encodes the data with [URI Charge] Notation. It is designed to pass structured data inside URI.
+Such URI is called Charged URI, or just ChURI.
 
 Other data formats supported out of the box:
 
@@ -19,12 +26,18 @@ Some formats support _insets_ containing data in another formats. For example, t
 format allows query parameter values to be encoded as URL-encoded ones, as plain text, or as URI Charge. The choice
 is made by data schema.
 
-[![NPM][npm-image]][npm-url]
-[![Build Status][build-status-img]][build-status-link]
-[![Code Quality][quality-img]][quality-link]
-[![Coverage][coverage-img]][coverage-link]
-[![GitHub Project][github-image]][github-url]
-[![API Documentation][api-docs-image]][api documentation]
+[npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
+[npm-url]: https://www.npmjs.com/package/churi
+[build-status-img]: https://github.com/UCNot/churi/workflows/Build/badge.svg
+[build-status-link]: https://github.com/UCNot/churi/actions?query=workflow:Build
+[quality-img]: https://app.codacy.com/project/badge/Grade/059cf0c8e981426591b8c9df3b327e4b
+[quality-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+[coverage-img]: https://app.codacy.com/project/badge/Coverage/059cf0c8e981426591b8c9df3b327e4b
+[coverage-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
+[github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
+[github-url]: https://github.com/UCNot/churi
+[api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
+[API documentation]: https://ucnot.github.io/churi/
 
 ## Charged URI and URI Charge
 
@@ -40,18 +53,6 @@ https://example.com/!v(3)api/user;id=0n302875106592253/article;slug=hello-world/
 
 > **[Read more about URI Charge Notation >>>][URI Charge]**
 
-[npm-image]: https://img.shields.io/npm/v/churi.svg?logo=npm
-[npm-url]: https://www.npmjs.com/package/churi
-[build-status-img]: https://github.com/UCNot/churi/workflows/Build/badge.svg
-[build-status-link]: https://github.com/UCNot/churi/actions?query=workflow:Build
-[quality-img]: https://app.codacy.com/project/badge/Grade/059cf0c8e981426591b8c9df3b327e4b
-[quality-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
-[coverage-img]: https://app.codacy.com/project/badge/Coverage/059cf0c8e981426591b8c9df3b327e4b
-[coverage-link]: https://app.codacy.com/gh/UCNot/churi/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
-[github-image]: https://img.shields.io/static/v1?logo=github&label=GitHub&message=project&color=informational
-[github-url]: https://github.com/UCNot/churi
-[api-docs-image]: https://img.shields.io/static/v1?logo=typescript&label=API&message=docs&color=informational
-[API documentation]: https://ucnot.github.io/churi/
 [explanation]: https://github.com/UCNot/churi/blob/master/doc/explanation.md
 [URI Charge]: https://github.com/UCNot/churi/blob/master/doc/uri-charge.md
 
