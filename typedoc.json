@@ -6,17 +6,10 @@
     "src/serializer/mod.ts"
   ],
   "excludePrivate": true,
-  "name": "Charged URI",
+  "name": "churi",
   "out": "./target/typedoc",
   "compilerOptions": {
     "skipLibCheck": true
-  },
-  "externalSymbolLinkMappings": {
-    // {@link typescript!Partial} will use this link as well as
-    // type Foo = Partial<Bar>
-    "esgen": {
-      "EsMemberVisibility": "https://ucnot.github.io/esgen/enums/EsMemberVisibility.html"
-    }
   },
   "sort": ["static-first", "visibility", "enum-value-ascending", "alphabetical", "kind"]
 }
