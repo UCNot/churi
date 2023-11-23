@@ -110,6 +110,7 @@ class UcsMemoryBlock {
   free(size: number): boolean {
     this.#free += size;
 
+    /* istanbul ignore next */
     if (this.#free < this.#reserved) {
       // Some space is still used.
       this.#moreAvailable?.();

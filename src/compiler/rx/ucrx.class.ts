@@ -16,7 +16,7 @@ export abstract class UcrxClass<
   readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
   #supportedTypes?: ReadonlySet<string>;
   #associations?: Map<UcrxClass.Association<unknown, TArgs, T, TSchema, this>, unknown>;
-  #lib: UcrxLib;
+  readonly #lib: UcrxLib;
 
   constructor(init: UcrxClass.Init<TArgs, T, TSchema>) {
     const { lib, schema, typeName = ucSchemaTypeSymbol(schema), declare = { at: 'bundle' } } = init;

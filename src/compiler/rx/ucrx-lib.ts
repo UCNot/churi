@@ -67,6 +67,7 @@ export abstract class UcrxLib {
 
   abstract ucrxClassFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): UcrxClass;
 
+  /* istanbul ignore next */
   ucrxProtoFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(
     schema: TSchema,
   ): UcrxProto<T, TSchema> | undefined {

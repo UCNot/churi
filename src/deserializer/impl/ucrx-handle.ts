@@ -11,7 +11,7 @@ import { UcdReader } from '../ucd-reader.js';
 
 export class UcrxHandle implements UcrxContext {
 
-  #reader: UcdReader;
+  readonly #reader: UcdReader;
   #rx: Ucrx;
   #_reject: ((rejection: UcRejection) => 0) | undefined;
   #meta: UcMeta.Mutable | undefined;

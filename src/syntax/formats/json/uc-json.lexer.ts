@@ -14,7 +14,7 @@ import {
  */
 export class UcJSONLexer implements UcLexer {
 
-  #state: UcJSON$State;
+  readonly #state: UcJSON$State;
 
   /**
    * Constructs JSON lexer.
@@ -40,7 +40,7 @@ class UcJSON$State {
   data = '';
   num = 0;
   #strategy: UcJSON$Strategy = UcJSON$TopLevel;
-  #stack: UcJSON$Strategy[] = [];
+  readonly #stack: UcJSON$Strategy[] = [];
 
   constructor(readonly emit: (this: void, token: UcToken) => void) {}
 

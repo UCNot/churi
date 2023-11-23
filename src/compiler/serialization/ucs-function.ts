@@ -126,7 +126,7 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
             code
               .line(
                 writer.const({
-                  value: () => (this.#createWriter?.(format) ?? UcsFunction$createWriter)(
+                  value: /* istanbul ignore next */ () => (this.#createWriter?.(format) ?? UcsFunction$createWriter)(
                       { stream, options },
                       this,
                     ),

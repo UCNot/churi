@@ -7,6 +7,7 @@
  */
 export declare abstract class UcBundle {
 
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly
   #private;
 
   readonly config: UcBundleConfig;
