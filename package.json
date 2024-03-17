@@ -79,13 +79,13 @@
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@proc7ts/async": "^2.0.0",
-    "@run-z/eslint-config": "^3.5.0",
+    "@run-z/eslint-config": "^4.0.0",
     "@run-z/prettier-config": "^2.0.0",
-    "@run-z/project-config": "^0.20.1",
+    "@run-z/project-config": "^0.20.2",
     "@swc/core": "^1.4.8",
     "@swc/jest": "^0.2.36",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "esgen": "^0.2.11",
     "eslint": "^8.57.0",
     "eslint-plugin-jest": "^27.9.0",
@@ -100,7 +100,7 @@
     "ts-jest": "^29.1.2",
     "tslib": "^2.6.2",
     "typedoc": "^0.25.12",
-    "typescript": "~5.3.3"
+    "typescript": "~5.4.2"
   },
   "imports": {
     "#churi/core.js": {
