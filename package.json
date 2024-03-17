@@ -73,12 +73,12 @@
     }
   },
   "dependencies": {
-    "@proc7ts/primitives": "@proc7ts/primitives@^4.0.0",
+    "@proc7ts/primitives": "^4.0.0",
     "httongue": "^3.1.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
-    "@proc7ts/async": "@proc7ts/async@^2.0.0",
+    "@proc7ts/async": "^2.0.0",
     "@run-z/eslint-config": "^3.5.0",
     "@run-z/prettier-config": "^2.0.0",
     "@run-z/project-config": "^0.20.1",
