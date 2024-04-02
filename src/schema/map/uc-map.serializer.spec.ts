@@ -87,7 +87,7 @@ describe('UcMap serializer', () => {
     );
   });
   it('serializes entry with special keys', async () => {
-    const specialKey = '(%)\r\n\t\uD83D\uDFB1 ' as const;
+    const specialKey = '(%)\r\n\t\uD83D\uDFB1 ';
     const compiler = new UcsCompiler({
       models: {
         writeMap: {

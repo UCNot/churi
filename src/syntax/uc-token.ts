@@ -1,12 +1,12 @@
 // Line terminators.
-export const UC_TOKEN_LF = 0x0a as const;
-export const UC_TOKEN_CR = 0x0d as const;
-export const UC_TOKEN_CRLF = 0x0a0d as const; // Windows-style
+export const UC_TOKEN_LF = 0x0a;
+export const UC_TOKEN_CR = 0x0d;
+export const UC_TOKEN_CRLF = 0x0a0d; // Windows-style
 
 // Padding prefixes.
 // Lowest byte is a code (space or tab), higher byte is the number of repeats.
-export const UC_TOKEN_PREFIX_TAB = 0x09 as const;
-export const UC_TOKEN_PREFIX_SPACE = 0x20 as const;
+export const UC_TOKEN_PREFIX_TAB = 0x09;
+export const UC_TOKEN_PREFIX_SPACE = 0x20;
 
 /**
  * _Inset_ starts with number token which lowest byte equals to this prefix. Tokens after this token considered
@@ -18,16 +18,16 @@ export const UC_TOKEN_PREFIX_SPACE = 0x20 as const;
  */
 export const UC_TOKEN_PREFIX_INSET = 0x1f;
 
-export const UC_TOKEN_INSET_URI_PARAM = 0x011f as const;
+export const UC_TOKEN_INSET_URI_PARAM = 0x011f;
 export const UC_TOKEN_INSET_END = UC_TOKEN_PREFIX_INSET;
 
 // [Reserved characters](https://www.rfc-editor.org/rfc/rfc3986#section-2.2).
-export const UC_TOKEN_EXCLAMATION_MARK = 0x21 as const;
-export const UC_TOKEN_DOLLAR_SIGN = 0x24 as const;
-export const UC_TOKEN_APOSTROPHE = 0x27 as const;
-export const UC_TOKEN_OPENING_PARENTHESIS = 0x28 as const;
-export const UC_TOKEN_CLOSING_PARENTHESIS = 0x29 as const;
-export const UC_TOKEN_COMMA = 0x2c as const;
+export const UC_TOKEN_EXCLAMATION_MARK = 0x21;
+export const UC_TOKEN_DOLLAR_SIGN = 0x24;
+export const UC_TOKEN_APOSTROPHE = 0x27;
+export const UC_TOKEN_OPENING_PARENTHESIS = 0x28;
+export const UC_TOKEN_CLOSING_PARENTHESIS = 0x29;
+export const UC_TOKEN_COMMA = 0x2c;
 
 /**
  * URI charge token.

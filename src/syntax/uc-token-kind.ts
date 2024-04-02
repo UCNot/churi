@@ -10,15 +10,15 @@ import {
   UcToken,
 } from './uc-token.js';
 
-export const UC_TOKEN_KIND_CONTROL = 0 as const;
-export const UC_TOKEN_KIND_STRING = 1 as const;
+export const UC_TOKEN_KIND_CONTROL = 0;
+export const UC_TOKEN_KIND_STRING = 1;
 
-export const UC_TOKEN_KIND_PADDING = 2 as const;
-export const UC_TOKEN_KIND_NL = 4 as const;
+export const UC_TOKEN_KIND_PADDING = 2;
+export const UC_TOKEN_KIND_NL = 4;
 export const UC_TOKEN_KIND_IS_WHITESPACE = UC_TOKEN_KIND_PADDING | UC_TOKEN_KIND_NL;
 
-export const UC_TOKEN_KIND_BOUND = 0x10 as const;
-export const UC_TOKEN_KIND_DELIMITER = 0x20 as const;
+export const UC_TOKEN_KIND_BOUND = 0x10;
+export const UC_TOKEN_KIND_DELIMITER = 0x20;
 export const UC_TOKEN_KIND_IS_RESERVED = UC_TOKEN_KIND_BOUND | UC_TOKEN_KIND_DELIMITER;
 
 export type UcTokenKind =
