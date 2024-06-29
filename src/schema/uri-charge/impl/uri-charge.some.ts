@@ -8,11 +8,11 @@ import { URICharge } from '../uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
 
-  override isNone(): false {
+  override isNone(): this is URICharge.None {
     return false;
   }
 
-  override isSome(): true {
+  override isSome(): this is URICharge.Some {
     return true;
   }
 
@@ -47,19 +47,19 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
     return 1;
   }
 
-  override hasValues(): true {
+  override hasValues(): this is URICharge.WithValues {
     return true;
   }
 
-  override isSingle(): true {
+  override isSingle(): this is URICharge.Single {
     return true;
   }
 
-  override isList(): false {
+  override isList(): this is URICharge.List {
     return false;
   }
 
-  override isMap(): false {
+  override isMap(): this is URICharge.Map {
     return false;
   }
 
@@ -124,19 +124,19 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
     return 0;
   }
 
-  override hasValues(): false {
+  override hasValues(): this is URICharge.WithValues {
     return false;
   }
 
-  override isSingle(): false {
+  override isSingle(): this is URICharge.Single {
     return false;
   }
 
-  override isList(): false {
+  override isList(): this is URICharge.List {
     return false;
   }
 
-  override isMap(): true {
+  override isMap(): this is URICharge.Map {
     return true;
   }
 
@@ -202,19 +202,19 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
     return this.#list.length;
   }
 
-  override hasValues(): boolean {
+  override hasValues(): this is URICharge.WithValues {
     return !!this.length;
   }
 
-  override isSingle(): false {
+  override isSingle(): this is URICharge.Single {
     return false;
   }
 
-  override isList(): true {
+  override isList(): this is URICharge.List {
     return true;
   }
 
-  override isMap(): false {
+  override isMap(): this is URICharge.Map {
     return false;
   }
 

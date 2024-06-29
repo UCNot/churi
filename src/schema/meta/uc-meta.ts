@@ -53,6 +53,10 @@ export class UcMeta {
     this.#frozen = frozen;
   }
 
+  get mutability(): 'frozen' | 'mutable' {
+    return this.#frozen ? 'frozen' : 'mutable';
+  }
+
   /**
    * Informs whether this metadata instance is {@link UcMeta.Frozen frozen}.
    */
@@ -332,8 +336,7 @@ export namespace UcMeta {
    * Mutable {@link UcMeta charge metadata} instance.
    */
   export interface Mutable extends UcMeta {
-    isMutable(): true;
-    isFrozen(): false;
+    get mutability(): 'mutable';
     add(attribute: string, value: unknown): this;
     add<TInput>(attribute: UcMetaAttr<unknown, TInput>, value: TInput): this;
     addAll(other: UcMeta): this;
@@ -345,8 +348,7 @@ export namespace UcMeta {
    * Frozen (immutable) {@link UcMeta charge metadata} instance.
    */
   export interface Frozen extends UcMeta {
-    isMutable(): false;
-    isFrozen(): true;
+    get mutability(): 'frozen';
     freeze(): this;
   }
 }

@@ -112,8 +112,10 @@ describe('UcMeta', () => {
       expect(frozen).not.toBe(meta);
       expect(meta.isFrozen()).toBe(false);
       expect(meta.isMutable()).toBe(true);
+      expect(meta.mutability).toBe('mutable');
       expect(frozen.isFrozen()).toBe(true);
       expect(frozen.isMutable()).toBe(false);
+      expect(frozen.mutability).toBe('frozen');
       expect(frozen.get('foo')).toBe(1);
     });
 
@@ -133,6 +135,7 @@ describe('UcMeta', () => {
         expect(clone).not.toBe(meta);
         expect(clone.isFrozen()).toBe(false);
         expect(clone.isMutable()).toBe(true);
+        expect(clone.mutability).toBe('mutable');
         expect(clone.get('foo')).toBe(1);
       });
     });
@@ -145,6 +148,7 @@ describe('UcMeta', () => {
         expect(mutable).not.toBe(meta);
         expect(mutable.isFrozen()).toBe(false);
         expect(mutable.isMutable()).toBe(true);
+        expect(mutable.mutability).toBe('mutable');
         expect(mutable.get('foo')).toBe(1);
       });
     });

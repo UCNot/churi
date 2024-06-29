@@ -83,7 +83,7 @@ export abstract class URICharge implements Uctx {
    *
    * @returns `true` for any list, including zero-length one; `false` for everything else.
    */
-  abstract isList(): boolean;
+  abstract isList(): this is URICharge.List;
 
   /**
    * Checks whether this charge is a {@link URICharge.Map map}.
@@ -176,10 +176,6 @@ export namespace URICharge {
     get value(): undefined;
     get type(): undefined;
 
-    hasValues(): false;
-    isSingle(): false;
-    isList(): false;
-
     at(index: 0 | -1): this;
     at(index: number): URICharge.Some | None;
   }
@@ -188,8 +184,6 @@ export namespace URICharge {
    * URI charge without map entries.
    */
   export interface WithoutEntries extends URICharge {
-    isMap(): false;
-
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
@@ -205,15 +199,6 @@ export namespace URICharge {
     get type(): undefined;
     get length(): 0;
 
-    isNone(): true;
-    isSome(): false;
-
-    hasValues(): false;
-    isSingle(): false;
-    isList(): false;
-
-    isMap(): false;
-
     at(index: 0 | -1): this;
     at(index: number): None;
     list(): IterableIterator<never>;
@@ -226,10 +211,7 @@ export namespace URICharge {
   /**
    * URI charge that represents {@link URICharge#isSome something}, in contrast to {@link URICharge.None none}.
    */
-  export interface Some extends URICharge {
-    isNone(): false;
-    isSome(): true;
-  }
+  export interface Some extends URICharge {}
 
   /**
    * URI charge with own value or list items.
@@ -237,17 +219,12 @@ export namespace URICharge {
   export interface WithValues extends Some {
     get value(): UcUnknown | null;
     get type(): string;
-
-    hasValues(): true;
-    isMap(): false;
   }
 
   /**
    * Single-valued charge.
    */
   export interface Single extends WithValues {
-    isList(): false;
-
     at(index: 0 | -1): this;
     at(index: number): this | None;
     list(): IterableIterator<this>;
@@ -261,11 +238,6 @@ export namespace URICharge {
    * URI charge list.
    */
   export interface List extends Some, WithoutEntries {
-    isNone(): false;
-    isSome(): true;
-    isList(): true;
-    isMap(): false;
-
     get(key: string): None;
     entries(): IterableIterator<never>;
     keys(): IterableIterator<never>;
@@ -278,15 +250,6 @@ export namespace URICharge {
     get value(): undefined;
     get type(): undefined;
     get length(): 0;
-
-    isNone(): false;
-    isSome(): true;
-
-    hasValues(): false;
-    isSingle(): false;
-    isList(): false;
-
-    isMap(): true;
 
     at(index: 0 | -1): this;
     at(index: number): this | None;
@@ -312,27 +275,27 @@ class URICharge$None extends URICharge implements URICharge.None {
     return 0;
   }
 
-  isNone(): true {
+  isNone(): this is URICharge.None {
     return true;
   }
 
-  isSome(): false {
+  isSome(): this is URICharge.Some {
     return false;
   }
 
-  hasValues(): false {
+  hasValues(): this is URICharge.WithValues {
     return false;
   }
 
-  isSingle(): false {
+  isSingle(): this is URICharge.Single {
     return false;
   }
 
-  isList(): false {
+  isList(): this is URICharge.List {
     return false;
   }
 
-  isMap(): false {
+  isMap(): this is URICharge.Map {
     return false;
   }
 
