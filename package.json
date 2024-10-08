@@ -81,7 +81,7 @@
     "@proc7ts/async": "^2.1.0",
     "@run-z/eslint-config": "^4.2.0",
     "@run-z/prettier-config": "^2.0.0",
-    "@run-z/project-config": "^0.20.3",
+    "@run-z/project-config": "^0.20.4",
     "@swc/core": "^1.7.26",
     "@swc/jest": "^0.2.36",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -100,7 +100,7 @@
     "ts-jest": "^29.2.5",
     "tslib": "^2.7.0",
     "typedoc": "^0.26.8",
-    "typescript": "~5.5.4"
+    "typescript": "~5.6.2"
   },
   "imports": {
     "#churi/core.js": {
