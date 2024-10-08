@@ -1,10 +1,18 @@
-import { parseUcValue } from '#churi/uc-value/deserializer.js';
-import { describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
+import { UcValueCompiler } from '../../compiler/deserialization/impl/uc-value.compiler.js';
 import { printUcTokens } from '../../syntax/print-uc-token.js';
 import { UcEntity } from '../entity/uc-entity.js';
 import { UcFormatted } from '../entity/uc-formatted.js';
+import { UcDeserializer } from '../uc-deserializer.js';
 
 describe('parseUcValue', () => {
+  let parseUcValue: UcDeserializer.Sync<unknown>;
+
+  beforeAll(async () => {
+    const compiler = new UcValueCompiler();
+
+    ({ parseUcValue } = await compiler.evaluate());
+  });
   describe('string value', () => {
     it('recognized as top-level value', () => {
       expect(parseUcValue('Hello!%20World!')).toBe('Hello! World!');

@@ -6,9 +6,16 @@
     "outDir": "target/js",
     "exactOptionalPropertyTypes": true,
     "paths": {
+      "#churi/uc-value/serializer.js": ["./serializer/mod.ts"],
+      "#churi/uc-value/deserializer.js": ["./src/deserializer/mod.ts"],
       "#churi/uri-charge/deserializer.js": [
         "./src/compiler/deserialization/impl/uri-charge.deserializer.stub.ts"
-      ]
+      ],
+      "churi": ["./src/mod.ts"],
+      "churi/compiler.js": ["./src/compiler/mod.ts"],
+      "churi/deserializer.js": ["./src/deserializer/mod.ts"],
+      "churi/serializer.js": ["./src/serializer/mod.ts"],
+      "churi/validator.js": ["./src/validator/mod.ts"]
     }
   },
   "include": ["src/**/*.ts"]
