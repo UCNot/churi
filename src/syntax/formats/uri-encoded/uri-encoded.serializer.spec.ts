@@ -176,8 +176,8 @@ describe('URI-encoded serializer', () => {
     await expect(compiler.evaluate()).rejects.toThrow(
       new UnsupportedUcSchemaError(
         schema,
-        'Number$uriEncodedN(writer, value, asItem?): Can not URI-encode nullable values'
-          + ' of type "(Number | null)"',
+        'Number$uriEncodedN(writer, value, asItem?): Can not URI-encode nullable values' +
+          ' of type "(Number | null)"',
       ),
     );
   });
@@ -194,8 +194,8 @@ describe('URI-encoded serializer', () => {
     await expect(compiler.evaluate()).rejects.toThrow(
       new UnsupportedUcSchemaError(
         schema,
-        'Number$uriEncodedO(writer, value, asItem?): Can not URI-encode optional values'
-          + ' of type "Number?"',
+        'Number$uriEncodedO(writer, value, asItem?): Can not URI-encode optional values' +
+          ' of type "Number?"',
       ),
     );
   });

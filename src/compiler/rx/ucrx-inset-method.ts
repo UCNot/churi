@@ -14,7 +14,6 @@ import { UcrxBeforeMod, UcrxMethod, UcrxMethodInit } from './ucrx-method.js';
 import { UcrxClass } from './ucrx.class.js';
 
 export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxInsetMod> {
-
   constructor(requestedName: string, init: UcrxInsetMethodInit = {}) {
     const { stub = UcrxCore$stub } = init;
 
@@ -73,7 +72,6 @@ export class UcrxInsetMethod extends UcrxMethod<UcrxInsetSignature.Args, UcrxIns
       },
     });
   }
-
 }
 
 export interface UcrxInsetMod extends UcrxBeforeMod<UcrxInsetSignature.Args> {

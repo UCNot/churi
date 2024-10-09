@@ -18,7 +18,6 @@ import { UcMeta } from './uc-meta.js';
  * Declares what actually stored inside metadata.
  */
 export abstract class UcMetaAttr<out T = unknown, in TInput = unknown, out TData = unknown> {
-
   readonly #name: string;
   readonly #uid: unknown;
 
@@ -122,5 +121,4 @@ export abstract class UcMetaAttr<out T = unknown, in TInput = unknown, out TData
       }
     }
   }
-
 }

@@ -5,7 +5,6 @@ import { UcDataType, UcSchema } from '../../schema/uc-schema.js';
 import { ucSchemaVariant } from '../impl/uc-schema-variant.js';
 
 export class UccSchemaIndex {
-
   readonly #processors: readonly UcProcessorName[];
   readonly #presentations: readonly UcPresentationName[];
   readonly #types = new Map<string | UcDataType, UccSchemaIndex$TypeEntry>();
@@ -75,9 +74,11 @@ export class UccSchemaIndex {
 
   #constraintsId(schema: UcSchema, constraints: UcConstraints = {}): string {
     return this.processors
-      .map(processorName => asArray(constraints[processorName])
+      .map(processorName =>
+        asArray(constraints[processorName])
           .map(feature => this.#featureConstraintId(schema, feature))
-          .join(''))
+          .join(''),
+      )
       .join('');
   }
 
@@ -119,7 +120,6 @@ export class UccSchemaIndex {
 
     return entry;
   }
-
 }
 
 interface UccSchemaIndex$TypeEntry {

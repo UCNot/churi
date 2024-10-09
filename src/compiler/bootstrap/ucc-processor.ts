@@ -18,8 +18,8 @@ import { UccSchemaIndex } from './ucc-schema-index.js';
  * @typeParam TBoot - Type of schema processing bootstrap.
  */
 export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
-  implements UccBootstrap<TBoot> {
-
+  implements UccBootstrap<TBoot>
+{
   readonly #schemaIndex: UccSchemaIndex;
   readonly #models: readonly [string, UcModel][] | undefined;
   readonly #features: readonly UccFeature<TBoot, void>[] | undefined;
@@ -41,8 +41,8 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
       asArray<UcPresentationName>(presentations),
     );
     this.#models =
-      models
-      && Object.entries<UccProcessor.Entry | undefined>(models)
+      models &&
+      Object.entries<UccProcessor.Entry | undefined>(models)
         .map(
           ([entryName, entry]): [string, UcModel] | undefined => entry && [entryName, entry.model],
         )
@@ -50,7 +50,9 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
 
     this.#features = features && asArray(features);
     this.#constraintMapper = new UccProcessor$ConstraintMapper<TBoot>();
-    this.#featureSet = new UccProcessor$FeatureSet(this.#constraintMapper, feature => this.handleFeature(feature));
+    this.#featureSet = new UccProcessor$FeatureSet(this.#constraintMapper, feature =>
+      this.handleFeature(feature),
+    );
     this.#updateConstraints();
   }
 
@@ -218,7 +220,6 @@ export abstract class UccProcessor<in out TBoot extends UccBootstrap<TBoot>>
   ): UccFeature.Handle<TOptions> | void {
     return 'uccEnable' in feature ? feature.uccEnable(this.boot) : feature(this.boot);
   }
-
 }
 
 export namespace UccProcessor {

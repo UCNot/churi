@@ -7,7 +7,6 @@ import { UcUnknown } from '../../unknown/uc-unknown.js';
 import { URICharge } from '../uri-charge.js';
 
 abstract class URICharge$Some extends URICharge implements URICharge.Some {
-
   override isNone(): this is URICharge.None {
     return false;
   }
@@ -15,11 +14,9 @@ abstract class URICharge$Some extends URICharge implements URICharge.Some {
   override isSome(): this is URICharge.Some {
     return true;
   }
-
 }
 
 export class URICharge$Single extends URICharge$Some implements URICharge.Single {
-
   readonly #value: UcUnknown | null;
   readonly #type: string;
   readonly #meta: UcMeta.Frozen;
@@ -94,11 +91,9 @@ export class URICharge$Single extends URICharge$Some implements URICharge.Single
 
     uctxValue(rx, this.#value, mode);
   }
-
 }
 
 export class URICharge$Map extends URICharge$Some implements URICharge.Map {
-
   readonly #map: Map<string, URICharge.Some>;
   readonly #meta: UcMeta.Frozen;
 
@@ -171,11 +166,9 @@ export class URICharge$Map extends URICharge$Some implements URICharge.Map {
 
     uctxMap(rx, this.#map);
   }
-
 }
 
 export class URICharge$List extends URICharge$Some implements URICharge.List {
-
   readonly #list: URICharge.Some[];
 
   constructor(list: URICharge.Some[]) {
@@ -245,5 +238,4 @@ export class URICharge$List extends URICharge$Some implements URICharge.List {
   override toUC(rx: AllUcrx, mode: UctxMode): void {
     uctxArray(rx, this.#list, mode);
   }
-
 }

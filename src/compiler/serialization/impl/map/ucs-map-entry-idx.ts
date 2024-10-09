@@ -1,7 +1,6 @@
 import { EsCode, EsSnippet, EsVarSymbol } from 'esgen';
 
 export class UcsMapEntryIdx {
-
   readonly #declaration = new EsCode();
   readonly #postIncrement = new EsCode();
   readonly #increment = new EsCode();
@@ -41,5 +40,4 @@ export class UcsMapEntryIdx {
   declare(): EsSnippet {
     return this.#declaration;
   }
-
 }

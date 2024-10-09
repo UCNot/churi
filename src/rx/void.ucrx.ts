@@ -18,7 +18,6 @@ import {
 import { Ucrx } from './ucrx.js';
 
 export class VoidUcrx implements Ucrx {
-
   readonly #set: (value: unknown) => void;
 
   constructor(set: (value: unknown) => void) {
@@ -103,5 +102,4 @@ export class VoidUcrx implements Ucrx {
 
     return 1;
   }
-
 }

@@ -8,7 +8,6 @@ import { UcdModels } from '../ucd-models.js';
 export class UcValueCompiler extends UcdCompiler<{
   parseUcValue: UcdModels.SyncEntry<UcUnknown.Schema>;
 }> {
-
   constructor() {
     super({
       models: {
@@ -35,7 +34,8 @@ export class UcValueCompiler extends UcdCompiler<{
         declare: {
           at: 'exports',
           body:
-            ({ args: { cx, attr } }) => (code, scope) => {
+            ({ args: { cx, attr } }) =>
+            (code, scope) => {
               const ucrxLib = scope.get(UcrxLib);
               const ucrxClass = ucrxLib.ucrxClassFor(options.models.parseUcValue.model);
 
@@ -50,5 +50,4 @@ export class UcValueCompiler extends UcdCompiler<{
       onMeta,
     };
   }
-
 }

@@ -18,7 +18,6 @@ import { UctxMode } from './uctx-mode.js';
 import { uctxValue } from './uctx-value.js';
 
 export class TokenUcrx implements AllUcrx {
-
   static charge(value: unknown, mode: UctxMode = UctxMode$Default): UcToken[] {
     const tokens: UcToken[] = [];
     const rx = new this(token => tokens.push(token));
@@ -200,7 +199,6 @@ export class TokenUcrx implements AllUcrx {
   #addItem(): void {
     this.#mode = this.#mode.addItem(this.#add);
   }
-
 }
 
 interface TokenUcrx$Mode {

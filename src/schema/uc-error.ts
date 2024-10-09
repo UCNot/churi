@@ -6,7 +6,6 @@ import type { URIChargePath } from './uri-charge/uri-charge-path.js';
  * Represents an {@link UcErrorInfo error info} wrapped into `Error`.
  */
 export class UcError extends Error implements UcErrorInfo {
-
   /**
    * Creates URI charge error caused by the given `cause`.
    *
@@ -80,7 +79,6 @@ export class UcError extends Error implements UcErrorInfo {
       cause: this.cause,
     };
   }
-
 }
 
 /**
@@ -117,13 +115,13 @@ export interface UcErrorInfo {
 
 function isUcErrorInfo(cause: unknown): cause is UcErrorInfo {
   return (
-    typeof cause === 'object'
-    && !!cause
-    && typeof (cause as Partial<UcErrorInfo>).code === 'string'
-    && (typeof (cause as UcErrorInfo).message === 'string'
-      || (cause as UcErrorInfo).message === undefined)
-    && (typeof (cause as UcErrorInfo).details === 'object'
-      || (cause as UcErrorInfo).details === undefined)
+    typeof cause === 'object' &&
+    !!cause &&
+    typeof (cause as Partial<UcErrorInfo>).code === 'string' &&
+    (typeof (cause as UcErrorInfo).message === 'string' ||
+      (cause as UcErrorInfo).message === undefined) &&
+    (typeof (cause as UcErrorInfo).details === 'object' ||
+      (cause as UcErrorInfo).details === undefined)
   );
 }
 

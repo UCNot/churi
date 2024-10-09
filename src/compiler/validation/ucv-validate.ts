@@ -21,7 +21,6 @@ export interface UcvValidationContext {
 }
 
 class UcvValidationSnippet {
-
   static esScopedValue(): UcvValidationSnippet {
     return new UcvValidationSnippet();
   }
@@ -81,5 +80,4 @@ class UcvValidationSnippet {
       }
     };
   }
-
 }

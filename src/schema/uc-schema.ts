@@ -188,9 +188,8 @@ export namespace UcSchema {
    *
    * @typeParam TModel - Source model type.
    */
-  export type Of<TModel extends UcModel> = TModel extends UcDataType<infer T>
-    ? UcSchema<T>
-    : TModel;
+  export type Of<TModel extends UcModel> =
+    TModel extends UcDataType<infer T> ? UcSchema<T> : TModel;
 
   /**
    * Data type implied by the given model.
@@ -199,11 +198,8 @@ export namespace UcSchema {
    *
    * @typeParam TModel - Model type.
    */
-  export type ImpliedType<TModel extends UcModel> = TModel extends UcSchema<infer T>
-    ? T
-    : TModel extends UcDataType<infer T>
-    ? T
-    : never;
+  export type ImpliedType<TModel extends UcModel> =
+    TModel extends UcSchema<infer T> ? T : TModel extends UcDataType<infer T> ? T : never;
 
   export type NullableType<TSchema extends UcSchema> = TSchema extends { readonly nullable: true }
     ? null

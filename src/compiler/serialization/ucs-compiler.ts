@@ -28,8 +28,8 @@ import { CreateUcsWriterExpr } from './ucs-writer.class.js';
  */
 export class UcsCompiler<TModels extends UcsModels = UcsModels>
   extends UccProcessor<UcsBootstrap>
-  implements UcsBootstrap {
-
+  implements UcsBootstrap
+{
   readonly #options: UcsCompiler.Options<TModels>;
   readonly #exportRequests = new Map<string, UcsFunction$ExportRequest>();
   readonly #presentations = new Map<
@@ -282,8 +282,8 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
 
     if (insetPresentationConfig) {
       insetFormatter =
-        insetPresentationConfig.formatterFor(insetSchema)
-        ?? this.#findFormatter(insetPresentationConfig.format, insetSchema);
+        insetPresentationConfig.formatterFor(insetSchema) ??
+        this.#findFormatter(insetPresentationConfig.format, insetSchema);
     }
 
     const formatter: UcsInsetFormatter<T, TSchema> | undefined = insetFormatter && {
@@ -304,7 +304,6 @@ export class UcsCompiler<TModels extends UcsModels = UcsModels>
         })
       : formatter;
   }
-
 }
 
 export namespace UcsCompiler {

@@ -168,7 +168,8 @@ describe('UcList serializer', () => {
 
       await expect(
         TextOutStream.read(
-          async to => await writeList(to, [
+          async to =>
+            await writeList(to, [
               [1, 22, 333],
               [1, 2, 3],
             ]),

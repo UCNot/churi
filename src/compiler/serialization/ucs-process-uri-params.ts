@@ -64,7 +64,8 @@ export function ucsProcessURIParams(
         .formatWith(
           'uriParams',
           'map',
-          ({ writer, value }, schema: UcMap.Schema<UcMap.EntriesModel, UcModel | false>, cx) => (code, scope) => {
+          ({ writer, value }, schema: UcMap.Schema<UcMap.EntriesModel, UcModel | false>, cx) =>
+            (code, scope) => {
               const { splitter } = getSchemaOptions(schema, within);
               const lib = scope.get(UcsLib);
               const { entries, extra } = schema;
@@ -88,7 +89,8 @@ export function ucsProcessURIParams(
               for (const [entryKey, entrySchema] of Object.entries(entries)) {
                 const keyConst = lib.binConst(`${splitter}${encodeURISearchPart(entryKey)}=`);
                 const writeEntry =
-                  (schema: UcSchema, value: EsSnippet): EsSnippet => code => {
+                  (schema: UcSchema, value: EsSnippet): EsSnippet =>
+                  code => {
                     code.write(
                       esline`${key} = ${keyConst};`,
                       cx.formatInset('uriParam', schema, {
@@ -125,7 +127,8 @@ export function ucsProcessURIParams(
                 const extraValue = names.reserveName('extraValue');
                 const encodeKey = esImport('httongue', encodeURISearchPart.name);
                 const writeEntryWithValue =
-                  (extraSchema: UcSchema): EsSnippet => code => {
+                  (extraSchema: UcSchema): EsSnippet =>
+                  code => {
                     code.write(
                       esline`${key} = ${writer}.encoder.encode(\`${splitter}\${${encodeKey}(${extraKey})}=\`);`,
                       cx.formatInset('uriParam', extraSchema, {

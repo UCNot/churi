@@ -17,7 +17,6 @@ import {
  * URI charge lexer that splits input string(s) onto tokens.
  */
 export class UcChargeLexer implements UcLexer {
-
   /**
    * Constructs URI charge lexer that decodes _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space
    * padding}.
@@ -208,7 +207,6 @@ export class UcChargeLexer implements UcLexer {
   flush(): void {
     this.#emitPrev();
   }
-
 }
 
 const UC_TOKEN_PATTERN = /([\r\n!$'(),])/;

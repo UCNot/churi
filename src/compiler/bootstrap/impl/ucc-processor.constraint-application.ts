@@ -9,8 +9,8 @@ import { UccProcessor$FeatureSet } from './ucc-processor.feature-set.js';
 export class UccProcessor$ConstraintApplication<
   in out TBoot extends UccBootstrap<TBoot>,
   in out TOptions,
-> implements UccFeature.ConstraintApplication<TBoot, TOptions> {
-
+> implements UccFeature.ConstraintApplication<TBoot, TOptions>
+{
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #issue: UccProcessor$ConstraintIssue<TOptions>;
   readonly #handle: UccFeature.Handle<TOptions>;
@@ -76,5 +76,4 @@ export class UccProcessor$ConstraintApplication<
       this.#applied = -1;
     }
   }
-
 }

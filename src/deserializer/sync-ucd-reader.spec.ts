@@ -157,7 +157,9 @@ describe('SyncUcdReader', () => {
     });
     it('searches until negative result received', () => {
       expect(
-        reader.find(token => typeof token === 'string' ? (token.includes('e') ? true : null) : false),
+        reader.find(token =>
+          typeof token === 'string' ? (token.includes('e') ? true : null) : false,
+        ),
       ).toBeUndefined();
       expect(reader.current()).toBe(UC_TOKEN_LF);
       expect(reader.prev()).toEqual(['abc']);

@@ -84,7 +84,6 @@ export function ucdProcessTimestampSchema(boot: UcdBootstrap): void {
 }
 
 class TimestampUcrxClass extends UcrxClass {
-
   constructor(lib: UcrxLib, schema: UcSchema<number>) {
     super({
       lib,
@@ -108,5 +107,4 @@ class TimestampUcrxClass extends UcrxClass {
       });
     }
   }
-
 }

@@ -29,7 +29,6 @@ export class ListUcrxClass<
   TItem = unknown,
   TItemModel extends UcModel<TItem> = UcModel<TItem>,
 > extends UcrxClass<UcrxSignature.Args, TItem[], UcList.Schema<TItem, TItemModel>> {
-
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
     boot: TBoot,
   ): UccFeature.Handle<UccListOptions> {
@@ -82,10 +81,10 @@ export class ListUcrxClass<
       lib,
       schema,
       typeName:
-        (single === 'reject' || single === 'accept' ? 'List' : 'MultiValue')
-        + ucSchemaVariant(schema)
-        + 'Of'
-        + itemClass.typeName,
+        (single === 'reject' || single === 'accept' ? 'List' : 'MultiValue') +
+        ucSchemaVariant(schema) +
+        'Of' +
+        itemClass.typeName,
       baseClass: isMatrix ? lib.baseUcrx : itemClass,
       classConstructor: {
         args: UcrxSignature,
@@ -157,7 +156,8 @@ export class ListUcrxClass<
     const itemRxState = new EsField('#_itemRx').declareIn(this);
 
     return new EsProperty('#itemRx').declareIn(this, {
-      get: () => esline`return ${itemRxState.get('this')} ??= ${this.itemClass.instantiate({
+      get: () =>
+        esline`return ${itemRxState.get('this')} ??= ${this.itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
         })};`,
     });
@@ -170,7 +170,8 @@ export class ListUcrxClass<
           member: {
             args: { set },
           },
-        }) => code => {
+        }) =>
+        code => {
           code.line(
             'super',
             this.baseClass!.classConstructor.signature.call({
@@ -257,7 +258,8 @@ export class ListUcrxClass<
             member: {
               args: { cx },
             },
-          }) => code => {
+          }) =>
+          code => {
             code
               .write(esline`if (${listCreated.get('this')}) {`)
               .indent(code => {
@@ -280,7 +282,8 @@ export class ListUcrxClass<
           member: {
             args: { cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           switch (this.#single) {
             case 'reject':
               if (isNull) {
@@ -361,7 +364,8 @@ export class ListUcrxClass<
     const itemRx = this.#itemRx;
 
     UcrxCore.nls.overrideIn(this, {
-      body: () => esline`return ${itemClass.instantiate({
+      body: () =>
+        esline`return ${itemClass.instantiate({
           set: esline`item => ${this.#addItem.call('this', { item: 'item' })}`,
         })};`,
     });
@@ -374,7 +378,8 @@ export class ListUcrxClass<
           member: {
             args: { cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           if (isNull) {
             code
               .write(esline`if (${isNull.get('this')}) {`)
@@ -393,7 +398,8 @@ export class ListUcrxClass<
             member: {
               args: { cx },
             },
-          }) => code => {
+          }) =>
+          code => {
             code
               .write(esline`if (${listCreated.get('this')}) {`)
               .indent(code => {
@@ -424,9 +430,9 @@ export class ListUcrxClass<
     if (itemRx) {
       for (const { member } of itemClass.members()) {
         if (
-          itemClass.isMemberOverridden(member)
-          && member instanceof UcrxMethod
-          && !this.findMember(member)?.declared
+          itemClass.isMemberOverridden(member) &&
+          member instanceof UcrxMethod &&
+          !this.findMember(member)?.declared
         ) {
           this.#delegate(member, itemRx);
         }
@@ -440,7 +446,8 @@ export class ListUcrxClass<
   ): void {
     method.overrideIn(this, {
       body:
-        ({ getHandle, member: { args } }) => code => {
+        ({ getHandle, member: { args } }) =>
+        code => {
           code
             .write(esline`if (${this.#listCreated.get('this')}) {`)
             .indent(
@@ -454,5 +461,4 @@ export class ListUcrxClass<
         },
     });
   }
-
 }

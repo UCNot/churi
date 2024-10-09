@@ -7,7 +7,6 @@ import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
  * The input chunks converted to string tokens directly, without any change.
  */
 export class UcPlainTextLexer implements UcLexer {
-
   readonly #emit: (token: UcToken) => void;
   #prefix: boolean;
 
@@ -31,5 +30,4 @@ export class UcPlainTextLexer implements UcLexer {
   }
 
   flush(): void {}
-
 }

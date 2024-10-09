@@ -1,7 +1,6 @@
 import { EsClass, EsMemberInit, EsProperty, EsPropertyDeclaration, EsPropertyHandle } from 'esgen';
 
 export class UcrxProperty extends EsProperty {
-
   readonly #stub: EsPropertyDeclaration;
 
   constructor(requestedName: string, init: UcrxPropertyInit) {
@@ -16,7 +15,6 @@ export class UcrxProperty extends EsProperty {
   declareStub(hostClass: EsClass): EsPropertyHandle {
     return this.declareIn(hostClass, this.stub);
   }
-
 }
 
 export interface UcrxPropertyInit extends EsMemberInit {

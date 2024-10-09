@@ -3,7 +3,6 @@ import { UcSchema } from '../../schema/uc-schema.js';
 import { UccSchemaIndex } from './ucc-schema-index.js';
 
 export class UccSchemaMap<T> {
-
   readonly #index: UccSchemaIndex;
   readonly #map = new Map<string, T>();
 
@@ -13,8 +12,8 @@ export class UccSchemaMap<T> {
 
   get(schema: UcSchema, within?: UcPresentationName): T | undefined {
     return (
-      this.#map.get(this.#presentationId(schema, within))
-      ?? (within && this.#map.get(this.#schemaId(schema)))
+      this.#map.get(this.#presentationId(schema, within)) ??
+      (within && this.#map.get(this.#schemaId(schema)))
     );
   }
 
@@ -29,5 +28,4 @@ export class UccSchemaMap<T> {
   #schemaId(schema: UcSchema): string {
     return `schema:${this.#index.schemaId(schema)}`;
   }
-
 }

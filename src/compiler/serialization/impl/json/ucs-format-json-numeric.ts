@@ -22,7 +22,8 @@ export function ucsFormatJSONInteger(variant?: UcInteger.Variant): UcsFormatter<
 }
 
 function ucsFormatJSONNumeric(toString: (value: EsSnippet) => EsSnippet): UcsFormatter<UcNumber> {
-  return ({ writer, value }) => code => {
+  return ({ writer, value }) =>
+    code => {
       const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
       const jsonNull = UC_MODULE_SERIALIZER.import('UCS_JSON_NULL');
 

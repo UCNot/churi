@@ -16,8 +16,8 @@ export async function ucsWriteNumber(writer: UcsWriter, value: number): Promise<
       Number.isNaN(value)
         ? UCS_NAN_ENTITY
         : value > 0
-        ? UCS_INFINITY_ENTITY
-        : UCS_NEGATIVE_INFINITY_ENTITY,
+          ? UCS_INFINITY_ENTITY
+          : UCS_NEGATIVE_INFINITY_ENTITY,
     );
   }
 }

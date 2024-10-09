@@ -4,7 +4,6 @@ import { UccBootstrap } from '../ucc-bootstrap.js';
 import { UccFeature } from '../ucc-feature.js';
 
 export class UccProcessor$ConstraintMapper<in out TBoot extends UccBootstrap<TBoot>> {
-
   readonly #handlers = new Map<string, UccFeature.ConstraintHandler<TBoot>>();
 
   onConstraint<TOptions>(
@@ -48,5 +47,4 @@ export class UccProcessor$ConstraintMapper<in out TBoot extends UccBootstrap<TBo
   ): string {
     return `${processor}(${within} ?? '*'):${use}@${from}`;
   }
-
 }

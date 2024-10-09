@@ -1,5 +1,4 @@
 export class TextOutStream extends WritableStream<Uint8Array> {
-
   static read(
     reader: (to: TextOutStream) => void | PromiseLike<void>,
     sink?: UnderlyingSink<Uint8Array>,
@@ -48,5 +47,4 @@ export class TextOutStream extends WritableStream<Uint8Array> {
   toString(): string {
     return this.#text;
   }
-
 }

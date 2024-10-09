@@ -10,7 +10,6 @@ import { UcToken } from '../../syntax/uc-token.js';
  * This representation is used when formatted data is not recognized by parser.
  */
 export class UcFormatted {
-
   readonly #format: string;
   readonly #data: readonly UcToken[];
 
@@ -62,5 +61,4 @@ export class UcFormatted {
   toString(): string {
     return chargeURI(this)!;
   }
-
 }

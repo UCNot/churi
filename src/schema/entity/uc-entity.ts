@@ -9,7 +9,6 @@ import { Uctx } from '../../rx/uctx.js';
  * This representation is used when entity is not recognized by parser.
  */
 export class UcEntity implements Uctx {
-
   readonly #name: string;
 
   /**
@@ -51,5 +50,4 @@ export class UcEntity implements Uctx {
   toString(): string {
     return chargeURI(this)!;
   }
-
 }

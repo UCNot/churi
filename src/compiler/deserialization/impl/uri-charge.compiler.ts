@@ -27,7 +27,6 @@ import { UnknownUcrxClass } from '../unknown.ucrx.class.js';
 export class URIChargeCompiler extends UcdCompiler<{
   parseURICharge: UcdModels.SyncEntry<UcSchema<URICharge>>;
 }> {
-
   constructor() {
     super({
       models: { parseURICharge: { model: URICharge$Schema, mode: 'sync' } },
@@ -77,7 +76,6 @@ export class URIChargeCompiler extends UcdCompiler<{
       onMeta: UC_MODULE_UC_VALUE_DESERIALIZER.import('onMeta$byDefault'),
     };
   }
-
 }
 
 const URICharge$Schema: UcNullable<URICharge> = {
@@ -98,7 +96,6 @@ const URICharge$Schema: UcNullable<URICharge> = {
 };
 
 class URIChargeListUcrxClass extends ListUcrxClass {
-
   protected override createNullItem(cx: EsSnippet): EsSnippet {
     const URICharge$Single = UC_MODULE_URI_CHARGE.import('URICharge$Single');
 
@@ -110,19 +107,15 @@ class URIChargeListUcrxClass extends ListUcrxClass {
 
     return esline`new ${URICharge$List}(${super.createList(cx)})`;
   }
-
 }
 
 class URIChargeMapUcrxClass extends MapUcrxClass {
-
   override allocateStore(): MapUcrxStore {
     return new URIChargeMapUcrxStore();
   }
-
 }
 
 class URIChargeMapUcrxStore implements MapUcrxStore {
-
   init(): EsSnippet {
     return `new Map()`;
   }
@@ -140,11 +133,9 @@ class URIChargeMapUcrxStore implements MapUcrxStore {
   reclaim(_map: EsSnippet): EsSnippet {
     return this.init();
   }
-
 }
 
 class URIChargeUcrxClass extends UnknownUcrxClass {
-
   protected override setValue<TArgs extends EsSignature.Args, TMod extends UcrxBeforeMod<TArgs>>(
     method: UcrxMethod<TArgs, TMod>,
     args: EsSignature.ValuesOf<TArgs>,
@@ -209,5 +200,4 @@ class URIChargeUcrxClass extends UnknownUcrxClass {
 
     return esline`return this.any(new ${URICharge$Single}(null, 'null', ${cx}.meta));`;
   }
-
 }

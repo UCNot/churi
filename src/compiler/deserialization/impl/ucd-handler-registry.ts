@@ -10,7 +10,6 @@ import { UC_MODULE_DESERIALIZER_DEFAULTS } from '../../impl/uc-modules.js';
 import { UcdHandlerFeature } from '../ucd-handler-feature.js';
 
 export class UcdHandlerRegistry {
-
   readonly #requestedName: string;
   #defaults: UcdHandlerConfig[] | undefined;
   #custom: UcdHandlerConfig[] | undefined = [];
@@ -87,7 +86,6 @@ export class UcdHandlerRegistry {
       });
     };
   }
-
 }
 
 interface UcdHandlerConfig {

@@ -14,7 +14,6 @@ export class UcrxMethod<
   out TArgs extends EsSignature.Args = EsSignature.Args,
   out TMod extends UcrxBeforeMod<TArgs> = UcrxBeforeMod<TArgs>,
 > extends EsMethod<TArgs> {
-
   readonly #stub: EsMethodDeclaration<TArgs>;
   readonly #typeName: string | undefined;
 
@@ -63,7 +62,6 @@ export class UcrxMethod<
       },
     });
   }
-
 }
 
 export interface UcrxMethod<

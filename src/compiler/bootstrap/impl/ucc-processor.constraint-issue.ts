@@ -7,7 +7,6 @@ import { UccFeature } from '../ucc-feature.js';
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
 export class UccProcessor$ConstraintIssue<out TOptions> implements UccProcessor$Current {
-
   constructor(
     readonly processor: UcProcessorName,
     readonly entry: string | undefined,
@@ -25,7 +24,6 @@ export class UccProcessor$ConstraintIssue<out TOptions> implements UccProcessor$
 
     return `import(${esStringLiteral(from)}).${esQuoteKey(use)}`;
   }
-
 }
 
 export interface UccProcessor$ConstraintResolution<

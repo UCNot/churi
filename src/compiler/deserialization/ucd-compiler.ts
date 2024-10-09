@@ -39,8 +39,8 @@ import { ucdProcessDefaults } from './ucd-process-defaults.js';
  */
 export class UcdCompiler<out TModels extends UcdModels = UcdModels>
   extends UcrxProcessor<UcdBootstrap>
-  implements UcdBootstrap {
-
+  implements UcdBootstrap
+{
   readonly #options: UcdCompiler.Options<TModels>;
   readonly #exportRequests = new Map<string, UcdFunction$ExportRequest>();
 
@@ -168,7 +168,8 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
         readonly value: EsSnippet;
       },
       context: EsDeclarationContext,
-    ) => EsSnippet = ({ cx, value }) => esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
+    ) => EsSnippet = ({ cx, value }) =>
+      esline`${cx}.meta.add(${esStringLiteral(attribute)}, ${value});`,
   ): this {
     const whenUcrxClass = new PromiseResolver<UcrxClass>();
     const handleAttr = new EsFunction(
@@ -182,7 +183,8 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
         declare: {
           at: 'bundle',
           body:
-            ({ args: { cx, rx } }, context) => async (code, { ns }) => {
+            ({ args: { cx, rx } }, context) =>
+            async (code, { ns }) => {
               const value = ns.addSymbol(new EsSymbol('$'), asis);
               const ucrxClass = await whenUcrxClass.whenDone();
 
@@ -326,7 +328,6 @@ export class UcdCompiler<out TModels extends UcdModels = UcdModels>
       this.enable(ucdProcessDefaults);
     }
   }
-
 }
 
 export namespace UcdCompiler {

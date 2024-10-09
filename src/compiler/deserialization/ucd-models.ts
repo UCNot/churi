@@ -53,10 +53,10 @@ export type UcdExports<TModels extends UcdModels> = {
   readonly [reader in keyof TModels]: TModels[reader] extends UcdModels.SyncEntry<any>
     ? UcDeserializer.Sync<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
     : TModels[reader] extends UcdModels.AsyncByTokensEntry<any>
-    ? UcDeserializer.AsyncByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
-    : TModels[reader] extends UcdModels.AsyncEntry<any>
-    ? UcDeserializer.Async<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
-    : TModels[reader] extends UcdModels.ByTokensEntry<any>
-    ? UcDeserializer.ByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
-    : UcDeserializer<UcInfer<UcdModels.ModelOf<TModels[reader]>>>;
+      ? UcDeserializer.AsyncByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
+      : TModels[reader] extends UcdModels.AsyncEntry<any>
+        ? UcDeserializer.Async<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
+        : TModels[reader] extends UcdModels.ByTokensEntry<any>
+          ? UcDeserializer.ByTokens<UcInfer<UcdModels.ModelOf<TModels[reader]>>>
+          : UcDeserializer<UcInfer<UcdModels.ModelOf<TModels[reader]>>>;
 };

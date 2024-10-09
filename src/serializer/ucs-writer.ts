@@ -3,7 +3,6 @@ import { UcSerializer } from '../schema/uc-serializer.js';
 import { UcsMemory } from './ucs-memory.js';
 
 export class UcsWriter {
-
   readonly #writer: WritableStreamDefaultWriter;
   readonly #data: Record<PropertyKey, unknown>;
   readonly #encodeURI: (this: void, value: string) => string;
@@ -59,7 +58,6 @@ export class UcsWriter {
 
     await this.#whenWritten;
   }
-
 }
 
 export namespace UcsWriter {

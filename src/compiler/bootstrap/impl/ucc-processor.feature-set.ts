@@ -10,7 +10,6 @@ import { UccProcessor$ConstraintMapper } from './ucc-processor.constraint-mapper
 import { UccProcessor$Current } from './ucc-processor.current.js';
 
 export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
-
   readonly #constraintMapper: UccProcessor$ConstraintMapper<TBoot>;
   readonly #resolutions = new Map<string, Promise<{ [key in string]: UccFeature<TBoot> }>>();
   readonly #enable: <TOptions>(
@@ -105,7 +104,6 @@ export class UccProcessor$FeatureSet<in out TBoot extends UccBootstrap<TBoot>> {
       this.#current = prev;
     }
   }
-
 }
 
 interface UccFeature$Entry<in TOptions = never> {

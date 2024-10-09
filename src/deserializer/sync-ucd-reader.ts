@@ -9,7 +9,6 @@ import { UcrxHandle } from './impl/ucrx-handle.js';
 import { UcdReader } from './ucd-reader.js';
 
 export class SyncUcdReader extends UcdReader {
-
   #tokens: readonly UcToken[];
   #current = -1;
   #next = 0;
@@ -147,7 +146,6 @@ export class SyncUcdReader extends UcdReader {
   override done(): void {
     // Nothing to do.
   }
-
 }
 
 export function createSyncUcdReader(

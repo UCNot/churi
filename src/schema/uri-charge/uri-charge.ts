@@ -13,7 +13,6 @@ import { UcUnknown } from '../unknown/uc-unknown.js';
  * {@link URICharge.none}, which means the absence of charge.
  */
 export abstract class URICharge implements Uctx {
-
   /**
    * URI charge instance representing the absent charge.
    */
@@ -164,7 +163,6 @@ export abstract class URICharge implements Uctx {
   toString(): string {
     return TokenUcrx.print(this)!;
   }
-
 }
 
 export namespace URICharge {
@@ -258,7 +256,6 @@ export namespace URICharge {
 }
 
 class URICharge$None extends URICharge implements URICharge.None {
-
   get value(): undefined {
     return;
   }
@@ -326,7 +323,6 @@ class URICharge$None extends URICharge implements URICharge.None {
   override toString(): string {
     return '!None';
   }
-
 }
 
 const URICharge$None$instance = /*#__PURE__*/ new URICharge$None();

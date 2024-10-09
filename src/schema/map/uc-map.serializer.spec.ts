@@ -106,7 +106,8 @@ describe('UcMap serializer', () => {
 
     await expect(
       TextOutStream.read(
-        async to => await writeMap(to, {
+        async to =>
+          await writeMap(to, {
             "'": 'quote',
             '!': 'exclamation',
             $: 'dollar',

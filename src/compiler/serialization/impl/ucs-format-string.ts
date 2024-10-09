@@ -17,8 +17,8 @@ export function ucsFormatString({ raw = 'escape' }: UcString.Variant = {}): UcsF
       raw === 'escape'
         ? ucsWriteString.name
         : schema.nullable
-        ? ucsWriteNullableRawString.name
-        : ucsWriteRawString.name,
+          ? ucsWriteNullableRawString.name
+          : ucsWriteRawString.name,
     );
 
     return esline`await ${writeString}(${writer}, ${value}, ${asItem});`;

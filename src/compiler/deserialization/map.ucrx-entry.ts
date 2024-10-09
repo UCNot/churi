@@ -18,7 +18,6 @@ import { UcrxClass } from '../rx/ucrx.class.js';
 import { MapUcrxClass, MapUcrxStore } from './map.ucrx.class.js';
 
 export class MapUcrxEntry {
-
   static ucrxClass<TEntriesModel extends UcMap.EntriesModel, TExtraModel extends UcModel | false>(
     lib: UcrxLib,
     mapSchema: UcMap.Schema<TEntriesModel, TExtraModel>,
@@ -105,7 +104,6 @@ export class MapUcrxEntry {
 
     return `use: ` + (this.key == null || this.schema.optional ? '0' : '1') + `,`;
   }
-
 }
 
 export const MapUcrxEntrySignature: MapUcrxEntrySignature = /*#__PURE__*/ new EsSignature({

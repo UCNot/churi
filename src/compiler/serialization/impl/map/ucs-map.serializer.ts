@@ -17,7 +17,6 @@ export abstract class UcsMapSerializer<
   TEntriesModel extends UcMap.EntriesModel,
   TExtraModel extends UcModel | false,
 > {
-
   readonly #writer: EsSnippet;
   readonly #value: EsSnippet;
   readonly #schema: UcMap.Schema<TEntriesModel, TExtraModel>;
@@ -321,5 +320,4 @@ export abstract class UcsMapSerializer<
   protected abstract endOfMap(): EsSnippet;
 
   protected abstract emptyMap(): EsSnippet;
-
 }

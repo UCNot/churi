@@ -22,7 +22,6 @@ import { UcrxBeforeMod, UcrxMethod } from '../rx/ucrx-method.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class UnknownUcrxClass extends UcrxClass {
-
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): UccFeature.Handle {
     return {
       inspect: schema => {
@@ -98,7 +97,8 @@ export class UnknownUcrxClass extends UcrxClass {
           member: {
             args: { set },
           },
-        }) => code => {
+        }) =>
+        code => {
           code.line('super', this.baseClass!.classConstructor.signature.call({ set }), ';');
         },
     });
@@ -113,7 +113,8 @@ export class UnknownUcrxClass extends UcrxClass {
           member: {
             args: { map, cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           const listRx = this.#listRx.get('this');
           const mapRx = this.#mapRx.get('this');
 
@@ -160,7 +161,8 @@ export class UnknownUcrxClass extends UcrxClass {
             member: {
               args: { cx },
             },
-          }) => code => {
+          }) =>
+          code => {
             const ucrxRejectNull = UC_MODULE_CHURI.import('ucrxRejectNull');
 
             code.write(esline`return ${cx}.reject(${ucrxRejectNull}(this));`);
@@ -176,7 +178,8 @@ export class UnknownUcrxClass extends UcrxClass {
           member: {
             args: { key, cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           const listRx = this.#listRx.get('this');
           const mapRx = this.#mapRx.get('this');
 
@@ -203,7 +206,8 @@ export class UnknownUcrxClass extends UcrxClass {
           member: {
             args: { cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           const listRx = this.#listRx.get('this');
           const mapRx = this.#mapRx.get('this');
           const res = new EsVarSymbol('res');
@@ -235,7 +239,8 @@ export class UnknownUcrxClass extends UcrxClass {
           member: {
             args: { cx },
           },
-        }) => code => {
+        }) =>
+        code => {
           const listRx = this.#listRx.get('this');
 
           code
@@ -284,7 +289,8 @@ export class UnknownUcrxClass extends UcrxClass {
   ): void {
     method.overrideIn(this, {
       body:
-        ({ member: { args } }) => code => {
+        ({ member: { args } }) =>
+        code => {
           const listRx = this.#listRx.get('this');
 
           code
@@ -310,10 +316,10 @@ export class UnknownUcrxClass extends UcrxClass {
   #overrideRemainingMethods(): void {
     for (const { member, declared } of this.members()) {
       if (
-        !declared
-        && member instanceof UcrxMethod
-        && member !== UcrxCore.ins
-        && member !== UcrxCore.raw
+        !declared &&
+        member instanceof UcrxMethod &&
+        member !== UcrxCore.ins &&
+        member !== UcrxCore.raw
       ) {
         this.#declareMethod(member);
       }
@@ -334,5 +340,4 @@ export class UnknownUcrxClass extends UcrxClass {
   ): EsSnippet {
     return esline`return ${this.member(method).call('super', args)};`;
   }
-
 }

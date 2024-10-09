@@ -1,5 +1,4 @@
 export class ASCIICharSet {
-
   readonly #min: number;
   readonly #max: number;
   readonly #mask: number;
@@ -25,10 +24,9 @@ export class ASCIICharSet {
     const firstCode = input.charCodeAt(0);
 
     return (
-      firstCode <= this.#max
-      && firstCode >= this.#min
-      && this.#mask & (1 << (firstCode - this.#min))
+      firstCode <= this.#max &&
+      firstCode >= this.#min &&
+      this.#mask & (1 << (firstCode - this.#min))
     );
   }
-
 }

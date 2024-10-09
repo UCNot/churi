@@ -175,8 +175,8 @@ describe('plain text serializer', () => {
     await expect(compiler.evaluate()).rejects.toThrow(
       new UnsupportedUcSchemaError(
         schema,
-        'Number$plainTextN(writer, value, asItem?): Can not serialize nullable values'
-          + ' of type "(Number | null)" to plain text',
+        'Number$plainTextN(writer, value, asItem?): Can not serialize nullable values' +
+          ' of type "(Number | null)" to plain text',
       ),
     );
   });
@@ -191,8 +191,8 @@ describe('plain text serializer', () => {
     await expect(compiler.evaluate()).rejects.toThrow(
       new UnsupportedUcSchemaError(
         schema,
-        'Number$plainTextO(writer, value, asItem?): Can not serialize optional values'
-          + ' of type "Number?" to plain text',
+        'Number$plainTextO(writer, value, asItem?): Can not serialize optional values' +
+          ' of type "Number?" to plain text',
       ),
     );
   });

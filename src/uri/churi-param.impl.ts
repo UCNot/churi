@@ -3,7 +3,6 @@ import { decodeURISearchPart, encodeURISearchPart } from 'httongue';
 import { ChURIParamSplitter } from './churi-param-splitter.js';
 
 export class ChURIParamValue {
-
   readonly #param: ChURIParam;
   readonly #index: number;
 
@@ -27,7 +26,6 @@ export class ChURIParamValue {
   toString(): string {
     return this.#param.rawKey + '=' + this.rawValue;
   }
-
 }
 
 export interface ChURIParam {
@@ -109,7 +107,6 @@ export function provideChURIParams(
 }
 
 class ChURIParam$Parsed implements ChURIParam {
-
   readonly #key: string;
   readonly #rawKey: string;
   readonly #rawValues: string[];
@@ -145,11 +142,9 @@ class ChURIParam$Parsed implements ChURIParam {
 
     return new ChURIParamValue(this, index);
   }
-
 }
 
 class ChURIParam$Provided implements ChURIParam {
-
   readonly #key: string;
   readonly #values: string[];
 
@@ -184,5 +179,4 @@ class ChURIParam$Provided implements ChURIParam {
 
     return new ChURIParamValue(this, index);
   }
-
 }

@@ -29,7 +29,6 @@ export class ChURI<
   out TAnchor = ChURIAnchor,
   out TAuth = ChURIAuth,
 > {
-
   readonly #prefix: string;
   readonly #protocol: string;
   readonly #scheme: string;
@@ -337,7 +336,6 @@ export class ChURI<
       pathname: search.slice(1, queryStart),
     });
   }
-
 }
 
 export namespace ChURI {

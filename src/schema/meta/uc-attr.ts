@@ -9,7 +9,6 @@ import { UcMeta } from './uc-meta.js';
  * @typeParam T - Attribute value type.
  */
 export class UcAttr<out T = unknown> extends UcMetaAttr<T, T, T[]> {
-
   override extract(data: T[] | undefined, meta: UcMeta): T | undefined;
   override extract(data: T[] | undefined, _meta: UcMeta): T | undefined {
     return data && data[data.length - 1];
@@ -38,5 +37,4 @@ export class UcAttr<out T = unknown> extends UcMetaAttr<T, T, T[]> {
   override merge(first: T[], second: T[]): T[] {
     return [...first, ...second];
   }
-
 }

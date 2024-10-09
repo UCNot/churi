@@ -13,7 +13,6 @@ import {
  * JSON lexer.
  */
 export class UcJSONLexer implements UcLexer {
-
   readonly #state: UcJSON$State;
 
   /**
@@ -32,11 +31,9 @@ export class UcJSONLexer implements UcLexer {
   flush(): void {
     this.#state.flush();
   }
-
 }
 
 class UcJSON$State {
-
   data = '';
   num = 0;
   #strategy: UcJSON$Strategy = UcJSON$TopLevel;
@@ -100,7 +97,6 @@ class UcJSON$State {
   #pop(): void {
     this.#strategy = this.#stack.pop()!;
   }
-
 }
 
 interface UcJSON$Strategy {

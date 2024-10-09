@@ -4,7 +4,8 @@ import { UC_MODULE_SERIALIZER } from '../../impl/uc-modules.js';
 import { UcsFormatter } from '../ucs-formatter.js';
 
 export function ucsFormatBoolean(): UcsFormatter<UcBoolean, UcBoolean.Schema> {
-  return ({ writer, value }) => code => {
+  return ({ writer, value }) =>
+    code => {
       const ucsTrue = UC_MODULE_SERIALIZER.import('UCS_TRUE');
       const ucsFalse = UC_MODULE_SERIALIZER.import('UCS_FALSE');
 

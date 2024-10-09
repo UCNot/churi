@@ -23,6 +23,6 @@ export function ucModelName(model: UcModel): string {
       ? `(${typeName} | null)?`
       : `${typeName}?`
     : nullable
-    ? `(${typeName} | null)`
-    : typeName;
+      ? `(${typeName} | null)`
+      : typeName;
 }

@@ -2,7 +2,6 @@ import { ucModelName } from '../../schema/uc-model-name.js';
 import { UcSchema } from '../../schema/uc-schema.js';
 
 export class UnsupportedUcSchemaError extends TypeError {
-
   readonly #schema: UcSchema;
 
   constructor(
@@ -18,5 +17,4 @@ export class UnsupportedUcSchemaError extends TypeError {
   get schema(): UcSchema {
     return this.#schema;
   }
-
 }

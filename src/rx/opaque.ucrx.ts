@@ -5,7 +5,6 @@ import { AllUcrx } from './all.ucrx.js';
 import { VoidUcrx } from './void.ucrx.js';
 
 export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
-
   constructor() {
     super(OpaqueUcrx$set);
   }
@@ -50,7 +49,6 @@ export class OpaqueUcrx extends VoidUcrx implements AllUcrx {
   override any(_value: unknown): 1 {
     return 1;
   }
-
 }
 
 export interface OpaqueUcrx extends AllUcrx {

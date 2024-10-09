@@ -37,13 +37,14 @@ export namespace UcMap {
   export type Infer<
     TEntriesModel extends EntriesModel,
     TExtraModel extends UcModel | false = false,
-  > = TExtraModel extends UcModel<any>
-    ? /* This should be AND rather OR, but TypeScript (as of v5.1) does not support this properly. */
-      | InferExplicit<TEntriesModel>
-        | {
-            [key in ExtraKeys<TEntriesModel>]?: UcInfer<TExtraModel>;
-          }
-    : InferExplicit<TEntriesModel>;
+  > =
+    TExtraModel extends UcModel<any>
+      ? /* This should be AND rather OR, but TypeScript (as of v5.1) does not support this properly. */
+        | InferExplicit<TEntriesModel>
+          | {
+              [key in ExtraKeys<TEntriesModel>]?: UcInfer<TExtraModel>;
+            }
+      : InferExplicit<TEntriesModel>;
 
   /**
    * Type of object containing explicitly specified entries within {@link Schema map model}.
@@ -244,7 +245,8 @@ function UcMap$id(
 ): string {
   const entryIds = Object.entries(entries)
     .map(
-      ([entryName, entryModel]) => esQuoteKey(entryName) + '(' + schemaId(ucSchema(entryModel)) + ')',
+      ([entryName, entryModel]) =>
+        esQuoteKey(entryName) + '(' + schemaId(ucSchema(entryModel)) + ')',
     )
     .join(';');
   let id = `entries{${entryIds}}`;

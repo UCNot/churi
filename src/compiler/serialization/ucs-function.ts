@@ -12,7 +12,6 @@ import { UcsModels } from './ucs-models.js';
 import { CreateUcsWriterExpr, UcsWriterClass, UcsWriterSignature } from './ucs-writer.class.js';
 
 export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-
   readonly #schema: TSchema;
   readonly #createWriter: UcsFunction.Options<T, TSchema>['createWriter'];
   readonly #formats = new Map<
@@ -120,13 +119,15 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         at: 'exports',
         async: true,
         body:
-          ({ args: { stream, value, options } }) => code => {
+          ({ args: { stream, value, options } }) =>
+          code => {
             const writer = new EsVarSymbol('writer');
 
             code
               .line(
                 writer.const({
-                  value: /* istanbul ignore next */ () => (this.#createWriter?.(format) ?? UcsFunction$createWriter)(
+                  value: /* istanbul ignore next */ () =>
+                    (this.#createWriter?.(format) ?? UcsFunction$createWriter)(
                       { stream, options },
                       this,
                     ),
@@ -153,7 +154,6 @@ export class UcsFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
     return context;
   }
-
 }
 
 export namespace UcsFunction {
@@ -199,7 +199,6 @@ function UcsFunction$onUnknownInset(schema: UcSchema, inset: UcInsetName): never
 }
 
 class UcsFunction$Context implements UcsFormatterContext {
-
   readonly #serializer: UcsFunction<unknown, UcSchema<unknown>>;
   readonly #format: UcFormatName;
   readonly #fn: EsFunction<UcsFormatterSignature.Args>;
@@ -260,5 +259,4 @@ class UcsFunction$Context implements UcsFormatterContext {
   toString(): string {
     return this.#fn.toString();
   }
-
 }

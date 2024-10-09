@@ -10,7 +10,6 @@ import { UcToken } from '../../syntax/uc-token.js';
 import { UcdReader } from '../ucd-reader.js';
 
 export class UcrxHandle implements UcrxContext {
-
   readonly #reader: UcdReader;
   #rx: Ucrx;
   #_reject: ((rejection: UcRejection) => 0) | undefined;
@@ -260,7 +259,6 @@ export class UcrxHandle implements UcrxContext {
       this.#rx.end(this);
     }
   }
-
 }
 
 type UcError$Path = [UcErrorPath$Head, ...UcErrorPath$Fragment[]];

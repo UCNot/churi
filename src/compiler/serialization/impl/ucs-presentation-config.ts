@@ -6,7 +6,6 @@ import { UcsInsetWrapper } from '../ucs-inset-formatter.js';
 import { CreateUcsWriterExpr } from '../ucs-writer.class.js';
 
 export class UcsPresentationConfig<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-
   readonly #schemaIndex: UccSchemaIndex;
   readonly #schemaFormatters = new Map<string, UcsFormatter<T, TSchema>>();
   readonly #schemaInsetWrappers = new Map<string, UcsInsetWrapper>();
@@ -15,7 +14,10 @@ export class UcsPresentationConfig<out T = unknown, out TSchema extends UcSchema
   insetWrapper?: UcsInsetWrapper | undefined;
   createWriter?: CreateUcsWriterExpr | undefined;
 
-  constructor(schemaIndex: UccSchemaIndex, readonly format: UcFormatName) {
+  constructor(
+    schemaIndex: UccSchemaIndex,
+    readonly format: UcFormatName,
+  ) {
     this.#schemaIndex = schemaIndex;
   }
 
@@ -54,5 +56,4 @@ export class UcsPresentationConfig<out T = unknown, out TSchema extends UcSchema
 
     return this.#schemaInsetWrappers.get(schemaId) ?? this.#typeInsetWrapper;
   }
-
 }

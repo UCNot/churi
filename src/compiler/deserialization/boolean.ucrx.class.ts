@@ -6,7 +6,6 @@ import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, UcBoolean.Schema> {
-
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(boot: TBoot): void {
     boot.useUcrxClass(Boolean, (lib, schema: UcBoolean.Schema) => new this(lib, schema));
   }
@@ -33,5 +32,4 @@ export class BooleanUcrxClass extends UcrxClass<UcrxSignature.Args, UcBoolean, U
       });
     }
   }
-
 }

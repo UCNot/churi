@@ -193,10 +193,8 @@ describe('chargeURI', () => {
     });
     it('encoded when class instance', () => {
       class TestObject {
-
         foo = 'bar';
-
-}
+      }
 
       expect(chargeURI(new TestObject())).toBe('foo(bar)');
     });

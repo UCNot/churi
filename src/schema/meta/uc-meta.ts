@@ -13,7 +13,6 @@ import { UcMetaAttr } from './uc-meta-attr.js';
  * Applies copy-on-write technique to avoid excessive data copying.
  */
 export class UcMeta {
-
   static #empty: UcMeta.Frozen | undefined;
 
   /**
@@ -328,7 +327,6 @@ export class UcMeta {
   toString(): string {
     return chargeURI(this) ?? '!()';
   }
-
 }
 
 export namespace UcMeta {

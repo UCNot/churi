@@ -520,7 +520,9 @@ describe('UcList deserializer', () => {
       await expect(readMatrix(parseTokens('(13)--'))).resolves.toEqual([[13], null]);
     });
     it('rejects null', async () => {
-      const error = await readMatrix(parseTokens('--')).catch(error => (error as UcError)?.toJSON?.());
+      const error = await readMatrix(parseTokens('--')).catch(error =>
+        (error as UcError)?.toJSON?.(),
+      );
 
       expect(error).toEqual({
         code: 'unexpectedType',

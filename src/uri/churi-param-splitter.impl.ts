@@ -1,7 +1,6 @@
 import { ChURIParamSplitter } from './churi-param-splitter.js';
 
 class ChURIParams$Splitter implements ChURIParamSplitter {
-
   readonly #prefix: string;
   readonly #joiner: string;
   readonly #splitter: RegExp;
@@ -60,7 +59,6 @@ class ChURIParams$Splitter implements ChURIParamSplitter {
       yield [key, value];
     }
   }
-
 }
 
 export const ChURIAnchor$splitter = /*#__PURE__*/ new ChURIParams$Splitter('#', '&');

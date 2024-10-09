@@ -29,7 +29,6 @@ export class MapUcrxClass<
   UcMap.Infer<TEntriesModel, TExtraModel>,
   UcMap.Schema<TEntriesModel, TExtraModel>
 > {
-
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
     boot: TBoot,
   ): UccFeature.Handle<UcMap.Variant> {
@@ -181,7 +180,8 @@ export class MapUcrxClass<
   #declareFor(): void {
     UcrxCore.for.overrideIn(this, {
       body:
-        ({ member: { args } }) => code => {
+        ({ member: { args } }) =>
+        code => {
           const { key, cx } = args;
           const entries = this.#entries;
           const extra = this.#extra;
@@ -329,7 +329,8 @@ export class MapUcrxClass<
             member: {
               args: { cx },
             },
-          }) => code => {
+          }) =>
+          code => {
             if (rxs) {
               // Explicitly finish the charges.
               code.write(esline`Object.values(${rxs.get('this')}).forEach(rx => rx._end());`);
@@ -369,7 +370,8 @@ export class MapUcrxClass<
             member: {
               args: { cx },
             },
-          }) => code => {
+          }) =>
+          code => {
             code
               .line('this.set(', store.store(map, cx), ');')
               .line(esline`${map} = ${store.reclaim(map)};`)
@@ -392,7 +394,8 @@ export class MapUcrxClass<
           member: {
             args: { set },
           },
-        }) => code => {
+        }) =>
+        code => {
           code
             .line('super', this.baseClass!.classConstructor.signature.call({ set }), ';')
             .line(this.#slot.set('this', esline`[${this.#store.init()}]`), ';');
@@ -413,7 +416,6 @@ export class MapUcrxClass<
   allocateStore(): MapUcrxStore {
     return new MapUcrxStore$Default();
   }
-
 }
 
 export interface MapUcrxStore {
@@ -424,7 +426,6 @@ export interface MapUcrxStore {
 }
 
 class MapUcrxStore$Default implements MapUcrxStore {
-
   init(): EsSnippet {
     return '{}';
   }
@@ -440,7 +441,6 @@ class MapUcrxStore$Default implements MapUcrxStore {
   reclaim(_map: EsSnippet): EsSnippet {
     return this.init();
   }
-
 }
 
 interface MapUcrxStore$Counter {
@@ -500,7 +500,6 @@ class MultiEntryUcrxClass<
   out T = unknown,
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > extends UcrxClass<TArgs, T, TSchema> {
-
   static readonly _end = new EsMethod<{ cx: EsArg }>('_end', {
     args: UcrxCore.end.signature,
   });
@@ -526,7 +525,6 @@ class MultiEntryUcrxClass<
       }) => esline`super.end(${cx});`,
     });
   }
-
 }
 
 function MultiEntryUcrxClass$associate<

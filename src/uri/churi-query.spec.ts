@@ -335,8 +335,8 @@ describe('ChURIQuery', () => {
       expect(String(new URLSearchParams(output))).toBe(String(urlParams));
       expect(String(new URLSearchParams([...urlParams.entries()]))).toBe(String(urlParams));
       expect(output).toBe(
-        'p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val'
-          + '&p=7val&p=8val&p=9val&p=%21val%21&p=%27val%27&p=-val-&p=%28foo%28&p=%29foo%29',
+        'p=0val&p=1val&p=2val&p=3val&p=4val&p=5val&p=6val' +
+          '&p=7val&p=8val&p=9val&p=%21val%21&p=%27val%27&p=-val-&p=%28foo%28&p=%29foo%29',
       );
     });
   });

@@ -12,7 +12,6 @@ export class UccProcessor$ConstraintUsage<
   in out TBoot extends UccBootstrap<TBoot>,
   in out TOptions = unknown,
 > {
-
   readonly #featureSet: UccProcessor$FeatureSet<TBoot>;
   readonly #schema: UcSchema;
   readonly #issues: UccProcessor$ConstraintIssue<TOptions>[] = [];
@@ -68,5 +67,4 @@ export class UccProcessor$ConstraintUsage<
       }
     });
   }
-
 }

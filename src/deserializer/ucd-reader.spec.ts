@@ -153,7 +153,9 @@ describe('UcdReader', () => {
     });
     it('searches until negative result received', async () => {
       await expect(
-        reader.find(token => typeof token === 'string' ? (token.includes('e') ? true : null) : false),
+        reader.find(token =>
+          typeof token === 'string' ? (token.includes('e') ? true : null) : false,
+        ),
       ).resolves.toBeUndefined();
       expect(reader.current()).toBe(UC_TOKEN_LF);
       expect(reader.prev()).toEqual(['abc']);

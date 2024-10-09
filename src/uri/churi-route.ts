@@ -10,7 +10,6 @@ import { ChURIMatrix } from './churi-params.js';
  * @typeParam TMatrix - Matrix parameters representation type. {@link ChURIMatrix} by default.
  */
 export class ChURIRoute<out TMatrix = ChURIMatrix> {
-
   readonly #options: ChURIRoute.CustomOptions<TMatrix>;
 
   #data: ChURIRoute$Data<TMatrix>;
@@ -199,7 +198,6 @@ export class ChURIRoute<out TMatrix = ChURIMatrix> {
       this.#options as ChURIRoute.Options<TMatrix>,
     );
   }
-
 }
 
 export namespace ChURIRoute {
@@ -244,7 +242,6 @@ interface UcRoute$Parts {
 }
 
 class ChURIRoute$Data<out TMatrix> {
-
   readonly #path: string;
   readonly #override: string | undefined;
   #fragments: readonly string[] | undefined;
@@ -320,7 +317,6 @@ class ChURIRoute$Data<out TMatrix> {
   setPart(index: number, route: ChURIRoute<TMatrix>): void {
     this.#parts[index] = route;
   }
-
 }
 
 const CHURI_NAME_DELIMITER_PATTERN = /[(),]/;

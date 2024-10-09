@@ -9,7 +9,8 @@ export function ucsFormatBigInt({
   string = 'parse',
   number = 'parse',
 }: UcBigInt.Variant = {}): UcsFormatter<UcBigInt, UcBigInt.Schema> {
-  return ({ writer, value }) => code => {
+  return ({ writer, value }) =>
+    code => {
       if (string === 'serialize') {
         const ucsApostrophe = UC_MODULE_SERIALIZER.import('UCS_APOSTROPHE');
 

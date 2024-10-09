@@ -42,12 +42,10 @@ describe('OpaqueUcrx', () => {
   describe('set', () => {
     it('has no effect', () => {
       class TestUcrx extends OpaqueUcrx {
-
         override any(value: unknown): 1 {
           return this.set(value);
         }
-
-}
+      }
 
       let assigned: unknown;
       const ucrx = new TestUcrx();

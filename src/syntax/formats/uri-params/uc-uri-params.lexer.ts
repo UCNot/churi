@@ -22,7 +22,6 @@ import {
  * Parameter values emitted as inset starting with {@link UC_TOKEN_INSET_URI_PARAM} token.
  */
 export class UcURIParamsLexer implements UcLexer {
-
   readonly #emit: (token: UcToken) => void;
   readonly #splitter: string;
   readonly #delimiter: RegExp;
@@ -133,7 +132,6 @@ export class UcURIParamsLexer implements UcLexer {
     this.#emit(UC_TOKEN_OPENING_PARENTHESIS);
     this.#emit(UC_TOKEN_CLOSING_PARENTHESIS);
   }
-
 }
 
 const CHURI_DELIMITER_PATTERNS = {

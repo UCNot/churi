@@ -1,5 +1,4 @@
 export class UcsMemory {
-
   readonly #blockSize: number;
   readonly #blocks: UcsMemoryBlock[];
   #useCount = 0;
@@ -63,11 +62,9 @@ export class UcsMemory {
       }
     }
   }
-
 }
 
 class UcsMemoryBlock {
-
   readonly #space: ArrayBuffer;
   #reserved = 0;
   #free = 0;
@@ -125,5 +122,4 @@ class UcsMemoryBlock {
 
     return true;
   }
-
 }

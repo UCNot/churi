@@ -26,7 +26,6 @@ import {
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[string, string]> {
-
   /**
    * Search parameters splitter.
    *
@@ -220,7 +219,6 @@ export abstract class ChURIParams<out TCharge = URICharge> implements Iterable<[
   toString(): string {
     return this.#list.join((this.constructor as typeof ChURIParams<TCharge>).splitter.joiner);
   }
-
 }
 
 export namespace ChURIParams {
@@ -253,7 +251,6 @@ export namespace ChURIParams {
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export class ChURIAnchor<out TCharge = URICharge> extends ChURIParams<TCharge> {
-
   /**
    * Anchor parameters splitter.
    *
@@ -262,7 +259,6 @@ export class ChURIAnchor<out TCharge = URICharge> extends ChURIParams<TCharge> {
   static override get splitter(): ChURIParamSplitter {
     return ChURIAnchor$splitter;
   }
-
 }
 
 /**
@@ -272,7 +268,6 @@ export class ChURIAnchor<out TCharge = URICharge> extends ChURIParams<TCharge> {
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export class ChURIAuth<out TCharge = URICharge> extends ChURIParams<TCharge> {
-
   /**
    * Matrix parameters splitter.
    *
@@ -281,7 +276,6 @@ export class ChURIAuth<out TCharge = URICharge> extends ChURIParams<TCharge> {
   static override get splitter(): ChURIParamSplitter {
     return ChURIMatrix$splitter;
   }
-
 }
 
 /**
@@ -299,7 +293,6 @@ export class ChURIQuery<out TCharge = URICharge> extends ChURIParams<TCharge> {}
  * @typeParam TCharge - URI charge representation type. {@link URICharge} by default.
  */
 export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
-
   /**
    * Matrix parameters splitter.
    *
@@ -308,7 +301,6 @@ export class ChURIMatrix<out TCharge = URICharge> extends ChURIParams<TCharge> {
   static override get splitter(): ChURIParamSplitter {
     return ChURIMatrix$splitter;
   }
-
 }
 
 function ChURIParams$parse(rawValues: string[], _key: string | null, _params: ChURIParams): any {

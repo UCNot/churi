@@ -36,7 +36,8 @@ function toBeURIChargeList<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedMeta, expectedMeta);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
         pass ? 'not ' : ''
       }to be list with ${this.utils.printExpected(expectedMeta)}`,
     pass,
@@ -62,7 +63,8 @@ function toBeURIChargeMap<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedMeta, expectedMeta);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
         pass ? 'not ' : ''
       }to be map with ${this.utils.printExpected(expectedMeta)}`,
     pass,
@@ -90,7 +92,8 @@ function toBeURIChargeNone<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedData, expectedData);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedData)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedData)} ${
         pass ? 'not ' : ''
       }to be "None" value with ${this.utils.printExpected(expectedData)}`,
     pass,
@@ -117,7 +120,8 @@ function toBeURIChargeSingle<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedMeta, expectedMeta);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedMeta)} ${
         pass ? 'not ' : ''
       }to have single value with ${this.utils.printExpected(expectedMeta)}`,
     pass,
@@ -135,7 +139,8 @@ function toHaveURIChargeEntries<TContext extends MatcherContext = MatcherContext
   const pass = this.equals(receivedEntries, expectedEntries);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedEntries)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedEntries)} ${
         pass ? 'not ' : ''
       }to be a map of ${this.utils.printExpected(expectedEntries)}`,
     pass,
@@ -151,7 +156,8 @@ function toHaveURIChargeItems<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedValues, expectedValues);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(receivedValues)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(receivedValues)} ${
         pass ? 'not ' : ''
       }to have ${expectedValues.length} values ${this.utils.printExpected(expectedValues)}`,
     pass,
@@ -167,7 +173,8 @@ function toHaveURIChargeValue<TContext extends MatcherContext = MatcherContext>(
   const pass = this.equals(receivedValue, expectedValue);
 
   return {
-    message: () => `expected URI charge with ${this.utils.printReceived(received.value)} ${
+    message: () =>
+      `expected URI charge with ${this.utils.printReceived(received.value)} ${
         pass ? 'not ' : ''
       }to have value ${this.utils.printExpected(expectedValue)}`,
     pass,

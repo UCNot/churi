@@ -13,7 +13,6 @@ import { UcdModels } from './ucd-models.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
-
   readonly #schemaIndex: UccSchemaIndex;
   readonly #models: UcdSchemaConfigs<TModels>;
 
@@ -90,7 +89,8 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
       }
 
       this.#onMeta = new EsCallable({ cx: {}, rx: {}, attr: {} }).lambda(
-        ({ args: { cx, rx, attr } }) => code => {
+        ({ args: { cx, rx, attr } }) =>
+          code => {
             code.line(
               'return ',
               esline`${defaultMeta}[${attr}]?.(${cx}, ${rx}, ${attr})`,
@@ -124,7 +124,6 @@ export class UcdLib<out TModels extends UcdModels = UcdModels> extends UcrxLib {
   override ucrxClassFor<T, TSchema extends UcSchema<T> = UcSchema<T>>(schema: TSchema): UcrxClass {
     return this.deserializerFor<T, TSchema>(schema).ucrxClass;
   }
-
 }
 
 export namespace UcdLib {

@@ -11,7 +11,6 @@ import { UcdLib } from './ucd-lib.js';
 import { UcdModels } from './ucd-models.js';
 
 export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-
   readonly #lib: UcdLib.Any;
   readonly #schema: TSchema;
   #ucrxClass?: UcrxClass;
@@ -90,7 +89,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         at: 'exports',
         async: mode === 'async',
         body:
-          ({ args: { input: inputArg } }) => code => {
+          ({ args: { input: inputArg } }) =>
+          code => {
             const input = mode === 'async' ? stream : inputArg;
 
             code.write(
@@ -142,7 +142,8 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
         .write(result.let())
         .write(
           reader.const({
-            value: () => mode === 'async'
+            value: () =>
+              mode === 'async'
                 ? this.#createAsyncReader(createLexer, args)
                 : this.#createSyncReader(createLexer, args),
           }),
@@ -233,7 +234,6 @@ export class UcdFunction<out T = unknown, out TSchema extends UcSchema<T> = UcSc
 
     return esline`${createSyncUcdReader}(${input}, ${options})`;
   }
-
 }
 
 export namespace UcdFunction {

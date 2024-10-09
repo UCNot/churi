@@ -23,7 +23,6 @@ class UcsMapJSONSerializer<
   TEntriesModel extends UcMap.EntriesModel,
   TExtraModel extends UcModel | false,
 > extends UcsMapSerializer<TEntriesModel, TExtraModel> {
-
   protected override firstEntryPrefix(entryKey: string): EsSnippet {
     return this.lib.binConst(`{${JSON.stringify(entryKey)}:`);
   }
@@ -51,5 +50,4 @@ class UcsMapJSONSerializer<
   protected override emptyMap(): EsSnippet {
     return UC_MODULE_SERIALIZER.import('UCS_JSON_EMPTY_OBJECT');
   }
-
 }

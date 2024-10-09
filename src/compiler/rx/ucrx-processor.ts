@@ -14,8 +14,8 @@ import { UcrxClass, UcrxClassMod, UcrxProto, UcrxSignature } from './ucrx.class.
  */
 export abstract class UcrxProcessor<in out TBoot extends UcrxBootstrap<TBoot>>
   extends UccProcessor<TBoot>
-  implements UcrxBootstrap<TBoot> {
-
+  implements UcrxBootstrap<TBoot>
+{
   readonly #perType = new Map<string | UcDataType, UcrxTypeEntry>();
   readonly #methods = new Set<UcrxMethod<any>>();
 
@@ -76,11 +76,9 @@ export abstract class UcrxProcessor<in out TBoot extends UcrxBootstrap<TBoot>>
 
     return typeEntry;
   }
-
 }
 
 class UcrxTypeEntry<in out T = unknown, out TSchema extends UcSchema<T> = UcSchema<T>> {
-
   readonly #schemaIndex: UccSchemaIndex;
   #proto: UcrxProto<T, TSchema> | undefined;
   readonly #perSchema = new Map<string, UcrxSchemaEntry<T, TSchema>>();
@@ -124,11 +122,9 @@ class UcrxTypeEntry<in out T = unknown, out TSchema extends UcSchema<T> = UcSche
 
     return schemaEntry;
   }
-
 }
 
 class UcrxSchemaEntry<in out T, out TSchema extends UcSchema<T>> {
-
   readonly #mods: ((ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>) => void)[] = [];
   #explicitProto: UcrxProto<T, TSchema> | undefined;
   #proto: UcrxProto<T, TSchema> | undefined;
@@ -175,5 +171,4 @@ class UcrxSchemaEntry<in out T, out TSchema extends UcSchema<T>> {
   #modifyUcrxClass(ucrxClass: UcrxClass<UcrxSignature.Args, T, TSchema>): void {
     this.#mods.forEach(mod => mod(ucrxClass));
   }
-
 }

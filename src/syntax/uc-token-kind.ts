@@ -62,18 +62,18 @@ export function isWhitespaceUcToken(token: UcToken): boolean {
   const mask = token & 0xff;
 
   return (
-    mask === UC_TOKEN_PREFIX_SPACE
-    || mask === UC_TOKEN_LF
-    || mask === UC_TOKEN_PREFIX_TAB
-    || mask === UC_TOKEN_CR
+    mask === UC_TOKEN_PREFIX_SPACE ||
+    mask === UC_TOKEN_LF ||
+    mask === UC_TOKEN_PREFIX_TAB ||
+    mask === UC_TOKEN_CR
   );
 }
 
 export function isUcBoundToken(token: UcToken): boolean {
   return (
-    token === UC_TOKEN_COMMA
-    || token === UC_TOKEN_OPENING_PARENTHESIS
-    || token === UC_TOKEN_CLOSING_PARENTHESIS
+    token === UC_TOKEN_COMMA ||
+    token === UC_TOKEN_OPENING_PARENTHESIS ||
+    token === UC_TOKEN_CLOSING_PARENTHESIS
   );
 }
 

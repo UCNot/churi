@@ -8,7 +8,6 @@ import { UC_TOKEN_APOSTROPHE, UcToken } from '../../uc-token.js';
  * Decodes URI-encoded text and emits it as string {@link UcToken tokens}.
  */
 export class UcURIEncodedLexer implements UcLexer {
-
   /**
    * Creates URI-encoded text lexer that decodes _plus sign_ (`"+" (U+002B)`) as {@link UC_TOKEN_PREFIX_SPACE space
    * padding}.
@@ -75,7 +74,6 @@ export class UcURIEncodedLexer implements UcLexer {
     }
     this.#emit(this.#decode(chunk));
   }
-
 }
 
 const PERCENT_ENCODED_TAIL_PATTERN = /%[\da-fA-F]{0,2}$/;

@@ -8,7 +8,6 @@ import { UcrxLib } from '../rx/ucrx-lib.js';
 import { UcrxClass, UcrxSignature } from '../rx/ucrx.class.js';
 
 export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, UcInteger.Schema> {
-
   static uccEnable<TBoot extends UcrxBootstrap<TBoot>>(
     boot: TBoot,
   ): UccFeature.Handle<UcInteger.Variant> {
@@ -89,5 +88,4 @@ export class IntegerUcrxClass extends UcrxClass<UcrxSignature.Args, UcInteger, U
       types.add('null');
     }
   }
-
 }

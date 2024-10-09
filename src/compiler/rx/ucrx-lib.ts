@@ -7,7 +7,6 @@ import { UcrxMethod } from './ucrx-method.js';
 import { UcrxClass, UcrxProto } from './ucrx.class.js';
 
 export abstract class UcrxLib {
-
   static esScopedValue(scope: EsScope): UcrxLib {
     const { bundle } = scope;
 
@@ -73,7 +72,6 @@ export abstract class UcrxLib {
   ): UcrxProto<T, TSchema> | undefined {
     return this.#ucrxProtoFor?.(schema);
   }
-
 }
 
 export namespace UcrxLib {

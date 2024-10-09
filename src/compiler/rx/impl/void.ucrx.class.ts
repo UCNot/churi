@@ -5,7 +5,6 @@ import { UcrxCore } from '../ucrx-core.js';
 import { UcrxSignature } from '../ucrx.class.js';
 
 export class VoidUcrxClass extends EsClass<UcrxSignature.Args> {
-
   static #instance: VoidUcrxClass | undefined;
 
   static get instance(): VoidUcrxClass {
@@ -33,5 +32,4 @@ export class VoidUcrxClass extends EsClass<UcrxSignature.Args> {
       }
     }
   }
-
 }

@@ -8,7 +8,6 @@ import { UcError, UcErrorInfo } from '../schema/uc-error.js';
 import { UcToken } from '../syntax/uc-token.js';
 
 export abstract class UcdReader {
-
   readonly #data: Record<PropertyKey, unknown>;
   readonly #opaqueRx: Ucrx;
   readonly #onError: (error: UcErrorInfo) => void;
@@ -100,7 +99,6 @@ export abstract class UcdReader {
   abstract omitPrev(): void;
 
   abstract done(): void;
-
 }
 
 export namespace UcdReader {

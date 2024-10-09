@@ -27,7 +27,6 @@ describe('UcrxClass', () => {
 });
 
 class TestClass extends UcrxClass {
-
   constructor() {
     super({
       lib: null!,
@@ -37,11 +36,9 @@ class TestClass extends UcrxClass {
       classConstructor: { args: UcrxSignature },
     });
   }
-
 }
 
 class TestClass2 extends UcrxClass {
-
   constructor() {
     super({
       lib: null!,
@@ -51,5 +48,4 @@ class TestClass2 extends UcrxClass {
       classConstructor: { args: UcrxSignature },
     });
   }
-
 }

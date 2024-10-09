@@ -6,7 +6,6 @@ import { UcrxHandle } from './impl/ucrx-handle.js';
 import { UcdReader } from './ucd-reader.js';
 
 export class AsyncUcdReader extends UcdReader {
-
   #stream: ReadableStream<UcToken>;
   #reader: ReadableStreamDefaultReader<UcToken>;
 
@@ -147,11 +146,9 @@ export class AsyncUcdReader extends UcdReader {
   override done(): void {
     this.#reader.releaseLock();
   }
-
 }
 
 export class UcInsetStream extends TransformStream<UcToken, UcToken> {
-
   constructor(createLexer: (emit: (token: UcToken) => void) => UcrxInsetLexer) {
     let lexer: UcrxInsetLexer;
     let pass = (token: UcToken, _controller: TransformStreamDefaultController<UcToken>): void => {
@@ -171,5 +168,4 @@ export class UcInsetStream extends TransformStream<UcToken, UcToken> {
       flush: () => lexer.flush(),
     });
   }
-
 }

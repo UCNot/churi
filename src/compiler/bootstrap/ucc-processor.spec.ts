@@ -321,7 +321,6 @@ describe('UccProcessor', () => {
 });
 
 class UccTestProcessor extends UccProcessor<UccTestBootstrap> implements UccTestBootstrap {
-
   readonly records: unknown[] = [];
 
   record(value: unknown): void {
@@ -335,5 +334,4 @@ class UccTestProcessor extends UccProcessor<UccTestBootstrap> implements UccTest
   protected override startBootstrap(): UccTestBootstrap {
     return this;
   }
-
 }

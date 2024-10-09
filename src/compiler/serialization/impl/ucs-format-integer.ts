@@ -8,7 +8,8 @@ export function ucsFormatInteger({ string = 'parse' }: UcInteger.Variant = {}): 
   UcInteger,
   UcInteger.Schema
 > {
-  return ({ writer, value }) => code => {
+  return ({ writer, value }) =>
+    code => {
       const writeAsIs = UC_MODULE_SERIALIZER.import(ucsWriteAsIs.name);
 
       if (string === 'serialize') {

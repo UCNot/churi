@@ -10,7 +10,6 @@ export abstract class UcrxClass<
   out T = unknown,
   out TSchema extends UcSchema<T> = UcSchema<T>,
 > extends EsClass<TArgs> {
-
   readonly #schema: TSchema;
   readonly #typeName: string;
   readonly #methodMods = new Map<UcrxMethod<EsSignature.Args, any>, unknown[]>();
@@ -132,10 +131,10 @@ export abstract class UcrxClass<
 
   #declareTypes(): void {
     UcrxCore.types.declareIn(this as EsClass, {
-      get: () => `return [` + [...this.supportedTypes].map(type => esStringLiteral(type)).join(', ') + `];`,
+      get: () =>
+        `return [` + [...this.supportedTypes].map(type => esStringLiteral(type)).join(', ') + `];`,
     });
   }
-
 }
 
 export namespace UcrxClass {

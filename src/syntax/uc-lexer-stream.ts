@@ -8,7 +8,6 @@ import { UcToken } from './uc-token.js';
  * Utilizes URI charge {@link UcChargeLexer lexer} internally.
  */
 export class UcLexerStream extends TransformStream<string, UcToken> {
-
   /**
    * Constructs lexer stream.
    *
@@ -35,7 +34,6 @@ export class UcLexerStream extends TransformStream<string, UcToken> {
       readableStrategy,
     );
   }
-
 }
 
 function UcLexerStream$createDefaultLexer(emit: (token: UcToken) => void): UcLexer {

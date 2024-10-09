@@ -23,7 +23,6 @@ import { CreateUcsWriterExpr } from './ucs-writer.class.js';
  * @typeParam TModels - Compiled models record type.
  */
 export class UcsLib<out TModels extends UcsModels = UcsModels> {
-
   static esScopedValue(scope: EsScope): UcsLib {
     const { bundle } = scope;
 
@@ -122,7 +121,6 @@ export class UcsLib<out TModels extends UcsModels = UcsModels> {
       },
     });
   }
-
 }
 
 export namespace UcsLib {

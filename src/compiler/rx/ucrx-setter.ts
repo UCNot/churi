@@ -3,13 +3,11 @@ import { UC_MODULE_CHURI } from '../impl/uc-modules.js';
 import { UcrxMethod, UcrxMethodInit } from './ucrx-method.js';
 
 export class UcrxSetter extends UcrxMethod<UcrxSetterSignature.Args> {
-
   constructor(requestedName: string, init: UcrxSetterInit) {
     const { typeName, stub = UcrxSetter$createStub(typeName) } = init;
 
     super(requestedName, { ...init, args: UcrxSetterSignature, stub });
   }
-
 }
 
 export interface UcrxSetter extends UcrxMethod<UcrxSetterSignature.Args> {
